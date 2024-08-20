@@ -1,0 +1,30 @@
+VerticalScroll {
+    width: 1fr;
+    height: 1fr;
+    margin:0 2 0 0;
+}
+
+TaskCard {
+    width: 1fr;
+    height: auto;
+    border: outer green;
+    margin:0 0 1 0;
+
+    Label {
+        width:1fr;
+        height: auto;
+        text-align:center;
+    }
+    Placeholder {
+        width: 1fr;
+        height: auto;
+    }
+    TextArea {
+        width: 1fr;
+        height: auto;
+    }
+}
+
+.hide {
+    display:none;
+}

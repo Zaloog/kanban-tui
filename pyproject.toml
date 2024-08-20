@@ -1,0 +1,32 @@
+[project]
+name = "kanban-tui"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Zaloog", email = "gramslars@gmail.com" }
+]
+dependencies = [
+    "textual>=0.76.0",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+license = { text = "MIT" }
+
+[project.scripts]
+ktui = "kanban_tui.__main__:main"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "textual-dev>=1.5.1",
+    "pre-commit>=3.8.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kanban_tui"]
