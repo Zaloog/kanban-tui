@@ -4,7 +4,6 @@ from textual.widget import Widget
 from textual.containers import Horizontal
 
 from kanban_tui.widgets.task_column import ReadyColumn, DoingColumn, DoneColumn
-from kanban_tui.widgets.task_card import TaskCard
 
 
 class KanbanBoard(Horizontal):
@@ -13,6 +12,3 @@ class KanbanBoard(Horizontal):
         yield DoingColumn()
         yield DoneColumn()
         return super().compose()
-
-    def key_space(self):
-        self.query_one(ReadyColumn).place_task(TaskCard(title="test"))

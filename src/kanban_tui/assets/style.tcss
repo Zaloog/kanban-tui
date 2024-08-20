@@ -1,3 +1,15 @@
+Tab {
+    width: 1fr;
+}
+Tab.-active {
+    color: $success;
+}
+/* Tab Underline Color */
+Underline .underline--bar {
+    background: $primary;
+    color: $success;
+}
+
 ReadyColumn{
     height:1fr;
     width:1fr;

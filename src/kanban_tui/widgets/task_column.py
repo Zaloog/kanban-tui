@@ -10,6 +10,7 @@ from kanban_tui.widgets.task_card import TaskCard
 
 
 class ReadyColumn(Vertical):
+    BINDINGS = [("space", "place_task", "new task")]
     task_amount: reactive[int] = reactive(0)
 
     def compose(self) -> Iterable[Widget]:
@@ -17,9 +18,9 @@ class ReadyColumn(Vertical):
         yield VerticalScroll(id="column_ready")
         return super().compose()
 
-    def place_task(self, task: TaskCard) -> None:
-        self.query_one(VerticalScroll).mount(task)
+    def action_place_task(self, task: TaskCard | None = None) -> None:
         self.task_amount += 1
+        self.query_one(VerticalScroll).mount(TaskCard(title=f"Task {self.task_amount}"))
 
     def watch_task_amount(self) -> None:
         if self.task_amount == 0:
