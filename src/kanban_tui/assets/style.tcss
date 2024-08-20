@@ -66,6 +66,9 @@ TaskCard {
     height: auto;
     background:$primary;
     margin:0 0 1 0;
+    &:focus {
+        border: $success;
+    }
 
 
     Label {
@@ -83,10 +86,16 @@ TaskCard {
     TextArea {
         width: 1fr;
         height: auto;
-        border: outer green;
+        background: darkblue;
     }
 }
 
-.hide {
+VerticalScroll {
+    scrollbar-color: $warning;
+    scrollbar-color-active: $success;
+    scrollbar-color-hover: $success;
+}
+
+.hidden {
     display:none;
 }
