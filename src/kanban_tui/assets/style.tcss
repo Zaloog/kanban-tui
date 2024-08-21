@@ -49,6 +49,7 @@ TaskCard {
         width: 1fr;
         height: auto;
         background: darkblue;
+        margin:0;
     }
 }
 

@@ -43,18 +43,12 @@ class TaskCard(Vertical):
         super().__init__(id=id)
 
     def compose(self) -> ComposeResult:
-        EXAMPLE_MARKDOWN = """\
-# Markdown Document
+        EXAMPLE_MARKDOWN = """# Markdown Document
 
 This is an example of Textual's `Markdown` widget.
 
 ## Features
 
-Markdown syntax and extensions are supported.
-
-- Typography *emphasis*, **strong**, `inline code` etc.
-- Headers
-- Lists (bullet and ordered)
 - Syntax highlighted code blocks
 - Tables!
 """
@@ -62,7 +56,7 @@ Markdown syntax and extensions are supported.
         yield Markdown(
             markdown=EXAMPLE_MARKDOWN,
             # id=f"body_task{self.title}",
-            classes="hidden",
+            # classes="hidden",
         )
         return super().compose()
 
@@ -93,23 +87,5 @@ Markdown syntax and extensions are supported.
             self.query_one(Markdown).remove_class("hidden")
         else:
             self.query_one(Label).remove_class("hidden")
-            self.query_one(Markdown).add_class("hidden")
-
-    # def on_mouse_down(self, event:MouseDown):
-    #     self.log.error(f'widget pos: {self.offset}')
-    #     self.picked = True
-    #     # self.set_styles('layer:above;')
-    #     self.offset = event.screen_offset - self.parent.region.offset - Offset(self.region.width//2, self.region.height//2)
-    #     self.log.error(f'mouse pos: {self.app.mouse_position}')
-    #     self.log.error(f'parent offset: {self.parent.offset}')
-    #     self.log.error(f'event: offset {event.offset}')
-    #     self.log.error(f'event: screen offset {event.screen_offset}')
-
-    # def on_mouse_up(self, event:MouseUp):
-    #     self.picked = False
-    #     # self.set_styles('layer:none;')
-    #     self.offset = event.screen_offset - self.parent.region.offset - Offset(self.region.width//2, self.region.height//2)
-
-    # def on_mouse_move(self, event:MouseMove):
-    #     if self.picked:
-    #         self.offset = event.screen_offset - self.parent.region.offset - Offset(self.region.width//2, self.region.height//2)
+            if not self.app.cfg.tasks_always_expanded:
+                self.query_one(Markdown).add_class("hidden")
