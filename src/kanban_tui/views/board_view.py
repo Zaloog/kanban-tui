@@ -3,10 +3,11 @@ from typing import Iterable
 from textual import on
 from textual.widget import Widget
 from textual.reactive import reactive
-from textual.containers import Horizontal, VerticalScroll
+from textual.containers import Horizontal
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
+from kanban_tui.views.task_view import TaskEditScreen
 
 from kanban_tui.constants import COLUMNS
 
@@ -27,10 +28,11 @@ class KanbanBoard(Horizontal):
         return super().compose()
 
     def action_place_task(self, task: TaskCard | None = None) -> None:
-        self.query_one("#column_ready", Column).task_amount += 1
-        ta = self.query_one("#column_ready", Column).task_amount
-        card = TaskCard(title=f"Task {ta}", row=ta - 1, column=0)
-        self.query_one("#column_ready", Column).query_one(VerticalScroll).mount(card)
+        self.app.push_screen(TaskEditScreen())
+        # self.query_one("#column_ready", Column).task_amount += 1
+        # ta = self.query_one("#column_ready", Column).task_amount
+        # card = TaskCard(title=f"Task {ta}", row=ta - 1, column=0)
+        # self.query_one("#column_ready", Column).query_one(VerticalScroll).mount(card)
 
     def key_j(self):
         column = self.query(Column)[self.position[1]]

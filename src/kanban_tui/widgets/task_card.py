@@ -5,7 +5,7 @@ from textual.reactive import reactive
 from textual.events import Enter, Leave, Mount
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Label, TextArea
+from textual.widgets import Label, Markdown
 from textual.message import Message
 
 
@@ -38,13 +38,28 @@ class TaskCard(Vertical):
         super().__init__(id=id)
 
     def compose(self) -> ComposeResult:
+        EXAMPLE_MARKDOWN = """\
+# Markdown Document
+
+This is an example of Textual's `Markdown` widget.
+
+## Features
+
+Markdown syntax and extensions are supported.
+
+- Typography *emphasis*, **strong**, `inline code` etc.
+- Headers
+- Lists (bullet and ordered)
+- Syntax highlighted code blocks
+- Tables!
+"""
         yield Label(f"Task_{self.title} {self.position}")
-        yield TextArea(
-            "Body",
+        yield Markdown(
+            markdown=EXAMPLE_MARKDOWN,
             # id=f"body_task{self.title}",
             classes="hidden",
-            soft_wrap=False,
-            read_only=True,
+            # soft_wrap=False,
+            # read_only=True,
         )
         return super().compose()
 
@@ -72,10 +87,10 @@ class TaskCard(Vertical):
         if self.expanded:
             self.border_title = self.title
             self.query_one(Label).add_class("hidden")
-            self.query_one(TextArea).remove_class("hidden")
+            self.query_one(Markdown).remove_class("hidden")
         else:
             self.query_one(Label).remove_class("hidden")
-            self.query_one(TextArea).add_class("hidden")
+            self.query_one(Markdown).add_class("hidden")
 
     # def on_mouse_down(self, event:MouseDown):
     #     self.log.error(f'widget pos: {self.offset}')

@@ -45,13 +45,9 @@ TaskCard {
             tint: 10%;
         }
     }
-    Placeholder {
+    Markdown {
         width: 1fr;
         height: auto;
-    }
-    TextArea {
-        width: 1fr;
-        height: 5;
         background: darkblue;
     }
 }
@@ -62,6 +58,99 @@ VerticalScroll {
     scrollbar-color-hover: $success;
 }
 
+
+TaskEditScreen {
+        align:center middle;
+    Vertical {
+        width:70%;
+        height:70%;
+        border:$success;
+        align:center middle;
+        content-align:center middle;
+
+    #label_header {
+        width:1fr;
+        height:5%;
+        background: $background;
+        align:center middle;
+        text-align:center;
+    }
+
+    Input{
+        text-align:center;
+    }
+
+    CreationDateInfo{
+        width:1fr;
+        height:5%;
+        align:center middle;
+    }
+
+    #horizontal_dates {
+        height:10%;
+        width:1fr;
+
+    }
+    StartDateInfo{
+        width:1fr;
+        height:1fr;
+        align:center middle;
+    }
+    FinishDateInfo{
+        width:1fr;
+        height:1fr;
+        align:center middle;
+    }
+
+    #horizontal_detail{
+        width:1fr;
+        height:60%;
+
+    DescriptionInfos{
+        height: 1fr;
+        width: 1fr;
+
+        TextArea{
+            height: 1fr;
+            width: 1fr;
+            background:darkblue;
+        }
+    }
+        DetailInfos{
+            height: 1fr;
+            width: 1fr;
+            #horizontal_due_date{
+                width:1fr;
+                height:auto;
+                Label{
+                    padding: 1 0 0 0;
+                }
+                Switch{
+                    width:1fr;
+                }
+            }
+            #horizontal_category{
+                align:center middle;
+                Label{
+                    padding: 2 0 0 0;
+                }
+                Select{
+                    width:1fr;
+                    height:auto;
+                }
+            }
+
+    }
+    }
+
+    Button {
+        width:1fr;
+        height:1fr;
+    }
+   }
+}
+
 .hidden {
     display:none;
+
 }

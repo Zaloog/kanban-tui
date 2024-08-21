@@ -9,15 +9,17 @@ from textual.containers import VerticalScroll, Vertical
 
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.constants import COLUMN_DICT
+from kanban_tui.classes.task import Task
 
 
 class Column(Vertical):
     task_amount: reactive[int] = reactive(0)
-    task_list: reactive[list] = reactive([])
+    task_list: reactive[list[Task]] = reactive([])
 
-    def __init__(self, title: str) -> None:
+    def __init__(self, title: str, tasklist: list[Task] = []) -> None:
         self.title = title
         super().__init__(id=f"column_{title.lower()}")
+        self.task_list = tasklist
 
     def compose(self) -> Iterable[Widget]:
         yield Label(self.title, id=f"label_{self.title}")
