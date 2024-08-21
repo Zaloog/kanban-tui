@@ -5,6 +5,8 @@ from datetime import datetime
 @dataclass
 class Task:
     title: str
+    column: int
+    row: int
     start_date: datetime = datetime.now().strftime(format="%d/%m/%Y, %H:%M:%S")
     finish_date: datetime | None = None
     duration: int | None = None
