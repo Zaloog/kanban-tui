@@ -8,6 +8,8 @@ from textual.containers import Horizontal, VerticalScroll
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 
+from kanban_tui.constants import COLUMNS
+
 
 class KanbanBoard(Horizontal):
     BINDINGS = [
@@ -25,21 +27,40 @@ class KanbanBoard(Horizontal):
         return super().compose()
 
     def action_place_task(self, task: TaskCard | None = None) -> None:
-        ta = self.query_one("#column_ready", Column).task_amount
         self.query_one("#column_ready", Column).task_amount += 1
-        card = TaskCard(title=f"Task {ta}", row=ta, column=1)
+        ta = self.query_one("#column_ready", Column).task_amount
+        card = TaskCard(title=f"Task {ta}", row=ta - 1, column=0)
         self.query_one("#column_ready", Column).query_one(VerticalScroll).mount(card)
 
     def key_j(self):
-        self.app.action_focus_next()
+        column = self.query(Column)[self.position[1]]
+        row = (self.position[0] + 1) % column.task_amount
+
+        column.query(TaskCard)[row].focus()
 
     def key_k(self):
-        self.app.action_focus_previous()
+        column = self.query(Column)[self.position[1]]
+        row = (self.position[0] + column.task_amount - 1) % column.task_amount
+
+        column.query(TaskCard)[row].focus()
 
     def key_l(self):
-        for task in self.query(TaskCard):
-            if task.position == (self.position[0], self.position[1] + 1):
-                task.focus()
+        row = self.position[0]
+        column = self.query(Column)[(self.position[1] + 1) % len(COLUMNS)]
+
+        try:
+            column.query(TaskCard)[row].focus()
+        except IndexError:
+            column.query(TaskCard)[column.task_amount - 1].focus()
+
+    def key_h(self):
+        row = self.position[0]
+        column = self.query(Column)[(self.position[1] + 2) % len(COLUMNS)]
+
+        try:
+            column.query(TaskCard)[row].focus()
+        except IndexError:
+            column.query(TaskCard)[column.task_amount - 1].focus()
 
     @on(TaskCard.Focused)
     def get_current_card_position(self, event: TaskCard.Focused):

@@ -70,8 +70,11 @@ class TaskCard(Vertical):
 
     def watch_expanded(self):
         if self.expanded:
+            self.border_title = self.title
+            self.query_one(Label).add_class("hidden")
             self.query_one(TextArea).remove_class("hidden")
         else:
+            self.query_one(Label).remove_class("hidden")
             self.query_one(TextArea).add_class("hidden")
 
     # def on_mouse_down(self, event:MouseDown):

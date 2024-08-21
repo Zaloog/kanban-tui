@@ -13,6 +13,7 @@ from kanban_tui.constants import COLUMN_DICT
 
 class Column(Vertical):
     task_amount: reactive[int] = reactive(0)
+    task_list: reactive[list] = reactive([])
 
     def __init__(self, title: str) -> None:
         self.title = title
@@ -24,12 +25,12 @@ class Column(Vertical):
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        self.query_one(VerticalScroll).can_focus = False
+        self.query_one(f"#taskplace{self.title}", VerticalScroll).can_focus = False
         for _ in range(5):
             self.task_amount += 1
             card = TaskCard(
                 title=f"Task {self.task_amount}",
-                row=self.task_amount,
+                row=self.task_amount - 1,
                 column=COLUMN_DICT[self.title],
             )
             self.query_one(VerticalScroll).mount(card)

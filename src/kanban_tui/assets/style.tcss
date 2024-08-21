@@ -51,7 +51,7 @@ TaskCard {
     }
     TextArea {
         width: 1fr;
-        height: auto;
+        height: 5;
         background: darkblue;
     }
 }
