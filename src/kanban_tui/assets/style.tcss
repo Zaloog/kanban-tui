@@ -10,7 +10,7 @@ Underline .underline--bar {
     color: $success;
 }
 
-ReadyColumn{
+Column{
     height:1fr;
     width:1fr;
 
@@ -23,40 +23,6 @@ ReadyColumn{
     VerticalScroll {
         width: 1fr;
         height: 1fr;
-        margin:0 2 0 0;
-    }
-}
-
-DoingColumn{
-    height:1fr;
-    width:1fr;
-
-    & Label {
-        width: 1fr;
-        height:auto;
-        text-align:center;
-    }
-
-    VerticalScroll {
-        width: 1fr;
-        height: auto;
-        margin:0 2 0 0;
-    }
-}
-
-DoneColumn{
-    height:1fr;
-    width:1fr;
-
-    & Label {
-        width: 1fr;
-        height:auto;
-        text-align:center;
-    }
-
-    VerticalScroll {
-        width: 1fr;
-        height: auto;
         margin:0 2 0 0;
     }
 }
