@@ -16,7 +16,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     task_db_creation_str = """
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
-    title TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
     column INTEGER NOT NULL,
     category TEXT,
     description TEXT,
@@ -50,7 +50,6 @@ def create_new_task_db(
     column: int = 0,
     category: str | None = None,
     description: str | None = None,
-    creation_date: datetime = datetime.now().strftime(format="%d/%m/%Y, %H:%M:%S"),
     start_date: datetime | None = None,
     finish_date: datetime | None = None,
     due_date: datetime | None = None,
@@ -59,7 +58,7 @@ def create_new_task_db(
     task_dict = {
         "title": title,
         "column": column,
-        "creation_date": creation_date,
+        "creation_date": datetime.now().replace(microsecond=0),
         "start_date": start_date,
         "finish_date": finish_date,
         "category": category,
@@ -68,17 +67,17 @@ def create_new_task_db(
     }
 
     transaction_str = """
-    INSERT INTO characters
+    INSERT INTO tasks
     VALUES (
         NULL,
         :title,
         :column,
+        :category,
+        :description,
         :creation_date,
         :start_date,
         :finish_date,
-        :category,
-        :due_date,
-        :description
+        :due_date
         );"""
 
     with create_connection(database=database) as con:
@@ -88,6 +87,7 @@ def create_new_task_db(
             con.commit()
             return 0
         except sqlite3.Error as e:
+            print(e)
             con.rollback()
             if e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_CHECK:
                 return "please provide a character name"

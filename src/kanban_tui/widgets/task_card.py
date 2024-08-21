@@ -12,6 +12,8 @@ from textual.containers import Vertical
 from textual.widgets import Label, Markdown
 from textual.message import Message
 
+from kanban_tui.constants import EXAMPLE_MARKDOWN
+
 
 class TaskCard(Vertical):
     app: "KanbanTui"
@@ -43,15 +45,6 @@ class TaskCard(Vertical):
         super().__init__(id=id)
 
     def compose(self) -> ComposeResult:
-        EXAMPLE_MARKDOWN = """# Markdown Document
-
-This is an example of Textual's `Markdown` widget.
-
-## Features
-
-- Syntax highlighted code blocks
-- Tables!
-"""
         yield Label(f"Task_{self.title} {self.position}")
         yield Markdown(
             markdown=EXAMPLE_MARKDOWN,
