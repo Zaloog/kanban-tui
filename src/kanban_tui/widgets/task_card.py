@@ -1,4 +1,8 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from kanban_tui.app import KanbanTui
 
 from textual import on
 from textual.reactive import reactive
@@ -10,6 +14,7 @@ from textual.message import Message
 
 
 class TaskCard(Vertical):
+    app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
     picked: reactive[bool] = reactive(False)
     position: reactive[tuple[int]]
@@ -58,14 +63,12 @@ Markdown syntax and extensions are supported.
             markdown=EXAMPLE_MARKDOWN,
             # id=f"body_task{self.title}",
             classes="hidden",
-            # soft_wrap=False,
-            # read_only=True,
         )
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        # if self.app.cfg.show_task_details:
-        # self.query_one(TextArea).remove_class('hidden')
+        if self.app.cfg.tasks_always_expanded:
+            self.query_one(Markdown).remove_class("hidden")
         return super()._on_mount(event)
 
     @on(Enter)

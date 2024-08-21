@@ -20,11 +20,16 @@ mdit-py-plugins==0.4.1
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
+plotext==5.2.8
+    # via textual-plotext
 pygments==2.18.0
     # via rich
 rich==13.7.1
     # via textual
 textual==0.76.0
+    # via kanban-tui
+    # via textual-plotext
+textual-plotext==0.2.1
     # via kanban-tui
 typing-extensions==4.12.2
     # via textual

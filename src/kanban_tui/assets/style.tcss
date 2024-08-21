@@ -106,16 +106,16 @@ TaskEditScreen {
         width:1fr;
         height:60%;
 
-    DescriptionInfos{
-        height: 1fr;
-        width: 1fr;
-
-        TextArea{
+        DescriptionInfos{
             height: 1fr;
             width: 1fr;
-            background:darkblue;
+
+            TextArea{
+                height: 1fr;
+                width: 1fr;
+                background:darkblue;
+            }
         }
-    }
         DetailInfos{
             height: 1fr;
             width: 1fr;
@@ -140,7 +140,7 @@ TaskEditScreen {
                 }
             }
 
-    }
+        }
     }
 
     Button {
@@ -150,7 +150,15 @@ TaskEditScreen {
    }
 }
 
+
+Switch > .switch--slider {
+        color: $error;
+    }
+
+Switch.-on > .switch--slider {
+        color: $success;
+    }
+
 .hidden {
     display:none;
-
 }

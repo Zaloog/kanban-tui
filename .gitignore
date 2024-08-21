@@ -8,3 +8,7 @@ wheels/
 
 # venv
 .venv
+
+# dev
+*.db
+*.ini
