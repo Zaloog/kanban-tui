@@ -1,11 +1,13 @@
 from typing import Iterable
 
 from textual.widget import Widget
-from textual.widgets import TabbedContent, TabPane, Placeholder
+from textual.widgets import TabbedContent, TabPane
 from textual.screen import Screen
 
 from textual.widgets import Header, Footer
-from kanban_tui.views.board_view import KanbanBoard
+from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
+from kanban_tui.views.overview_tab_view import OverView
+from kanban_tui.views.settings_tab_view import SettingsView
 
 
 class MainView(Screen):
@@ -22,9 +24,9 @@ class MainView(Screen):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
-                yield Placeholder()
+                yield OverView()
             with TabPane("Settings", id="tab_settings"):
-                yield Placeholder()
+                yield SettingsView()
             return super().compose()
 
     def action_show_tab(self, tab: str) -> None:

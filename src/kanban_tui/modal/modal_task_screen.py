@@ -52,12 +52,12 @@ class TaskEditScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_continue")
     def update_task(self):
-        title = self.query_one(Input).value
+        title = self.query_one("#input_title", Input).value
         description = self.query_one(TextArea).text
         category = (
             None if self.query_one(Select).is_blank() else self.query_one(Select).value
         )
-        due_date = None
+        due_date = self.query_one(DueDateInput).due_date
 
         create_new_task_db(
             title=title,
@@ -67,11 +67,11 @@ class TaskEditScreen(ModalScreen):
             database=self.app.cfg.database_path,
         )
 
-        self.dismiss()
+        self.dismiss(result=True)
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):
-        self.dismiss()
+        self.app.pop_screen()  # .dismiss()
 
 
 class DescriptionInfos(Vertical):
@@ -223,7 +223,7 @@ class DayInput(Input):
 
 
 class DueDateInput(Vertical):
-    due_date: reactive
+    due_date: reactive = reactive(None)
 
     def __init__(self, classes: str | None = "hidden") -> None:
         super().__init__(classes=classes)
@@ -281,7 +281,7 @@ class CategorySelector(Select):
 class CreationDateInfo(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label(
-            f'Task created at: {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}',
+            f"Task created at: {datetime.now().replace(microsecond=0)}",
             id="label-start_date",
         )
         self.border = "$success"

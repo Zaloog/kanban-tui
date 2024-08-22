@@ -47,9 +47,9 @@ class Column(Vertical):
             )
 
     def place_task(self, task: Task) -> None:
-        self.task_amount += 1
         card = TaskCard(
             task=task,
-            row=self.task_amount - 1,
+            row=self.task_amount,
         )
+        self.task_amount += 1
         self.query_one(VerticalScroll).mount(card)

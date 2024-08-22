@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 class Task:
     title: str
     column: int
-    creation_date: datetime = datetime.now().strftime(format="%d/%m/%Y, %H:%M:%S")
+    creation_date: datetime = datetime.now().replace(microsecond=0)
     start_date: datetime | None = None
     finish_date: datetime | None = None
     duration: int | None = None
@@ -19,15 +19,19 @@ class Task:
 
     def __post_init__(self):
         if self.due_date:
+            self.due_date = datetime.strptime(
+                self.due_date, "%Y-%m-%d %H:%M:%S"
+            ).replace(microsecond=0)
             self.days_left = self.get_days_left_till_due()
+            self.description += f"due date left {self.days_left}"
         if self.finish_date:
             self.duration = self.get_duration()
 
     def get_days_left_till_due(self):
-        return min(
+        return max(
             0,
-            (self.due_date - datetime.now().strftime(format="%d/%m/%Y, %H:%M:%S"))
-            / timedelta(days=1),
+            (self.due_date - datetime.now().replace(microsecond=0))
+            // timedelta(days=1),
         )
 
     def get_duration(self):
@@ -35,5 +39,5 @@ class Task:
 
     def finish(self):
         self.finished = True
-        self.finish_date = datetime.now().strftime(format="%d/%m/%Y, %H:%M:%S")
+        self.finish_date = datetime.now().replace(microsecond=0)
         self.duration = self.get_duration()
