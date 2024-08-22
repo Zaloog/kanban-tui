@@ -28,7 +28,7 @@ class Column(Vertical):
 
     def _on_mount(self, event: Mount) -> None:
         self.query_one(f"#taskplace{self.title}", VerticalScroll).can_focus = False
-        for _ in range(5):
+        for _ in range(2):
             self.task_amount += 1
             card = TaskCard(
                 title=f"Task {self.task_amount}",

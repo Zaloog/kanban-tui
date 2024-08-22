@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Literal
+
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -15,12 +16,13 @@ from textual.widgets._select import SelectOverlay
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.task import Task
+from kanban_tui.database import create_new_task_db
 
 
 class TaskEditScreen(ModalScreen):
     app: "KanbanTui"
 
-    BINDINGS = [Binding("escape", "app.popscreen", "Close")]
+    BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
 
     def __init__(self, task: Task | None = None) -> None:
         self.kanban_task = task
@@ -29,7 +31,7 @@ class TaskEditScreen(ModalScreen):
     def compose(self) -> Iterable[Widget]:
         with Vertical():
             yield Label("Create New Task", id="label_header")
-            yield Input(placeholder="enter a Task Title")
+            yield Input(placeholder="enter a Task Title", id="input_title")
             yield CreationDateInfo()
             with Horizontal(id="horizontal_dates"):
                 yield StartDateInfo()
@@ -49,6 +51,21 @@ class TaskEditScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_continue")
     def update_task(self):
+        title = self.query_one(Input).value
+        description = self.query_one(TextArea).text
+        category = (
+            None if self.query_one(Select).is_blank() else self.query_one(Select).value
+        )
+        due_date = None
+
+        create_new_task_db(
+            title=title,
+            description=description,
+            category=category,
+            due_date=due_date,
+            database=self.app.cfg.database_path,
+        )
+
         self.dismiss()
 
     @on(Button.Pressed, "#btn_cancel")
@@ -68,9 +85,6 @@ class DetailInfos(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        with Horizontal(id="horizontal_due_date"):
-            yield Label("has a due Date:")
-            yield Switch(value=False)
         with Horizontal(id="horizontal_category"):
             yield Label("Category:")
             yield CategorySelector(
@@ -81,9 +95,107 @@ class DetailInfos(Vertical):
                     for category, color in self.app.cfg.category_color_dict.items()
                 ],
             )
+        with Horizontal(id="horizontal_due_date"):
+            yield Label("has a due Date:")
+            yield Switch(value=False)
+        yield DueDateInput()
 
         self.border = "$success"
         self.border_title = "Additional Infos"
+        return super().compose()
+
+    def on_switch_changed(self):
+        if self.query_one(Switch).value:
+            self.query_one(DueDateInput).remove_class("hidden")
+        else:
+            self.query_one(DueDateInput).add_class("hidden")
+
+
+class YearInput(Input):
+    def __init__(
+        self,
+        value: int = f"{datetime.now().year}",
+        placeholder: str = "YYYY",
+        type: Literal["integer"] | Literal["number"] | Literal["text"] = "number",
+        max_length: int = 4,
+        # validators: Validator | Iterable[Validator] | None = None,
+        # validate_on: Iterable[Literal['blur'] | Literal['changed'] | Literal['submitted']] | None = 'changed',
+        valid_empty: bool = False,
+        id: str | None = "input_year",
+    ) -> None:
+        super().__init__(
+            value,
+            placeholder,
+            type=type,
+            max_length=max_length,
+            #  validators=validators,
+            #  validate_on=validate_on,
+            valid_empty=valid_empty,
+            id=id,
+        )
+
+
+class MonthInput(Input):
+    def __init__(
+        self,
+        value: int = f"{datetime.now().month}",
+        placeholder: str = "MM",
+        type: Literal["integer"] | Literal["number"] | Literal["text"] = "number",
+        max_length: int = 2,
+        # validators: Validator | Iterable[Validator] | None = None,
+        # validate_on: Iterable[Literal['blur'] | Literal['changed'] | Literal['submitted']] | None = 'changed',
+        valid_empty: bool = False,
+        id: str | None = "input_month",
+    ) -> None:
+        super().__init__(
+            value,
+            placeholder,
+            type=type,
+            max_length=max_length,
+            #  validators=validators,
+            #  validate_on=validate_on,
+            valid_empty=valid_empty,
+            id=id,
+        )
+
+
+class DayInput(Input):
+    def __init__(
+        self,
+        value: int | None = None,
+        placeholder: str = "DD",
+        type: Literal["integer"] | Literal["number"] | Literal["text"] = "number",
+        max_length: int = 2,
+        # validators: Validator | Iterable[Validator] | None = None,
+        # validate_on: Iterable[Literal['blur'] | Literal['changed'] | Literal['submitted']] | None = 'changed',
+        valid_empty: bool = False,
+        id: str | None = "input_day",
+    ) -> None:
+        super().__init__(
+            value,
+            placeholder,
+            type=type,
+            max_length=max_length,
+            #  validators=validators,
+            #  validate_on=validate_on,
+            valid_empty=valid_empty,
+            id=id,
+        )
+
+
+class DueDateInput(Vertical):
+    def __init__(self, classes: str | None = "hidden") -> None:
+        super().__init__(classes=classes)
+
+    def compose(self) -> Iterable[Widget]:
+        with Horizontal(id="horizontal_due_date_days_left"):
+            yield Label("?? days left", id="label_days_left")
+        with Horizontal(id="horizontal_due_date_input"):
+            yield YearInput()
+            yield Label("/")
+            yield MonthInput()
+            yield Label("/")
+            yield DayInput()
         return super().compose()
 
 
