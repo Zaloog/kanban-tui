@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 from collections import defaultdict
 
 from textual import on
+from textual.binding import Binding
 from textual.events import Mount
 from textual.widget import Widget
 from textual.reactive import reactive
@@ -23,13 +24,11 @@ from kanban_tui.classes.task import Task
 class KanbanBoard(Horizontal):
     app: "KanbanTui"
     BINDINGS = [
-        ("n", "new_task", "New"),
-        ("e", "edit_task", "Edit"),
+        Binding("n", "new_task", "New", priority=True, show=True),
+        Binding("e", "edit_task", "Edit", show=True),
         # ("shift+j", "reposition_task",)
     ]
 
-    row_focused: reactive[int | None] = reactive(None)
-    column_focused: reactive[int | None] = reactive(None)
     position: reactive[tuple[int]] = reactive((0, 0))
     task_dict: reactive[defaultdict[list]] = reactive(defaultdict(list), recompose=True)
 
