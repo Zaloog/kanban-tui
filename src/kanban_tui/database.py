@@ -87,10 +87,27 @@ def create_new_task_db(
             con.commit()
             return 0
         except sqlite3.Error as e:
-            print(e)
             con.rollback()
             if e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_CHECK:
                 return "please provide a character name"
             elif e.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_UNIQUE:
                 return "character name already taken"
             return e.sqlite_errorname
+
+
+def get_all_tasks_db(
+    database: Path = DB_FULL_PATH,
+) -> list[dict] | None:
+    query_str = """
+    SELECT *
+    FROM tasks;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            tasks = con.execute(query_str).fetchall()
+            return [dict(task) for task in tasks]
+        except sqlite3.Error as e:
+            print(e)
+            return None

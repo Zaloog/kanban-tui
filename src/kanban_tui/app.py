@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from textual.app import App
-from textual.reactive import reactive
 
 from kanban_tui.views.main_view import MainView
 from kanban_tui.constants import CONFIG_FULL_PATH
@@ -15,7 +14,6 @@ class KanbanTui(App):
 
     SCREENS = {"MainView": MainView}
 
-    task_dict: reactive[dict]
     cfg: KanbanTuiConfig
 
     def __init__(self) -> None:

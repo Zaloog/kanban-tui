@@ -8,7 +8,6 @@ from textual.widgets import Label
 from textual.containers import VerticalScroll, Vertical
 
 from kanban_tui.widgets.task_card import TaskCard
-from kanban_tui.constants import COLUMN_DICT
 from kanban_tui.classes.task import Task
 
 
@@ -23,18 +22,17 @@ class Column(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield Label(self.title, id=f"label_{self.title}")
-        yield VerticalScroll(id=f"taskplace{self.title}")
+        yield VerticalScroll(id=f"vscroll_{self.title}")
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        self.query_one(f"#taskplace{self.title}", VerticalScroll).can_focus = False
-        for _ in range(2):
-            self.task_amount += 1
+        self.query_one(f"#vscroll_{self.title}", VerticalScroll).can_focus = False
+        for task in self.task_list:
             card = TaskCard(
-                title=f"Task {self.task_amount}",
-                row=self.task_amount - 1,
-                column=COLUMN_DICT[self.title],
+                task=task,
+                row=self.task_amount,
             )
+            self.task_amount += 1
             self.query_one(VerticalScroll).mount(card)
         return super()._on_mount(event)
 
@@ -47,3 +45,11 @@ class Column(Vertical):
             self.get_child_by_type(Label).update(
                 f"{self.title} ({self.task_amount} Tasks)"
             )
+
+    def place_task(self, task: Task) -> None:
+        self.task_amount += 1
+        card = TaskCard(
+            task=task,
+            row=self.task_amount - 1,
+        )
+        self.query_one(VerticalScroll).mount(card)

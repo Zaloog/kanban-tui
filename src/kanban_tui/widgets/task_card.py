@@ -12,7 +12,7 @@ from textual.containers import Vertical
 from textual.widgets import Label, Markdown
 from textual.message import Message
 
-from kanban_tui.constants import EXAMPLE_MARKDOWN
+from kanban_tui.classes.task import Task
 
 
 class TaskCard(Vertical):
@@ -32,22 +32,22 @@ class TaskCard(Vertical):
 
     def __init__(
         self,
-        title: str,
+        task: Task,
         row: int,
-        column: int,
         id: str | None = None,
     ) -> None:
-        self.title = title
-        self.position = (row, column)
+        self.task_ = task
+        self.position = (row, self.task_.column)
 
         self.can_focus = True
         self.can_focus_children = False
         super().__init__(id=id)
 
     def compose(self) -> ComposeResult:
-        yield Label(f"Task_{self.title} {self.position}")
+        yield Label(f"{self.task_.title} {self.position}")
         yield Markdown(
-            markdown=EXAMPLE_MARKDOWN,
+            # markdown=EXAMPLE_MARKDOWN,
+            markdown=self.task_.description,
             # id=f"body_task{self.title}",
             # classes="hidden",
         )
@@ -75,7 +75,7 @@ class TaskCard(Vertical):
 
     def watch_expanded(self):
         if self.expanded:
-            self.border_title = self.title
+            self.border_title = self.task_.title
             self.query_one(Label).add_class("hidden")
             self.query_one(Markdown).remove_class("hidden")
         else:

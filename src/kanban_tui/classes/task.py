@@ -15,6 +15,7 @@ class Task:
     due_date: datetime | None = None
     days_left: int | None = None
     description: str | None = None
+    task_id: int | None = None
 
     def __post_init__(self):
         if self.due_date:
