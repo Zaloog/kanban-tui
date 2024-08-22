@@ -64,7 +64,7 @@ TaskEditScreen {
         align:center middle;
     Vertical {
         width:70%;
-        height:70%;
+        height:75%;
         border:$success;
         align:center middle;
         content-align:center middle;
@@ -88,7 +88,7 @@ TaskEditScreen {
     }
 
     #horizontal_dates {
-        height:10%;
+        height:15%;
         width:1fr;
 
     }

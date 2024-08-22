@@ -7,7 +7,8 @@ if TYPE_CHECKING:
 
 
 from textual import on
-from textual.events import Mount
+from textual.reactive import reactive
+from textual.events import Blur, Focus, Mount
 from textual.widget import Widget
 from textual.binding import Binding
 from textual.screen import ModalScreen
@@ -138,7 +139,7 @@ class YearInput(Input):
 class MonthInput(Input):
     def __init__(
         self,
-        value: int = f"{datetime.now().month}",
+        value: int | None = None,
         placeholder: str = "MM",
         type: Literal["integer"] | Literal["number"] | Literal["text"] = "number",
         max_length: int = 2,
@@ -157,6 +158,25 @@ class MonthInput(Input):
             valid_empty=valid_empty,
             id=id,
         )
+
+    def _on_focus(self, event: Focus) -> None:
+        self.clear()
+        return super()._on_focus(event)
+
+    def _on_blur(self, event: Blur) -> None:
+        if self.value:
+            if len(self.value) < 2:
+                self.value = f"0{self.value}"
+        return super()._on_blur(event)
+
+    def _watch_value(self, value: str) -> None:
+        if value:
+            if int(value) > 1:
+                if len(self.value) < 2:
+                    self.value = f"0{self.value}"
+                else:
+                    self.app.action_focus_next()
+        return super()._watch_value(value)
 
 
 class DayInput(Input):
@@ -182,14 +202,35 @@ class DayInput(Input):
             id=id,
         )
 
+    def _on_focus(self, event: Focus) -> None:
+        self.clear()
+        return super()._on_focus(event)
+
+    def _on_blur(self, event: Blur) -> None:
+        if self.value:
+            if len(self.value) < 2:
+                self.value = f"0{self.value}"
+        return super()._on_blur(event)
+
+    def _watch_value(self, value: str) -> None:
+        if value:
+            if int(value) > 3:
+                if len(self.value) < 2:
+                    self.value = f"0{self.value}"
+                else:
+                    self.app.action_focus_next()
+        return super()._watch_value(value)
+
 
 class DueDateInput(Vertical):
+    due_date: reactive
+
     def __init__(self, classes: str | None = "hidden") -> None:
         super().__init__(classes=classes)
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_due_date_days_left"):
-            yield Label("?? days left", id="label_days_left")
+            yield Label("[yellow]??[/] days left", id="label_days_left")
         with Horizontal(id="horizontal_due_date_input"):
             yield YearInput()
             yield Label("/")
@@ -197,6 +238,23 @@ class DueDateInput(Vertical):
             yield Label("/")
             yield DayInput()
         return super().compose()
+
+    @on(Input.Changed)
+    def calculate_days_left(self):
+        try:
+            year = int(self.query_one(YearInput).value)
+            month = int(self.query_one(MonthInput).value)
+            day = int(self.query_one(DayInput).value)
+
+            self.due_date = datetime(year=year, month=month, day=day).replace(
+                microsecond=0
+            )
+            delta = (self.due_date - datetime.now()).days
+            self.query_one("#label_days_left", Label).update(
+                f"[green]{delta}[/] days left"
+            )
+        except Exception:
+            self.query_one("#label_days_left", Label).update("[yellow]??[/] days left")
 
 
 class CategorySelector(Select):
