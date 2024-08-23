@@ -18,6 +18,7 @@ from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.task import Task
 from kanban_tui.database import create_new_task_db
+from kanban_tui.modal.modal_color_pick import CategoryColorPicker
 
 
 class TaskEditScreen(ModalScreen):
@@ -88,14 +89,7 @@ class DetailInfos(Vertical):
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_category"):
             yield Label("Category:")
-            yield CategorySelector(
-                prompt="select Category",
-                allow_blank=True,
-                options=[
-                    (f"[on {color}]{category}[/]", category)
-                    for category, color in self.app.cfg.category_color_dict.items()
-                ],
-            )
+            yield CategorySelector()
         with Horizontal(id="horizontal_due_date"):
             yield Label("has a due Date:")
             yield Switch(value=False)
@@ -257,6 +251,14 @@ class DueDateInput(Vertical):
             self.query_one("#label_days_left", Label).update("[yellow]??[/] days left")
 
 
+class NewSelection:
+    def __repr__(self) -> str:
+        return "Select.New"
+
+
+NEW = NewSelection()
+
+
 class CategorySelector(Select):
     # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
     BINDINGS = [
@@ -264,6 +266,28 @@ class CategorySelector(Select):
         Binding("up,k", "cursor_up", "Cursor Up", show=False),
         Binding("down,j", "cursor_down", "Cursor Down", show=False),
     ]
+    NEW = NEW
+
+    def __init__(self):
+        options = [
+            (f"[on {color}]{category}[/]", category)
+            for category, color in self.app.cfg.category_color_dict.items()
+        ]
+
+        options.insert(0, ("Add a new Category", self.NEW))
+        super().__init__(options=options)
+        self.prompt = "No Category"
+        self.allow_blank = True
+
+    def watch_value(self):
+        if self.value == self.NEW:
+            self.app.push_screen(CategoryColorPicker(), callback=self.jump_to_value)
+
+    def jump_to_value(self, value: str | None = None) -> None:
+        if value:
+            self.value
+        else:
+            self.value = self.BLANK
 
     def action_cursor_up(self):
         if self.expanded:
@@ -291,7 +315,6 @@ class CreationDateInfo(Horizontal):
 
 class StartDateInfo(Vertical):
     def compose(self) -> Iterable[Widget]:
-        yield Label("Started:")
         yield Label("[red]not started yet[/]", id="label-start_date")
         self.border = "$success"
         self.border_title = "Start Date"
@@ -300,7 +323,6 @@ class StartDateInfo(Vertical):
 
 class FinishDateInfo(Vertical):
     def compose(self) -> Iterable[Widget]:
-        yield Label("Finished:")
         yield Label("[red]not finished yet[/]", id="label_finish_date")
         self.border = "$success"
         self.border_title = "Finish Date"
