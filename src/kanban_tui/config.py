@@ -37,6 +37,10 @@ class KanbanTuiConfig:
     def category_color_dict(self) -> dict:
         return self.config["category.colors"]
 
+    def add_category(self, category: str, color: str):
+        self.category_color_dict[category] = color
+        self.save()
+
     def save(self):
         with open(self.config_path, "w") as configfile:
             self.config.write(configfile)

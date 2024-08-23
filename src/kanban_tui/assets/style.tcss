@@ -192,31 +192,42 @@ TaskEditScreen {
 CategoryColorPicker{
     align:center middle;
     Vertical {
-        width:30%;
-        height:50%;
+        width:40%;
+        height:60%;
         border:$success;
         align:center middle;
         content-align:center middle;
-    }
-
-    Input {
-        width:1fr;
-        text-align:center;
-        height:auto;
-    }
-    Placeholder {
-        width:1fr;
-        text-align:center;
-        height:1fr;
-    }
-    Horizontal{
-        height:auto;
-        Button {
+        TitleInput {
             width:1fr;
             text-align:center;
+            background:red;
             height:auto;
         }
+        Label{
+            height:auto;
+            width:1fr;
+            text-align:center;
+        }
+        ColorTable {
+            width:1fr;
+            text-align:center;
+            height:1fr;
+            &:focus {
+                & .datatable--cursor {
+                    color:white;
+                }
+            }
+        }
+        Horizontal{
+            height:auto;
+            Button {
+                width:1fr;
+                text-align:center;
+                height:auto;
+            }
+        }
     }
+
 
 }
 

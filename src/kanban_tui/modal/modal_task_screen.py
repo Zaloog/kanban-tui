@@ -260,6 +260,7 @@ NEW = NewSelection()
 
 
 class CategorySelector(Select):
+    app: "KanbanTui"
     # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
     BINDINGS = [
         Binding("enter,space,l", "show_overlay", "Show Overlay", show=False),
@@ -283,9 +284,17 @@ class CategorySelector(Select):
         if self.value == self.NEW:
             self.app.push_screen(CategoryColorPicker(), callback=self.jump_to_value)
 
-    def jump_to_value(self, value: str | None = None) -> None:
+    def jump_to_value(self, value: tuple[str] | None = None) -> None:
         if value:
-            self.value
+            category, color = value
+            self.app.cfg.add_category(category=category, color=color)
+            self.set_options(
+                options=[
+                    (f"[on {color}]{category}[/]", category)
+                    for category, color in self.app.cfg.category_color_dict.items()
+                ]
+            )
+            self.value = category
         else:
             self.value = self.BLANK
 
