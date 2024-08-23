@@ -15,7 +15,7 @@ from textual.containers import Horizontal
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import TaskEditScreen
-from kanban_tui.database import get_all_tasks_db
+from kanban_tui.database import get_all_tasks_db, update_task_column_db
 from kanban_tui.constants import COLUMNS
 
 from kanban_tui.classes.task import Task
@@ -38,7 +38,6 @@ class KanbanBoard(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        self.log.error(self.task_dict)
         for idx, column_name in enumerate(COLUMNS):
             yield Column(title=column_name, tasklist=self.task_dict[idx])
         return super().compose()
@@ -80,9 +79,18 @@ class KanbanBoard(Horizontal):
     def get_current_card_position(self, event: TaskCard.Focused):
         self.position = event.taskcard.position
 
-    def watch_position(self):
-        # self.selected_task =
-        self.log.error(self.position)
+    @on(TaskCard.Moved)
+    def move_card_to_other_column(self, event: TaskCard.Moved):
+        task_id = event.taskcard.task_.task_id
+        if event.direction == "left":
+            new_column = (self.position[1] + 2) % len(COLUMNS)
+        elif event.direction == "right":
+            new_column = (self.position[1] + 1) % len(COLUMNS)
+
+        update_task_column_db(task_id=task_id, column=new_column)
+        self.update_task_dict(needs_update=True)
+
+        self.position = (0, new_column)
 
     def update_task_dict(self, needs_update: bool = False):
         if needs_update:
@@ -91,5 +99,10 @@ class KanbanBoard(Horizontal):
             for task in tasks:
                 self.task_dict[task["column"]].append(Task(**task))
             self.mutate_reactive(KanbanBoard.task_dict)
+
+    def watch_position(self):
+        # get task for infos, if edit with 'e'
+        # self.selected_task =
+        self.log.error(self.position)
 
     def watch_task_dict(self): ...

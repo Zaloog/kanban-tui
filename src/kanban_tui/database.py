@@ -111,3 +111,22 @@ def get_all_tasks_db(
         except sqlite3.Error as e:
             print(e)
             return None
+
+
+def update_task_column_db(
+    task_id: int, column: int, database: Path = DB_FULL_PATH
+) -> None:
+    new_column_dict = {"task_id": task_id, "column": column}
+    transaction_str = """
+    UPDATE tasks
+    SET column = :column
+    WHERE task_id = :task_id
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, new_column_dict)
+            return 0
+        except sqlite3.Error as e:
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname

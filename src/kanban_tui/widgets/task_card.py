@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -23,11 +23,25 @@ class TaskCard(Vertical):
     position: reactive[tuple[int]]
     BINDINGS = [
         Binding("e", "edit_task", "Edit", show=True),
+        Binding("L", "move_task('right')", "->", show=True),
+        Binding("H", "move_task('left')", "<-", show=True),
     ]
 
     class Focused(Message):
         def __init__(self, taskcard: TaskCard) -> None:
             self.taskcard = taskcard
+            super().__init__()
+
+        @property
+        def control(self) -> TaskCard:
+            return self.taskcard
+
+    class Moved(Message):
+        def __init__(
+            self, taskcard: TaskCard, direction: Literal["left", "right"]
+        ) -> None:
+            self.taskcard = taskcard
+            self.direction = direction
             super().__init__()
 
         @property
@@ -87,3 +101,7 @@ class TaskCard(Vertical):
             self.query_one(Label).remove_class("hidden")
             if not self.app.cfg.tasks_always_expanded:
                 self.query_one(Markdown).add_class("hidden")
+
+    def action_move_task(self, direction: Literal["left", "right"]):
+        self.notify(f"Move: {direction}", timeout=1)
+        self.post_message(self.Moved(taskcard=self, direction=direction))
