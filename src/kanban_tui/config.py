@@ -56,7 +56,7 @@ def init_new_config(config_path=CONFIG_FULL_PATH):
     config = ConfigParser(default_section=None, allow_no_value=True)
     config.optionxform = str
     config["database"] = {"database_path": DB_FULL_PATH}
-    config["category.colors"] = {"Work": "red", "Freetime": "green"}
+    config["category.colors"] = {}
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
     }

@@ -48,12 +48,13 @@ class TaskCard(Vertical):
         super().__init__(id=id)
 
     def compose(self) -> ComposeResult:
+        if self.task_.category:
+            self.styles.background = self.app.cfg.category_color_dict[
+                self.task_.category
+            ]
         yield Label(f"{self.task_.title} {self.position}")
         yield Markdown(
-            # markdown=EXAMPLE_MARKDOWN,
             markdown=self.task_.description,
-            # id=f"body_task{self.title}",
-            # classes="hidden",
         )
         return super().compose()
 

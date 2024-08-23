@@ -270,15 +270,8 @@ class CategorySelector(Select):
     NEW = NEW
 
     def __init__(self):
-        options = [
-            (f"[on {color}]{category}[/]", category)
-            for category, color in self.app.cfg.category_color_dict.items()
-        ]
-
-        options.insert(0, ("Add a new Category", self.NEW))
-        super().__init__(options=options)
-        self.prompt = "No Category"
-        self.allow_blank = True
+        options = self.get_options()
+        super().__init__(options=options, prompt="No Category", allow_blank=True)
 
     def watch_value(self):
         if self.value == self.NEW:
@@ -289,16 +282,20 @@ class CategorySelector(Select):
             category, color = value
 
             self.app.cfg.add_category(category=category, color=color)
-            options = [
-                (f"[on {color}]{category}[/]", category)
-                for category, color in self.app.cfg.category_color_dict.items()
-            ]
-            options.insert(0, ("Add a new Category", self.NEW))
+            options = self.get_options()
 
             self.set_options(options=options)
             self.value = category
         else:
             self.value = self.BLANK
+
+    def get_options(self):
+        options = [
+            (f"[on {color}]{category}[/]", category)
+            for category, color in self.app.cfg.category_color_dict.items()
+        ]
+        options.insert(0, ("Add a new Category", self.NEW))
+        return options
 
     def action_cursor_up(self):
         if self.expanded:
