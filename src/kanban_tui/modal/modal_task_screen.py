@@ -287,13 +287,15 @@ class CategorySelector(Select):
     def jump_to_value(self, value: tuple[str] | None = None) -> None:
         if value:
             category, color = value
+
             self.app.cfg.add_category(category=category, color=color)
-            self.set_options(
-                options=[
-                    (f"[on {color}]{category}[/]", category)
-                    for category, color in self.app.cfg.category_color_dict.items()
-                ]
-            )
+            options = [
+                (f"[on {color}]{category}[/]", category)
+                for category, color in self.app.cfg.category_color_dict.items()
+            ]
+            options.insert(0, ("Add a new Category", self.NEW))
+
+            self.set_options(options=options)
             self.value = category
         else:
             self.value = self.BLANK
