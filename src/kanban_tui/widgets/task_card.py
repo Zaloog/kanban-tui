@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 from textual import on
 from textual.reactive import reactive
+from textual.binding import Binding
 from textual.events import Enter, Leave, Mount
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -20,6 +21,9 @@ class TaskCard(Vertical):
     expanded: reactive[bool] = reactive(False)
     picked: reactive[bool] = reactive(False)
     position: reactive[tuple[int]]
+    BINDINGS = [
+        Binding("e", "edit_task", "Edit", show=True),
+    ]
 
     class Focused(Message):
         def __init__(self, taskcard: TaskCard) -> None:

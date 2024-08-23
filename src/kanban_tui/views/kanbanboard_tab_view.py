@@ -23,17 +23,18 @@ from kanban_tui.classes.task import Task
 
 class KanbanBoard(Horizontal):
     app: "KanbanTui"
+    can_focus: bool = True
+
     BINDINGS = [
         Binding("n", "new_task", "New", priority=True, show=True),
-        Binding("e", "edit_task", "Edit", show=True),
         # ("shift+j", "reposition_task",)
     ]
-
     position: reactive[tuple[int]] = reactive((0, 0))
     task_dict: reactive[defaultdict[list]] = reactive(defaultdict(list), recompose=True)
 
     def _on_mount(self, event: Mount) -> None:
         self.update_task_dict(needs_update=True)
+        self.focus()
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
