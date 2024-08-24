@@ -228,7 +228,6 @@ class CategoryColorPicker(ModalScreen):
         self.color = event.data_table.get_cell_at(event.coordinate).color_value
 
     def watch_color(self):
-        self.log.error(self.color)
         self.query_one(TitleInput).background = self.color
 
 
@@ -236,7 +235,6 @@ class TitleInput(Input):
     background: reactive[str] = reactive("black", recompose=True)
 
     def watch_background(self):
-        self.log.error("updated")
         self.set_styles(f"background:{self.background};")
 
 

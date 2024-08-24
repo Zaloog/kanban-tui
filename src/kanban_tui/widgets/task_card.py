@@ -52,14 +52,13 @@ class TaskCard(Vertical):
         self,
         task: Task,
         row: int,
-        id: str | None = None,
     ) -> None:
         self.task_ = task
         self.position = (row, self.task_.column)
 
         self.can_focus = True
         self.can_focus_children = False
-        super().__init__(id=id)
+        super().__init__(id=f"taskcard_{self.task_.task_id}")
 
     def compose(self) -> ComposeResult:
         if self.task_.category:
