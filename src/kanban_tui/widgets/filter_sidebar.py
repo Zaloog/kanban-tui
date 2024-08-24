@@ -15,6 +15,6 @@ class FilterOverlay(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield Placeholder("Cool Filter")
-        yield Button("Cool button")
+        yield Button("Cool button", id="btn_test")
         yield Button("Cool button2")
         return super().compose()

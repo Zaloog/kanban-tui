@@ -37,6 +37,7 @@ class KanbanBoard(Horizontal):
     task_dict: reactive[defaultdict[list]] = reactive(
         defaultdict(list), recompose=True, init=False
     )
+    selected_task: reactive[Task | None] = reactive(None, init=False)
 
     def _on_mount(self, event: Mount) -> None:
         self.update_task_dict(needs_update=True)
@@ -105,26 +106,19 @@ class KanbanBoard(Horizontal):
     @on(TaskCard.Focused)
     def get_current_card_position(self, event: TaskCard.Focused):
         self.position = event.taskcard.position
+        self.selected_task = event.taskcard.task_
 
     @on(TaskCard.Moved)
     def move_card_to_other_column(self, event: TaskCard.Moved):
-        task_id = event.taskcard.task_.task_id
         if event.direction == "left":
-            new_column = (self.position[1] + 2) % len(COLUMNS)
+            new_column = (self.selected_task.column + 2) % len(COLUMNS)
         elif event.direction == "right":
-            new_column = (self.position[1] + 1) % len(COLUMNS)
+            new_column = (self.selected_task.column + 1) % len(COLUMNS)
 
-        update_task_column_db(task_id=task_id, column=new_column)
+        update_task_column_db(task_id=self.selected_task.task_id, column=new_column)
         self.update_task_dict(needs_update=True)
-
-        # Ugly
-        self.set_timer(
-            delay=0.10,
-            callback=lambda: self.query_one(f"#taskcard_{task_id}", TaskCard).focus(),
-        )
-        # self.query_one(f"#taskcard_{task_id}", TaskCard).focus()
-
-        # self.position = (0, new_column)
+        # self.query_one(f'#taskcard_{self.selected_task.task_id}').remove()
+        # self.query(Column)[new_column].place_task(self.selected_task)
 
     def update_task_dict(self, needs_update: bool = False):
         if needs_update:
@@ -135,6 +129,7 @@ class KanbanBoard(Horizontal):
             self.mutate_reactive(KanbanBoard.task_dict)
 
     def watch_task_dict(self):
+        # Make it smooth when starting without any Tasks
         if not self.task_dict:
             self.can_focus = True
             self.notify(
@@ -143,33 +138,31 @@ class KanbanBoard(Horizontal):
             )
         else:
             self.can_focus = False
-
-    def watch_position(self):
-        # get task for infos, if edit with 'e'
-
-        self.log.error(self.position)
-        try:
-            self.selected_task = (
-                self.query(Column)[self.position[1]]
-                .query(TaskCard)[self.position[0]]
-                .task_
-            )
-            self.log.error(self.selected_task)
-        except Exception as e:
-            print(e)
+            if self.selected_task:
+                self.set_timer(
+                    delay=0.01,
+                    callback=lambda: self.query_one(
+                        f"#taskcard_{self.selected_task.task_id}", TaskCard
+                    ).focus(),
+                )
 
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)
         if filter.has_class("-hidden"):
-            for card in self.query(TaskCard):
-                card.can_focus = False
+            self.query(TaskCard).set(disabled=True)
 
             filter.can_focus_children = True
+            # Focus the first Widget on Filter
+            filter.query_one("#btn_test").focus()
             filter.remove_class("-hidden")
         else:
-            # if filter.query("*:focus"):
-            for card in self.query(TaskCard):
-                card.can_focus = True
+            self.query(TaskCard).set(disabled=False)
             filter.can_focus_children = False
-            self.app.action_focus_next()
+            if self.selected_task:
+                self.query_one(
+                    f"#taskcard_{self.selected_task.task_id}", TaskCard
+                ).focus()
+            else:
+                self.app.action_focus_next()
+
             filter.add_class("-hidden")
