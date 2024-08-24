@@ -53,3 +53,7 @@ class Column(Vertical):
         )
         self.task_amount += 1
         self.query_one(VerticalScroll).mount(card)
+
+    def remove_task(self, task: Task) -> None:
+        self.task_amount -= 1
+        self.query_one(f"#taskcard_{task.task_id}", TaskCard).remove()

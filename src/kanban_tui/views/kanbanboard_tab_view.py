@@ -80,7 +80,7 @@ class KanbanBoard(Horizontal):
         self.position = event.taskcard.position
 
     @on(TaskCard.Moved)
-    async def move_card_to_other_column(self, event: TaskCard.Moved):
+    def move_card_to_other_column(self, event: TaskCard.Moved):
         task_id = event.taskcard.task_.task_id
         if event.direction == "left":
             new_column = (self.position[1] + 2) % len(COLUMNS)
@@ -89,13 +89,12 @@ class KanbanBoard(Horizontal):
 
         update_task_column_db(task_id=task_id, column=new_column)
         self.update_task_dict(needs_update=True)
-        # task = event.taskcard.task_
-        # await self.query_one(f'#taskcard_{task_id}', TaskCard).remove()
-        # self.query(Column)[new_column].place_task(task=task)
 
         # Ugly
-        # self.set_timer(delay=.05,callback=lambda: self.query_one(f'#taskcard_{task_id}', TaskCard).focus())
-        self.query_one(f"#taskcard_{task_id}", TaskCard).focus()
+        self.set_timer(
+            delay=0.10, callback=self.query_one(f"#taskcard_{task_id}", TaskCard).focus
+        )
+        # self.query_one(f"#taskcard_{task_id}", TaskCard).focus()
 
         # self.position = (0, new_column)
 

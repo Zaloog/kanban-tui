@@ -34,6 +34,8 @@ TaskCard {
     margin:0 0 1 0;
     &:focus {
         border: $success;
+        border-subtitle-color:black;
+        border-subtitle-background:$error;
     }
 
 
