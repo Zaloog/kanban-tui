@@ -234,6 +234,30 @@ CategoryColorPicker{
 
 }
 
+MainView{
+    overflow: hidden;
+}
+FilterOverlay {
+    width: 33%;
+    background:yellow;
+    transition: offset 500ms in_out_cubic;
+    layer: above;
+    &.-hidden{
+        offset-x: -100%;
+    }
+    &:focus-within {
+    offset: 0 0 !important;
+    }
+    Placeholder {
+        height:1fr;
+    }
+    Button {
+        height:1fr;
+        color:green;
+    }
+}
+
+
 Switch > .switch--slider {
         color: $error;
     }
@@ -244,4 +268,8 @@ Switch.-on > .switch--slider {
 
 .hidden {
     display:none;
+}
+
+* {
+    transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
 }
