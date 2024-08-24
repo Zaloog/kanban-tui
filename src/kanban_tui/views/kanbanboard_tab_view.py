@@ -15,6 +15,7 @@ from textual.containers import Horizontal
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import TaskEditScreen
+from kanban_tui.widgets.filter_sidebar import FilterOverlay
 from kanban_tui.database import get_all_tasks_db, update_task_column_db
 from kanban_tui.constants import COLUMNS
 
@@ -23,7 +24,6 @@ from kanban_tui.classes.task import Task
 
 class KanbanBoard(Horizontal):
     app: "KanbanTui"
-    can_focus: bool = True
 
     BINDINGS = [
         Binding("space, n", "new_task", "New", priority=True, show=True),
@@ -31,18 +31,21 @@ class KanbanBoard(Horizontal):
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),
         Binding("l, right", "movement('right')", "Right", show=False),
+        Binding("f1", "toggle_filter", "Filter"),
     ]
-    position: reactive[tuple[int]] = reactive((0, 0))
-    task_dict: reactive[defaultdict[list]] = reactive(defaultdict(list), recompose=True)
+    position: reactive[tuple[int]] = reactive((0, 0), init=False)
+    task_dict: reactive[defaultdict[list]] = reactive(
+        defaultdict(list), recompose=True, init=False
+    )
 
     def _on_mount(self, event: Mount) -> None:
         self.update_task_dict(needs_update=True)
-        self.focus()
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         for idx, column_name in enumerate(COLUMNS):
             yield Column(title=column_name, tasklist=self.task_dict[idx])
+        yield FilterOverlay()
         return super().compose()
 
     def action_new_task(self) -> None:
@@ -116,7 +119,8 @@ class KanbanBoard(Horizontal):
 
         # Ugly
         self.set_timer(
-            delay=0.10, callback=self.query_one(f"#taskcard_{task_id}", TaskCard).focus
+            delay=0.10,
+            callback=lambda: self.query_one(f"#taskcard_{task_id}", TaskCard).focus(),
         )
         # self.query_one(f"#taskcard_{task_id}", TaskCard).focus()
 
@@ -130,9 +134,42 @@ class KanbanBoard(Horizontal):
                 self.task_dict[task["column"]].append(Task(**task))
             self.mutate_reactive(KanbanBoard.task_dict)
 
+    def watch_task_dict(self):
+        if not self.task_dict:
+            self.can_focus = True
+            self.notify(
+                title="Welcome to Kanban Tui",
+                message="Looks like you are new, press [blue]<space>[/] to create your first Card",
+            )
+        else:
+            self.can_focus = False
+
     def watch_position(self):
         # get task for infos, if edit with 'e'
-        # self.selected_task =
-        self.log.error(self.position)
 
-    def watch_task_dict(self): ...
+        self.log.error(self.position)
+        try:
+            self.selected_task = (
+                self.query(Column)[self.position[1]]
+                .query(TaskCard)[self.position[0]]
+                .task_
+            )
+            self.log.error(self.selected_task)
+        except Exception as e:
+            print(e)
+
+    def action_toggle_filter(self) -> None:
+        filter = self.query_one(FilterOverlay)
+        if filter.has_class("-hidden"):
+            for card in self.query(TaskCard):
+                card.can_focus = False
+
+            filter.can_focus_children = True
+            filter.remove_class("-hidden")
+        else:
+            # if filter.query("*:focus"):
+            for card in self.query(TaskCard):
+                card.can_focus = True
+            filter.can_focus_children = False
+            self.app.action_focus_next()
+            filter.add_class("-hidden")

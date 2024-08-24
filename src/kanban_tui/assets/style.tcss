@@ -242,6 +242,7 @@ FilterOverlay {
     background:yellow;
     transition: offset 500ms in_out_cubic;
     layer: above;
+    dock:left;
     &.-hidden{
         offset-x: -100%;
     }
@@ -273,3 +274,7 @@ Switch.-on > .switch--slider {
 * {
     transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
 }
+
+# *:focus {
+#     border:yellow;
+# }
