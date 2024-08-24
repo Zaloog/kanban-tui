@@ -22,9 +22,9 @@ class TaskCard(Vertical):
     picked: reactive[bool] = reactive(False)
     position: reactive[tuple[int]]
     BINDINGS = [
+        Binding("H", "move_task('left')", "<-", show=True, key_display="shift-h"),
         Binding("e", "edit_task", "Edit", show=True),
-        Binding("L", "move_task('right')", "->", show=True),
-        Binding("H", "move_task('left')", "<-", show=True),
+        Binding("L", "move_task('right')", "->", show=True, key_display="shift-l"),
     ]
 
     class Focused(Message):
@@ -106,5 +106,4 @@ class TaskCard(Vertical):
                 self.query_one(Markdown).add_class("hidden")
 
     def action_move_task(self, direction: Literal["left", "right"]):
-        self.notify(f"Move: {direction}", timeout=1)
         self.post_message(self.Moved(taskcard=self, direction=direction))

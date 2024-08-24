@@ -1,4 +1,4 @@
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -27,7 +27,10 @@ class KanbanBoard(Horizontal):
 
     BINDINGS = [
         Binding("n", "new_task", "New", priority=True, show=True),
-        # ("shift+j", "reposition_task",)
+        Binding("j", "movement('down')", "Down", show=False),
+        Binding("k", "movement('up')", "Up", show=False),
+        Binding("h", "movement('left')", "Left", show=False),
+        Binding("l", "movement('right')", "Right", show=False),
     ]
     position: reactive[tuple[int]] = reactive((0, 0))
     task_dict: reactive[defaultdict[list]] = reactive(defaultdict(list), recompose=True)
@@ -49,31 +52,52 @@ class KanbanBoard(Horizontal):
         self.app.push_screen(TaskEditScreen(task=task))
 
     # Movement
-    def key_j(self):
-        column = self.query(Column)[self.position[1]]
-        row = (self.position[0] + 1) % column.task_amount
-        column.query(TaskCard)[row].focus()
+    def action_movement(self, direction: Literal["up", "right", "down", "left"]):
+        match direction:
+            case "up":
+                try:
+                    column = self.query(Column)[self.position[1]]
+                    row = (
+                        self.position[0] + column.task_amount - 1
+                    ) % column.task_amount
+                    column.query(TaskCard)[row].focus()
+                except IndexError:
+                    self.app.action_focus_previous()
+            case "down":
+                try:
+                    column = self.query(Column)[self.position[1]]
+                    row = (self.position[0] + 1) % column.task_amount
+                    column.query(TaskCard)[row].focus()
+                except IndexError:
+                    self.app.action_focus_next()
+            case "right":
+                row = self.position[0]
+                column = self.query(Column)[(self.position[1] + 1) % len(COLUMNS)]
+                try:
+                    column.query(TaskCard)[row].focus()
+                except IndexError:
+                    column.query(TaskCard)[column.task_amount - 1].focus()
+            case "left":
+                row = self.position[0]
+                column = self.query(Column)[(self.position[1] + 2) % len(COLUMNS)]
+                try:
+                    column.query(TaskCard)[row].focus()
+                except IndexError:
+                    column.query(TaskCard)[column.task_amount - 1].focus()
 
-    def key_k(self):
-        column = self.query(Column)[self.position[1]]
-        row = (self.position[0] + column.task_amount - 1) % column.task_amount
-        column.query(TaskCard)[row].focus()
-
-    def key_l(self):
-        row = self.position[0]
-        column = self.query(Column)[(self.position[1] + 1) % len(COLUMNS)]
-        try:
-            column.query(TaskCard)[row].focus()
-        except IndexError:
-            column.query(TaskCard)[column.task_amount - 1].focus()
-
-    def key_h(self):
-        row = self.position[0]
-        column = self.query(Column)[(self.position[1] + 2) % len(COLUMNS)]
-        try:
-            column.query(TaskCard)[row].focus()
-        except IndexError:
-            column.query(TaskCard)[column.task_amount - 1].focus()
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "movement":
+            if (parameters[0] == "right") and (
+                self.query(Column)[(self.position[1] + 1) % len(COLUMNS)].task_amount
+                == 0
+            ):
+                return False
+            if (parameters[0] == "left") and (
+                self.query(Column)[(self.position[1] + 2) % len(COLUMNS)].task_amount
+                == 0
+            ):
+                return False
+        return super().check_action(action, parameters)
 
     @on(TaskCard.Focused)
     def get_current_card_position(self, event: TaskCard.Focused):
