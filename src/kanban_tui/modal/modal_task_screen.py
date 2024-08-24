@@ -63,6 +63,7 @@ class TaskEditScreen(ModalScreen):
         create_new_task_db(
             title=title,
             description=description,
+            column=self.app.cfg.start_column,
             category=category,
             due_date=due_date,
             database=self.app.cfg.database_path,

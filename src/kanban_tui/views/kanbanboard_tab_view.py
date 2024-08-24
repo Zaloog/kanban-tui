@@ -26,11 +26,11 @@ class KanbanBoard(Horizontal):
     can_focus: bool = True
 
     BINDINGS = [
-        Binding("n", "new_task", "New", priority=True, show=True),
-        Binding("j", "movement('down')", "Down", show=False),
-        Binding("k", "movement('up')", "Up", show=False),
-        Binding("h", "movement('left')", "Left", show=False),
-        Binding("l", "movement('right')", "Right", show=False),
+        Binding("space, n", "new_task", "New", priority=True, show=True),
+        Binding("j,down", "movement('down')", "Down", show=False),
+        Binding("k, up", "movement('up')", "Up", show=False),
+        Binding("h, left", "movement('left')", "Left", show=False),
+        Binding("l, right", "movement('right')", "Right", show=False),
     ]
     position: reactive[tuple[int]] = reactive((0, 0))
     task_dict: reactive[defaultdict[list]] = reactive(defaultdict(list), recompose=True)
@@ -61,14 +61,14 @@ class KanbanBoard(Horizontal):
                         self.position[0] + column.task_amount - 1
                     ) % column.task_amount
                     column.query(TaskCard)[row].focus()
-                except IndexError:
+                except ZeroDivisionError:
                     self.app.action_focus_previous()
             case "down":
                 try:
                     column = self.query(Column)[self.position[1]]
                     row = (self.position[0] + 1) % column.task_amount
                     column.query(TaskCard)[row].focus()
-                except IndexError:
+                except ZeroDivisionError:
                     self.app.action_focus_next()
             case "right":
                 row = self.position[0]

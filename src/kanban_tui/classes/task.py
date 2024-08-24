@@ -20,7 +20,6 @@ class Task:
     def __post_init__(self):
         if self.due_date:
             self.days_left = self.get_days_left_till_due()
-            self.description += f"due date left {self.days_left}"
         if self.finish_date:
             self.duration = self.get_duration()
 

@@ -34,6 +34,19 @@ class KanbanTuiConfig:
         self.save()
 
     @property
+    def start_column(self) -> bool:
+        return self.config.getint(section="kanban.settings", option="start_column")
+
+    @start_column.setter
+    def start_column(self, new_value: int):
+        self.config.set(
+            section="kanban.settings",
+            option="start_column",
+            value=f"{new_value}",
+        )
+        self.save()
+
+    @property
     def category_color_dict(self) -> dict:
         return self.config["category.colors"]
 
@@ -59,6 +72,7 @@ def init_new_config(config_path=CONFIG_FULL_PATH):
     config["category.colors"] = {}
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
+        "start_column": 0,
     }
 
     with open(config_path, "w") as conf_file:

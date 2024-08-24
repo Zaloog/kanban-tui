@@ -136,12 +136,13 @@ TaskEditScreen {
             # switch
             #horizontal_due_date{
                 width:1fr;
-                height:1fr;
+                height:auto;
                 Label{
                     padding: 1 0 0 0;
                 }
                 Switch{
                     width:1fr;
+                    height:auto;
                 }
             }
             DueDateInput {
