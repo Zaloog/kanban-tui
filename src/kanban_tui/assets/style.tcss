@@ -275,6 +275,6 @@ Switch.-on > .switch--slider {
     transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
 }
 
-# *:focus {
-#     border:yellow;
-# }
+*:focus {
+    border:yellow;
+}

@@ -20,7 +20,6 @@ class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
     picked: reactive[bool] = reactive(False)
-    position: reactive[tuple[int]]
     BINDINGS = [
         Binding("H", "move_task('left')", "<-", show=True, key_display="shift-h"),
         Binding("e", "edit_task", "Edit", show=True),
@@ -54,7 +53,7 @@ class TaskCard(Vertical):
         row: int,
     ) -> None:
         self.task_ = task
-        self.position = (row, self.task_.column)
+        self.row = row
 
         self.can_focus = True
         self.can_focus_children = False
@@ -65,7 +64,7 @@ class TaskCard(Vertical):
             self.styles.background = self.app.cfg.category_color_dict[
                 self.task_.category
             ]
-        yield Label(f"{self.task_.title} {self.position}")
+        yield Label(f"{self.task_.title}")
         yield Markdown(
             markdown=self.task_.description,
         )

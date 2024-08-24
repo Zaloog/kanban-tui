@@ -57,47 +57,55 @@ class KanbanBoard(Horizontal):
 
     # Movement
     def action_movement(self, direction: Literal["up", "right", "down", "left"]):
+        current_column = self.query(Column)[self.selected_task.column]
+        row_idx = self.query_one(
+            f"#taskcard_{self.selected_task.task_id}", TaskCard
+        ).row
         match direction:
             case "up":
                 try:
-                    column = self.query(Column)[self.position[1]]
-                    row = (
-                        self.position[0] + column.task_amount - 1
-                    ) % column.task_amount
-                    column.query(TaskCard)[row].focus()
+                    new_row_idx = (
+                        row_idx + current_column.task_amount - 1
+                    ) % current_column.task_amount
+                    current_column.query(TaskCard)[new_row_idx].focus()
                 except ZeroDivisionError:
                     self.app.action_focus_previous()
             case "down":
                 try:
-                    column = self.query(Column)[self.position[1]]
-                    row = (self.position[0] + 1) % column.task_amount
-                    column.query(TaskCard)[row].focus()
+                    new_row_idx = (row_idx + 1) % current_column.task_amount
+                    current_column.query(TaskCard)[new_row_idx].focus()
                 except ZeroDivisionError:
                     self.app.action_focus_next()
             case "right":
-                row = self.position[0]
-                column = self.query(Column)[(self.position[1] + 1) % len(COLUMNS)]
                 try:
-                    column.query(TaskCard)[row].focus()
+                    new_column = self.query(Column)[
+                        (self.selected_task.column + 1) % len(COLUMNS)
+                    ]
+                    new_column.query(TaskCard)[row_idx].focus()
                 except IndexError:
-                    column.query(TaskCard)[column.task_amount - 1].focus()
+                    new_column.query(TaskCard)[new_column.task_amount - 1].focus()
             case "left":
-                row = self.position[0]
-                column = self.query(Column)[(self.position[1] + 2) % len(COLUMNS)]
                 try:
-                    column.query(TaskCard)[row].focus()
+                    new_column = self.query(Column)[
+                        (self.selected_task.column + 2) % len(COLUMNS)
+                    ]
+                    new_column.query(TaskCard)[row_idx].focus()
                 except IndexError:
-                    column.query(TaskCard)[column.task_amount - 1].focus()
+                    new_column.query(TaskCard)[new_column.task_amount - 1].focus()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "movement":
             if (parameters[0] == "right") and (
-                self.query(Column)[(self.position[1] + 1) % len(COLUMNS)].task_amount
+                self.query(Column)[
+                    (self.selected_task.column + 1) % len(COLUMNS)
+                ].task_amount
                 == 0
             ):
                 return False
             if (parameters[0] == "left") and (
-                self.query(Column)[(self.position[1] + 2) % len(COLUMNS)].task_amount
+                self.query(Column)[
+                    (self.selected_task.column + 2) % len(COLUMNS)
+                ].task_amount
                 == 0
             ):
                 return False
@@ -105,7 +113,6 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Focused)
     def get_current_card_position(self, event: TaskCard.Focused):
-        self.position = event.taskcard.position
         self.selected_task = event.taskcard.task_
 
     @on(TaskCard.Moved)
