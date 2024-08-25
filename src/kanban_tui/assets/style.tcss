@@ -58,12 +58,17 @@ TaskCard {
 
 TaskEditScreen {
     align:center middle;
-    Vertical {
+    #vertical_modal {
         width:70%;
-        height:75%;
         border:$success;
+        height:75%;
         align:center middle;
         content-align:center middle;
+
+        CustomDatePickerDialog {
+            border:$success;
+            margin:-30 45 0 0;
+        }
 
     #label_header {
         width:1fr;
@@ -88,6 +93,7 @@ TaskEditScreen {
         width:1fr;
 
         StartDateInfo{
+            border:$success;
             width:1fr;
             height:1fr;
             align:center middle;
@@ -98,6 +104,7 @@ TaskEditScreen {
             }
         }
         FinishDateInfo{
+            border:$success;
             width:1fr;
             height:1fr;
             align:center middle;
@@ -114,6 +121,7 @@ TaskEditScreen {
         height:60%;
 
         DescriptionInfos{
+            border:$success;
             height: 1fr;
             width: 1fr;
 
@@ -124,9 +132,20 @@ TaskEditScreen {
             }
         }
         DetailInfos{
+            border:$success;
             height: 1fr;
             width: 1fr;
             align:center middle;
+            #horizontal_category{
+                align:center middle;
+                Label{
+                    padding: 1 0 0 0;
+                }
+                Select{
+                    width:1fr;
+                    height:auto;
+                }
+            }
             # switch
             #horizontal_due_date{
                 width:1fr;
@@ -139,39 +158,15 @@ TaskEditScreen {
                     height:auto;
                 }
             }
-            DueDateInput {
-                width:1fr;
+            #vertical_due_date_choice{
                 height:1fr;
-
-                #label_days_left {
-                    width:1fr;
-                    text-align:center;
-                }
-
-                #horizontal_due_date_input{
-                    width:1fr;
-                    height:auto;
-                    align: center middle;
-                    content-align: center middle;
-                    Input{
-                        content-align: center middle;
-                        text-align:center;
-                        width:1fr;
-                    }
-                    Label{
-                        width:auto;
-                        height:1fr;
-                        padding: 1 0 0 0;
-                    }
-                }
-            }
-            #horizontal_category{
                 align:center middle;
-                Label{
-                    padding: 2 0 0 0;
-                }
-                Select{
+                #label_days_left {
+                    text-align:center;
                     width:1fr;
+                }
+
+                CustomDateSelect{
                     height:auto;
                 }
             }
@@ -228,9 +223,6 @@ CategoryColorPicker{
 
 }
 
-MainView{
-    overflow: hidden;
-}
 FilterOverlay {
     width: 40%;
     transition: offset 500ms in_out_cubic;

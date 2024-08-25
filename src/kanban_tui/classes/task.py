@@ -29,7 +29,7 @@ class Task:
         )
         return max(
             0,
-            (due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1),
+            (due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1) + 1,
         )
 
     def get_duration(self):
