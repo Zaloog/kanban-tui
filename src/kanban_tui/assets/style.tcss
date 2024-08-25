@@ -55,12 +55,6 @@ TaskCard {
     }
 }
 
-VerticalScroll {
-    scrollbar-color: $warning;
-    scrollbar-color-active: $success;
-    scrollbar-color-hover: $success;
-}
-
 
 TaskEditScreen {
     align:center middle;
@@ -238,8 +232,7 @@ MainView{
     overflow: hidden;
 }
 FilterOverlay {
-    width: 33%;
-    background:yellow;
+    width: 40%;
     transition: offset 500ms in_out_cubic;
     layer: above;
     dock:left;
@@ -252,12 +245,35 @@ FilterOverlay {
     Placeholder {
         height:1fr;
     }
+    Label{
+        text-align:center;
+        width: 1fr;
+    }
+    DateFilter {
+
+        Horizontal{
+            height:3;
+            Label{
+                text-align:center;
+                padding: 1 0 0 0;
+                width: 1fr;
+            }
+            DateSelect {
+                height:1fr;
+                width:3fr;
+            }
+        }
+    }
     Button {
         height:1fr;
         color:green;
     }
 }
 
+DatePickerDialog {
+    border:$success;
+    margin-left:-5;
+}
 
 Switch > .switch--slider {
         color: $error;
@@ -271,10 +287,16 @@ Switch.-on > .switch--slider {
     display:none;
 }
 
+VerticalScroll {
+    scrollbar-color: $warning;
+    scrollbar-color-active: $success;
+    scrollbar-color-hover: $success;
+}
+
 * {
     transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
 }
 
-*:focus {
-    border:yellow;
-}
+# *:focus {
+#     border:yellow;
+# }

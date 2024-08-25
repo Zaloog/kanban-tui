@@ -26,7 +26,7 @@ class KanbanBoard(Horizontal):
     app: "KanbanTui"
 
     BINDINGS = [
-        Binding("space, n", "new_task", "New", priority=True, show=True),
+        Binding("n", "new_task", "New", priority=True, show=True),
         Binding("j,down", "movement('down')", "Down", show=False),
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),

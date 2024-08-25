@@ -20,18 +20,32 @@ mdit-py-plugins==0.4.1
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
+pendulum==3.0.0
+    # via textual-datepicker
 plotext==5.2.8
     # via textual-plotext
 pygments==2.18.0
     # via rich
+python-dateutil==2.9.0.post0
+    # via pendulum
+    # via time-machine
 rich==13.7.1
     # via textual
+six==1.16.0
+    # via python-dateutil
 textual==0.76.0
     # via kanban-tui
+    # via textual-datepicker
     # via textual-plotext
+textual-datepicker==0.2.4
+    # via kanban-tui
 textual-plotext==0.2.1
     # via kanban-tui
+time-machine==2.15.0
+    # via pendulum
 typing-extensions==4.12.2
     # via textual
+tzdata==2024.1
+    # via pendulum
 uc-micro-py==1.0.3
     # via linkify-it-py

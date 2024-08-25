@@ -8,6 +8,7 @@ authors = [
 dependencies = [
     "textual>=0.76.0",
     "textual-plotext>=0.2.1",
+    "textual-datepicker>=0.2.4",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
