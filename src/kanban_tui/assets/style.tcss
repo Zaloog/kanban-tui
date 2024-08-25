@@ -234,14 +234,31 @@ FilterOverlay {
     &:focus-within {
     offset: 0 0 !important;
     }
+    DatePickerDialog {
+        border:$success;
+        margin-left:-5;
+    }
     Placeholder {
         height:1fr;
     }
+    # WORK
+    CategoryFilter{
+        border:$success;
+
+        SelectionList{
+            height:1fr;
+            width:1fr;
+            align:center middle;
+        }
+    }
+    # WORK
     Label{
         text-align:center;
         width: 1fr;
     }
     DateFilter {
+        border:$success;
+        height:auto;
 
         Horizontal{
             height:3;
@@ -262,10 +279,6 @@ FilterOverlay {
     }
 }
 
-DatePickerDialog {
-    border:$success;
-    margin-left:-5;
-}
 
 Switch > .switch--slider {
         color: $error;

@@ -31,7 +31,7 @@ class KanbanBoard(Horizontal):
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),
         Binding("l, right", "movement('right')", "Right", show=False),
-        Binding("f1", "toggle_filter", "Filter"),
+        Binding("f1", "toggle_filter", "Filter", key_display="F1"),
     ]
     position: reactive[tuple[int]] = reactive((0, 0), init=False)
     task_dict: reactive[defaultdict[list]] = reactive(
@@ -41,12 +41,13 @@ class KanbanBoard(Horizontal):
 
     def _on_mount(self, event: Mount) -> None:
         self.update_task_dict(needs_update=True)
+
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         for idx, column_name in enumerate(COLUMNS):
             yield Column(title=column_name, tasklist=self.task_dict[idx])
-        yield FilterOverlay()
+        yield FilterOverlay(task_list=self.task_dict.values())
         return super().compose()
 
     def action_new_task(self) -> None:

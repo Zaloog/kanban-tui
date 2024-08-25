@@ -7,10 +7,10 @@ from textual_datepicker._date_select import DatePickerDialog
 
 class CustomDatePickerDialog(DatePickerDialog):
     BINDINGS = [
-        Binding("up,k", "cursor_up", "Cursor Up", show=False),
-        Binding("down,j", "cursor_down", "Cursor Down", show=False),
-        Binding("right,l", "cursor_right", "Cursor Right", show=False),
-        Binding("left,h", "cursor_left", "Cursor Left", show=False),
+        Binding("k", "cursor_up", "Cursor Up", show=False),
+        Binding("j", "cursor_down", "Cursor Down", show=False),
+        Binding("l", "cursor_right", "Cursor Right", show=False),
+        Binding("h", "cursor_left", "Cursor Left", show=False),
         Binding("escape", "close_dialog", "Close", show=False),
     ]
 
