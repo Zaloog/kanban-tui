@@ -28,7 +28,7 @@ class FilterOverlay(Vertical):
             self.task_list.clear()
             for col in task_list:
                 self.task_list.extend(col)
-        self.filtered_task_list = self.task_list
+        self.filtered_task_list = self.task_list.copy()
 
     def compose(self) -> Iterable[Widget]:
         # Filters:
@@ -47,15 +47,30 @@ class FilterOverlay(Vertical):
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        if self.task_list:
-            self.query_one(CategoryFilter).get_categories(task_list=self.task_list)
         return super()._on_mount(event)
 
+    async def watch_task_list(self):
+        if self.task_list:
+            self.query_one(CategoryFilter).get_categories(task_list=self.task_list)
+
     async def watch_filtered_task_list(self):
-        if self.filtered_task_list:
-            self.query_one("#label_task_filtered_amount", Label).update(
-                f"show {len(self.filtered_task_list)} / {len(self.task_list)} tasks"
-            )
+        self.query_one("#label_task_filtered_amount", Label).update(
+            f"show {len(self.filtered_task_list)} / {len(self.task_list)} tasks"
+        )
+
+    def watch_filter(self):
+        self.filtered_task_list.clear()
+        for key, filter_vals in self.filter.items():
+            match key:
+                case "categories":
+                    for task in self.task_list:
+                        if task.category in filter_vals:
+                            self.filtered_task_list.append(task)
+        self.mutate_reactive(FilterOverlay.filtered_task_list)
+
+    def on_selection_list_selected_changed(self, event: SelectionList.SelectedChanged):
+        self.filter["categories"] = event.selection_list.selected
+        self.mutate_reactive(FilterOverlay.filter)
 
 
 class CategoryFilter(Vertical):
@@ -63,10 +78,10 @@ class CategoryFilter(Vertical):
 
     def __init__(self) -> None:
         super().__init__()
+        self.border_title = "Category Filter"
 
     def compose(self) -> Iterable[Widget]:
         yield SelectionList()
-        self.border_title = "Category Filter"
         return super().compose()
 
     def get_categories(self, task_list: list[Task]):
@@ -87,6 +102,10 @@ class CategoryFilter(Vertical):
 
 
 class DateFilter(Vertical):
+    def __init__(self) -> None:
+        super().__init__()
+        self.border_title = "Date Filter"
+
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
             yield Label("From")
@@ -104,5 +123,4 @@ class DateFilter(Vertical):
                 picker_mount="#overlay_filter",
                 id="dateselect_end",
             )
-        self.border_title = "Date Filter"
         return super().compose()
