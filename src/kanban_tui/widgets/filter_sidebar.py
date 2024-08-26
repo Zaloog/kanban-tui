@@ -91,14 +91,14 @@ class CategoryFilter(Vertical):
             if category:
                 self.query_one(SelectionList).add_option(
                     Selection(
-                        f"[white on {self.app.cfg.category_color_dict[category]}]{category}[/]",
+                        f"[black on {self.app.cfg.category_color_dict[category]}]{category}[/]",
                         category,
                         True,
                     )
                 )
             else:
                 self.query_one(SelectionList).add_option(
-                    Selection(f"[white]{category}[/]", category, True)
+                    Selection(f"[black on $primary]{category}[/]", category, True)
                 )
 
 
