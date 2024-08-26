@@ -60,6 +60,7 @@ class FilterOverlay(Vertical):
 
     def watch_filter(self):
         self.filtered_task_list.clear()
+        # Change For-loop Order
         for key, filter_vals in self.filter.items():
             match key:
                 case "categories":
