@@ -38,7 +38,7 @@ class FilterOverlay(Vertical):
         # Apply Button (Preview like show 7/29 cards)
         yield Label("Filter your displayed Tasks")
         yield Label("", id="label_task_filtered_amount")
-        yield CategoryFilter()
+        yield CategoryFilter(id="category_filter")
         yield DateFilter()
         # Or a Switch
         yield Button("Cool button", id="btn_test")
@@ -74,22 +74,18 @@ class FilterOverlay(Vertical):
         self.mutate_reactive(FilterOverlay.filter)
 
 
-class CategoryFilter(Vertical):
+class CategoryFilter(SelectionList):
     app: "KanbanTui"
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, id: str | None = None):
+        super().__init__(id=id)
         self.border_title = "Category Filter"
-
-    def compose(self) -> Iterable[Widget]:
-        yield SelectionList()
-        return super().compose()
 
     def get_categories(self, task_list: list[Task]):
         category_list = list(set(task.category for task in task_list))
         for category in category_list:
             if category:
-                self.query_one(SelectionList).add_option(
+                self.add_option(
                     Selection(
                         f"[black on {self.app.cfg.category_color_dict[category]}]{category}[/]",
                         category,
@@ -97,7 +93,7 @@ class CategoryFilter(Vertical):
                     )
                 )
             else:
-                self.query_one(SelectionList).add_option(
+                self.add_option(
                     Selection(f"[black on $primary]{category}[/]", category, True)
                 )
 

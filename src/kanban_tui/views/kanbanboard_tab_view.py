@@ -161,7 +161,7 @@ class KanbanBoard(Horizontal):
 
             filter.can_focus_children = True
             # Focus the first Widget on Filter
-            filter.query_one("#btn_test").focus()
+            filter.query_one("#category_filter").focus()
             filter.remove_class("-hidden")
         else:
             self.query(TaskCard).set(disabled=False)
