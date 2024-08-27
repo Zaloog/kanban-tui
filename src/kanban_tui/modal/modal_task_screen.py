@@ -76,7 +76,8 @@ class TaskEditScreen(ModalScreen):
             database=self.app.cfg.database_path,
         )
 
-        self.dismiss(result=True)
+        self.app.update_task_list()
+        self.app.pop_screen()  # .dismiss()
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):

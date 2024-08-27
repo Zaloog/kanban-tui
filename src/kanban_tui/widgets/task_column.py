@@ -54,6 +54,5 @@ class Column(Vertical):
         self.task_amount -= 1
         await self.query_one(f"#taskcard_{task.task_id}", TaskCard).remove()
 
-        self.notify(f"{[i for i in self.query(TaskCard)]}")
         for idx, task_card in enumerate(self.query(TaskCard)):
             task_card.row = idx

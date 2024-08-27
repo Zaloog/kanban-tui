@@ -47,7 +47,8 @@ class KanbanBoard(Horizontal):
         return super().compose()
 
     def action_new_task(self) -> None:
-        self.app.push_screen(TaskEditScreen(), callback=self.app.update_task_list)
+        self.app.push_screen(TaskEditScreen())
+        # Mount new task
 
     def action_edit_task(self, task: TaskCard | None = None) -> None:
         self.app.push_screen(TaskEditScreen(task=task))
@@ -65,7 +66,6 @@ class KanbanBoard(Horizontal):
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
         ).row
-        self.notify(f"{self.selected_task.column}, {row_idx}", timeout=1)
         match direction:
             case "up":
                 try:
@@ -139,7 +139,6 @@ class KanbanBoard(Horizontal):
 
         self.selected_task.column = new_column
         self.query(Column)[new_column].place_task(self.selected_task)
-
         # self.watch(self.app, "task_list", self.watch_selected_task)
 
     def watch_selected_task2(self):
