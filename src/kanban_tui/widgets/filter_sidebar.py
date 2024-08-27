@@ -62,10 +62,10 @@ class FilterOverlay(Vertical):
     def watch_filter(self):
         self.filtered_task_list.clear()
         # Change For-loop Order
-        for key, filter_vals in self.filter.items():
-            match key:
-                case "categories":
-                    for task in self.task_list:
+        for task in self.task_list:
+            for key, filter_vals in self.filter.items():
+                match key:
+                    case "categories":
                         if task.category in filter_vals:
                             self.filtered_task_list.append(task)
         self.mutate_reactive(FilterOverlay.filtered_task_list)
