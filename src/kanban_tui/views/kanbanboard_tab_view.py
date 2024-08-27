@@ -3,7 +3,6 @@ from typing import Iterable, TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-from collections import defaultdict
 
 from textual import on
 from textual.binding import Binding
@@ -16,7 +15,7 @@ from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import TaskEditScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.database import get_all_tasks_db, update_task_column_db
+from kanban_tui.database import update_task_column_db
 from kanban_tui.constants import COLUMNS
 
 from kanban_tui.classes.task import Task
@@ -33,31 +32,33 @@ class KanbanBoard(Horizontal):
         Binding("l, right", "movement('right')", "Right", show=False),
         Binding("f1", "toggle_filter", "Filter", key_display="F1"),
     ]
-    position: reactive[tuple[int]] = reactive((0, 0), init=False)
-    task_dict: reactive[defaultdict[list]] = reactive(
-        defaultdict(list), recompose=True, init=False
-    )
     selected_task: reactive[Task | None] = reactive(None, init=False)
 
     def _on_mount(self, event: Mount) -> None:
-        self.update_task_dict(needs_update=True)
-
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         for idx, column_name in enumerate(COLUMNS):
-            yield Column(title=column_name, tasklist=self.task_dict[idx])
-        yield FilterOverlay(task_list=self.task_dict.values())
+            col_tasks = [task for task in self.app.task_list if task.column == idx]
+            yield Column(title=column_name, tasklist=col_tasks)
+        yield FilterOverlay()
         return super().compose()
 
     def action_new_task(self) -> None:
-        self.app.push_screen(TaskEditScreen(), callback=self.update_task_dict)
+        self.app.push_screen(TaskEditScreen(), callback=self.app.update_task_list)
 
     def action_edit_task(self, task: TaskCard | None = None) -> None:
         self.app.push_screen(TaskEditScreen(task=task))
 
+    async def update_columns(self):
+        for idx, column_name in enumerate(COLUMNS):
+            col_tasks = [task for task in self.app.task_list if task.column == idx]
+            await self.query_one(f"#column_{column_name.lower()}").remove()
+
+            self.mount(Column(title=column_name, tasklist=col_tasks))
+
     # Movement
-    def action_movement(self, direction: Literal["up", "right", "down", "left"]):
+    async def action_movement(self, direction: Literal["up", "right", "down", "left"]):
         current_column = self.query(Column)[self.selected_task.column]
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
@@ -95,6 +96,8 @@ class KanbanBoard(Horizontal):
                     new_column.query(TaskCard)[new_column.task_amount - 1].focus()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if not self.selected_task:
+            return
         if action == "movement":
             if (parameters[0] == "right") and (
                 self.query(Column)[
@@ -124,21 +127,20 @@ class KanbanBoard(Horizontal):
             new_column = (self.selected_task.column + 1) % len(COLUMNS)
 
         update_task_column_db(task_id=self.selected_task.task_id, column=new_column)
-        self.update_task_dict(needs_update=True)
+
+        self.app.update_task_list()
+
+        self.watch(self.app, "task_list", self.update_columns)
+
+        # self.notify(f'{self.app.task_list}')
+        # self.update_columns()
+        # self.update_task_dict(needs_update=True)
         # self.query_one(f'#taskcard_{self.selected_task.task_id}').remove()
         # self.query(Column)[new_column].place_task(self.selected_task)
 
-    def update_task_dict(self, needs_update: bool = False):
-        if needs_update:
-            self.task_dict.clear()
-            tasks = get_all_tasks_db(database=self.app.cfg.database_path)
-            for task in tasks:
-                self.task_dict[task["column"]].append(Task(**task))
-            self.mutate_reactive(KanbanBoard.task_dict)
-
-    def watch_task_dict(self):
+    def watch_selected_task2(self):
         # Make it smooth when starting without any Tasks
-        if not self.task_dict:
+        if not self.app.task_list:
             self.can_focus = True
             self.notify(
                 title="Welcome to Kanban Tui",
@@ -146,13 +148,13 @@ class KanbanBoard(Horizontal):
             )
         else:
             self.can_focus = False
-            if self.selected_task:
-                self.set_timer(
-                    delay=0.01,
-                    callback=lambda: self.query_one(
-                        f"#taskcard_{self.selected_task.task_id}", TaskCard
-                    ).focus(),
-                )
+            # if self.selected_task:
+            #     self.set_timer(
+            #         delay=1.05,
+            #         callback=lambda: self.query_one(
+            #             f"#taskcard_{self.selected_task.task_id}", TaskCard
+            #         ).focus(),
+            #     )
 
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)
