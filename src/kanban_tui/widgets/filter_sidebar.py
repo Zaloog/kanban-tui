@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from textual.events import Mount
+from textual.binding import Binding
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.widgets import Button, Label, SelectionList
@@ -76,6 +77,11 @@ class FilterOverlay(Vertical):
 
 class CategoryFilter(SelectionList):
     app: "KanbanTui"
+
+    BINDINGS = [
+        Binding("up,k", "cursor_up", "Cursor Up", show=False),
+        Binding("down,j", "cursor_down", "Cursor Down", show=False),
+    ]
 
     def __init__(self, id: str | None = None):
         super().__init__(id=id)

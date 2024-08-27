@@ -46,6 +46,8 @@ class CustomDatePickerDialog(DatePickerDialog):
 class CustomDateSelect(DateSelect):
     BINDINGS = [
         Binding("space,l", "show_overlay", "Show Overlay", show=False),
+        Binding("up,k", "cursor_up", "Cursor Up", show=False),
+        Binding("down,j", "cursor_down", "Cursor Down", show=False),
     ]
 
     def __init__(
@@ -68,3 +70,9 @@ class CustomDateSelect(DateSelect):
             self.dialog.display = False
         else:
             self._show_date_picker()
+
+    def action_cursor_up(self):
+        self.screen.focus_previous()
+
+    def action_cursor_down(self):
+        self.screen.focus_next()
