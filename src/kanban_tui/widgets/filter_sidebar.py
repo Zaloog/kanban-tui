@@ -96,25 +96,10 @@ class CategoryFilter(SelectionList):
 
     def on_mount(self):
         self.watch(self.app, "task_list", self.update_categories)
+        # self.watch(FilterOverlay, "filtered_task_list", self.update_categories)
         return super().on_mount()
 
     def update_categories(self):
-        category_list = list(set(task.category for task in self.app.task_list))
-        for category in category_list:
-            if category:
-                self.add_option(
-                    Selection(
-                        f"[black on {self.app.cfg.category_color_dict[category]}]{category}[/]",
-                        category,
-                        True,
-                    )
-                )
-            else:
-                self.add_option(
-                    Selection(f"[black on $primary]{category}[/]", category, True)
-                )
-
-    def get_categories(self):
         self.clear_options()
         category_list = list(set(task.category for task in self.app.task_list))
         for category in category_list:

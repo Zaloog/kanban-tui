@@ -84,8 +84,8 @@ class TaskCard(Vertical):
             self.parent.focus()
 
     def on_focus(self) -> None:
-        self.post_message(self.Focused(taskcard=self))
         self.expanded = True
+        self.post_message(self.Focused(taskcard=self))
 
     def on_blur(self) -> None:
         self.expanded = False

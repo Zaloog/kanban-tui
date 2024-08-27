@@ -35,6 +35,8 @@ class KanbanBoard(Horizontal):
     selected_task: reactive[Task | None] = reactive(None, init=False)
 
     def _on_mount(self, event: Mount) -> None:
+        # self.watch(self.app, "task_list", self.update_columns)
+        # self.watch(self.app, "task_list", self.update_columns, init=False)
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -58,7 +60,7 @@ class KanbanBoard(Horizontal):
             self.mount(Column(title=column_name, tasklist=col_tasks))
 
     # Movement
-    async def action_movement(self, direction: Literal["up", "right", "down", "left"]):
+    def action_movement(self, direction: Literal["up", "right", "down", "left"]):
         current_column = self.query(Column)[self.selected_task.column]
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
@@ -128,9 +130,13 @@ class KanbanBoard(Horizontal):
 
         update_task_column_db(task_id=self.selected_task.task_id, column=new_column)
 
+        self.query(Column)[self.selected_task.column].remove_task(self.selected_task)
+
         self.app.update_task_list()
 
-        self.watch(self.app, "task_list", self.update_columns)
+        self.query(Column)[new_column].place_task(self.selected_task)
+
+        # self.watch(self.app, "task_list", self.update_columns)
 
         # self.notify(f'{self.app.task_list}')
         # self.update_columns()

@@ -19,6 +19,7 @@ class Column(Vertical):
         self.title = title
         super().__init__(id=f"column_{title.lower()}")
         self.task_list = tasklist
+        self.can_focus: bool = False
 
     def compose(self) -> Iterable[Widget]:
         yield Label(self.title, id=f"label_{self.title}")
@@ -28,12 +29,7 @@ class Column(Vertical):
     def _on_mount(self, event: Mount) -> None:
         self.query_one(f"#vscroll_{self.title}", VerticalScroll).can_focus = False
         for task in self.task_list:
-            card = TaskCard(
-                task=task,
-                row=self.task_amount,
-            )
-            self.task_amount += 1
-            self.query_one(VerticalScroll).mount(card)
+            self.place_task(task=task)
         return super()._on_mount(event)
 
     def watch_task_amount(self) -> None:
