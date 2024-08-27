@@ -25,14 +25,13 @@ class KanbanTui(App):
 
         init_new_db(database=self.cfg.database_path)
         super().__init__()
-        self.update_task_list()
 
     def on_mount(self) -> None:
+        self.update_task_list()
         self.push_screen("MainView")
 
     def update_task_list(self):
-        self.task_list = [
-            Task(**task)
-            for task in get_all_tasks_db(database=self.app.cfg.database_path)
-        ]
+        tasks = get_all_tasks_db(database=self.app.cfg.database_path)
+        self.task_list = [Task(**task) for task in tasks]
+        self.notify(f"{len(self.task_list)}", timeout=1)
         self.mutate_reactive(KanbanTui.task_list)

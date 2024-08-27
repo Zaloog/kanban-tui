@@ -50,6 +50,10 @@ class Column(Vertical):
         self.task_amount += 1
         self.query_one(VerticalScroll).mount(card)
 
-    def remove_task(self, task: Task) -> None:
+    async def remove_task(self, task: Task) -> None:
         self.task_amount -= 1
-        self.query_one(f"#taskcard_{task.task_id}", TaskCard).remove()
+        await self.query_one(f"#taskcard_{task.task_id}", TaskCard).remove()
+
+        self.notify(f"{[i for i in self.query(TaskCard)]}")
+        for idx, task_card in enumerate(self.query(TaskCard)):
+            task_card.row = idx

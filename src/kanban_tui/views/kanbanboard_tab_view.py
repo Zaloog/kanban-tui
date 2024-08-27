@@ -65,6 +65,7 @@ class KanbanBoard(Horizontal):
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
         ).row
+        self.notify(f"{self.selected_task.column}, {row_idx}", timeout=1)
         match direction:
             case "up":
                 try:
@@ -122,7 +123,7 @@ class KanbanBoard(Horizontal):
         self.selected_task = event.taskcard.task_
 
     @on(TaskCard.Moved)
-    def move_card_to_other_column(self, event: TaskCard.Moved):
+    async def move_card_to_other_column(self, event: TaskCard.Moved):
         if event.direction == "left":
             new_column = (self.selected_task.column + 2) % len(COLUMNS)
         elif event.direction == "right":
@@ -130,19 +131,16 @@ class KanbanBoard(Horizontal):
 
         update_task_column_db(task_id=self.selected_task.task_id, column=new_column)
 
-        self.query(Column)[self.selected_task.column].remove_task(self.selected_task)
+        await self.query(Column)[self.selected_task.column].remove_task(
+            self.selected_task
+        )
 
         self.app.update_task_list()
 
+        self.selected_task.column = new_column
         self.query(Column)[new_column].place_task(self.selected_task)
 
-        # self.watch(self.app, "task_list", self.update_columns)
-
-        # self.notify(f'{self.app.task_list}')
-        # self.update_columns()
-        # self.update_task_dict(needs_update=True)
-        # self.query_one(f'#taskcard_{self.selected_task.task_id}').remove()
-        # self.query(Column)[new_column].place_task(self.selected_task)
+        # self.watch(self.app, "task_list", self.watch_selected_task)
 
     def watch_selected_task2(self):
         # Make it smooth when starting without any Tasks
@@ -154,13 +152,6 @@ class KanbanBoard(Horizontal):
             )
         else:
             self.can_focus = False
-            # if self.selected_task:
-            #     self.set_timer(
-            #         delay=1.05,
-            #         callback=lambda: self.query_one(
-            #             f"#taskcard_{self.selected_task.task_id}", TaskCard
-            #         ).focus(),
-            #     )
 
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)

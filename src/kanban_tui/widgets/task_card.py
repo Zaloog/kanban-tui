@@ -64,7 +64,7 @@ class TaskCard(Vertical):
             self.styles.background = self.app.cfg.category_color_dict[
                 self.task_.category
             ]
-        yield Label(f"{self.task_.title}")
+        yield Label(f"{self.task_.title} ({self.task_.column}, {self.row})")
         yield Markdown(
             markdown=self.task_.description,
         )
