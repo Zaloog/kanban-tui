@@ -14,6 +14,7 @@ from textual.widgets import Label, Markdown
 from textual.message import Message
 
 from kanban_tui.classes.task import Task
+from kanban_tui.modal.modal_task_screen import TaskEditScreen
 
 
 class TaskCard(Vertical):
@@ -107,5 +108,9 @@ class TaskCard(Vertical):
     def action_move_task(self, direction: Literal["left", "right"]):
         self.post_message(self.Moved(taskcard=self, direction=direction))
 
-    # def action_edit_task(self, task: TaskCard | None = None) -> None:
-    #     self.app.push_screen(TaskEditScreen(task=task))
+    def action_edit_task(self) -> None:
+        self.app.push_screen(TaskEditScreen(task=self.task_), callback=self.update_task)
+
+    def update_task(self, updated_task: Task) -> None:
+        self.task_ = updated_task
+        self.refresh(recompose=True)

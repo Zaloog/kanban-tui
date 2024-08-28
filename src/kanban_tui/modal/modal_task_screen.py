@@ -51,7 +51,25 @@ class TaskEditScreen(ModalScreen):
 
     def _on_mount(self, event: Mount) -> None:
         if self.kanban_task:
-            ...
+            self.query_one("#btn_continue", Button).label = "Edit Task"
+            self.query_one("#input_title", Input).value = self.kanban_task.title
+            self.query_one(TextArea).text = self.kanban_task.description
+            self.query_one(Select).value = (
+                self.kanban_task.category if self.kanban_task.category else Select.BLANK
+            )
+            self.query_one("#label_create_date", Label).update(
+                self.kanban_task.creation_date
+            )
+            if self.kanban_task.due_date:
+                self.query_one(DetailInfos).due_date = self.kanban_task.due_date
+            if self.kanban_task.start_date:
+                self.query_one("#label_start_date", Label).update(
+                    self.kanban_task.start_date
+                )
+            if self.kanban_task.finish_date:
+                self.query_one("#label_finish_date", Label).update(
+                    self.kanban_task.finish_date
+                )
         return super()._on_mount(event)
 
     @on(Button.Pressed, "#btn_continue")
@@ -67,17 +85,27 @@ class TaskEditScreen(ModalScreen):
             else None
         )
 
-        create_new_task_db(
-            title=title,
-            description=description,
-            column=self.app.cfg.start_column,
-            category=category,
-            due_date=due_date,
-            database=self.app.cfg.database_path,
-        )
+        if not self.kanban_task:
+            # create new task
+            create_new_task_db(
+                title=title,
+                description=description,
+                column=self.app.cfg.start_column,
+                category=category,
+                due_date=due_date,
+                database=self.app.cfg.database_path,
+            )
 
-        self.app.update_task_list()
-        self.dismiss(result=self.app.task_list[-1])
+            self.app.update_task_list()
+            self.dismiss(result=self.app.task_list[-1])
+
+        else:
+            self.kanban_task.title = title
+            self.kanban_task.due_date = due_date
+            self.kanban_task.description = description
+            self.kanban_task.category = category
+
+            self.dismiss(result=self.kanban_task)
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):

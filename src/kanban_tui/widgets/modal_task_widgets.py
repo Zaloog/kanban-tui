@@ -158,7 +158,7 @@ class CreationDateInfo(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label(
             f"Task created at: {datetime.now().replace(microsecond=0)}",
-            id="label-start_date",
+            id="label_create_date",
         )
         self.border = "$success"
         self.border_title = "Creation Date"
@@ -167,7 +167,7 @@ class CreationDateInfo(Horizontal):
 
 class StartDateInfo(Vertical):
     def compose(self) -> Iterable[Widget]:
-        yield Label("[red]not started yet[/]", id="label-start_date")
+        yield Label("[red]not started yet[/]", id="label_start_date")
         self.border = "$success"
         self.border_title = "Start Date"
         return super().compose()
