@@ -3,6 +3,7 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from textual import on
 from textual.events import Mount
 from textual.binding import Binding
 from textual.widget import Widget
@@ -10,6 +11,7 @@ from textual.reactive import reactive
 from textual.widgets import Button, Label, SelectionList
 from textual.widgets.selection_list import Selection
 from textual.containers import Vertical, Horizontal
+from textual_datepicker import DatePicker
 
 from kanban_tui.widgets.date_select import CustomDateSelect
 from kanban_tui.classes.task import Task
@@ -21,13 +23,10 @@ class FilterOverlay(Vertical):
     can_focus_children: bool = False
     classes: str = "-hidden"
     filtered_task_list: reactive[list[Task]] = reactive([])
-    filter: reactive[dict] = reactive(
-        {"categories": [], "order": "", "due_date": (0,)}, init=False
-    )
 
     def __init__(self) -> None:
         super().__init__(classes=self.classes, id="overlay_filter")
-        self.filtered_task_list = self.app.task_list.copy()
+        # self.filtered_task_list = self.app.task_list.copy()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Filter your displayed Tasks")
@@ -41,30 +40,37 @@ class FilterOverlay(Vertical):
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        # self.watch(self.app, "task_list", self.watch_filter)
+        # self.watch(CategoryFilter, "category_list", self.watch_filter)
         return super()._on_mount(event)
 
-    def watch_filter(self):
+    @on(SelectionList.SelectedChanged)
+    @on(DatePicker.Selected)
+    def update_visible_tasks(
+        self, event: SelectionList.SelectedChanged | DatePicker.Selected
+    ):
+        # self.log.error(f'{self.filter}')
         self.filtered_task_list.clear()
         # Change For-loop Order
         for task in self.app.task_list:
-            for key, filter_vals in self.filter.items():
-                match key:
-                    case "categories":
-                        if task.category in filter_vals:
-                            self.filtered_task_list.append(task)
+            if isinstance(event, SelectionList.SelectedChanged):
+                if task.category in event.selection_list.selected:
+                    self.filtered_task_list.append(task)
+            if isinstance(event, DatePicker.Selected):
+                if task.due_date:
+                    if event.date.date() <= task.due_date:
+                        self.filtered_task_list.append(task)
+
         self.mutate_reactive(FilterOverlay.filtered_task_list)
 
-    def on_selection_list_selected_changed(self, event: SelectionList.SelectedChanged):
-        self.filter["categories"] = event.selection_list.selected
+    def watch_filtered_task_list(self):
         self.query_one(PreviewLabel).current_shown = len(self.filtered_task_list)
-        self.mutate_reactive(FilterOverlay.filter)
 
 
 class PreviewLabel(Label):
-    current_shown: reactive[int] = reactive(0)
+    current_shown: reactive[int] = reactive(0, init=False)
 
     def _on_mount(self, event: Mount) -> None:
+        self.update(f"show {len(self.app.task_list)} / {len(self.app.task_list)} tasks")
         return super()._on_mount(event)
 
     def watch_current_shown(self):

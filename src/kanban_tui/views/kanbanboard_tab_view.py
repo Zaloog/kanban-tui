@@ -36,7 +36,7 @@ class KanbanBoard(Horizontal):
 
     def _on_mount(self, event: Mount) -> None:
         # self.app.push_screen(TaskEditScreen(), callback=self.place_new_task)
-        self.watch(self.app, "task_list", self.watch_selected_task2)
+        self.watch(self.app, "task_list", self.get_first_card)
         # self.watch(self.app, "task_list", self.update_columns, init=False)
         return super()._on_mount(event)
 
@@ -144,7 +144,7 @@ class KanbanBoard(Horizontal):
         self.query(Column)[new_column].place_task(self.selected_task)
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 
-    def watch_selected_task2(self):
+    def get_first_card(self):
         # Make it smooth when starting without any Tasks
         if not self.app.task_list:
             self.can_focus = True

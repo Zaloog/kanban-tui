@@ -24,12 +24,13 @@ class Task:
             self.duration = self.get_duration()
 
     def get_days_left_till_due(self):
-        due_date = datetime.strptime(self.due_date, "%Y-%m-%d %H:%M:%S").replace(
+        self.due_date = datetime.strptime(self.due_date, "%Y-%m-%d %H:%M:%S").replace(
             microsecond=0
         )
         return max(
             0,
-            (due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1) + 1,
+            (self.due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
+            + 1,
         )
 
     def get_duration(self):
