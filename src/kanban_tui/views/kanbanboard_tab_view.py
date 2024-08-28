@@ -25,17 +25,18 @@ class KanbanBoard(Horizontal):
     app: "KanbanTui"
 
     BINDINGS = [
-        Binding("n", "new_task", "New", priority=True, show=True),
+        Binding("n", "new_task", "New", show=True, priority=True),
+        Binding("f1", "toggle_filter", "Filter", key_display="F1", show=True),
         Binding("j,down", "movement('down')", "Down", show=False),
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),
         Binding("l, right", "movement('right')", "Right", show=False),
-        Binding("f1", "toggle_filter", "Filter", key_display="F1"),
     ]
-    selected_task: reactive[Task | None] = reactive(None, init=False)
+    selected_task: reactive[Task | None] = reactive(None)
 
     def _on_mount(self, event: Mount) -> None:
-        # self.watch(self.app, "task_list", self.update_columns)
+        # self.app.push_screen(TaskEditScreen(), callback=self.place_new_task)
+        self.watch(self.app, "task_list", self.watch_selected_task2)
         # self.watch(self.app, "task_list", self.update_columns, init=False)
         return super()._on_mount(event)
 
@@ -43,15 +44,17 @@ class KanbanBoard(Horizontal):
         for idx, column_name in enumerate(COLUMNS):
             col_tasks = [task for task in self.app.task_list if task.column == idx]
             yield Column(title=column_name, tasklist=col_tasks)
+        self.can_focus = True
         yield FilterOverlay()
         return super().compose()
 
     def action_new_task(self) -> None:
-        self.app.push_screen(TaskEditScreen())
-        # Mount new task
+        self.app.push_screen(TaskEditScreen(), callback=self.place_new_task)
 
-    def action_edit_task(self, task: TaskCard | None = None) -> None:
-        self.app.push_screen(TaskEditScreen(task=task))
+    def place_new_task(self, task: Task):
+        self.query(Column)[self.app.cfg.start_column].place_task(task=task)
+        self.selected_task = task
+        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 
     async def update_columns(self):
         for idx, column_name in enumerate(COLUMNS):
@@ -100,7 +103,7 @@ class KanbanBoard(Horizontal):
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if not self.selected_task:
-            return
+            return True
         if action == "movement":
             if (parameters[0] == "right") and (
                 self.query(Column)[
@@ -139,7 +142,7 @@ class KanbanBoard(Horizontal):
 
         self.selected_task.column = new_column
         self.query(Column)[new_column].place_task(self.selected_task)
-        # self.watch(self.app, "task_list", self.watch_selected_task)
+        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 
     def watch_selected_task2(self):
         # Make it smooth when starting without any Tasks
@@ -147,7 +150,7 @@ class KanbanBoard(Horizontal):
             self.can_focus = True
             self.notify(
                 title="Welcome to Kanban Tui",
-                message="Looks like you are new, press [blue]<space>[/] to create your first Card",
+                message="Looks like you are new, press [blue]n[/] to create your first Card",
             )
         else:
             self.can_focus = False

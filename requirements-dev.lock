@@ -33,7 +33,7 @@ frozenlist==1.4.1
     # via aiosignal
 identify==2.6.0
     # via pre-commit
-idna==3.7
+idna==3.8
     # via yarl
 linkify-it-py==2.0.3
     # via markdown-it-py
@@ -66,11 +66,11 @@ python-dateutil==2.9.0.post0
     # via time-machine
 pyyaml==6.0.2
     # via pre-commit
-rich==13.7.1
+rich==13.8.0
     # via textual
 six==1.16.0
     # via python-dateutil
-textual==0.76.0
+textual==0.78.0
     # via kanban-tui
     # via textual-datepicker
     # via textual-dev

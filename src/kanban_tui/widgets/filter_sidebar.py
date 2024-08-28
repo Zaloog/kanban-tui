@@ -44,13 +44,6 @@ class FilterOverlay(Vertical):
         # self.watch(self.app, "task_list", self.watch_filter)
         return super()._on_mount(event)
 
-    # def init_filtered_task_list(self):
-    #     self.filtered_task_list = self.app.task_list.copy()
-    #     self.mutate_reactive(FilterOverlay.filtered_task_list)
-    # self.query_one("#label_task_filtered_amount", Label).update(
-    #     f"show {len(self.filtered_task_list)} / {len(self.app.task_list)} tasks"
-    # )
-
     def watch_filter(self):
         self.filtered_task_list.clear()
         # Change For-loop Order

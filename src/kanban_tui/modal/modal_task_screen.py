@@ -77,7 +77,7 @@ class TaskEditScreen(ModalScreen):
         )
 
         self.app.update_task_list()
-        self.app.pop_screen()  # .dismiss()
+        self.dismiss(result=self.app.task_list[-1])
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):

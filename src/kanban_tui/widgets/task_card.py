@@ -106,3 +106,6 @@ class TaskCard(Vertical):
 
     def action_move_task(self, direction: Literal["left", "right"]):
         self.post_message(self.Moved(taskcard=self, direction=direction))
+
+    # def action_edit_task(self, task: TaskCard | None = None) -> None:
+    #     self.app.push_screen(TaskEditScreen(task=task))
