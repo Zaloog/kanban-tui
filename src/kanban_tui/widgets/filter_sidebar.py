@@ -94,8 +94,12 @@ class CategoryFilter(SelectionList):
         return super().on_mount()
 
     def update_categories(self):
-        self.clear_options()
         category_list = list(set(task.category for task in self.app.task_list))
+        if self.option_count == len(category_list):
+            return
+
+        with self.prevent(self.SelectedChanged):
+            self.clear_options()
         selections = []
         for category in category_list:
             if category:

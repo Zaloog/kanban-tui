@@ -102,6 +102,7 @@ class KanbanBoard(Horizontal):
                     new_column.query(TaskCard)[new_column.task_amount - 1].focus()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        # Prevents Movement into empty column
         if not self.selected_task:
             return True
         if action == "movement":
@@ -157,6 +158,7 @@ class KanbanBoard(Horizontal):
 
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)
+        # open filter
         if filter.has_class("-hidden"):
             self.query(TaskCard).set(disabled=True)
 
@@ -164,9 +166,11 @@ class KanbanBoard(Horizontal):
             # Focus the first Widget on Filter
             filter.query_one("#category_filter").focus()
             filter.remove_class("-hidden")
+        # close filter
         else:
             self.query(TaskCard).set(disabled=False)
             filter.can_focus_children = False
+            # self.watch(FilterOverlay, 'filtered_task_list', self.change_card_visibility)
             if self.selected_task:
                 self.query_one(
                     f"#taskcard_{self.selected_task.task_id}", TaskCard
@@ -175,3 +179,20 @@ class KanbanBoard(Horizontal):
                 self.app.action_focus_next()
 
             filter.add_class("-hidden")
+
+    def change_card_visibility(self):
+        for task in self.app.task_list:
+            for task_fil in self.query_one(FilterOverlay).filtered_task_list:
+                if task.task_id == task_fil.task_id:
+                    self.notify(f"{task.category}")
+                    self.query_one(f"#taskcard_{task.task_id}").set_styles(
+                        "display:block;"
+                    ).disabled = False
+                    continue
+                    # self.query_one(f'#taskcard_{task.task_id}').remove_class('hidden').disabled = False
+                else:
+                    self.query_one(f"#taskcard_{task.task_id}").set_styles(
+                        "display:none;"
+                    ).disabled = True
+                    continue
+                    # self.query_one(f'#taskcard_{task.task_id}').add_class('hidden').disabled = True
