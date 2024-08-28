@@ -68,31 +68,33 @@ class DetailInfos(Vertical):
             self.query_one(CustomDateSelect).add_class("hidden")
 
     def on_date_picker_selected(self):
-        try:
-            self.due_date = self.query_one(CustomDateSelect).value.replace(
-                microsecond=0, tzinfo=None
-            )
+        self.due_date = self.query_one(CustomDateSelect).value.replace(
+            microsecond=0, tzinfo=None
+        )
 
-            # Delta Calculation
-            if self.due_date.date() <= datetime.now().date():
-                delta = 0
-                self.query_one("#label_days_left", Label).update(
-                    f"[red]{delta}[/] days left"
-                )
-            else:
-                delta = (self.due_date - datetime.now()).days + 1
-
-            # Label display Update
-            if delta == 1:
-                self.query_one("#label_days_left", Label).update(
-                    f"[green]{delta}[/] day left"
-                )
-            else:
-                self.query_one("#label_days_left", Label).update(
-                    f"[green]{delta}[/] days left"
-                )
-        except Exception:
+    def watch_due_date(self):
+        if not self.due_date:
             self.query_one("#label_days_left", Label).update("[yellow]??[/] days left")
+            return
+
+        # Delta Calculation
+        if self.due_date.date() <= datetime.now().date():
+            delta = 0
+            self.query_one("#label_days_left", Label).update(
+                f"[red]{delta}[/] days left"
+            )
+        else:
+            delta = (self.due_date - datetime.now()).days + 1
+
+        # Label display Update
+        if delta == 1:
+            self.query_one("#label_days_left", Label).update(
+                f"[green]{delta}[/] day left"
+            )
+        else:
+            self.query_one("#label_days_left", Label).update(
+                f"[green]{delta}[/] days left"
+            )
 
 
 class NewSelection:

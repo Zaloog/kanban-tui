@@ -5,13 +5,15 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
+import pendulum
 from textual import on
 from textual.events import Mount
 from textual.widget import Widget
 from textual.binding import Binding
 from textual.screen import ModalScreen
-from textual.widgets import Input, TextArea, Button, Select, Label
+from textual.widgets import Input, TextArea, Button, Select, Label, Switch
 from textual.containers import Horizontal, Vertical
+from textual_datepicker import DateSelect
 
 from kanban_tui.classes.task import Task
 from kanban_tui.database import create_new_task_db
@@ -61,7 +63,17 @@ class TaskEditScreen(ModalScreen):
                 self.kanban_task.creation_date
             )
             if self.kanban_task.due_date:
-                self.query_one(DetailInfos).due_date = self.kanban_task.due_date
+                # toggle switch
+                self.query_one(Switch).toggle()
+                # set date in widget
+                self.query_one(DateSelect).date = pendulum.instance(
+                    self.kanban_task.due_date
+                )
+                # set date in customwidget to trigger watch on days left
+                self.query_one(DetailInfos).due_date = pendulum.instance(
+                    self.kanban_task.due_date
+                ).replace(microsecond=0, tzinfo=None)
+
             if self.kanban_task.start_date:
                 self.query_one("#label_start_date", Label).update(
                     self.kanban_task.start_date
