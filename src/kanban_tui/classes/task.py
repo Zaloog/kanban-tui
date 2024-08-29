@@ -19,24 +19,25 @@ class Task:
 
     def __post_init__(self):
         if self.due_date:
-            self.days_left = self.get_days_left_till_due()
+            self.due_date = datetime.strptime(
+                self.due_date, "%Y-%m-%d %H:%M:%S"
+            ).replace(microsecond=0)
+            self.get_days_left_till_due()
         if self.finish_date:
-            self.duration = self.get_duration()
+            self.get_duration()
 
     def get_days_left_till_due(self):
-        self.due_date = datetime.strptime(self.due_date, "%Y-%m-%d %H:%M:%S").replace(
-            microsecond=0
-        )
-        return max(
+        self.days_left = max(
             0,
             (self.due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
             + 1,
         )
 
     def get_duration(self):
-        return (self.finish_date - self.start_date) / timedelta(hours=1)
+        """get duration in hours from start till finish of task"""
+        self.duration = (self.finish_date - self.start_date) / timedelta(hours=1)
 
     def finish(self):
         self.finished = True
         self.finish_date = datetime.now().replace(microsecond=0)
-        self.duration = self.get_duration()
+        self.get_duration()

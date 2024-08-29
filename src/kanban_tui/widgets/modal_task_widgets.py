@@ -29,7 +29,7 @@ class DescriptionInfos(Vertical):
 
 class DetailInfos(Vertical):
     app: "KanbanTui"
-    due_date: reactive = reactive(None)
+    due_date: reactive[datetime] = reactive(None)
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_category"):

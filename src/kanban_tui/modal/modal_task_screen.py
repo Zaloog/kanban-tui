@@ -1,4 +1,5 @@
 from typing import Iterable, TYPE_CHECKING
+from datetime import datetime
 
 
 if TYPE_CHECKING:
@@ -54,34 +55,8 @@ class TaskEditScreen(ModalScreen):
     def _on_mount(self, event: Mount) -> None:
         if self.kanban_task:
             self.query_one("#btn_continue", Button).label = "Edit Task"
-            self.query_one("#input_title", Input).value = self.kanban_task.title
-            self.query_one(TextArea).text = self.kanban_task.description
-            self.query_one(Select).value = (
-                self.kanban_task.category if self.kanban_task.category else Select.BLANK
-            )
-            self.query_one("#label_create_date", Label).update(
-                self.kanban_task.creation_date
-            )
-            if self.kanban_task.due_date:
-                # toggle switch
-                self.query_one(Switch).toggle()
-                # set date in widget
-                self.query_one(DateSelect).date = pendulum.instance(
-                    self.kanban_task.due_date
-                )
-                # set date in customwidget to trigger watch on days left
-                self.query_one(DetailInfos).due_date = pendulum.instance(
-                    self.kanban_task.due_date
-                ).replace(microsecond=0, tzinfo=None)
-
-            if self.kanban_task.start_date:
-                self.query_one("#label_start_date", Label).update(
-                    self.kanban_task.start_date
-                )
-            if self.kanban_task.finish_date:
-                self.query_one("#label_finish_date", Label).update(
-                    self.kanban_task.finish_date
-                )
+            self.query_one("#label_header", Label).update("Edit Task")
+            self.read_values_from_task()
         return super()._on_mount(event)
 
     @on(Button.Pressed, "#btn_continue")
@@ -113,7 +88,8 @@ class TaskEditScreen(ModalScreen):
 
         else:
             self.kanban_task.title = title
-            self.kanban_task.due_date = due_date
+            self.kanban_task.due_date = datetime.fromisoformat(due_date)
+            self.kanban_task.get_days_left_till_due()
             self.kanban_task.description = description
             self.kanban_task.category = category
 
@@ -122,3 +98,36 @@ class TaskEditScreen(ModalScreen):
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):
         self.app.pop_screen()  # .dismiss()
+
+    def read_values_from_task(self):
+        self.query_one("#input_title", Input).value = self.kanban_task.title
+        self.query_one(TextArea).text = self.kanban_task.description
+        self.query_one(Select).value = (
+            self.kanban_task.category if self.kanban_task.category else Select.BLANK
+        )
+        self.query_one("#label_create_date", Label).update(
+            self.kanban_task.creation_date
+        )
+        if self.kanban_task.due_date:
+            # toggle switch
+            self.query_one(Switch).toggle()
+            # set date in widget
+            self.query_one(DateSelect).date = pendulum.instance(
+                self.kanban_task.due_date
+            )
+            # set date in customwidget to trigger watch on days left
+            # self.query_one(DetailInfos).due_date = pendulum.instance(
+            #     self.kanban_task.due_date
+            # ).replace(microsecond=0, tzinfo=None)
+            self.query_one(DetailInfos).due_date = self.kanban_task.due_date.replace(
+                microsecond=0, tzinfo=None
+            )
+
+        if self.kanban_task.start_date:
+            self.query_one("#label_start_date", Label).update(
+                self.kanban_task.start_date
+            )
+        if self.kanban_task.finish_date:
+            self.query_one("#label_finish_date", Label).update(
+                self.kanban_task.finish_date
+            )
