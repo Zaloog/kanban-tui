@@ -65,6 +65,12 @@ class TaskCard(Vertical):
             self.styles.background = self.app.cfg.category_color_dict[
                 self.task_.category
             ]
+        # else:
+        #     self.styles.background = 'gray'
+        self.border_title = self.task_.title
+        self.border_subtitle = (
+            f"{self.task_.days_left} days left" if self.task_.days_left else None
+        )
         yield Label(f"{self.task_.title} ({self.task_.column}, {self.row})")
         yield Markdown(
             markdown=self.task_.description,
@@ -93,11 +99,6 @@ class TaskCard(Vertical):
 
     def watch_expanded(self):
         if self.expanded:
-            self.border_title = self.task_.title
-            self.border_subtitle = (
-                f"{self.task_.days_left} days left" if self.task_.days_left else None
-            )
-
             self.query_one(Label).add_class("hidden")
             self.query_one(Markdown).remove_class("hidden")
         else:
