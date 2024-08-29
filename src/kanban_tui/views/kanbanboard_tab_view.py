@@ -135,6 +135,7 @@ class KanbanBoard(Horizontal):
 
         update_task_column_db(task_id=self.selected_task.task_id, column=new_column)
 
+        self.app.app_focus = False
         await self.query(Column)[self.selected_task.column].remove_task(
             self.selected_task
         )

@@ -130,3 +130,41 @@ def update_task_column_db(
         except sqlite3.Error as e:
             print(e.sqlite_errorname)
             return e.sqlite_errorname
+
+
+def update_task_entry_db(
+    task_id: int,
+    title: str,
+    category: str | None = None,
+    description: str | None = None,
+    due_date: datetime | None = None,
+    database: Path = DB_FULL_PATH,
+) -> str | int:
+    update_task_dict = {
+        "task_id": task_id,
+        "title": title,
+        "category": category,
+        "description": description,
+        "due_date": due_date,
+    }
+
+    transaction_str = """
+    UPDATE tasks
+    SET
+        title = :title,
+        category = :category,
+        description = :description,
+        due_date = :due_date
+    WHERE task_id = :task_id;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_task_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e)
+            return e

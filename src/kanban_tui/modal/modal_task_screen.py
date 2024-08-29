@@ -17,7 +17,7 @@ from textual.containers import Horizontal, Vertical
 from textual_datepicker import DateSelect
 
 from kanban_tui.classes.task import Task
-from kanban_tui.database import create_new_task_db
+from kanban_tui.database import create_new_task_db, update_task_entry_db
 from kanban_tui.widgets.modal_task_widgets import (
     CreationDateInfo,
     StartDateInfo,
@@ -92,6 +92,15 @@ class TaskEditScreen(ModalScreen):
             self.kanban_task.get_days_left_till_due()
             self.kanban_task.description = description
             self.kanban_task.category = category
+
+            update_task_entry_db(
+                task_id=self.kanban_task.task_id,
+                title=self.kanban_task.title,
+                due_date=self.kanban_task.due_date,
+                description=self.kanban_task.description,
+                category=self.kanban_task.category,
+                database=self.app.cfg.database_path,
+            )
 
             self.dismiss(result=self.kanban_task)
 
