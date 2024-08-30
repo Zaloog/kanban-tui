@@ -10,6 +10,8 @@
 #   universal: false
 
 -e file:.
+annotated-types==0.7.0
+    # via pydantic
 linkify-it-py==2.0.3
     # via markdown-it-py
 markdown-it-py==3.0.0
@@ -24,6 +26,10 @@ pendulum==3.0.0
     # via textual-datepicker
 plotext==5.2.8
     # via textual-plotext
+pydantic==2.8.2
+    # via kanban-tui
+pydantic-core==2.20.1
+    # via pydantic
 pygments==2.18.0
     # via rich
 python-dateutil==2.9.0.post0
@@ -44,6 +50,8 @@ textual-plotext==0.2.1
 time-machine==2.15.0
     # via pendulum
 typing-extensions==4.12.2
+    # via pydantic
+    # via pydantic-core
     # via textual
 tzdata==2024.1
     # via pendulum

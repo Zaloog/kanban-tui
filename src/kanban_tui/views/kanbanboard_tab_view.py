@@ -15,7 +15,7 @@ from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import TaskEditScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.database import update_task_column_db
+from kanban_tui.database import update_task_db
 from kanban_tui.constants import COLUMNS
 
 from kanban_tui.classes.task import Task
@@ -128,9 +128,9 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Moved)
     async def move_card_to_other_column(self, event: TaskCard.Moved):
-        update_task_column_db(
-            task_id=self.selected_task.task_id, column=event.new_column
-        )
+        # update_task_column_db(
+        #     task_id=self.selected_task.task_id, column=event.new_column
+        # )
 
         # remove focus and give focus back to same task in new column
         self.app.app_focus = False
@@ -138,11 +138,13 @@ class KanbanBoard(Horizontal):
             self.selected_task
         )
 
-        self.app.update_task_list()
-
         self.selected_task.column = event.new_column
+        update_task_db(task=self.selected_task)
+
         self.query(Column)[event.new_column].place_task(self.selected_task)
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+
+        self.app.update_task_list()
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
@@ -179,7 +181,7 @@ class KanbanBoard(Horizontal):
 
             filter.add_class("-hidden")
 
-    def change_card_visibility(self):
+    def change_card_visibility_on_filter(self):
         for task in self.app.task_list:
             for task_fil in self.query_one(FilterOverlay).filtered_task_list:
                 if task.task_id == task_fil.task_id:

@@ -1,9 +1,10 @@
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+from pydantic import BaseModel
 
-@dataclass
-class Task:
+
+# @dataclass
+class Task(BaseModel):
     title: str
     column: int
     creation_date: datetime = datetime.now().replace(microsecond=0)
@@ -47,7 +48,7 @@ class Task:
         self.finish_date = datetime.now().replace(microsecond=0)
         self.get_duration()
 
-    def update_status(self, new_column: int):
+    def update_task_status(self, new_column: int):
         match new_column:
             case 1:
                 self.start_task()

@@ -113,7 +113,7 @@ class TaskCard(Vertical):
             case "right":
                 new_column = (self.task_.column + 1) % len(COLUMNS)
 
-        self.task_.update_status(new_column=new_column)
+        self.task_.update_task_status(new_column=new_column)
         self.post_message(self.Moved(taskcard=self, new_column=new_column))
 
     def action_edit_task(self) -> None:

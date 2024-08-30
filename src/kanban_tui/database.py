@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime
 
 from kanban_tui.constants import DB_FULL_PATH
+from kanban_tui.classes.task import Task
 
 
 def create_connection(database: Path = DB_FULL_PATH) -> sqlite3.Connection:
@@ -128,6 +129,74 @@ def update_task_column_db(
             con.execute(transaction_str, new_column_dict)
             return 0
         except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> None:
+    new_start_date_dict = {
+        "task_id": task.task_id,
+        "start_date": task.start_date,
+        "column": task.column,
+        "finish_date": task.finish_date,
+    }
+    transaction_str = """
+    UPDATE tasks
+    SET start_date = :start_date,
+        finish_date = :finish_date,
+        column = :column
+    WHERE task_id = :task_id
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, new_start_date_dict)
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def update_task_start_task_db(
+    task_id: int, start_date: int, database: Path = DB_FULL_PATH
+) -> None:
+    new_start_date_dict = {"task_id": task_id, "start_date": start_date, "column": 1}
+    transaction_str = """
+    UPDATE tasks
+    SET start_date = :start_date,
+        column = :column
+    WHERE task_id = :task_id
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, new_start_date_dict)
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def update_task_finish_task_db(
+    task_id: int, finish_date: int, database: Path = DB_FULL_PATH
+) -> None:
+    new_finish_date_dict = {"task_id": task_id, "start_date": finish_date, "column": 2}
+    transaction_str = """
+    UPDATE tasks
+    SET finish_date = :finish_date,
+        column = :column
+    WHERE task_id = :task_id
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, new_finish_date_dict)
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
             print(e.sqlite_errorname)
             return e.sqlite_errorname
 
@@ -166,5 +235,5 @@ def update_task_entry_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e)
-            return e
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
