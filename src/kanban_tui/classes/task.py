@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 
 
-# @dataclass
 class Task(BaseModel):
     title: str
     column: int
@@ -32,7 +31,6 @@ class Task(BaseModel):
             (self.due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
             + 1,
         )
-        print(self.days_left)
 
     def get_duration(self):
         """get duration in hours from start till finish of task"""

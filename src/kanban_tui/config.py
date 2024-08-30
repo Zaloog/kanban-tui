@@ -47,6 +47,12 @@ class KanbanTuiConfig:
         self.save()
 
     @property
+    def default_task_color(self) -> bool:
+        return self.config.get(
+            section="kanban.settings", option="no_category_task_color"
+        )
+
+    @property
     def category_color_dict(self) -> dict:
         return self.config["category.colors"]
 
@@ -72,6 +78,7 @@ def init_new_config(config_path=CONFIG_FULL_PATH):
     config["category.colors"] = {}
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
+        "no_category_task_color": "gray",
         "start_column": 0,
     }
 

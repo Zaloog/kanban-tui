@@ -63,12 +63,10 @@ class TaskCard(Vertical):
         if self.app.cfg.tasks_always_expanded:
             self.query_one(Markdown).remove_class("hidden")
 
-        if self.task_.category:
-            self.styles.background = self.app.cfg.category_color_dict[
-                self.task_.category
-            ]
-        # else:
-        #     self.styles.background = 'gray'
+        self.styles.background = self.app.cfg.category_color_dict.get(
+            self.task_.category, self.app.cfg.default_task_color
+        )
+
         self.border_title = self.task_.title
         self.border_subtitle = (
             f"{self.task_.days_left} days left" if self.task_.days_left else None
