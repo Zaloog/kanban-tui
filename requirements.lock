@@ -24,6 +24,8 @@ mdurl==0.1.2
     # via markdown-it-py
 pendulum==3.0.0
     # via textual-datepicker
+platformdirs==4.2.2
+    # via textual
 plotext==5.2.8
     # via textual-plotext
 pydantic==2.8.2
@@ -39,7 +41,7 @@ rich==13.8.0
     # via textual
 six==1.16.0
     # via python-dateutil
-textual==0.78.0
+textual==0.79.0
     # via kanban-tui
     # via textual-datepicker
     # via textual-plotext
