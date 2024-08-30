@@ -12,3 +12,4 @@ wheels/
 # dev
 *.db
 *.ini
+todo.md
