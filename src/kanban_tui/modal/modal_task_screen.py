@@ -144,11 +144,14 @@ class ModalTaskDeleteScreen(ModalScreen):
         super().__init__()
 
     def compose(self) -> Iterable[Widget]:
-        yield Label(f"Delete Task [blue]{self.kanban_task.title}[/]?")
-        with Horizontal(id="horizontal_buttons_delete"):
-            yield Button("Confirm Delete", id="btn_continue_delete", variant="success")
-            yield Button("Cancel Delete", id="btn_cancel_delete", variant="error")
-        return super().compose()
+        with Vertical():
+            yield Label(f"Delete Task [blue]{self.kanban_task.title}[/]?")
+            with Horizontal(id="horizontal_buttons_delete"):
+                yield Button(
+                    "Confirm Delete", id="btn_continue_delete", variant="success"
+                )
+                yield Button("Cancel Delete", id="btn_cancel_delete", variant="error")
+            return super().compose()
 
     @on(Button.Pressed, "#btn_continue_delete")
     def confirm_delete(self):
