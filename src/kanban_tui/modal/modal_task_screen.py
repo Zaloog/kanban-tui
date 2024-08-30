@@ -27,7 +27,7 @@ from kanban_tui.widgets.modal_task_widgets import (
 )
 
 
-class TaskEditScreen(ModalScreen):
+class ModalTaskEditScreen(ModalScreen):
     app: "KanbanTui"
 
     BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
@@ -136,3 +136,24 @@ class TaskEditScreen(ModalScreen):
             self.query_one("#label_finish_date", Label).update(
                 self.kanban_task.finish_date.isoformat(sep=" ", timespec="seconds")
             )
+
+
+class ModalTaskDeleteScreen(ModalScreen):
+    def __init__(self, task: Task | None = None) -> None:
+        self.kanban_task = task
+        super().__init__()
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label(f"Delete Task [blue]{self.kanban_task.title}[/]?")
+        with Horizontal(id="horizontal_buttons_delete"):
+            yield Button("Confirm Delete", id="btn_continue_delete", variant="success")
+            yield Button("Cancel Delete", id="btn_cancel_delete", variant="error")
+        return super().compose()
+
+    @on(Button.Pressed, "#btn_continue_delete")
+    def confirm_delete(self):
+        self.dismiss(result=True)
+
+    @on(Button.Pressed, "#btn_cancel_delete")
+    def cancel_delete(self):
+        self.dismiss(result=False)

@@ -159,48 +159,6 @@ def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> None:
             return e.sqlite_errorname
 
 
-def update_task_start_task_db(
-    task_id: int, start_date: int, database: Path = DB_FULL_PATH
-) -> None:
-    new_start_date_dict = {"task_id": task_id, "start_date": start_date, "column": 1}
-    transaction_str = """
-    UPDATE tasks
-    SET start_date = :start_date,
-        column = :column
-    WHERE task_id = :task_id
-    """
-    with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
-        try:
-            con.execute(transaction_str, new_start_date_dict)
-            return 0
-        except sqlite3.Error as e:
-            con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
-
-
-def update_task_finish_task_db(
-    task_id: int, finish_date: int, database: Path = DB_FULL_PATH
-) -> None:
-    new_finish_date_dict = {"task_id": task_id, "start_date": finish_date, "column": 2}
-    transaction_str = """
-    UPDATE tasks
-    SET finish_date = :finish_date,
-        column = :column
-    WHERE task_id = :task_id
-    """
-    with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
-        try:
-            con.execute(transaction_str, new_finish_date_dict)
-            return 0
-        except sqlite3.Error as e:
-            con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
-
-
 def update_task_entry_db(
     task_id: int,
     title: str,
@@ -232,6 +190,22 @@ def update_task_entry_db(
         try:
             con.execute(transaction_str, update_task_dict)
             con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
+    delete_str = """
+    DELETE FROM tasks
+    WHERE task_id = ?
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(delete_str, (task_id,))
             return 0
         except sqlite3.Error as e:
             con.rollback()

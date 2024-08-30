@@ -14,7 +14,10 @@ from textual.widgets import Label, Markdown
 from textual.message import Message
 
 from kanban_tui.classes.task import Task
-from kanban_tui.modal.modal_task_screen import TaskEditScreen
+from kanban_tui.modal.modal_task_screen import (
+    ModalTaskEditScreen,
+    ModalTaskDeleteScreen,
+)
 from kanban_tui.constants import COLUMNS
 
 
@@ -25,6 +28,7 @@ class TaskCard(Vertical):
     BINDINGS = [
         Binding("H", "move_task('left')", "<-", show=True, key_display="shift-h"),
         Binding("e", "edit_task", "Edit", show=True),
+        Binding("d", "delete_task", "Delete", show=True),
         Binding("L", "move_task('right')", "->", show=True, key_display="shift-l"),
     ]
 
@@ -41,6 +45,15 @@ class TaskCard(Vertical):
         def __init__(self, taskcard: TaskCard, new_column: int) -> None:
             self.taskcard = taskcard
             self.new_column = new_column
+            super().__init__()
+
+        @property
+        def control(self) -> TaskCard:
+            return self.taskcard
+
+    class Delete(Message):
+        def __init__(self, taskcard: TaskCard) -> None:
+            self.taskcard = taskcard
             super().__init__()
 
         @property
@@ -115,8 +128,19 @@ class TaskCard(Vertical):
         self.post_message(self.Moved(taskcard=self, new_column=new_column))
 
     def action_edit_task(self) -> None:
-        self.app.push_screen(TaskEditScreen(task=self.task_), callback=self.update_task)
+        self.app.push_screen(
+            ModalTaskEditScreen(task=self.task_), callback=self.from_modal_update_task
+        )
 
-    def update_task(self, updated_task: Task) -> None:
+    def from_modal_update_task(self, updated_task: Task) -> None:
         self.task_ = updated_task
         self.refresh(recompose=True)
+
+    def action_delete_task(self) -> None:
+        self.app.push_screen(
+            ModalTaskDeleteScreen(task=self.task_), callback=self.from_modal_delete_task
+        )
+
+    def from_modal_delete_task(self, delete_yn: bool) -> None:
+        if delete_yn:
+            self.post_message(self.Delete(taskcard=self))

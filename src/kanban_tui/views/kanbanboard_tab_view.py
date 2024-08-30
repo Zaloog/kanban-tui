@@ -13,9 +13,9 @@ from textual.containers import Horizontal
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
-from kanban_tui.modal.modal_task_screen import TaskEditScreen
+from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.database import update_task_db
+from kanban_tui.database import update_task_db, delete_task_db
 from kanban_tui.constants import COLUMNS
 
 from kanban_tui.classes.task import Task
@@ -47,7 +47,7 @@ class KanbanBoard(Horizontal):
         return super().compose()
 
     def action_new_task(self) -> None:
-        self.app.push_screen(TaskEditScreen(), callback=self.place_new_task)
+        self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
     def place_new_task(self, task: Task):
         self.query(Column)[self.app.cfg.start_column].place_task(task=task)
@@ -151,10 +151,20 @@ class KanbanBoard(Horizontal):
 
         self.app.update_task_list()
 
+    @on(TaskCard.Delete)
+    async def delete_task(self, event: TaskCard.Delete):
+        await self.query(Column)[event.taskcard.task_.column].remove_task(
+            task=event.taskcard.task_
+        )
+
+        delete_task_db(task_id=event.taskcard.task_.task_id)
+        self.app.update_task_list()
+
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
         if not self.app.task_list:
             self.can_focus = True
+            self.focus()
             self.notify(
                 title="Welcome to Kanban Tui",
                 message="Looks like you are new, press [blue]n[/] to create your first Card",

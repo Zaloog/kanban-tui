@@ -58,7 +58,7 @@ TaskCard {
 }
 
 
-TaskEditScreen {
+ModalTaskEditScreen {
     align:center middle;
     #vertical_modal {
         width:70%;
@@ -181,6 +181,10 @@ TaskEditScreen {
         height:1fr;
     }
    }
+}
+
+ModalTaskDeleteScreen{
+
 }
 
 CategoryColorPicker{
