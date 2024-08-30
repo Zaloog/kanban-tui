@@ -46,9 +46,16 @@ class Task(BaseModel):
 
     def update_task_status(self, new_column: int):
         match new_column:
+            # Move to Ready
+            case 0:
+                self.start_date = None
+                self.finish_date = None
+                self.duration = None
             # Move to 'Doing'
             case 1:
                 self.start_task()
+                self.finish_date = None
+                self.duration = None
             # Move to 'Done'
             case 2:
                 self.finish_task()

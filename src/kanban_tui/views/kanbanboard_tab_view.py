@@ -137,10 +137,6 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Moved)
     async def move_card_to_other_column(self, event: TaskCard.Moved):
-        # update_task_column_db(
-        #     task_id=self.selected_task.task_id, column=event.new_column
-        # )
-
         # remove focus and give focus back to same task in new column
         self.app.app_focus = False
         await self.query(Column)[self.selected_task.column].remove_task(
