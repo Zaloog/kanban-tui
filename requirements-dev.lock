@@ -30,8 +30,13 @@ click==8.1.7
     # via textual-dev
 colorama==0.4.6
     # via click
+    # via pytest
+coverage==7.6.1
+    # via pytest-cov
 distlib==0.3.8
     # via virtualenv
+execnet==2.1.1
+    # via pytest-xdist
 filelock==3.15.4
     # via virtualenv
 frozenlist==1.4.1
@@ -41,6 +46,8 @@ identify==2.6.0
     # via pre-commit
 idna==3.8
     # via yarl
+iniconfig==2.0.0
+    # via pytest
 jinja2==3.1.4
     # via aiohttp-jinja2
     # via textual-serve
@@ -61,8 +68,13 @@ msgpack==1.0.8
 multidict==6.0.5
     # via aiohttp
     # via yarl
+mypy==1.11.2
+mypy-extensions==1.0.0
+    # via mypy
 nodeenv==1.9.1
     # via pre-commit
+packaging==24.1
+    # via pytest
 pendulum==3.0.0
     # via textual-datepicker
 platformdirs==4.2.2
@@ -70,6 +82,8 @@ platformdirs==4.2.2
     # via virtualenv
 plotext==5.2.8
     # via textual-plotext
+pluggy==1.5.0
+    # via pytest
 pre-commit==3.8.0
 pydantic==2.8.2
     # via kanban-tui
@@ -77,6 +91,13 @@ pydantic-core==2.20.1
     # via pydantic
 pygments==2.18.0
     # via rich
+pytest==8.3.2
+    # via pytest-asyncio
+    # via pytest-cov
+    # via pytest-xdist
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+pytest-xdist==3.6.1
 python-dateutil==2.9.0.post0
     # via pendulum
     # via time-machine
@@ -103,6 +124,7 @@ textual-serve==1.1.0
 time-machine==2.15.0
     # via pendulum
 typing-extensions==4.12.2
+    # via mypy
     # via pydantic
     # via pydantic-core
     # via textual
