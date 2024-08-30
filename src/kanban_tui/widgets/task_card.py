@@ -15,6 +15,7 @@ from textual.message import Message
 
 from kanban_tui.classes.task import Task
 from kanban_tui.modal.modal_task_screen import TaskEditScreen
+from kanban_tui.constants import COLUMNS
 
 
 class TaskCard(Vertical):
@@ -37,11 +38,9 @@ class TaskCard(Vertical):
             return self.taskcard
 
     class Moved(Message):
-        def __init__(
-            self, taskcard: TaskCard, direction: Literal["left", "right"]
-        ) -> None:
+        def __init__(self, taskcard: TaskCard, new_column: int) -> None:
             self.taskcard = taskcard
-            self.direction = direction
+            self.new_column = new_column
             super().__init__()
 
         @property
@@ -61,6 +60,9 @@ class TaskCard(Vertical):
         super().__init__(id=f"taskcard_{self.task_.task_id}")
 
     def compose(self) -> ComposeResult:
+        if self.app.cfg.tasks_always_expanded:
+            self.query_one(Markdown).remove_class("hidden")
+
         if self.task_.category:
             self.styles.background = self.app.cfg.category_color_dict[
                 self.task_.category
@@ -78,8 +80,6 @@ class TaskCard(Vertical):
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        if self.app.cfg.tasks_always_expanded:
-            self.query_one(Markdown).remove_class("hidden")
         return super()._on_mount(event)
 
     @on(Enter)
@@ -107,7 +107,14 @@ class TaskCard(Vertical):
                 self.query_one(Markdown).add_class("hidden")
 
     def action_move_task(self, direction: Literal["left", "right"]):
-        self.post_message(self.Moved(taskcard=self, direction=direction))
+        match direction:
+            case "left":
+                new_column = (self.task_.column + 2) % len(COLUMNS)
+            case "right":
+                new_column = (self.task_.column + 1) % len(COLUMNS)
+
+        self.task_.update_status(new_column=new_column)
+        self.post_message(self.Moved(taskcard=self, new_column=new_column))
 
     def action_edit_task(self) -> None:
         self.app.push_screen(TaskEditScreen(task=self.task_), callback=self.update_task)

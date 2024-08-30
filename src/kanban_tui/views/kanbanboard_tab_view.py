@@ -128,13 +128,11 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Moved)
     async def move_card_to_other_column(self, event: TaskCard.Moved):
-        if event.direction == "left":
-            new_column = (self.selected_task.column + 2) % len(COLUMNS)
-        elif event.direction == "right":
-            new_column = (self.selected_task.column + 1) % len(COLUMNS)
+        update_task_column_db(
+            task_id=self.selected_task.task_id, column=event.new_column
+        )
 
-        update_task_column_db(task_id=self.selected_task.task_id, column=new_column)
-
+        # remove focus and give focus back to same task in new column
         self.app.app_focus = False
         await self.query(Column)[self.selected_task.column].remove_task(
             self.selected_task
@@ -142,8 +140,8 @@ class KanbanBoard(Horizontal):
 
         self.app.update_task_list()
 
-        self.selected_task.column = new_column
-        self.query(Column)[new_column].place_task(self.selected_task)
+        self.selected_task.column = event.new_column
+        self.query(Column)[event.new_column].place_task(self.selected_task)
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 
     def get_first_card(self):

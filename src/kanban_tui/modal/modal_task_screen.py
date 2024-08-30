@@ -124,19 +124,15 @@ class TaskEditScreen(ModalScreen):
             self.query_one(DateSelect).date = pendulum.instance(
                 self.kanban_task.due_date
             )
-            # set date in customwidget to trigger watch on days left
-            # self.query_one(DetailInfos).due_date = pendulum.instance(
-            #     self.kanban_task.due_date
-            # ).replace(microsecond=0, tzinfo=None)
             self.query_one(DetailInfos).due_date = self.kanban_task.due_date.replace(
                 microsecond=0, tzinfo=None
             )
 
         if self.kanban_task.start_date:
             self.query_one("#label_start_date", Label).update(
-                self.kanban_task.start_date
+                self.kanban_task.start_date.isoformat(sep=" ", timespec="seconds")
             )
         if self.kanban_task.finish_date:
             self.query_one("#label_finish_date", Label).update(
-                self.kanban_task.finish_date
+                self.kanban_task.finish_date.isoformat(sep=" ", timespec="seconds")
             )

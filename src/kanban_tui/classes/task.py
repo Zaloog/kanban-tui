@@ -23,7 +23,9 @@ class Task:
                 self.due_date, "%Y-%m-%d %H:%M:%S"
             ).replace(microsecond=0)
             self.get_days_left_till_due()
+
         if self.finish_date:
+            self.finished = True
             self.get_duration()
 
     def get_days_left_till_due(self):
@@ -37,7 +39,17 @@ class Task:
         """get duration in hours from start till finish of task"""
         self.duration = (self.finish_date - self.start_date) / timedelta(hours=1)
 
-    def finish(self):
+    def start_task(self):
+        self.start_date = datetime.now().replace(microsecond=0)
+
+    def finish_task(self):
         self.finished = True
         self.finish_date = datetime.now().replace(microsecond=0)
         self.get_duration()
+
+    def update_status(self, new_column: int):
+        match new_column:
+            case 1:
+                self.start_task()
+            case 2:
+                self.finish_task()
