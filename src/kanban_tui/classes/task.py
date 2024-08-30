@@ -18,11 +18,8 @@ class Task(BaseModel):
     description: str | None = None
     task_id: int | None = None
 
-    def __post_init__(self):
+    def model_post_init(self, __context):
         if self.due_date:
-            self.due_date = datetime.strptime(
-                self.due_date, "%Y-%m-%d %H:%M:%S"
-            ).replace(microsecond=0)
             self.get_days_left_till_due()
 
         if self.finish_date:
@@ -35,6 +32,7 @@ class Task(BaseModel):
             (self.due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
             + 1,
         )
+        print(self.days_left)
 
     def get_duration(self):
         """get duration in hours from start till finish of task"""

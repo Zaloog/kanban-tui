@@ -35,9 +35,7 @@ class KanbanBoard(Horizontal):
     selected_task: reactive[Task | None] = reactive(None)
 
     def _on_mount(self, event: Mount) -> None:
-        # self.app.push_screen(TaskEditScreen(), callback=self.place_new_task)
         self.watch(self.app, "task_list", self.get_first_card)
-        # self.watch(self.app, "task_list", self.update_columns, init=False)
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
