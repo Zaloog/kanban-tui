@@ -120,8 +120,12 @@ class TaskCard(Vertical):
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
             case "left":
-                new_column = (self.task_.column + 2) % len(COLUMNS)
+                if self.task_.column == 0:
+                    return
+                new_column = (self.task_.column + len(COLUMNS) - 1) % len(COLUMNS)
             case "right":
+                if self.task_.column == (len(COLUMNS) - 1):
+                    return
                 new_column = (self.task_.column + 1) % len(COLUMNS)
 
         self.task_.update_task_status(new_column=new_column)

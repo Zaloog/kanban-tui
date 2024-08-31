@@ -139,7 +139,7 @@ class ModalTaskEditScreen(ModalScreen):
 
 
 class ModalTaskDeleteScreen(ModalScreen):
-    def __init__(self, task: Task | None = None) -> None:
+    def __init__(self, task: Task) -> None:
         self.kanban_task = task
         super().__init__()
 

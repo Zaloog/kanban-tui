@@ -25,6 +25,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     start_date TIMESTAMP,
     finish_date TIMESTAMP,
     due_date TIMESTAMP,
+    time_worked_on INTEGER,
     CHECK (title <> "")
     );
     """
@@ -54,6 +55,7 @@ def create_new_task_db(
     start_date: datetime | None = None,
     finish_date: datetime | None = None,
     due_date: datetime | None = None,
+    time_worked_on: int = 0,
     database: Path = DB_FULL_PATH,
 ) -> str | int:
     task_dict = {
@@ -65,6 +67,7 @@ def create_new_task_db(
         "category": category,
         "due_date": due_date,
         "description": description,
+        "time_worked_on": time_worked_on,
     }
 
     transaction_str = """
@@ -78,7 +81,8 @@ def create_new_task_db(
         :creation_date,
         :start_date,
         :finish_date,
-        :due_date
+        :due_date,
+        :time_worked_on
         );"""
 
     with create_connection(database=database) as con:
@@ -116,7 +120,7 @@ def get_all_tasks_db(
 
 def update_task_column_db(
     task_id: int, column: int, database: Path = DB_FULL_PATH
-) -> None:
+) -> int | str:
     new_column_dict = {"task_id": task_id, "column": column}
     transaction_str = """
     UPDATE tasks
@@ -134,18 +138,21 @@ def update_task_column_db(
             return e.sqlite_errorname
 
 
-def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> None:
+# After column Movement
+def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
     new_start_date_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
         "column": task.column,
         "finish_date": task.finish_date,
+        "time_worked_on": task.time_worked_on,
     }
     transaction_str = """
     UPDATE tasks
     SET start_date = :start_date,
         finish_date = :finish_date,
-        column = :column
+        column = :column,
+        time_worked_on = :time_worked_on
     WHERE task_id = :task_id
     """
     with create_connection(database=database) as con:
@@ -159,6 +166,7 @@ def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> None:
             return e.sqlite_errorname
 
 
+# After Editing
 def update_task_entry_db(
     task_id: int,
     title: str,

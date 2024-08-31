@@ -89,6 +89,8 @@ class KanbanBoard(Horizontal):
                 new_column_id = (self.selected_task.column + 1) % len(COLUMNS)
                 new_column_tasks = self.query(Column)[new_column_id].task_amount
                 match new_column_tasks:
+                    case 0:
+                        self.app.action_focus_next()
                     case new_column_tasks if new_column_tasks < current_column_tasks:
                         self.query(Column)[new_column_id].query(TaskCard)[
                             new_column_tasks - 1
@@ -98,9 +100,13 @@ class KanbanBoard(Horizontal):
                             row_idx
                         ].focus()
             case "left":
-                new_column_id = (self.selected_task.column + 2) % len(COLUMNS)
+                new_column_id = (self.selected_task.column + len(COLUMNS) - 1) % len(
+                    COLUMNS
+                )
                 new_column_tasks = self.query(Column)[new_column_id].task_amount
                 match new_column_tasks:
+                    case 0:
+                        self.app.action_focus_previous()
                     case new_column_tasks if new_column_tasks < current_column_tasks:
                         self.query(Column)[new_column_id].query(TaskCard)[
                             new_column_tasks - 1
@@ -109,27 +115,6 @@ class KanbanBoard(Horizontal):
                         self.query(Column)[new_column_id].query(TaskCard)[
                             row_idx
                         ].focus()
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        # Prevents Movement into empty column
-        if not self.selected_task:
-            return True
-        if action == "movement":
-            if (parameters[0] == "right") and (
-                self.query(Column)[
-                    (self.selected_task.column + 1) % len(COLUMNS)
-                ].task_amount
-                == 0
-            ):
-                return False
-            if (parameters[0] == "left") and (
-                self.query(Column)[
-                    (self.selected_task.column + 2) % len(COLUMNS)
-                ].task_amount
-                == 0
-            ):
-                return False
-        return super().check_action(action, parameters)
 
     @on(TaskCard.Focused)
     def get_current_card_position(self, event: TaskCard.Focused):

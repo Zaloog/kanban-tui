@@ -123,7 +123,7 @@ class CategorySelector(Select):
         if self.value == self.NEW:
             self.app.push_screen(CategoryColorPicker(), callback=self.jump_to_value)
 
-    def jump_to_value(self, value: tuple[str] | None = None) -> None:
+    def jump_to_value(self, value: tuple[str, str] | None = None) -> None:
         if value:
             category, color = value
 
