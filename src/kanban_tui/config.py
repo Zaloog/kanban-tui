@@ -66,6 +66,18 @@ class KanbanTuiConfig:
         )
 
     @property
+    def columns(self) -> list[str]:
+        return [column for column in self.config["column.visibility"].keys()]
+
+    @property
+    def visible_columns(self) -> list[str]:
+        return [
+            column
+            for column, visible in self.config["column.visibility"].items()
+            if visible
+        ]
+
+    @property
     def category_color_dict(self) -> dict:
         return self.config["category.colors"]
 
@@ -89,6 +101,12 @@ def init_new_config(config_path=CONFIG_FULL_PATH):
     config.optionxform = str
     config["database"] = {"database_path": DB_FULL_PATH}
     config["category.colors"] = {}
+    config["column.visibility"] = {
+        "Ready": True,
+        "Doing": True,
+        "Done": True,
+        "Archive": True,
+    }
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
         "show_archive": True,
