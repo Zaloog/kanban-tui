@@ -26,6 +26,10 @@ class AlwaysExpandedSwitch(Horizontal):
         yield Switch(value=self.app.cfg.tasks_always_expanded, id="switch_expand_tasks")
         return super().compose()
 
+    def on_switch_changed(self, event: Switch.Changed):
+        self.app.cfg.tasks_always_expanded = event.value
+        self.notify(f"{self.app.cfg}")
+
 
 class ShowArchiveSwitch(Horizontal):
     app: "KanbanTui"

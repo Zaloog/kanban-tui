@@ -14,9 +14,9 @@ from kanban_tui.views.settings_tab_view import SettingsView
 
 class MainView(Screen):
     BINDINGS = [
-        Binding("ctrl+j", 'show_tab("tab_board")', "Board"),
-        Binding("ctrl+k", 'show_tab("tab_overview")', "Overview"),
-        Binding("ctrl+l", 'show_tab("tab_settings")', "Settings"),
+        Binding("ctrl+j", 'show_tab("tab_board")', "Board", priority=True),
+        Binding("ctrl+k", 'show_tab("tab_overview")', "Overview", priority=True),
+        Binding("ctrl+l", 'show_tab("tab_settings")', "Settings", priority=True),
     ]
 
     def compose(self) -> Iterable[Widget]:
@@ -38,4 +38,4 @@ class MainView(Screen):
     def action_show_tab(self, tab: str) -> None:
         """Switch to a new tab."""
         self.get_child_by_type(TabbedContent).active = tab
-        # self.app.action_focus_next()
+        self.app.action_focus_next()

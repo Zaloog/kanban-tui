@@ -73,9 +73,6 @@ class TaskCard(Vertical):
         super().__init__(id=f"taskcard_{self.task_.task_id}")
 
     def compose(self) -> ComposeResult:
-        if self.app.cfg.tasks_always_expanded:
-            self.query_one(Markdown).remove_class("hidden")
-
         self.styles.background = self.app.cfg.category_color_dict.get(
             self.task_.category, self.app.cfg.default_task_color
         )
@@ -91,6 +88,8 @@ class TaskCard(Vertical):
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
+        if self.app.cfg.tasks_always_expanded:
+            self.query_one(Markdown).remove_class("hidden")
         return super()._on_mount(event)
 
     @on(Enter)
