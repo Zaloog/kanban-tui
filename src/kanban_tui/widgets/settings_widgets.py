@@ -14,7 +14,8 @@ class DataBasePathInput(Horizontal):
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Database File")
-        yield Input(value=self.app.cfg.database_path.as_posix())
+        with self.prevent(Input.Changed):
+            yield Input(value=self.app.cfg.database_path.as_posix())
         return super().compose()
 
 

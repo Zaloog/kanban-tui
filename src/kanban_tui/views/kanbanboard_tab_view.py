@@ -42,7 +42,7 @@ class KanbanBoard(Horizontal):
         for idx, column_name in enumerate(COLUMNS):
             col_tasks = [task for task in self.app.task_list if task.column == idx]
             yield Column(title=column_name, tasklist=col_tasks)
-        self.can_focus = True
+        self.can_focus = False
         yield FilterOverlay()
         return super().compose()
 

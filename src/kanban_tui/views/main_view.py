@@ -1,6 +1,6 @@
 from typing import Iterable
 
-# from textual import on
+from textual import on
 from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import TabbedContent, TabPane, Header, Footer
@@ -41,7 +41,10 @@ class MainView(Screen):
         self.get_child_by_type(TabbedContent).active = tab
         self.app.action_focus_next()
 
-    # @on(TabbedContent.TabActivated)
-    # async def refresh_board(self, event:TabbedContent.TabActivated):
-    #     if event.tab.id == '--content-tab-tab_board':
-    #         self.query_one(KanbanBoard).refresh(recompose=True)
+    @on(TabbedContent.TabActivated)
+    def refresh_board(self, event: TabbedContent.TabActivated):
+        if event.tab.id == "--content-tab-tab_board":
+            if self.query_one(SettingsView).config_has_changed:
+                self.query_one(KanbanBoard).refresh(recompose=True)
+                self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+            self.query_one(SettingsView).config_has_changed = False
