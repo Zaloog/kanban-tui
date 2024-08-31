@@ -84,7 +84,9 @@ class TaskCard(Vertical):
 
         self.border_title = self.task_.title
         self.border_subtitle = (
-            f"{self.task_.days_left} days left" if self.task_.days_left else None
+            f"{self.task_.days_left} days left"
+            if self.task_.days_left is not None
+            else None
         )
         yield Label(f"{self.task_.title} ({self.task_.column}, {self.row})")
         yield Markdown(

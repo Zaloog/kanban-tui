@@ -88,8 +88,10 @@ class ModalTaskEditScreen(ModalScreen):
 
         else:
             self.kanban_task.title = title
-            self.kanban_task.due_date = datetime.fromisoformat(due_date)
-            self.kanban_task.get_days_left_till_due()
+            if due_date is not None:
+                self.kanban_task.due_date = datetime.fromisoformat(due_date)
+                # self.kanban_task.due_date = due_date
+                self.kanban_task.get_days_left_till_due()
             self.kanban_task.description = description
             self.kanban_task.category = category
 

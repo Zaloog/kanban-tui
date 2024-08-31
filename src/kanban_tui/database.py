@@ -10,6 +10,11 @@ def create_connection(database: Path = DB_FULL_PATH) -> sqlite3.Connection:
     return sqlite3.connect(database=database)
 
 
+def task_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return Task(**{k: v for k, v in zip(fields, row)})
+
+
 def init_new_db(database: Path = DB_FULL_PATH):
     if database.exists():
         return
@@ -109,10 +114,12 @@ def get_all_tasks_db(
     """
 
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        # con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
             tasks = con.execute(query_str).fetchall()
-            return [dict(task) for task in tasks]
+            # return [dict(task) for task in tasks]
+            return tasks
         except sqlite3.Error as e:
             print(e)
             return None
