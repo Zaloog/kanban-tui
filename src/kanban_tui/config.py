@@ -34,6 +34,19 @@ class KanbanTuiConfig:
         self.save()
 
     @property
+    def show_archive(self) -> bool:
+        return self.config.getboolean(section="kanban.settings", option="show_archive")
+
+    @show_archive.setter
+    def show_archive(self, new_value: bool):
+        self.config.set(
+            section="kanban.settings",
+            option="show_archive",
+            value=f"{new_value}",
+        )
+        self.save()
+
+    @property
     def start_column(self) -> bool:
         return self.config.getint(section="kanban.settings", option="start_column")
 
@@ -78,6 +91,7 @@ def init_new_config(config_path=CONFIG_FULL_PATH):
     config["category.colors"] = {}
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
+        "show_archive": True,
         "no_category_task_color": "gray",
         "start_column": 0,
     }
