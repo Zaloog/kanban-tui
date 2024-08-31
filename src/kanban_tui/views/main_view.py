@@ -1,5 +1,6 @@
 from typing import Iterable
 
+# from textual import on
 from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import TabbedContent, TabPane, Header, Footer
@@ -22,7 +23,7 @@ class MainView(Screen):
     def compose(self) -> Iterable[Widget]:
         yield Header()
         yield Footer()
-        with TabbedContent():
+        with TabbedContent(initial="tab_board"):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
@@ -39,3 +40,8 @@ class MainView(Screen):
         """Switch to a new tab."""
         self.get_child_by_type(TabbedContent).active = tab
         self.app.action_focus_next()
+
+    # @on(TabbedContent.TabActivated)
+    # async def refresh_board(self, event:TabbedContent.TabActivated):
+    #     if event.tab.id == '--content-tab-tab_board':
+    #         self.query_one(KanbanBoard).refresh(recompose=True)

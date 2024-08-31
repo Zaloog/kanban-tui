@@ -72,6 +72,11 @@ class TaskCard(Vertical):
         self.can_focus_children = False
         super().__init__(id=f"taskcard_{self.task_.task_id}")
 
+    def _on_mount(self, event: Mount) -> None:
+        if self.app.cfg.tasks_always_expanded:
+            self.query_one(Markdown).remove_class("hidden")
+        return super()._on_mount(event)
+
     def compose(self) -> ComposeResult:
         self.styles.background = self.app.cfg.category_color_dict.get(
             self.task_.category, self.app.cfg.default_task_color
@@ -86,11 +91,6 @@ class TaskCard(Vertical):
             markdown=self.task_.description,
         )
         return super().compose()
-
-    def _on_mount(self, event: Mount) -> None:
-        if self.app.cfg.tasks_always_expanded:
-            self.query_one(Markdown).remove_class("hidden")
-        return super()._on_mount(event)
 
     @on(Enter)
     @on(Leave)
