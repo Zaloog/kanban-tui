@@ -9,8 +9,8 @@ from textual.containers import Vertical
 from kanban_tui.widgets.settings_widgets import (
     AlwaysExpandedSwitch,
     DefaultTaskColorSelector,
-    ShowArchiveSwitch,
     DataBasePathInput,
+    ColumnSelector,
 )
 
 
@@ -19,9 +19,9 @@ class SettingsView(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput()
+        yield ColumnSelector()
         yield AlwaysExpandedSwitch()
         yield DefaultTaskColorSelector()
-        yield ShowArchiveSwitch()
         return super().compose()
 
     @on(Input.Changed)

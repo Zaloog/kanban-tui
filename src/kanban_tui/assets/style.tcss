@@ -302,7 +302,70 @@ FilterOverlay {
     }
 }
 
+SettingsView{
+    content-align:center middle;
 
+    DataBasePathInput{
+        width:1fr;
+        Label{
+            padding:1 0 0 0 ;
+        }
+        Input{
+           width:1fr;
+        }
+
+    }
+    ColumnSelector{
+        # border:$success;
+        height:auto;
+        width:50%;
+        VerticalScroll{
+            height:10;
+
+            ChangeColumnVisibilitySwitch {
+                height:auto;
+                width:1fr;
+                Label{
+                    width:1fr;
+                    text-align:center;
+                    padding:1 0 0 0 ;
+                }
+                Switch {
+                    width:1fr;
+                }
+            }
+        }
+    }
+    AlwaysExpandedSwitch{
+        height:1fr;
+        width:50%;
+        Label{
+            width:1fr;
+            text-align:center;
+            padding:1 0 0 0 ;
+        }
+        Switch {
+            width:1fr;
+        }
+
+    }
+    ShowArchiveSwitch{
+        height:1fr;
+        width:50%;
+        Label{
+            width:1fr;
+            text-align:center;
+            padding:1 0 0 0 ;
+        }
+        Switch {
+            width:1fr;
+        }
+
+    }
+
+}
+
+# General Styles
 Switch > .switch--slider {
         color: $error;
     }

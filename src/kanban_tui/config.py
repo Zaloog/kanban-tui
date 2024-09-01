@@ -66,6 +66,23 @@ class KanbanTuiConfig:
         )
 
     @property
+    def column_dict(self) -> dict[str, bool]:
+        return {
+            column: True if visible == "True" else False
+            for column, visible in self.config["column.visibility"].items()
+        }
+
+    def change_visibility(self, column_name: str):
+        self.config.set(
+            section="column.visibility",
+            option=column_name,
+            value="False"
+            if self.config.getboolean(section="column.visibility", option=column_name)
+            else "True",
+        )
+        self.save()
+
+    @property
     def columns(self) -> list[str]:
         return [column for column in self.config["column.visibility"].keys()]
 

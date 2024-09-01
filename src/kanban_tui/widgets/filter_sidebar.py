@@ -112,7 +112,11 @@ class CategoryFilter(SelectionList):
                 )
             else:
                 selections.append(
-                    Selection(f"[black on $primary]{category}[/]", category, True)
+                    Selection(
+                        f"[black on {self.app.cfg.default_task_color}]{category}[/]",
+                        category,
+                        True,
+                    )
                 )
         self.add_options(selections)
 

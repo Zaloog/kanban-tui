@@ -97,12 +97,12 @@ class DetailInfos(Vertical):
             )
 
 
-class NewSelection:
+class NewCategorySelection:
     def __repr__(self) -> str:
-        return "Select.New"
+        return "Select.NewCategory"
 
 
-NEW = NewSelection()
+NEW = NewCategorySelection()
 
 
 class CategorySelector(Select):

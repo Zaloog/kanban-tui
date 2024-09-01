@@ -105,7 +105,7 @@ rich==13.8.0
     # via textual-serve
 six==1.16.0
     # via python-dateutil
-textual==0.79.0
+textual==0.79.1
     # via kanban-tui
     # via textual-datepicker
     # via textual-dev
@@ -131,5 +131,5 @@ uc-micro-py==1.0.3
     # via linkify-it-py
 virtualenv==20.26.3
     # via pre-commit
-yarl==1.9.4
+yarl==1.9.6
     # via aiohttp
