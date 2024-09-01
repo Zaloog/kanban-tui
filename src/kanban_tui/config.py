@@ -88,11 +88,7 @@ class KanbanTuiConfig:
 
     @property
     def visible_columns(self) -> list[str]:
-        return [
-            column
-            for column, visible in self.config["column.visibility"].items()
-            if visible
-        ]
+        return [column for column, visible in self.column_dict.items() if visible]
 
     @property
     def category_color_dict(self) -> dict:

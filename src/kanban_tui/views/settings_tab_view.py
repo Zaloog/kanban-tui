@@ -3,13 +3,14 @@ from typing import Iterable
 from textual import on
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Input, Switch
-from textual.containers import Vertical
+from textual.widgets import Input, Switch, Placeholder
+from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.settings_widgets import (
     AlwaysExpandedSwitch,
     DefaultTaskColorSelector,
     DataBasePathInput,
+    WorkingHoursSelector,
     ColumnSelector,
 )
 
@@ -19,9 +20,13 @@ class SettingsView(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput()
-        yield ColumnSelector()
-        yield AlwaysExpandedSwitch()
-        yield DefaultTaskColorSelector()
+        with Horizontal(id="horizontal_expand_work_hours"):
+            yield AlwaysExpandedSwitch()
+            yield WorkingHoursSelector()
+        with Horizontal(id="horizontal_color_column_selector"):
+            yield DefaultTaskColorSelector()
+            yield ColumnSelector()
+        yield Placeholder("FutureStuff")
         return super().compose()
 
     @on(Input.Changed)
