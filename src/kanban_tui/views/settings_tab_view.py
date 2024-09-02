@@ -16,7 +16,7 @@ from kanban_tui.widgets.settings_widgets import (
 
 
 class SettingsView(Vertical):
-    config_has_changed: reactive[bool] = reactive(False)
+    config_has_changed: reactive[bool] = reactive(False, init=False)
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput()
@@ -31,5 +31,6 @@ class SettingsView(Vertical):
 
     @on(Input.Changed)
     @on(Switch.Changed)
-    def config_changes(self, _event: Input.Changed | Switch.Changed):
+    def config_changes(self, event: Input.Changed | Switch.Changed):
+        self.log.error(f"{event}")
         self.config_has_changed = True

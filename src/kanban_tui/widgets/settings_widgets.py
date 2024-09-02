@@ -3,15 +3,15 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-# from textual import on
+from textual import on
 from textual.events import Mount
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Input, Collapsible  # , DataTable
+from textual.widgets import Label, Switch, Input, Collapsible, DataTable
 from textual.containers import Horizontal, VerticalScroll, Vertical
 
-from kanban_tui.modal.modal_color_pick import ColorTable
+from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 
 
 class DataBasePathInput(Horizontal):
@@ -59,7 +59,8 @@ class DefaultTaskColorSelector(Horizontal):
     app: "KanbanTui"
 
     def _on_mount(self, event: Mount) -> None:
-        # self.query_one(Input).value = self.app.cfg.no_category_task_color
+        self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
+        self.query_one(TitleInput).background = self.app.cfg.no_category_task_color
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -67,22 +68,27 @@ class DefaultTaskColorSelector(Horizontal):
 
         with Vertical():
             yield Label("Default Task Color")
-            yield Input()
+            with self.prevent(Input.Changed):
+                yield TitleInput(value=self.app.cfg.no_category_task_color)
         with Collapsible(title="Pick Color"):
-            yield ColorTable()
+            with self.prevent(DataTable.CellHighlighted):
+                yield ColorTable()
 
         return super().compose()
 
-    # @on(DataTable.CellHighlighted)
-    # def change_input_str_on_color_pick(self, event: DataTable.CellHighlighted):
-    #     self.query_one(Input).value = event.data_table.get_cell_at(event.coordinate).color_value
+    @on(DataTable.CellHighlighted)
+    def change_input_str_on_color_pick(self, event: DataTable.CellHighlighted):
+        self.query_one(TitleInput).value = event.data_table.get_cell_at(
+            event.coordinate
+        ).color_value
 
-    # @on(Input.Changed)
-    # def update_input_color(self, event:Input.Changed):
-    #     try:
-    #         self.query_one(Input).background = event.input.value
-    #     except:
-    #         pass
+    @on(Input.Changed)
+    def update_input_color(self, event: Input.Changed):
+        try:
+            self.query_one(TitleInput).background = event.input.value
+        # Todo add validator to input
+        except Exception:
+            pass
 
 
 class ChangeColumnVisibilitySwitch(Horizontal):

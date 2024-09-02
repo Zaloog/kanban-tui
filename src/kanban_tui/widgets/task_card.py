@@ -18,13 +18,11 @@ from kanban_tui.modal.modal_task_screen import (
     ModalTaskEditScreen,
     ModalTaskDeleteScreen,
 )
-from kanban_tui.constants import COLUMNS
 
 
 class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
-    picked: reactive[bool] = reactive(False)
     BINDINGS = [
         Binding("H", "move_task('left')", "<-", show=True, key_display="shift-h"),
         Binding("e", "edit_task", "Edit", show=True),
@@ -75,13 +73,13 @@ class TaskCard(Vertical):
     def _on_mount(self, event: Mount) -> None:
         if self.app.cfg.tasks_always_expanded:
             self.query_one(Markdown).remove_class("hidden")
-        return super()._on_mount(event)
-
-    def compose(self) -> ComposeResult:
         self.styles.background = self.app.cfg.category_color_dict.get(
             self.task_.category, self.app.cfg.no_category_task_color
         )
 
+        return super()._on_mount(event)
+
+    def compose(self) -> ComposeResult:
         self.border_title = self.task_.title
         self.border_subtitle = (
             f"{self.task_.days_left} days left"
@@ -123,11 +121,13 @@ class TaskCard(Vertical):
             case "left":
                 if self.task_.column == 0:
                     return
-                new_column = (self.task_.column + len(COLUMNS) - 1) % len(COLUMNS)
+                new_column = (
+                    self.task_.column + len(self.app.cfg.visible_columns) - 1
+                ) % len(self.app.cfg.visible_columns)
             case "right":
-                if self.task_.column == (len(COLUMNS) - 1):
+                if self.task_.column == (len(self.app.cfg.visible_columns) - 1):
                     return
-                new_column = (self.task_.column + 1) % len(COLUMNS)
+                new_column = (self.task_.column + 1) % len(self.app.cfg.visible_columns)
 
         self.task_.update_task_status(new_column=new_column)
         self.post_message(self.Moved(taskcard=self, new_column=new_column))
