@@ -225,8 +225,8 @@ CategoryColorPicker{
         }
         ColorTable {
             width:1fr;
-            text-align:center;
             height:1fr;
+            text-align:center;
             &:focus {
                 & .datatable--cursor {
                     color:white;
@@ -384,6 +384,26 @@ SettingsView{
         DefaultTaskColorSelector{
             border:$success;
             height:1fr;
+
+            Label{
+                width:1fr;
+                padding:1 0 0 0;
+            }
+            Collapsible > Contents{
+                height:1fr;
+                padding:0;
+                margin:0;
+            }
+            ColorTable {
+                width:1fr;
+                height:1fr;
+                text-align:center;
+                &:focus {
+                    & .datatable--cursor {
+                        color:white;
+                    }
+                }
+            }
 
         }
     }
