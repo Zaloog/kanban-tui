@@ -30,7 +30,6 @@ Column{
 TaskCard {
     width: 1fr;
     height: auto;
-    background:$primary;
     margin:0 0 1 0;
     &:focus {
         border: $success;
