@@ -32,7 +32,7 @@ TaskCard {
     height: auto;
     margin:0 0 1 0;
     &:focus {
-        border: $success;
+        border: tall $success;
         border-title-color:$success;
         border-title-background:black;
         border-subtitle-color:$error;
@@ -43,6 +43,7 @@ TaskCard {
     Label {
         width:1fr;
         height: 3;
+        color:auto;
         text-align:center;
         &:hover {
             tint: 10%;
@@ -51,6 +52,7 @@ TaskCard {
     Markdown {
         width: 1fr;
         height: auto;
+        color:auto;
         background: darkblue;
         margin:0;
     }
