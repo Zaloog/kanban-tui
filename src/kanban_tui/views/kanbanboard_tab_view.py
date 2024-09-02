@@ -16,7 +16,6 @@ from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
 from kanban_tui.database import update_task_db, delete_task_db
-from kanban_tui.constants import COLUMNS
 
 from kanban_tui.classes.task import Task
 
@@ -39,7 +38,8 @@ class KanbanBoard(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        for idx, column_name in enumerate(COLUMNS):
+        # for idx, column_name in enumerate(COLUMNS):
+        for idx, column_name in enumerate(self.app.cfg.visible_columns):
             col_tasks = [task for task in self.app.task_list if task.column == idx]
             yield Column(title=column_name, tasklist=col_tasks)
         self.can_focus = False
@@ -50,12 +50,13 @@ class KanbanBoard(Horizontal):
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
     def place_new_task(self, task: Task):
-        self.query(Column)[self.app.cfg.start_column].place_task(task=task)
+        self.query(Column)[0].place_task(task=task)
+        # self.query(Column)[self.app.cfg.start_column].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 
     async def update_columns(self):
-        for idx, column_name in enumerate(COLUMNS):
+        for idx, column_name in enumerate(self.app.cfg.visible_columns):
             col_tasks = [task for task in self.app.task_list if task.column == idx]
             await self.query_one(f"#column_{column_name.lower()}").remove()
 
@@ -86,7 +87,9 @@ class KanbanBoard(Horizontal):
                     case _:
                         self.app.action_focus_next()
             case "right":
-                new_column_id = (self.selected_task.column + 1) % len(COLUMNS)
+                new_column_id = (self.selected_task.column + 1) % len(
+                    self.app.cfg.visible_columns
+                )
                 new_column_tasks = self.query(Column)[new_column_id].task_amount
                 match new_column_tasks:
                     case 0:
@@ -100,9 +103,9 @@ class KanbanBoard(Horizontal):
                             row_idx
                         ].focus()
             case "left":
-                new_column_id = (self.selected_task.column + len(COLUMNS) - 1) % len(
-                    COLUMNS
-                )
+                new_column_id = (
+                    self.selected_task.column + len(self.app.cfg.visible_columns) - 1
+                ) % len(self.app.cfg.visible_columns)
                 new_column_tasks = self.query(Column)[new_column_id].task_amount
                 match new_column_tasks:
                     case 0:

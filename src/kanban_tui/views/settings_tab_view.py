@@ -33,3 +33,4 @@ class SettingsView(Vertical):
     @on(Switch.Changed)
     def config_changes(self, _event: Input.Changed | Switch.Changed):
         self.config_has_changed = True
+        self.notify("Has Changed config")

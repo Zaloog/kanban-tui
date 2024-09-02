@@ -79,7 +79,7 @@ class TaskCard(Vertical):
 
     def compose(self) -> ComposeResult:
         self.styles.background = self.app.cfg.category_color_dict.get(
-            self.task_.category, self.app.cfg.default_task_color
+            self.task_.category, self.app.cfg.no_category_task_color
         )
 
         self.border_title = self.task_.title

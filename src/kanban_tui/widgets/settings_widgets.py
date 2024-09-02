@@ -51,7 +51,8 @@ class AlwaysExpandedSwitch(Horizontal):
         return super().compose()
 
     def on_switch_changed(self, event: Switch.Changed):
-        self.app.cfg.tasks_always_expanded = event.value
+        self.app.cfg.set_tasks_always_expanded(new_value=event.value)
+        self.notify(f"{self.app.cfg}")
 
 
 class DefaultTaskColorSelector(Horizontal):
@@ -76,7 +77,10 @@ class ChangeColumnVisibilitySwitch(Horizontal):
 
     def compose(self) -> Iterable[Widget]:
         yield Label(f"Show [blue]{self.column_name}[/]")
-        yield Switch(value=self.app.cfg.column_dict[self.column_name])
+        yield Switch(
+            value=self.app.cfg.column_dict[self.column_name],
+            id=f"switch_col_vis_{self.column_name}",
+        )
         return super().compose()
 
 
@@ -111,3 +115,6 @@ class ColumnSelector(Vertical):
 
     def on_switch_changed(self, event: Switch.Changed):
         self.amount_visible += 1 if event.value else -1
+        column = event.switch.id.split("_")[-1]
+
+        self.app.cfg.set_column_dict(column_name=column)

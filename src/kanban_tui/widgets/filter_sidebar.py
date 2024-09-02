@@ -113,7 +113,7 @@ class CategoryFilter(SelectionList):
             else:
                 selections.append(
                     Selection(
-                        f"[black on {self.app.cfg.default_task_color}]{category}[/]",
+                        f"[black on {self.app.cfg.no_category_task_color}]{category}[/]",
                         category,
                         True,
                     )
