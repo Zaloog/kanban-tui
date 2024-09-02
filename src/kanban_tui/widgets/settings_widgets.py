@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from textual import on
-from textual.events import Mount
+from textual.events import Mount, DescendantBlur
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
@@ -69,7 +69,9 @@ class DefaultTaskColorSelector(Horizontal):
         with Vertical():
             yield Label("Default Task Color")
             with self.prevent(Input.Changed):
-                yield TitleInput(value=self.app.cfg.no_category_task_color)
+                yield TitleInput(
+                    value=self.app.cfg.no_category_task_color, id="task_color_preview"
+                )
         with Collapsible(title="Pick Color"):
             with self.prevent(DataTable.CellHighlighted):
                 yield ColorTable()
@@ -86,9 +88,21 @@ class DefaultTaskColorSelector(Horizontal):
     def update_input_color(self, event: Input.Changed):
         try:
             self.query_one(TitleInput).background = event.input.value
-        # Todo add validator to input
+            self.app.cfg.set_no_category_task_color(new_value=event.input.value)
+            event.input.styles.border = "tall", "green"
+            event.input.border_subtitle = None
+            event.input.border_title = None
+        # Todo add validator to input?
         except Exception:
-            pass
+            event.input.styles.border = "tall", "red"
+            event.input.border_subtitle = "invalid color value"
+            event.input.border_title = (
+                f"last valid: {self.app.cfg.no_category_task_color}"
+            )
+
+    @on(DescendantBlur)
+    def reset_color(self):
+        self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
 
 
 class ChangeColumnVisibilitySwitch(Horizontal):

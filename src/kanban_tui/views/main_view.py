@@ -51,5 +51,5 @@ class MainView(Screen):
             if self.query_one(SettingsView).config_has_changed:
                 self.log.error("Herer")
                 self.query_one(KanbanBoard).refresh(recompose=True)
-                self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.2, callback=self.app.action_focus_next)
             self.query_one(SettingsView).config_has_changed = False
