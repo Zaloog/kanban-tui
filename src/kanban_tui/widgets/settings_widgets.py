@@ -8,7 +8,7 @@ from textual.events import Mount, DescendantBlur
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Input, Collapsible, DataTable
+from textual.widgets import Label, Switch, Input, Collapsible, DataTable, Rule
 from textual.containers import Horizontal, VerticalScroll, Vertical
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
@@ -34,9 +34,20 @@ class WorkingHoursSelector(Vertical):
 
         yield Label("Working Hours")
         with Horizontal():
-            yield Input(placeholder="Start")
+            yield HourMinute(id="hour_minute_start")
             yield Label("to")
-            yield Input(placeholder="End")
+            yield HourMinute(id="hour_minute_end")
+            # yield Input(placeholder="HH", id='input_end_hours')
+            # yield Label(":")
+            # yield Input(placeholder="MM", id='input_end_minutes')
+        return super().compose()
+
+
+class HourMinute(Horizontal):
+    def compose(self) -> Iterable[Widget]:
+        yield Input(placeholder="HH")
+        yield Label(":")
+        yield Input(placeholder="MM")
         return super().compose()
 
 
@@ -142,6 +153,7 @@ class ColumnSelector(Vertical):
         with VerticalScroll():
             for column in self.app.cfg.columns:
                 yield ChangeColumnVisibilitySwitch(column_name=column)
+                yield Rule()
 
         return super().compose()
 

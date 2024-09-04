@@ -340,17 +340,23 @@ SettingsView{
             border:$success;
             height:auto;
             width:1fr;
-            Horizontal{
-                height:auto;
-            }
             Label{
                 width:1fr;
                 text-align:center;
-                padding:1 0 0 0 ;
+                padding:0 0 1 0 ;
             }
-            Input {
+            Horizontal{
+                align:center middle;
                 height:auto;
-                width:1fr;
+                Label{
+                    width:auto;
+                    text-align:center;
+                    padding:1 0 0 0 ;
+                }
+                Input {
+                    height:auto;
+                    width:auto;
+                }
             }
 
         }
@@ -395,6 +401,12 @@ SettingsView{
 
             VerticalScroll{
                 height:1fr;
+                Rule{
+                    &:hover{
+                        color:green;
+                        border:yellow;
+                    }
+                }
 
                 ChangeColumnVisibilitySwitch {
                     height:auto;

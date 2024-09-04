@@ -24,12 +24,12 @@ build-backend = "hatchling.build"
 [tool.rye]
 managed = true
 dev-dependencies = [
-    "textual-dev>=1.5.1",
     "pre-commit>=3.8.0",
     "pytest>=8.3.2",
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",
+    "textual-dev>=1.6.1",
 ]
 
 [tool.hatch.metadata]
