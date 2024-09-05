@@ -1,14 +1,16 @@
+from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from textual import on
+from textual.message import Message
 from textual.events import Mount, DescendantBlur
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Input, Collapsible, DataTable, Rule
+from textual.widgets import Label, Switch, Input, Collapsible, DataTable, Rule, Button
 from textual.containers import Horizontal, VerticalScroll, Vertical
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
@@ -37,9 +39,6 @@ class WorkingHoursSelector(Vertical):
             yield HourMinute(id="hour_minute_start")
             yield Label("to")
             yield HourMinute(id="hour_minute_end")
-            # yield Input(placeholder="HH", id='input_end_hours')
-            # yield Label(":")
-            # yield Input(placeholder="MM", id='input_end_minutes')
         return super().compose()
 
 
@@ -134,6 +133,27 @@ class ChangeColumnVisibilitySwitch(Horizontal):
 
 # Widget to Add new columns and change column visibility
 # Select Widget, visible Green, not visible red
+class ShowRule(Rule):
+    class Hovering(Message):
+        def __init__(self, rule: ShowRule, hover: bool) -> None:
+            self.hover = hover
+            self.rule = rule
+            super().__init__()
+
+        @property
+        def control(self) -> ShowRule:
+            return self.rule
+
+    def on_enter(self):
+        self.post_message(self.Hovering(rule=self, hover=True))
+        self.notify("Hover")
+        self.set_styles("color:green;")
+
+    def on_leave(self):
+        self.post_message(self.Hovering(rule=self, hover=False))
+        self.set_styles("color:red;")
+
+
 class ColumnSelector(Vertical):
     app: "KanbanTui"
 
@@ -153,7 +173,8 @@ class ColumnSelector(Vertical):
         with VerticalScroll():
             for column in self.app.cfg.columns:
                 yield ChangeColumnVisibilitySwitch(column_name=column)
-                yield Rule()
+                # yield Rule()
+                yield ShowRule()
 
         return super().compose()
 
@@ -161,6 +182,17 @@ class ColumnSelector(Vertical):
         self.query_one("#label_amount_visible", Label).update(
             f"Show {self.amount_visible} / {len(self.app.cfg.columns)} Columns"
         )
+
+    @on(ShowRule.Hovering)
+    def show_add_button(self, event: ShowRule.Hovering):
+        if event.hover:
+            self.query_one(VerticalScroll).mount(
+                ShowRule(id="rule_temp"), after=event.rule
+            )
+            self.query_one(VerticalScroll).mount(Button("Add"), after=event.rule)
+        else:
+            self.query_one(Button).remove()
+            self.query_one("#rule_temp").remove()
 
     def on_switch_changed(self, event: Switch.Changed):
         self.amount_visible += 1 if event.value else -1

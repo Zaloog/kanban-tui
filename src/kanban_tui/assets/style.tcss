@@ -402,10 +402,10 @@ SettingsView{
             VerticalScroll{
                 height:1fr;
                 Rule{
-                    &:hover{
-                        color:green;
-                        border:yellow;
-                    }
+                    margin:0;
+                    # &:hover{
+                    #     color:green;
+                    # }
                 }
 
                 ChangeColumnVisibilitySwitch {
