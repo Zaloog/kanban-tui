@@ -66,6 +66,18 @@ class KanbanTuiConfig(BaseModel):
         )
         self.save()
 
+    def add_new_column(self, new_column: str, position: int):
+        actual_columns = list(self.config["column.visibility"].items())
+        actual_columns.insert(position, (new_column, "True"))
+        self.config["column.visibility"] = dict(actual_columns)
+
+        self.column_dict = {
+            column: True if visible == "True" else False
+            for column, visible in self.config["column.visibility"].items()
+        }
+
+        self.save()
+
     def set_column_dict(self, column_name: str):
         self.column_dict.update({column_name: not self.column_dict[column_name]})
         self.config.set(

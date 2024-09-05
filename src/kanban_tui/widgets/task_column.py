@@ -30,9 +30,6 @@ class Column(Vertical):
         self.query_one(f"#vscroll_{self.title}", VerticalScroll).can_focus = False
         for task in self.task_list:
             self.place_task(task=task)
-        # if self.title == 'Archive':
-        #     self.add_class('hidden')
-        #     self.disabled = True
         return super()._on_mount(event)
 
     def watch_task_amount(self) -> None:

@@ -400,12 +400,17 @@ SettingsView{
             margin:0;
 
             VerticalScroll{
+                margin:1 0 0 0;
                 height:1fr;
-                Rule{
+                AddRule{
+
                     margin:0;
-                    # &:hover{
-                    #     color:green;
-                    # }
+                    align:center middle;
+                    color:$success-lighten-3;
+                    Button{
+                        border:none;
+                        height:1;
+                    }
                 }
 
                 ChangeColumnVisibilitySwitch {

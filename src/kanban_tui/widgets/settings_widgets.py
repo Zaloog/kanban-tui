@@ -133,25 +133,26 @@ class ChangeColumnVisibilitySwitch(Horizontal):
 
 # Widget to Add new columns and change column visibility
 # Select Widget, visible Green, not visible red
-class ShowRule(Rule):
-    class Hovering(Message):
-        def __init__(self, rule: ShowRule, hover: bool) -> None:
-            self.hover = hover
-            self.rule = rule
+class AddRule(Rule):
+    class Pressed(Message):
+        def __init__(self, addrule: AddRule) -> None:
+            self.addrule = addrule
             super().__init__()
 
         @property
-        def control(self) -> ShowRule:
-            return self.rule
+        def control(self):
+            return self.addrule
 
-    def on_enter(self):
-        self.post_message(self.Hovering(rule=self, hover=True))
-        self.notify("Hover")
-        self.set_styles("color:green;")
+    def __init__(self, position: int, id: str | None = None) -> None:
+        self.position = position
+        super().__init__(id=id)
 
-    def on_leave(self):
-        self.post_message(self.Hovering(rule=self, hover=False))
-        self.set_styles("color:red;")
+    def compose(self) -> Iterable[Widget]:
+        yield Button("+")
+        return super().compose()
+
+    def on_button_pressed(self):
+        self.post_message(self.Pressed(self))
 
 
 class ColumnSelector(Vertical):
@@ -171,28 +172,36 @@ class ColumnSelector(Vertical):
     def compose(self) -> Iterable[Widget]:
         yield Label(id="label_amount_visible")
         with VerticalScroll():
-            for column in self.app.cfg.columns:
+            for position, column in enumerate(self.app.cfg.columns, start=1):
                 yield ChangeColumnVisibilitySwitch(column_name=column)
-                # yield Rule()
-                yield ShowRule()
+                yield AddRule(id=column, position=position)
 
         return super().compose()
+
+    @on(AddRule.Pressed)
+    def add_new_column(self, event: AddRule.Pressed):
+        # Implement Modal
+        col_name = "Placeholder"
+        self.app.cfg.add_new_column(
+            new_column=col_name, position=event.addrule.position
+        )
+        for rule in self.query_one(VerticalScroll).query(AddRule):
+            if rule.position > event.addrule.position:
+                rule.position += 1
+        self.query_one(VerticalScroll).mount(
+            AddRule(id=col_name, position=event.addrule.position),
+            after=f"#{event.addrule.id}",
+        )
+        self.query_one(VerticalScroll).mount(
+            ChangeColumnVisibilitySwitch(column_name=col_name),
+            after=f"#{event.addrule.id}",
+        )
+        self.amount_visible += 1
 
     def watch_amount_visible(self):
         self.query_one("#label_amount_visible", Label).update(
             f"Show {self.amount_visible} / {len(self.app.cfg.columns)} Columns"
         )
-
-    @on(ShowRule.Hovering)
-    def show_add_button(self, event: ShowRule.Hovering):
-        if event.hover:
-            self.query_one(VerticalScroll).mount(
-                ShowRule(id="rule_temp"), after=event.rule
-            )
-            self.query_one(VerticalScroll).mount(Button("Add"), after=event.rule)
-        else:
-            self.query_one(Button).remove()
-            self.query_one("#rule_temp").remove()
 
     def on_switch_changed(self, event: Switch.Changed):
         self.amount_visible += 1 if event.value else -1
