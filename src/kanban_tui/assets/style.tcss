@@ -461,3 +461,9 @@ VerticalScroll {
 # *:focus {
 #     border:yellow;
 # }
+
+Rule{
+    margin:0;
+    align:center middle;
+    color:$success-lighten-3;
+}
