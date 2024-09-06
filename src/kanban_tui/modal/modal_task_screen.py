@@ -77,7 +77,7 @@ class ModalTaskEditScreen(ModalScreen):
             create_new_task_db(
                 title=title,
                 description=description,
-                column=0,  # self.app.cfg.start_column,
+                column=0,  # TODO (Start Column)
                 category=category,
                 due_date=due_date,
                 database=self.app.cfg.database_path,

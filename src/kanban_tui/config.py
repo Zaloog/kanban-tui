@@ -91,19 +91,6 @@ class KanbanTuiConfig(BaseModel):
         self.category_color_dict[category] = color
         self.save()
 
-    # @property
-    # def start_column(self) -> bool:
-    #     return self.config.getint(section="kanban.settings", option="start_column")
-
-    # @start_column.setter
-    # def start_column(self, new_value: int):
-    #     self.config.set(
-    #         section="kanban.settings",
-    #         option="start_column",
-    #         value=f"{new_value}",
-    #     )
-    #     self.save()
-
     def save(self):
         with open(self.config_path, "w") as configfile:
             self.config.write(configfile)

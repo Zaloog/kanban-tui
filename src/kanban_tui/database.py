@@ -19,6 +19,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     if database.exists():
         return
 
+    # TODO
     task_db_creation_str = """
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
@@ -54,7 +55,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
 
 def create_new_task_db(
     title: str,
-    column: int = 0,
+    column: int = 0,  # TODO
     category: str | None = None,
     description: str | None = None,
     start_date: datetime | None = None,
@@ -114,11 +115,9 @@ def get_all_tasks_db(
     """
 
     with create_connection(database=database) as con:
-        # con.row_factory = sqlite3.Row
         con.row_factory = task_factory
         try:
             tasks = con.execute(query_str).fetchall()
-            # return [dict(task) for task in tasks]
             return tasks
         except sqlite3.Error as e:
             print(e)

@@ -50,7 +50,7 @@ class KanbanBoard(Horizontal):
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
     def place_new_task(self, task: Task):
-        self.query(Column)[0].place_task(task=task)
+        self.query(Column)[0].place_task(task=task)  # TODO
         # self.query(Column)[self.app.cfg.start_column].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
@@ -64,7 +64,9 @@ class KanbanBoard(Horizontal):
 
     # Movement
     def action_movement(self, direction: Literal["up", "right", "down", "left"]):
-        current_column_tasks = self.query(Column)[self.selected_task.column].task_amount
+        current_column_tasks = self.query(Column)[
+            self.selected_task.column
+        ].task_amount  # TODO
         # current_column = self.query(Column)[self.selected_task.column]
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
@@ -73,7 +75,9 @@ class KanbanBoard(Horizontal):
             case "up":
                 match row_idx:
                     case 0:
-                        self.query(Column)[self.selected_task.column].query(TaskCard)[
+                        self.query(Column)[self.selected_task.column].query(
+                            TaskCard
+                        )[  # TODO
                             current_column_tasks - 1
                         ].focus()
                     case _:
@@ -81,11 +85,14 @@ class KanbanBoard(Horizontal):
             case "down":
                 match row_idx:
                     case row_idx if row_idx == (current_column_tasks - 1):
-                        self.query(Column)[self.selected_task.column].query(TaskCard)[
+                        self.query(Column)[self.selected_task.column].query(
+                            TaskCard
+                        )[  # TODO
                             0
                         ].focus()
                     case _:
                         self.app.action_focus_next()
+            # TODO
             case "right":
                 new_column_id = (self.selected_task.column + 1) % len(
                     self.app.cfg.visible_columns
@@ -102,6 +109,7 @@ class KanbanBoard(Horizontal):
                         self.query(Column)[new_column_id].query(TaskCard)[
                             row_idx
                         ].focus()
+            # TODO
             case "left":
                 new_column_id = (
                     self.selected_task.column + len(self.app.cfg.visible_columns) - 1
@@ -127,6 +135,8 @@ class KanbanBoard(Horizontal):
     async def move_card_to_other_column(self, event: TaskCard.Moved):
         # remove focus and give focus back to same task in new column
         self.app.app_focus = False
+
+        # TODO
         await self.query(Column)[self.selected_task.column].remove_task(
             self.selected_task
         )
@@ -141,10 +151,10 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Delete)
     async def delete_task(self, event: TaskCard.Delete):
+        # TODO
         await self.query(Column)[event.taskcard.task_.column].remove_task(
             task=event.taskcard.task_
         )
-
         delete_task_db(task_id=event.taskcard.task_.task_id)
         self.app.update_task_list()
 
@@ -160,12 +170,12 @@ class KanbanBoard(Horizontal):
         else:
             self.can_focus = False
 
+    # Filter Stuff, to be implemented
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)
         # open filter
         if filter.has_class("-hidden"):
             self.query(TaskCard).set(disabled=True)
-
             filter.can_focus_children = True
             # Focus the first Widget on Filter
             filter.query_one("#category_filter").focus()
