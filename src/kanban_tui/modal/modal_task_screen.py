@@ -117,7 +117,7 @@ class ModalTaskEditScreen(ModalScreen):
             self.kanban_task.category if self.kanban_task.category else Select.BLANK
         )
         self.query_one("#label_create_date", Label).update(
-            self.kanban_task.creation_date.isoformat(sep=" ", timespec="seconds")
+            f'Task created at: {self.kanban_task.creation_date.isoformat(sep=" ", timespec="seconds")}'
         )
         if self.kanban_task.due_date:
             # toggle switch

@@ -83,10 +83,7 @@ class KanbanTuiConfig(BaseModel):
         self.config.set(
             section="column.visibility",
             option=column_name,
-            value="False"
-            if self.config.getboolean(section="column.visibility", option=column_name)
-            == "False"
-            else "True",
+            value=f"{self.column_dict[column_name]}",
         )
         self.save()
 

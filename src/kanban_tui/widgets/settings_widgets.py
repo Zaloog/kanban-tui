@@ -215,3 +215,4 @@ class ColumnSelector(Vertical):
         column = event.switch.id.split("_")[-1]
 
         self.app.cfg.set_column_dict(column_name=column)
+        self.notify(f"{self.app.cfg}")
