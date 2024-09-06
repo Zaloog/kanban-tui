@@ -14,6 +14,7 @@ from textual.widgets import Label, Switch, Input, Collapsible, DataTable, Rule, 
 from textual.containers import Horizontal, VerticalScroll, Vertical
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
+from kanban_tui.modal.modal_settings import ModalNewColumnScreen
 
 
 class DataBasePathInput(Horizontal):
@@ -181,22 +182,28 @@ class ColumnSelector(Vertical):
     @on(AddRule.Pressed)
     def add_new_column(self, event: AddRule.Pressed):
         # Implement Modal
-        col_name = "Placeholder"
-        self.app.cfg.add_new_column(
-            new_column=col_name, position=event.addrule.position
+        self.app.push_screen(
+            ModalNewColumnScreen(event=event), callback=self.modal_add_new_column
         )
-        for rule in self.query_one(VerticalScroll).query(AddRule):
-            if rule.position > event.addrule.position:
-                rule.position += 1
-        self.query_one(VerticalScroll).mount(
-            AddRule(id=col_name, position=event.addrule.position),
-            after=f"#{event.addrule.id}",
-        )
-        self.query_one(VerticalScroll).mount(
-            ChangeColumnVisibilitySwitch(column_name=col_name),
-            after=f"#{event.addrule.id}",
-        )
-        self.amount_visible += 1
+
+    def modal_add_new_column(self, event_col_name: tuple[AddRule.Pressed, str] | None):
+        if event_col_name:
+            event, col_name = event_col_name
+            self.app.cfg.add_new_column(
+                new_column=col_name, position=event.addrule.position
+            )
+            for rule in self.query_one(VerticalScroll).query(AddRule):
+                if rule.position > event.addrule.position:
+                    rule.position += 1
+            self.query_one(VerticalScroll).mount(
+                AddRule(id=col_name, position=event.addrule.position),
+                after=f"#{event.addrule.id}",
+            )
+            self.query_one(VerticalScroll).mount(
+                ChangeColumnVisibilitySwitch(column_name=col_name),
+                after=f"#{event.addrule.id}",
+            )
+            self.amount_visible += 1
 
     def watch_amount_visible(self):
         self.query_one("#label_amount_visible", Label).update(

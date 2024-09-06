@@ -435,6 +435,21 @@ SettingsView{
 
 }
 
+ModalNewColumnScreen {
+    align: center middle;
+    Vertical{
+        width: 30%;
+        height: auto;
+    }
+    Horizontal{
+        height:auto;
+    }
+    Button{
+        width:1fr;
+        height:auto;
+    }
+}
+
 # General Styles
 Switch > .switch--slider {
         color: $error;

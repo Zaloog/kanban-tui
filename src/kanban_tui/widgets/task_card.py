@@ -139,7 +139,6 @@ class TaskCard(Vertical):
 
     def from_modal_update_task(self, updated_task: Task) -> None:
         self.task_ = updated_task
-
         self.refresh(recompose=True)
 
     def action_delete_task(self) -> None:
