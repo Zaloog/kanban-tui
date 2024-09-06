@@ -73,13 +73,13 @@ class TaskCard(Vertical):
     def _on_mount(self, event: Mount) -> None:
         if self.app.cfg.tasks_always_expanded:
             self.query_one(Markdown).remove_class("hidden")
-        self.styles.background = self.app.cfg.category_color_dict.get(
-            self.task_.category, self.app.cfg.no_category_task_color
-        )
 
         return super()._on_mount(event)
 
     def compose(self) -> ComposeResult:
+        self.styles.background = self.app.cfg.category_color_dict.get(
+            self.task_.category, self.app.cfg.no_category_task_color
+        )
         self.border_title = self.task_.title
         self.border_subtitle = (
             f"{self.task_.days_left} days left"
@@ -139,6 +139,7 @@ class TaskCard(Vertical):
 
     def from_modal_update_task(self, updated_task: Task) -> None:
         self.task_ = updated_task
+
         self.refresh(recompose=True)
 
     def action_delete_task(self) -> None:
