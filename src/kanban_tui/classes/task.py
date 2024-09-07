@@ -58,7 +58,7 @@ class Task(BaseModel):
         """Update Dates on Task Move
 
         Args:
-            new_column (int): Column where the task moved to
+            new_column (str): Column where the task moved to
         """
         # TODO O
         match new_column:
