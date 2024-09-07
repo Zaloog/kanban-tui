@@ -29,7 +29,6 @@ def test_finished_Task():
         task_id=1337,
         title="Test_Task",
         column="Done",
-        due_date=datetime.now() + timedelta(days=7),
         start_date=datetime.now() - timedelta(days=10),
         finish_date=datetime.now(),
     )

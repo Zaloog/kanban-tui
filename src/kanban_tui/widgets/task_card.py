@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
-from textual.events import Enter, Leave, Mount
+from textual.events import Enter, Leave, Mount, Click
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Label, Markdown
@@ -82,12 +82,21 @@ class TaskCard(Vertical):
             self.task_.category, self.app.cfg.no_category_task_color
         )
         self.border_title = self.task_.title
-        self.border_subtitle = (
-            f"{self.task_.days_left} days left"
-            if self.task_.days_left is not None
-            else None
-        )
-        yield Label(f"{self.task_.title} ({self.task_.column}, {self.row})")
+        match self.task_.days_left:
+            case 0:
+                self.border_subtitle = (
+                    f":hourglass_done: {self.task_.days_left} days left"
+                )
+            case 1:
+                self.border_subtitle = f":hourglass_not_done: {self.task_.days_left} day left :face_screaming_in_fear:"
+            case None:
+                self.border_subtitle = ""
+            case _:
+                self.border_subtitle = (
+                    f":hourglass_not_done: {self.task_.days_left} days left"
+                )
+
+        yield Label(self.task_.title)
         yield Markdown(
             markdown=self.task_.description,
         )
@@ -136,6 +145,7 @@ class TaskCard(Vertical):
         self.task_.update_task_status(new_column=new_column)
         self.post_message(self.Moved(taskcard=self, new_column=new_column))
 
+    @on(Click)
     def action_edit_task(self) -> None:
         self.app.push_screen(
             ModalTaskEditScreen(task=self.task_), callback=self.from_modal_update_task
