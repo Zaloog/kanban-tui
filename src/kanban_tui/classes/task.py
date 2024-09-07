@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class Task(BaseModel):
     task_id: int
     title: str
-    column: int
+    column: str
     creation_date: datetime = datetime.now().replace(microsecond=0)
     days_since_creation: int = Field(default=0, ge=0)
     start_date: datetime | None = None
@@ -54,23 +54,23 @@ class Task(BaseModel):
         self.finish_date = datetime.now().replace(microsecond=0)
         self.update_time_worked_on()
 
-    def update_task_status(self, new_column: int):
+    def update_task_status(self, new_column: str):
         """Update Dates on Task Move
 
         Args:
             new_column (int): Column where the task moved to
         """
-        # TODO
+        # TODO O
         match new_column:
             # Move to Ready
-            case 0:
+            case "Ready":
                 self.start_date = None
                 self.finish_date = None
             # Move to 'Doing'
-            case 1:
+            case "Doing":
                 self.start_task()
                 self.finish_date = None
             # Move to 'Done'
-            case 2:
-                if self.column == 1:
+            case "Done":
+                if self.column == "Doing":
                     self.finish_task()

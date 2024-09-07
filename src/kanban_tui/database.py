@@ -19,12 +19,12 @@ def init_new_db(database: Path = DB_FULL_PATH):
     if database.exists():
         return
 
-    # TODO
+    # TODO A
     task_db_creation_str = """
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
-    column INTEGER NOT NULL,
+    column TEXT NOT NULL,
     category TEXT,
     description TEXT,
     creation_date TIMESTAMP NOT NULL,
@@ -55,7 +55,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
 
 def create_new_task_db(
     title: str,
-    column: int = 0,  # TODO
+    column: str = "Ready",  # TODO B
     category: str | None = None,
     description: str | None = None,
     start_date: datetime | None = None,
@@ -124,27 +124,8 @@ def get_all_tasks_db(
             return None
 
 
-def update_task_column_db(
-    task_id: int, column: int, database: Path = DB_FULL_PATH
-) -> int | str:
-    new_column_dict = {"task_id": task_id, "column": column}
-    transaction_str = """
-    UPDATE tasks
-    SET column = :column
-    WHERE task_id = :task_id
-    """
-    with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
-        try:
-            con.execute(transaction_str, new_column_dict)
-            return 0
-        except sqlite3.Error as e:
-            con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
-
-
 # After column Movement
+# TODO C
 def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
     new_start_date_dict = {
         "task_id": task.task_id,

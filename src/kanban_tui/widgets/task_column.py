@@ -17,7 +17,7 @@ class Column(Vertical):
 
     def __init__(self, title: str, tasklist: list[Task] = []) -> None:
         self.title = title
-        super().__init__(id=f"column_{title.lower()}")
+        super().__init__(id=f"column_{title}")
         self.task_list = tasklist
         self.can_focus: bool = False
 

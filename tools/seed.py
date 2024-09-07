@@ -27,22 +27,22 @@ def main():
     init_new_db()
     # Ready
     create_new_task_db(
-        title="Task_green_ready", description="Hallo", category="green", column=0
+        title="Task_green_ready", description="Hallo", category="green", column="Ready"
     )
     create_new_task_db(
-        title="Task_blue_ready", description="Hallo", category="blue", column=0
+        title="Task_blue_ready", description="Hallo", category="blue", column="Ready"
     )
     create_new_task_db(
-        title="Task_none_ready", description="Hallo", category=None, column=0
+        title="Task_none_ready", description="Hallo", category=None, column="Ready"
     )
 
     # Doing
     create_new_task_db(
-        title="Task_green_doing", description="Hallo", category="green", column=1
+        title="Task_green_doing", description="Hallo", category="green", column="Doing"
     )
     # Done
     create_new_task_db(
-        title="Task_red_done", description="Hallo", category="red", column=2
+        title="Task_red_done", description="Hallo", category="red", column="Done"
     )
 
 

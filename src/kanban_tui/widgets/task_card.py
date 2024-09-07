@@ -40,7 +40,8 @@ class TaskCard(Vertical):
             return self.taskcard
 
     class Moved(Message):
-        def __init__(self, taskcard: TaskCard, new_column: int) -> None:
+        # TODO M
+        def __init__(self, taskcard: TaskCard, new_column: str) -> None:
             self.taskcard = taskcard
             self.new_column = new_column
             super().__init__()
@@ -116,19 +117,21 @@ class TaskCard(Vertical):
             if not self.app.cfg.tasks_always_expanded:
                 self.query_one(Markdown).add_class("hidden")
 
-    # TODO
+    # TODO N
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
             case "left":
-                if self.task_.column == 0:
+                if self.app.cfg.visible_columns[0] == self.task_.column:
                     return
-                new_column = (
-                    self.task_.column + len(self.app.cfg.visible_columns) - 1
-                ) % len(self.app.cfg.visible_columns)
+                new_column = self.app.cfg.visible_columns[
+                    self.app.cfg.visible_columns.index(self.task_.column) - 1
+                ]
             case "right":
-                if self.task_.column == (len(self.app.cfg.visible_columns) - 1):
+                if self.app.cfg.visible_columns[-1] == self.task_.column:
                     return
-                new_column = (self.task_.column + 1) % len(self.app.cfg.visible_columns)
+                new_column = self.app.cfg.visible_columns[
+                    self.app.cfg.visible_columns.index(self.task_.column) + 1
+                ]
 
         self.task_.update_task_status(new_column=new_column)
         self.post_message(self.Moved(taskcard=self, new_column=new_column))
