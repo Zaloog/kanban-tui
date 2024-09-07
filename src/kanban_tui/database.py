@@ -6,6 +6,22 @@ from kanban_tui.constants import DB_FULL_PATH
 from kanban_tui.classes.task import Task
 
 
+def adapt_date_iso(val):
+    """Adapt datetime.date to ISO 8601 date."""
+    return val.isoformat()
+
+
+# sqlite3.register_adapter(datetime.date, adapt_date_iso)
+
+
+def convert_datetime(val):
+    """Convert ISO 8601 datetime to datetime.datetime object."""
+    return datetime.fromisoformat(val.decode())
+
+
+sqlite3.register_converter("datetime", convert_datetime)
+
+
 def create_connection(database: Path = DB_FULL_PATH) -> sqlite3.Connection:
     return sqlite3.connect(database=database)
 

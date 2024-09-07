@@ -31,12 +31,8 @@ def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig
 
 
 @pytest.fixture
-def init_test_db(test_db_full_path):
+def test_db(test_db_full_path):
     init_new_db(database=test_db_full_path)
-
-
-@pytest.fixture
-def seed_db(test_db_full_path):
     # Ready
     create_new_task_db(
         title="Task_green_ready",
