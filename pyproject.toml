@@ -17,6 +17,13 @@ license = { text = "MIT" }
 
 [project.scripts]
 ktui = "kanban_tui.__main__:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov src/kanban_tui --cov-report term-missing --verbose"# -n 4 --dist=loadgroup"
+testpaths = ["tests"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

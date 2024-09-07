@@ -99,7 +99,7 @@ class DefaultTaskColorSelector(Horizontal):
     def update_input_color(self, event: Input.Changed):
         try:
             self.query_one(TitleInput).background = event.input.value
-            self.app.cfg.set_no_category_task_color(new_value=event.input.value)
+            self.app.cfg.set_no_category_task_color(new_color=event.input.value)
             event.input.styles.border = "tall", "green"
             event.input.border_subtitle = None
             event.input.border_title = None

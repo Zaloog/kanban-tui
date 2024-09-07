@@ -59,10 +59,10 @@ class KanbanTuiConfig(BaseModel):
         )
         self.save()
 
-    def set_no_category_task_color(self, new_value: str) -> None:
-        self.no_category_task_color = new_value
+    def set_no_category_task_color(self, new_color: str) -> None:
+        self.no_category_task_color = new_color
         self.config.set(
-            section="kanban.settings", option="no_category_task_color", value=new_value
+            section="kanban.settings", option="no_category_task_color", value=new_color
         )
         self.save()
 
@@ -96,25 +96,27 @@ class KanbanTuiConfig(BaseModel):
             self.config.write(configfile)
 
 
-def init_new_config(config_path=CONFIG_FULL_PATH):
+def init_new_config(
+    config_path: Path = CONFIG_FULL_PATH, database: Path = DB_FULL_PATH
+):
     if config_path.exists():
         return
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.touch()
 
-    config = ConfigParser(default_section=None, allow_no_value=True)
-    config.optionxform = str
-    config["database"] = {"database_path": DB_FULL_PATH}
+    config = ConfigParser(default_section="", allow_no_value=True)
+    config.optionxform = str  # type: ignore
+    config["database"] = {"database_path": database.as_posix()}
     config["category.colors"] = {}
     config["column.visibility"] = {
-        "Ready": True,
-        "Doing": True,
-        "Done": True,
-        "Archive": False,
+        "Ready": "True",
+        "Doing": "True",
+        "Done": "True",
+        "Archive": "False",
     }
     config["kanban.settings"] = {
-        "tasks_always_expanded": False,
+        "tasks_always_expanded": "False",
         "no_category_task_color": "#004578",  # $primary
         # "start_column": 0,
     }
