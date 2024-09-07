@@ -1,29 +1,29 @@
 import sqlite3
 from pathlib import Path
-from datetime import datetime
+import datetime
 
 from kanban_tui.constants import DB_FULL_PATH
 from kanban_tui.classes.task import Task
 
 
-def adapt_date_iso(val):
-    """Adapt datetime.date to ISO 8601 date."""
+def adapt_datetime_iso(val: datetime.datetime) -> str:
+    """Adapt datetime.datetime to timezone-naive ISO 8601 date."""
     return val.isoformat()
 
 
-# sqlite3.register_adapter(datetime.date, adapt_date_iso)
+sqlite3.register_adapter(datetime.datetime, adapt_datetime_iso)
 
 
-def convert_datetime(val):
+def convert_datetime(val: bytes) -> datetime.datetime:
     """Convert ISO 8601 datetime to datetime.datetime object."""
-    return datetime.fromisoformat(val.decode())
+    return datetime.datetime.fromisoformat(val.decode())
 
 
 sqlite3.register_converter("datetime", convert_datetime)
 
 
 def create_connection(database: Path = DB_FULL_PATH) -> sqlite3.Connection:
-    return sqlite3.connect(database=database)
+    return sqlite3.connect(database=database, detect_types=sqlite3.PARSE_DECLTYPES)
 
 
 def task_factory(cursor, row):
@@ -43,10 +43,10 @@ def init_new_db(database: Path = DB_FULL_PATH):
     column TEXT NOT NULL,
     category TEXT,
     description TEXT,
-    creation_date TIMESTAMP NOT NULL,
-    start_date TIMESTAMP,
-    finish_date TIMESTAMP,
-    due_date TIMESTAMP,
+    creation_date DATETIME NOT NULL,
+    start_date DATETIME,
+    finish_date DATETIME,
+    due_date DATETIME,
     time_worked_on INTEGER,
     CHECK (title <> "")
     );
@@ -74,16 +74,16 @@ def create_new_task_db(
     column: str = "Ready",  # TODO B
     category: str | None = None,
     description: str | None = None,
-    start_date: datetime | None = None,
-    finish_date: datetime | None = None,
-    due_date: datetime | None = None,
+    start_date: datetime.datetime | None = None,
+    finish_date: datetime.datetime | None = None,
+    due_date: datetime.datetime | None = None,
     time_worked_on: int = 0,
     database: Path = DB_FULL_PATH,
 ) -> str | int:
     task_dict = {
         "title": title,
         "column": column,
-        "creation_date": datetime.now().replace(microsecond=0),
+        "creation_date": datetime.datetime.now().replace(microsecond=0),
         "start_date": start_date,
         "finish_date": finish_date,
         "category": category,
@@ -175,7 +175,7 @@ def update_task_entry_db(
     title: str,
     category: str | None = None,
     description: str | None = None,
-    due_date: datetime | None = None,
+    due_date: datetime.datetime | None = None,
     database: Path = DB_FULL_PATH,
 ) -> str | int:
     update_task_dict = {
