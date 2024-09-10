@@ -450,6 +450,21 @@ ModalNewColumnScreen {
     }
 }
 
+OverView{
+    height:1fr;
+    align:center middle;
+}
+OverView Placeholder {
+    height:1fr;
+}
+OverView TaskPlot {
+    height:1fr;
+    width:1fr;
+    PlotextPlot{
+        width:200;
+    }
+}
+
 # General Styles
 Switch > .switch--slider {
         color: $error;
