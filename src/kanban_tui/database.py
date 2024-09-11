@@ -124,7 +124,7 @@ def create_new_task_db(
 
 def get_all_tasks_db(
     database: Path = DB_FULL_PATH,
-) -> list[dict] | None:
+) -> list[Task] | None:
     query_str = """
     SELECT *
     FROM tasks;
@@ -141,7 +141,6 @@ def get_all_tasks_db(
 
 
 # After column Movement
-# TODO C
 def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
     new_start_date_dict = {
         "task_id": task.task_id,
@@ -222,3 +221,23 @@ def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
             con.rollback()
             print(e.sqlite_errorname)
             return e.sqlite_errorname
+
+
+def get_ordered_tasks_db(
+    order_by: str,
+    database: Path = DB_FULL_PATH,
+) -> list[Task] | None:
+    query_str = """
+    SELECT *
+    FROM tasks
+    ORDER BY ?;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            tasks = con.execute(query_str, (order_by,)).fetchall()
+            return tasks
+        except sqlite3.Error as e:
+            print(e)
+            return None
