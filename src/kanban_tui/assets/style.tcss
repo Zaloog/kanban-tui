@@ -21,6 +21,7 @@ Column{
     }
 
     VerticalScroll {
+        hatch:left $panel;
         width: 1fr;
         height: 1fr;
         margin:0 2 0 0;
