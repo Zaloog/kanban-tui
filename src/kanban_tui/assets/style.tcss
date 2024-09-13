@@ -455,10 +455,16 @@ OverView{
     height:1fr;
     align:center middle;
 }
-OverView Horizontal {
+OverView #horizontal_overview_filters > Vertical{
     height:1fr;
+    border:tall $success;
 }
-OverView PlotFilter {
+OverView Label{
+    width:1fr;
+    text-align:center;
+
+}
+OverView CategoryPlotFilter {
     height:1fr;
     width:1fr;
     Switch {
@@ -472,6 +478,7 @@ OverView Placeholder {
 }
 OverView TaskPlot {
     border:tall $success;
+    margin: 1 0 0 0;
     padding:0 1;
     height:3fr;
     width:1fr;

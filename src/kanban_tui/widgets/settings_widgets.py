@@ -63,7 +63,6 @@ class AlwaysExpandedSwitch(Horizontal):
 
     def on_switch_changed(self, event: Switch.Changed):
         self.app.cfg.set_tasks_always_expanded(new_value=event.value)
-        self.notify(f"{self.app.cfg}")
 
 
 class DefaultTaskColorSelector(Horizontal):

@@ -75,9 +75,9 @@ def main():
             start_date=datetime(year=2024, month=month, day=15, hour=12, minute=30),
         )
     create_new_task_db(
-        title="Task_red_done",
+        title="Future Task",
         description="Hallo",
-        category="red",
+        category=None,
         column="Archive",
         start_date=datetime(year=2025, month=1, day=15, hour=12, minute=30),
     )
