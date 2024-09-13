@@ -17,6 +17,7 @@ from kanban_tui.database import get_ordered_tasks_db
 
 class TaskPlot(HorizontalScroll):
     app: "KanbanTui"
+    can_focus = False
 
     def compose(self) -> Iterable[Widget]:
         yield PlotextPlot()
@@ -38,30 +39,19 @@ class TaskPlot(HorizontalScroll):
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
-        # plt.date_form("b-Y")
 
         if switch_categories:
             ordered_tasks = get_ordered_tasks_db(
-                order_by="start_date", database=self.app.cfg.database_path
+                order_by=select_amount, database=self.app.cfg.database_path
             )
             self.log.error(f"{ordered_tasks}")
             if not ordered_tasks:
                 return
 
-            # start_dates = sorted(list(set(task['month'] for task in ordered_tasks)))
             start_dates = plt.datetimes_to_string(
-                sorted({task["start_date"] for task in ordered_tasks})
+                sorted({task["date"] for task in ordered_tasks})
             )
 
-            # for date in dates:
-            #     for i_color, color in enumerate(self.app.cfg.category_color_dict.values()):
-            #         entry_dict[entry]
-
-            # start_dates = [
-            #     task.start_date.strftime("%b %Y")
-            #     for task in ordered_tasks
-            #     if task.start_date
-            # ]
             if not start_dates:
                 return
 
@@ -76,18 +66,17 @@ class TaskPlot(HorizontalScroll):
                 counts1,
                 label=["A", "B", "C"],
                 width=0.5,
-                # reset_ticks=True,
                 minimum=0,
             )
 
         else:
             ordered_tasks = get_ordered_tasks_db(
-                order_by="start_date", database=self.app.cfg.database_path
+                order_by=select_amount, database=self.app.cfg.database_path
             )
             if not ordered_tasks:
                 return
             start_dates = plt.datetimes_to_string(
-                sorted({task["start_date"] for task in ordered_tasks})
+                sorted({task["date"] for task in ordered_tasks})
             )
             counts2: defaultdict = defaultdict()
             print(f"{counts2}")
@@ -96,9 +85,50 @@ class TaskPlot(HorizontalScroll):
             plt.bar(
                 counts.keys(), counts.values(), width=0.5, reset_ticks=True, minimum=0
             )
-        # plt.horizontal_line(coordinate=2, color="red")
-        # plt.yfrequency(frequency=len(), yside=1)
-        # plt.title("Task Amount")
+
+    def scroll_left(
+        self,
+        *,
+        animate: bool = True,
+        speed: float | None = None,
+        duration: float | None = None,
+        easing: str | None = None,
+        force: bool = False,
+        on_complete: None = None,
+        level="basic",
+    ) -> None:
+        self.scroll_to(
+            x=self.scroll_target_x - 3,
+            animate=animate,
+            speed=speed,
+            duration=duration,
+            easing=easing,
+            force=force,
+            on_complete=on_complete,
+            level=level,
+        )
+
+    def scroll_right(
+        self,
+        *,
+        animate: bool = True,
+        speed: float | None = None,
+        duration: float | None = None,
+        easing: str | None = None,
+        force: bool = False,
+        on_complete: None = None,
+        level="basic",
+    ) -> None:
+        self.scroll_to(
+            x=self.scroll_target_x + 3,
+            animate=animate,
+            speed=speed,
+            duration=duration,
+            easing=easing,
+            force=force,
+            on_complete=on_complete,
+            level=level,
+        )
 
 
 class CategoryPlotFilter(Vertical):
@@ -148,7 +178,7 @@ class AmountPlotFilter(Vertical):
             options=[
                 ("Creation Date", "creation_date"),
                 ("Start Date", "start_date"),
-                ("Completion Date", "completion_date"),
+                ("Completion Date", "finish_date"),
             ],
             start_value="start_date",
             id="select_plot_filter_amount",

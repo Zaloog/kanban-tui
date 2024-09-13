@@ -223,40 +223,19 @@ def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
             return e.sqlite_errorname
 
 
-def get_ordered_tasks_db2(
-    order_by: str,
-    database: Path = DB_FULL_PATH,
-) -> list[Task] | None:
-    query_str = """
-    SELECT *
-    FROM tasks
-    ORDER BY ?;
-    """
-
-    with create_connection(database=database) as con:
-        con.row_factory = task_factory
-        try:
-            tasks = con.execute(query_str, (order_by,)).fetchall()
-            return tasks
-        except sqlite3.Error as e:
-            print(e)
-            return None
-
-
 def get_ordered_tasks_db(
     order_by: str,
     database: Path = DB_FULL_PATH,
 ) -> list[dict] | None:
-    # strftime('%Y %m', start_date) AS month,
-    query_str = """
+    query_str = f"""
     SELECT
-        start_date,
+        {order_by} as date,
         category,
-        COUNT(*) as amount
+        COUNT(task_id) as amount
     FROM tasks
-    WHERE start_date IS NOT NULL
-    GROUP BY category, start_date
-    ORDER BY start_date;
+    WHERE date IS NOT NULL
+    GROUP BY category, date
+    ORDER BY date;
     """
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
