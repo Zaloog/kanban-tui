@@ -31,5 +31,4 @@ class KanbanTui(App):
 
     def update_task_list(self):
         tasks = get_all_tasks_db(database=self.app.cfg.database_path)
-        # self.task_list = [Task(**task) for task in tasks]
         self.task_list = tasks

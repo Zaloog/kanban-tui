@@ -21,7 +21,7 @@ class OverView(Vertical):
     ]
 
     def _on_mount(self, event: Mount) -> None:
-        self.watch(self.app, "task_list", self.update_plot_by_filters, init=False)
+        self.watch(self.app, "task_list", self.update_plot_by_filters, init=True)
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
