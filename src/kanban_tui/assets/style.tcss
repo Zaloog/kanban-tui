@@ -435,7 +435,6 @@ SettingsView{
     }
 
 }
-
 ModalNewColumnScreen {
     align: center middle;
     Vertical{
@@ -450,7 +449,6 @@ ModalNewColumnScreen {
         height:auto;
     }
 }
-
 OverView{
     height:1fr;
     align:center middle;
@@ -462,7 +460,6 @@ OverView #horizontal_overview_filters > Vertical{
 OverView Label{
     width:1fr;
     text-align:center;
-
 }
 OverView CategoryPlotFilter {
     height:1fr;
@@ -471,7 +468,6 @@ OverView CategoryPlotFilter {
         width:1fr;
     }
 }
-
 OverView Placeholder {
     height:1fr;
     width:1fr;

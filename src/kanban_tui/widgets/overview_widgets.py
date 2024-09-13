@@ -6,7 +6,6 @@ if TYPE_CHECKING:
 
 
 from textual.binding import Binding
-from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import Label, Switch, Select
 from textual_plotext import PlotextPlot
@@ -19,25 +18,29 @@ from kanban_tui.database import get_ordered_tasks_db
 class TaskPlot(HorizontalScroll):
     app: "KanbanTui"
 
-    def _on_mount(self, event: Mount) -> None:
-        # self.update_task_plot(show_categories=True)
-        self.watch(
-            self.app, "task_list", lambda: self.update_task_plot(show_categories=False)
-        )
-        return super()._on_mount(event)
-
     def compose(self) -> Iterable[Widget]:
         yield PlotextPlot()
         self.border_title = "Tasks Completed"
         return super().compose()
 
-    async def update_task_plot(self, show_categories: bool = False):
-        await self.query_one(PlotextPlot).remove()
-        await self.mount(PlotextPlot())
+    async def update_task_plot(
+        self, switch_categories: bool, select_frequency: str, select_amount: str
+    ):
+        await self.recompose()
         plt = self.query_one(PlotextPlot).plt
-        plt.date_form("b-Y")
+        match select_frequency:
+            case "day":
+                plt.date_form("d-b-Y")
+                plt.xlabel("Date")
+            case "week":
+                plt.date_form("V-Y")
+                plt.xlabel("Week-Year")
+            case "month":
+                plt.date_form("b-Y")
+                plt.xlabel("Month-Year")
+        # plt.date_form("b-Y")
 
-        if show_categories:
+        if switch_categories:
             ordered_tasks = get_ordered_tasks_db(
                 order_by="start_date", database=self.app.cfg.database_path
             )
@@ -93,7 +96,6 @@ class TaskPlot(HorizontalScroll):
             )
         # plt.horizontal_line(coordinate=2, color="red")
         # plt.yfrequency(frequency=len(), yside=1)
-        plt.xlabel("Date")
         # plt.title("Task Amount")
 
 
@@ -127,6 +129,7 @@ class FrequencyPlotFilter(Vertical):
                 ("Month", "month"),
             ],
             start_value="month",
+            id="select_plot_filter_frequency",
         )
         return super().compose()
 
@@ -146,6 +149,7 @@ class AmountPlotFilter(Vertical):
                 ("Completion Date", "completion_date"),
             ],
             start_value="start_date",
+            id="select_plot_filter_amount",
         )
         return super().compose()
 
@@ -159,8 +163,8 @@ class PlotOptionSelector(Select):
         Binding("down,j", "cursor_down", "Cursor Down", show=False),
     ]
 
-    def __init__(self, options: Iterable, start_value: str):
-        super().__init__(options=options, allow_blank=False, value=start_value)
+    def __init__(self, options: Iterable, start_value: str, id: str | None = None):
+        super().__init__(options=options, allow_blank=False, value=start_value, id=id)
 
     def action_cursor_up(self):
         if self.expanded:
