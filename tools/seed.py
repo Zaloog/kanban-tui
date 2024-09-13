@@ -66,7 +66,7 @@ def main():
         start_date=datetime(year=2024, month=3, day=15, hour=12, minute=30),
     )
     # Archive
-    for month in range(1, 11):
+    for month in range(1, 12):
         create_new_task_db(
             title="Task_red_done",
             description="Hallo",
@@ -74,6 +74,13 @@ def main():
             column="Archive",
             start_date=datetime(year=2024, month=month, day=15, hour=12, minute=30),
         )
+    create_new_task_db(
+        title="Task_red_done",
+        description="Hallo",
+        category="red",
+        column="Archive",
+        start_date=datetime(year=2025, month=1, day=15, hour=12, minute=30),
+    )
 
 
 if __name__ == "__main__":

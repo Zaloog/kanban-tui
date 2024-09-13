@@ -456,10 +456,10 @@ OverView{
     align:center middle;
 }
 OverView Horizontal {
-    height:auto;
+    height:1fr;
 }
 OverView PlotFilter {
-    height:auto;
+    height:1fr;
     width:1fr;
     Switch {
         width:1fr;
@@ -467,13 +467,13 @@ OverView PlotFilter {
 }
 
 OverView Placeholder {
-    height:auto;
+    height:1fr;
     width:1fr;
 }
 OverView TaskPlot {
     border:tall $success;
     padding:0 1;
-    height:1fr;
+    height:3fr;
     width:1fr;
     PlotextPlot{
         width:200;
