@@ -1,5 +1,5 @@
 from typing import Iterable, TYPE_CHECKING
-from collections import Counter
+from collections import Counter, defaultdict
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -89,6 +89,8 @@ class TaskPlot(HorizontalScroll):
             start_dates = plt.datetimes_to_string(
                 sorted({task["start_date"] for task in ordered_tasks})
             )
+            counts2: defaultdict = defaultdict()
+            print(f"{counts2}")
             counts = Counter(start_dates)
 
             plt.bar(
