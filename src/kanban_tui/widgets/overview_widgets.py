@@ -25,7 +25,7 @@ class TaskPlot(HorizontalScroll):
 
     def compose(self) -> Iterable[Widget]:
         yield PlotextPlot()
-        self.border_title = "Tasks Completed"
+        self.border_title = "Task Amount"
         return super().compose()
 
     async def update_task_plot(
@@ -41,7 +41,6 @@ class TaskPlot(HorizontalScroll):
         ordered_tasks = get_ordered_tasks_db(
             order_by=select_amount, database=self.app.cfg.database_path
         )
-        self.log.error(f"{ordered_tasks}")
         if not ordered_tasks:
             self.query_one(PlotextPlot).styles.width = "1fr"
             return
@@ -69,12 +68,6 @@ class TaskPlot(HorizontalScroll):
                         + 1,
                     )
                 ]
-                # date_range = [
-                #     earliest + datetime.timedelta(weeks=week)
-                #     for week in range(
-                #         0, (datetime.datetime.now() - earliest).days // 7 + 1
-                #     )
-                # ]
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
@@ -96,34 +89,36 @@ class TaskPlot(HorizontalScroll):
 
         if switch_categories:
             category_value_dict = {}
-            # Add None Values
-            for category in self.app.cfg.category_color_dict.keys():
+
+            for category in list(self.app.cfg.category_color_dict.keys()) + [None]:
                 category_value_dict[category] = plot_values.copy()
-                # self.log.error(f"valdict {category}: {val_dict[category]}")
 
-                category_value_dict[category].update(
-                    Counter(
-                        [
-                            plt.datetime_to_string(task["date"])
-                            for task in ordered_tasks
-                            if task["category"] == category
-                        ]
-                    )
+                task_counter = Counter(
+                    [
+                        plt.datetime_to_string(task["date"])
+                        for task in ordered_tasks
+                        if task["category"] == category
+                    ]
                 )
-            #     self.log.error(f"valdict {category}: {category_value_dict[category]}")
-            #     self.log.error(f"len {len(plot_values.keys())}")
+                category_value_dict[category].update(task_counter)
 
-            # self.log.error(f"valdict {len(category_value_dict)}: {[(cat, len(val)) for cat, val in category_value_dict.items()]}")
+            # plot
             plt.stacked_bar(
                 plot_values.keys(),
                 [
                     category_values.values()
                     for category_values in category_value_dict.values()
                 ],
-                label=[category for category in category_value_dict.keys()],
+                label=[
+                    category or "No Category" for category in category_value_dict.keys()
+                ],
                 color=[
-                    getrgb(self.app.cfg.category_color_dict[category])
-                    for category in category_value_dict.keys()
+                    getrgb(
+                        self.app.cfg.category_color_dict.get(
+                            category, self.app.cfg.no_category_task_color
+                        )
+                    )
+                    for category in list(category_value_dict.keys())
                 ],
                 width=0.5,
                 yside="2",
@@ -134,10 +129,10 @@ class TaskPlot(HorizontalScroll):
 
         else:
             task_dates = plt.datetimes_to_string(
-                sorted({task["date"] for task in ordered_tasks})
+                {task["date"] for task in ordered_tasks}
             )
-            task_counts = Counter(task_dates)
-            plot_values.update(task_counts)
+            task_counter = Counter(task_dates)
+            plot_values.update(task_counter)
 
             plt.bar(
                 plot_values.keys(),
