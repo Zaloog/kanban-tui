@@ -55,17 +55,26 @@ class TaskPlot(HorizontalScroll):
                     earliest + datetime.timedelta(days=day)
                     for day in range(0, (datetime.datetime.now() - earliest).days + 1)
                 ]
-                date_range = plt.datetimes_to_string(date_range)
             case "week":
                 plt.date_form("V-Y")
                 plt.xlabel("Week-Year")
                 date_range = [
-                    earliest + datetime.timedelta(weeks=week)
+                    earliest + datetime.timedelta(days=7) * week
                     for week in range(
-                        0, (datetime.datetime.now() - earliest).days // 7 + 1
+                        0,
+                        (
+                            datetime.datetime.now().isocalendar().week
+                            - earliest.isocalendar().week
+                        )
+                        + 1,
                     )
                 ]
-                date_range = plt.datetimes_to_string(date_range)
+                # date_range = [
+                #     earliest + datetime.timedelta(weeks=week)
+                #     for week in range(
+                #         0, (datetime.datetime.now() - earliest).days // 7 + 1
+                #     )
+                # ]
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
@@ -75,9 +84,13 @@ class TaskPlot(HorizontalScroll):
                         0, (datetime.datetime.now().month - earliest.month) + 1
                     )
                 ]
-                date_range = plt.datetimes_to_string(date_range)
 
-        self.query_one(PlotextPlot).styles.width = len(date_range) * 15
+        date_range = plt.datetimes_to_string(date_range)
+        # Adjust Plotext size, if there are only a few entries
+        if len(date_range) < 12:
+            self.query_one(PlotextPlot).styles.width = "1fr"
+        else:
+            self.query_one(PlotextPlot).styles.width = len(date_range) * 15
 
         plot_values = {date: 0 for date in date_range}
 
@@ -113,6 +126,9 @@ class TaskPlot(HorizontalScroll):
                     for category in category_value_dict.keys()
                 ],
                 width=0.5,
+                yside="2",
+                reset_ticks=True,
+                fill=True,
                 minimum=0,
             )
 
