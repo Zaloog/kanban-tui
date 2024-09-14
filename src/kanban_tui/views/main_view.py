@@ -49,10 +49,8 @@ class MainView(Screen):
     async def refresh_board(self, event: TabbedContent.TabActivated):
         if event.tab.id == "--content-tab-tab_board":
             if self.query_one(SettingsView).config_has_changed:
-                self.log.error("Herer")
                 self.query_one(KanbanBoard).refresh(recompose=True)
                 self.set_timer(delay=0.2, callback=self.app.action_focus_next)
             self.query_one(SettingsView).config_has_changed = False
         elif event.tab.id == "--content-tab-tab_overview":
-            self.notify("Update")
             await self.query_one(OverView).update_plot_by_filters()
