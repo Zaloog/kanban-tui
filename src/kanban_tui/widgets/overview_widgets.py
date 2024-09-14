@@ -7,6 +7,8 @@ if TYPE_CHECKING:
 
 
 from textual.binding import Binding
+
+# from rich.color import Color
 from textual.widget import Widget
 from textual.widgets import Label, Switch, Select
 from textual_plotext import PlotextPlot
@@ -14,6 +16,7 @@ from textual.containers import HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
 from kanban_tui.database import get_ordered_tasks_db
+from kanban_tui.color_converter import getrgb
 
 
 class TaskPlot(HorizontalScroll):
@@ -43,14 +46,14 @@ class TaskPlot(HorizontalScroll):
             self.query_one(PlotextPlot).styles.width = "1fr"
             return
 
-        earliest = min([task["date"] for task in ordered_tasks])
+        earliest: datetime.datetime = min([task["date"] for task in ordered_tasks])
         match select_frequency:
             case "day":
                 plt.date_form("d-b-Y")
                 plt.xlabel("Date")
                 date_range = [
                     earliest + datetime.timedelta(days=day)
-                    for day in range(0, (datetime.datetime.now() - earliest).days)
+                    for day in range(0, (datetime.datetime.now() - earliest).days + 1)
                 ]
                 date_range = plt.datetimes_to_string(date_range)
             case "week":
@@ -58,16 +61,18 @@ class TaskPlot(HorizontalScroll):
                 plt.xlabel("Week-Year")
                 date_range = [
                     earliest + datetime.timedelta(weeks=week)
-                    for week in range(0, (datetime.datetime.now() - earliest).days // 7)
+                    for week in range(
+                        0, (datetime.datetime.now() - earliest).days // 7 + 1
+                    )
                 ]
                 date_range = plt.datetimes_to_string(date_range)
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
                 date_range = [
-                    earliest + datetime.timedelta(weeks=month * 4)
+                    earliest.replace(month=earliest.month + month)
                     for month in range(
-                        0, (datetime.datetime.now() - earliest).days // 30
+                        0, (datetime.datetime.now().month - earliest.month) + 1
                     )
                 ]
                 date_range = plt.datetimes_to_string(date_range)
@@ -77,18 +82,13 @@ class TaskPlot(HorizontalScroll):
         plot_values = {date: 0 for date in date_range}
 
         if switch_categories:
-            # task_dates = plt.datetimes_to_string(
-            #     sorted({task["date"] for task in ordered_tasks})
-            # )
-            # task_counts = Counter(task_dates)
-            # plot_values.update(task_counts)
-
-            val_dict = {}
+            category_value_dict = {}
+            # Add None Values
             for category in self.app.cfg.category_color_dict.keys():
-                val_dict[category] = plot_values.copy()
-                self.log.error(f"valdict {category}: {val_dict[category]}")
+                category_value_dict[category] = plot_values.copy()
+                # self.log.error(f"valdict {category}: {val_dict[category]}")
 
-                val_dict[category].update(
+                category_value_dict[category].update(
                     Counter(
                         [
                             plt.datetime_to_string(task["date"])
@@ -97,21 +97,21 @@ class TaskPlot(HorizontalScroll):
                         ]
                     )
                 )
-                # val_dict[category] = Counter([plt.datetime_to_string(task['date']) for task in ordered_tasks if task['category'] == category ])
-                self.log.error(f"valdict {category}: {val_dict[category]}")
-                # val_dict[category] = plot_values.update(val_dict[category])
+            #     self.log.error(f"valdict {category}: {category_value_dict[category]}")
+            #     self.log.error(f"len {len(plot_values.keys())}")
 
-            self.log.error(f"{val_dict.values()}")
+            # self.log.error(f"valdict {len(category_value_dict)}: {[(cat, len(val)) for cat, val in category_value_dict.items()]}")
             plt.stacked_bar(
                 plot_values.keys(),
                 [
-                    *val_dict.values()
-                    # list(plot_values.values()),
-                    # list(plot_values.values()),
-                    # list(plot_values.values()),
+                    category_values.values()
+                    for category_values in category_value_dict.values()
                 ],
-                label=[self.app.cfg.category_color_dict.keys()],
-                color=[self.app.cfg.category_color_dict.values()],
+                label=[category for category in category_value_dict.keys()],
+                color=[
+                    getrgb(self.app.cfg.category_color_dict[category])
+                    for category in category_value_dict.keys()
+                ],
                 width=0.5,
                 minimum=0,
             )

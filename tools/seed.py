@@ -12,16 +12,16 @@ def main():
     cfg = KanbanTuiConfig()
 
     cfg.add_category(
+        category="green",
+        color="#00FF00",
+    )
+    cfg.add_category(
         category="blue",
         color="#0000FF",
     )
     cfg.add_category(
         category="red",
         color="#FF0000",
-    )
-    cfg.add_category(
-        category="green",
-        color="#00FF00",
     )
 
     DB_FULL_PATH.unlink(missing_ok=True)
@@ -39,14 +39,14 @@ def main():
         description="Hallo",
         category="blue",
         column="Ready",
-        start_date=datetime(year=2024, month=1, day=15, hour=12, minute=30),
+        start_date=datetime(year=2024, month=1, day=16, hour=12, minute=30),
     )
     create_new_task_db(
         title="Task_none_ready",
         description="Hallo",
         category=None,
         column="Ready",
-        start_date=datetime(year=2024, month=1, day=15, hour=12, minute=30),
+        start_date=datetime(year=2024, month=1, day=17, hour=12, minute=30),
     )
 
     # Doing
@@ -63,7 +63,7 @@ def main():
         description="Hallo",
         category="red",
         column="Done",
-        start_date=datetime(year=2024, month=3, day=15, hour=12, minute=30),
+        start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
     )
     # Archive
     for month in range(5, 10):
@@ -72,7 +72,7 @@ def main():
             description="Hallo",
             category="red",
             column="Archive",
-            start_date=datetime(year=2024, month=month, day=15, hour=12, minute=30),
+            start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
         )
     for day in range(20, 25):
         create_new_task_db(
@@ -80,7 +80,7 @@ def main():
             description="Hallo",
             category="red",
             column="Archive",
-            start_date=datetime(year=2024, month=10, day=day, hour=12, minute=30),
+            start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
         )
     # create_new_task_db(
     #     title="Past Task",
