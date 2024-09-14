@@ -34,7 +34,9 @@ class OverView(Vertical):
 
     @on(Switch.Changed)
     @on(Select.Changed)
-    async def update_plot_by_filters(self):
+    async def update_plot_by_filters(
+        self, event: Switch.Changed | Select.Changed | None = None
+    ):
         category_switch = self.query_one("#switch_plot_category_detail", Switch).value
         amount_select = self.query_one("#select_plot_filter_amount", Select).value
         frequency_select = self.query_one("#select_plot_filter_frequency", Select).value
@@ -43,6 +45,7 @@ class OverView(Vertical):
             switch_categories=category_switch,
             select_amount=amount_select,
             select_frequency=frequency_select,
+            scroll_reset=False if isinstance(event, Switch.Changed) else True,
         )
 
     def action_scroll_plot_right(self) -> None:

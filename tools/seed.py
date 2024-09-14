@@ -66,7 +66,7 @@ def main():
         start_date=datetime(year=2024, month=3, day=15, hour=12, minute=30),
     )
     # Archive
-    for month in range(1, 12):
+    for month in range(5, 10):
         create_new_task_db(
             title="Task_red_done",
             description="Hallo",
@@ -74,12 +74,20 @@ def main():
             column="Archive",
             start_date=datetime(year=2024, month=month, day=15, hour=12, minute=30),
         )
+    for day in range(20, 25):
+        create_new_task_db(
+            title="Task_red_done",
+            description="Hallo",
+            category="red",
+            column="Archive",
+            start_date=datetime(year=2024, month=10, day=day, hour=12, minute=30),
+        )
     create_new_task_db(
-        title="Future Task",
+        title="Past Task",
         description="Hallo",
         category=None,
         column="Archive",
-        start_date=datetime(year=2025, month=1, day=15, hour=12, minute=30),
+        start_date=datetime(year=2023, month=12, day=15, hour=12, minute=30),
     )
 
 

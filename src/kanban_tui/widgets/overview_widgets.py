@@ -26,7 +26,11 @@ class TaskPlot(HorizontalScroll):
         return super().compose()
 
     async def update_task_plot(
-        self, switch_categories: bool, select_frequency: str, select_amount: str
+        self,
+        switch_categories: bool,
+        select_frequency: str,
+        select_amount: str,
+        scroll_reset: bool = True,
     ):
         await self.recompose()
         plt = self.query_one(PlotextPlot).plt
@@ -38,7 +42,7 @@ class TaskPlot(HorizontalScroll):
             self.query_one(PlotextPlot).styles.width = "1fr"
             return
 
-        earliest: datetime.datetime = min([task["date"] for task in ordered_tasks])
+        earliest = min([task["date"] for task in ordered_tasks])
         match select_frequency:
             case "day":
                 plt.date_form("d-b-Y")
@@ -68,26 +72,23 @@ class TaskPlot(HorizontalScroll):
                 date_range = plt.datetimes_to_string(date_range)
 
         self.query_one(PlotextPlot).styles.width = len(date_range) * 15
+
         plot_values = {date: 0 for date in date_range}
 
-        self.log.error(f"{ordered_tasks}")
         if switch_categories:
-            start_dates = plt.datetimes_to_string(
+            task_dates = plt.datetimes_to_string(
                 sorted({task["date"] for task in ordered_tasks})
             )
-
-            if not start_dates:
-                return
-
-            counts1 = [
-                [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1],
-                [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
-                [2, 3, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1],
-            ]
+            task_counts = Counter(task_dates)
+            plot_values.update(task_counts)
 
             plt.stacked_bar(
-                start_dates,
-                counts1,
+                plot_values.keys(),
+                [
+                    list(plot_values.values()),
+                    list(plot_values.values()),
+                    list(plot_values.values()),
+                ],
                 label=["A", "B", "C"],
                 width=0.5,
                 minimum=0,
@@ -97,8 +98,8 @@ class TaskPlot(HorizontalScroll):
             task_dates = plt.datetimes_to_string(
                 sorted({task["date"] for task in ordered_tasks})
             )
-            counts = Counter(task_dates)
-            plot_values.update(counts)
+            task_counts = Counter(task_dates)
+            plot_values.update(task_counts)
 
             plt.bar(
                 plot_values.keys(),
@@ -108,11 +109,11 @@ class TaskPlot(HorizontalScroll):
                 minimum=0,
             )
 
-        self.set_timer(
-            delay=0.1,
-            callback=lambda: self.scroll_to(x=self.max_scroll_x, animate=False),
-        )
-        # self.scroll_to(x=self.max_scroll_x)
+        if scroll_reset:
+            self.set_timer(
+                delay=0.1,
+                callback=lambda: self.scroll_to(x=self.max_scroll_x, animate=False),
+            )
 
     def scroll_left(
         self,
