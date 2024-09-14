@@ -82,13 +82,13 @@ def main():
             column="Archive",
             start_date=datetime(year=2024, month=10, day=day, hour=12, minute=30),
         )
-    create_new_task_db(
-        title="Past Task",
-        description="Hallo",
-        category=None,
-        column="Archive",
-        start_date=datetime(year=2023, month=12, day=15, hour=12, minute=30),
-    )
+    # create_new_task_db(
+    #     title="Past Task",
+    #     description="Hallo",
+    #     category=None,
+    #     column="Archive",
+    #     start_date=datetime(year=2023, month=12, day=15, hour=12, minute=30),
+    # )
 
 
 if __name__ == "__main__":

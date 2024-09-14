@@ -38,6 +38,7 @@ class TaskPlot(HorizontalScroll):
         ordered_tasks = get_ordered_tasks_db(
             order_by=select_amount, database=self.app.cfg.database_path
         )
+        self.log.error(f"{ordered_tasks}")
         if not ordered_tasks:
             self.query_one(PlotextPlot).styles.width = "1fr"
             return
@@ -64,7 +65,7 @@ class TaskPlot(HorizontalScroll):
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
                 date_range = [
-                    earliest + datetime.timedelta(weeks=month)
+                    earliest + datetime.timedelta(weeks=month * 4)
                     for month in range(
                         0, (datetime.datetime.now() - earliest).days // 30
                     )
@@ -76,20 +77,41 @@ class TaskPlot(HorizontalScroll):
         plot_values = {date: 0 for date in date_range}
 
         if switch_categories:
-            task_dates = plt.datetimes_to_string(
-                sorted({task["date"] for task in ordered_tasks})
-            )
-            task_counts = Counter(task_dates)
-            plot_values.update(task_counts)
+            # task_dates = plt.datetimes_to_string(
+            #     sorted({task["date"] for task in ordered_tasks})
+            # )
+            # task_counts = Counter(task_dates)
+            # plot_values.update(task_counts)
 
+            val_dict = {}
+            for category in self.app.cfg.category_color_dict.keys():
+                val_dict[category] = plot_values.copy()
+                self.log.error(f"valdict {category}: {val_dict[category]}")
+
+                val_dict[category].update(
+                    Counter(
+                        [
+                            plt.datetime_to_string(task["date"])
+                            for task in ordered_tasks
+                            if task["category"] == category
+                        ]
+                    )
+                )
+                # val_dict[category] = Counter([plt.datetime_to_string(task['date']) for task in ordered_tasks if task['category'] == category ])
+                self.log.error(f"valdict {category}: {val_dict[category]}")
+                # val_dict[category] = plot_values.update(val_dict[category])
+
+            self.log.error(f"{val_dict.values()}")
             plt.stacked_bar(
                 plot_values.keys(),
                 [
-                    list(plot_values.values()),
-                    list(plot_values.values()),
-                    list(plot_values.values()),
+                    *val_dict.values()
+                    # list(plot_values.values()),
+                    # list(plot_values.values()),
+                    # list(plot_values.values()),
                 ],
-                label=["A", "B", "C"],
+                label=[self.app.cfg.category_color_dict.keys()],
+                color=[self.app.cfg.category_color_dict.values()],
                 width=0.5,
                 minimum=0,
             )
