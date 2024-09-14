@@ -1,5 +1,6 @@
+import datetime
 from typing import Iterable, TYPE_CHECKING
-from collections import Counter, defaultdict
+from collections import Counter
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -29,25 +30,48 @@ class TaskPlot(HorizontalScroll):
     ):
         await self.recompose()
         plt = self.query_one(PlotextPlot).plt
+
+        ordered_tasks = get_ordered_tasks_db(
+            order_by=select_amount, database=self.app.cfg.database_path
+        )
+        if not ordered_tasks:
+            self.query_one(PlotextPlot).styles.width = "1fr"
+            return
+
+        earliest: datetime.datetime = min([task["date"] for task in ordered_tasks])
         match select_frequency:
             case "day":
                 plt.date_form("d-b-Y")
                 plt.xlabel("Date")
+                date_range = [
+                    earliest + datetime.timedelta(days=day)
+                    for day in range(0, (datetime.datetime.now() - earliest).days)
+                ]
+                date_range = plt.datetimes_to_string(date_range)
             case "week":
                 plt.date_form("V-Y")
                 plt.xlabel("Week-Year")
+                date_range = [
+                    earliest + datetime.timedelta(weeks=week)
+                    for week in range(0, (datetime.datetime.now() - earliest).days // 7)
+                ]
+                date_range = plt.datetimes_to_string(date_range)
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
+                date_range = [
+                    earliest + datetime.timedelta(weeks=month)
+                    for month in range(
+                        0, (datetime.datetime.now() - earliest).days // 30
+                    )
+                ]
+                date_range = plt.datetimes_to_string(date_range)
 
+        self.query_one(PlotextPlot).styles.width = len(date_range) * 15
+        plot_values = {date: 0 for date in date_range}
+
+        self.log.error(f"{ordered_tasks}")
         if switch_categories:
-            ordered_tasks = get_ordered_tasks_db(
-                order_by=select_amount, database=self.app.cfg.database_path
-            )
-            self.log.error(f"{ordered_tasks}")
-            if not ordered_tasks:
-                return
-
             start_dates = plt.datetimes_to_string(
                 sorted({task["date"] for task in ordered_tasks})
             )
@@ -70,21 +94,25 @@ class TaskPlot(HorizontalScroll):
             )
 
         else:
-            ordered_tasks = get_ordered_tasks_db(
-                order_by=select_amount, database=self.app.cfg.database_path
-            )
-            if not ordered_tasks:
-                return
-            start_dates = plt.datetimes_to_string(
+            task_dates = plt.datetimes_to_string(
                 sorted({task["date"] for task in ordered_tasks})
             )
-            counts2: defaultdict = defaultdict()
-            print(f"{counts2}")
-            counts = Counter(start_dates)
+            counts = Counter(task_dates)
+            plot_values.update(counts)
 
             plt.bar(
-                counts.keys(), counts.values(), width=0.5, reset_ticks=True, minimum=0
+                plot_values.keys(),
+                plot_values.values(),
+                width=0.5,
+                reset_ticks=True,
+                minimum=0,
             )
+
+        self.set_timer(
+            delay=0.1,
+            callback=lambda: self.scroll_to(x=self.max_scroll_x, animate=False),
+        )
+        # self.scroll_to(x=self.max_scroll_x)
 
     def scroll_left(
         self,

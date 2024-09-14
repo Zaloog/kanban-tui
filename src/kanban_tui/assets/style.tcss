@@ -479,7 +479,7 @@ OverView TaskPlot {
     height:3fr;
     width:1fr;
     PlotextPlot{
-        width:200;
+        # width:200;
     }
 }
 

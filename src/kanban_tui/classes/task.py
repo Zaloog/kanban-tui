@@ -60,7 +60,6 @@ class Task(BaseModel):
         Args:
             new_column (str): Column where the task moved to
         """
-        # TODO O
         match new_column:
             # Move to Ready
             case "Ready":

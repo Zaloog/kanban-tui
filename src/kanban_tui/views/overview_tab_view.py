@@ -3,7 +3,7 @@ from textual import on
 from textual.binding import Binding
 from textual.events import Mount
 from textual.widget import Widget
-from textual.widgets import Placeholder, Select, Switch
+from textual.widgets import Select, Switch
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.overview_widgets import (
@@ -21,7 +21,7 @@ class OverView(Vertical):
     ]
 
     def _on_mount(self, event: Mount) -> None:
-        self.watch(self.app, "task_list", self.update_plot_by_filters, init=True)
+        # self.watch(self.app, "task_list", self.update_plot_by_filters, init=True)
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -30,7 +30,6 @@ class OverView(Vertical):
             yield AmountPlotFilter()
             yield FrequencyPlotFilter()
         yield TaskPlot()
-        yield Placeholder("Table?")
         return super().compose()
 
     @on(Switch.Changed)
@@ -47,10 +46,7 @@ class OverView(Vertical):
         )
 
     def action_scroll_plot_right(self) -> None:
-        self.query_one(TaskPlot).action_scroll_right()
         return self.query_one(TaskPlot).action_scroll_right()
 
     def action_scroll_plot_left(self) -> None:
-        self.query_one(TaskPlot).action_scroll_left()
-        # self.query_one(TaskPlot).action_scroll_left()
-        # return self.query_one(TaskPlot).action_scroll_left()
+        return self.query_one(TaskPlot).action_scroll_left()

@@ -35,7 +35,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
     if database.exists():
         return
 
-    # TODO A
     task_db_creation_str = """
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
