@@ -1,60 +1,60 @@
-#
-# The Python Imaging Library
-# $Id$
-#
-# map CSS3-style colour description strings to RGB
-#
-# History:
-# 2002-10-24 fl   Added support for CSS-style color strings
-# 2002-12-15 fl   Added RGBA support
-# 2004-03-27 fl   Fixed remaining int() problems for Python 1.5.2
-# 2004-07-19 fl   Fixed gray/grey spelling issues
-# 2009-03-05 fl   Fixed rounding error in grayscale calculation
-#
-# Copyright (c) 2002-2004 by Secret Labs AB
-# Copyright (c) 2002-2004 by Fredrik Lundh
-#
-# Licence Info
-
-# The Python Imaging Library (PIL) is
-
-#     Copyright © 1997-2011 by Secret Labs AB
-#     Copyright © 1995-2011 by Fredrik Lundh and contributors
-
-# Pillow is the friendly PIL fork. It is
-
-#     Copyright © 2010-2024 by Jeffrey A. Clark and contributors
-
-# Like PIL, Pillow is licensed under the open source HPND License:
-
-# By obtaining, using, and/or copying this software and/or its associated
-# documentation, you agree that you have read, understood, and will comply
-# with the following terms and conditions:
-
-# Permission to use, copy, modify and distribute this software and its
-# documentation for any purpose and without fee is hereby granted,
-# provided that the above copyright notice appears in all copies, and that
-# both that copyright notice and this permission notice appear in supporting
-# documentation, and that the name of Secret Labs AB or the author not be
-# used in advertising or publicity pertaining to distribution of the software
-# without specific, written prior permission.
-
-# SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
-# SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
-# IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL,
-# INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-# PERFORMANCE OF THIS SOFTWARE.
-
 from __future__ import annotations
 
 import re
+import datetime
 from functools import lru_cache
 
 
 @lru_cache
 def getrgb(color: str) -> tuple[int, int, int] | tuple[int, int, int, int]:
+    #
+    # The Python Imaging Library
+    # $Id$
+    #
+    # map CSS3-style colour description strings to RGB
+    #
+    # History:
+    # 2002-10-24 fl   Added support for CSS-style color strings
+    # 2002-12-15 fl   Added RGBA support
+    # 2004-03-27 fl   Fixed remaining int() problems for Python 1.5.2
+    # 2004-07-19 fl   Fixed gray/grey spelling issues
+    # 2009-03-05 fl   Fixed rounding error in grayscale calculation
+    #
+    # Copyright (c) 2002-2004 by Secret Labs AB
+    # Copyright (c) 2002-2004 by Fredrik Lundh
+    #
+    # Licence Info
+
+    # The Python Imaging Library (PIL) is
+
+    #     Copyright © 1997-2011 by Secret Labs AB
+    #     Copyright © 1995-2011 by Fredrik Lundh and contributors
+
+    # Pillow is the friendly PIL fork. It is
+
+    #     Copyright © 2010-2024 by Jeffrey A. Clark and contributors
+
+    # Like PIL, Pillow is licensed under the open source HPND License:
+
+    # By obtaining, using, and/or copying this software and/or its associated
+    # documentation, you agree that you have read, understood, and will comply
+    # with the following terms and conditions:
+
+    # Permission to use, copy, modify and distribute this software and its
+    # documentation for any purpose and without fee is hereby granted,
+    # provided that the above copyright notice appears in all copies, and that
+    # both that copyright notice and this permission notice appear in supporting
+    # documentation, and that the name of Secret Labs AB or the author not be
+    # used in advertising or publicity pertaining to distribution of the software
+    # without specific, written prior permission.
+
+    # SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+    # SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+    # IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+    # INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+    # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    # PERFORMANCE OF THIS SOFTWARE.
     """
      Convert a color string to an RGB or RGBA tuple. If the string cannot be
      parsed, this function raises a :py:exc:`ValueError` exception.
@@ -307,3 +307,58 @@ colormap: dict[str, str | tuple[int, int, int]] = {
     "yellow": "#ffff00",
     "yellowgreen": "#9acd32",
 }
+
+
+def calculate_work_on_time(
+    start_date: datetime.datetime,
+    finish_date: datetime.datetime,
+    start_work: str,
+    finish_work: str,
+):
+    if start_work == finish_work:
+        return (finish_date - start_date) / datetime.timedelta(minutes=1)
+
+    workon_time = 0
+    start_hours, start_minutes = (int(time) for time in start_work.split(":"))
+    end_hours, end_minutes = (int(time) for time in finish_work.split(":"))
+    delta_days = (finish_date.date() - start_date.date()).days
+
+    start_limit = start_date.replace(
+        hour=start_hours, minute=start_minutes, second=0, microsecond=0
+    )
+
+    # End is next day
+    if end_hours < start_hours:
+        end_limit_start = start_date.replace(
+            day=start_date.day + 1,
+            hour=end_hours,
+            minute=end_minutes,
+            second=0,
+            microsecond=0,
+        )
+    else:
+        end_limit_start = start_date.replace(
+            hour=end_hours, minute=end_minutes, second=0, microsecond=0
+        )
+
+    if delta_days < 1:
+        workon_time += (finish_date - start_date) // datetime.timedelta(minutes=1)
+    else:
+        for day in range(0, delta_days + 1):
+            # first day
+            if day == 0:
+                workon_time += (end_limit_start - start_date) // datetime.timedelta(
+                    minutes=1
+                )
+            # last day
+            elif day == delta_days:
+                workon_time += (
+                    finish_date - start_limit.replace(day=finish_date.day)
+                ) // datetime.timedelta(minutes=1)
+            # between days
+            else:
+                workon_time += (end_limit_start - start_limit) // datetime.timedelta(
+                    minutes=1
+                )
+
+    return workon_time
