@@ -8,7 +8,6 @@ if TYPE_CHECKING:
 
 from textual.binding import Binding
 
-# from rich.color import Color
 from textual.widget import Widget
 from textual.widgets import Label, Switch, Select
 from textual_plotext import PlotextPlot
@@ -16,7 +15,7 @@ from textual.containers import HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
 from kanban_tui.database import get_ordered_tasks_db
-from kanban_tui.color_converter import getrgb
+from kanban_tui.utils import getrgb
 
 
 class TaskPlot(HorizontalScroll):

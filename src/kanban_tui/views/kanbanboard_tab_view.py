@@ -73,9 +73,7 @@ class KanbanBoard(Horizontal):
                     case 0:
                         self.query_one(
                             f"#column_{self.selected_task.column}", Column
-                        ).query(TaskCard)[  # TODO G
-                            current_column_tasks - 1
-                        ].focus()
+                        ).query(TaskCard)[current_column_tasks - 1].focus()
                     case _:
                         self.app.action_focus_previous()
             case "down":
@@ -100,7 +98,7 @@ class KanbanBoard(Horizontal):
                 match new_column_tasks:
                     case 0:
                         self.app.action_focus_next()
-                    case new_column_tasks if new_column_tasks < current_column_tasks:
+                    case new_column_tasks if new_column_tasks <= row_idx:
                         self.query_one(f"#column_{new_column_name}", Column).query(
                             TaskCard
                         )[new_column_tasks - 1].focus()
@@ -122,7 +120,7 @@ class KanbanBoard(Horizontal):
                 match new_column_tasks:
                     case 0:
                         self.app.action_focus_previous()
-                    case new_column_tasks if new_column_tasks < current_column_tasks:
+                    case new_column_tasks if new_column_tasks <= row_idx:
                         self.query_one(f"#column_{new_column_name}", Column).query(
                             TaskCard
                         )[new_column_tasks - 1].focus()

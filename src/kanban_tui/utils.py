@@ -154,38 +154,6 @@ def getrgb(color: str) -> tuple[int, int, int] | tuple[int, int, int, int]:
     raise ValueError(msg)
 
 
-@lru_cache
-def getcolor(color: str, mode: str) -> int | tuple[int, ...]:
-    """
-    Same as :py:func:`~PIL.ImageColor.getrgb` for most modes. However, if
-    ``mode`` is HSV, converts the RGB value to a HSV value, or if ``mode`` is
-    not color or a palette image, converts the RGB value to a grayscale value.
-    If the string cannot be parsed, this function raises a :py:exc:`ValueError`
-    exception.
-
-    .. versionadded:: 1.1.4
-
-    :param color: A color string
-    :param mode: Convert result to this mode
-    :return: ``graylevel, (graylevel, alpha) or (red, green, blue[, alpha])``
-    """
-    # same as getrgb, but converts the result to the given mode
-    rgb, alpha = getrgb(color), 255
-    if len(rgb) == 4:
-        alpha = rgb[3]
-        rgb = rgb[:3]
-
-    if mode == "HSV":
-        from colorsys import rgb_to_hsv
-
-        r, g, b = rgb
-        h, s, v = rgb_to_hsv(r / 255, g / 255, b / 255)
-        return int(h * 255), int(s * 255), int(v * 255)
-    elif mode[-1] == "A":
-        return rgb + (alpha,)
-    return rgb
-
-
 colormap: dict[str, str | tuple[int, int, int]] = {
     # X11 colour table from https://drafts.csswg.org/css-color-4/, with
     # gray/grey spelling issues fixed.  This is a superset of HTML 4.0
