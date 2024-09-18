@@ -20,6 +20,12 @@ class KanbanTuiConfig(BaseModel):
         "Done": True,
         "Archive": False,
     }
+    work_hour_dict: dict[str, str] = {
+        "start_hour": "00",
+        "start_min": "00",
+        "end_hour": "00",
+        "end_min": "00",
+    }
 
     def model_post_init(self, __context):
         self.config.default_section = None
@@ -37,6 +43,10 @@ class KanbanTuiConfig(BaseModel):
             column: True if visible == "True" else False
             for column, visible in self.config["column.visibility"].items()
         }
+        # Fix That... have to choose yaml config i guess...
+        self.work_hour_dict = eval(
+            self.config.get(section="kanban.settings", option="work_hours")
+        )
 
     @property
     def database_path(self) -> Path:
@@ -91,6 +101,15 @@ class KanbanTuiConfig(BaseModel):
         self.category_color_dict[category] = color
         self.save()
 
+    def set_work_hour_dict(self, entry: str, new_value: str):
+        self.work_hour_dict.update({entry: new_value})
+        self.config.set(
+            section="kanban.settings",
+            option="work_hours",
+            value=f"{self.work_hour_dict}",
+        )
+        self.save()
+
     def save(self):
         with open(self.config_path, "w") as configfile:
             self.config.write(configfile)
@@ -118,6 +137,12 @@ def init_new_config(
     config["kanban.settings"] = {
         "tasks_always_expanded": "False",
         "no_category_task_color": "#004578",  # $primary
+        "work_hours": {  # type: ignore
+            "start_hour": "00",
+            "start_min": "00",
+            "end_hour": "00",
+            "end_min": "00",
+        },
         # "start_column": 0,
     }
 

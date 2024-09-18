@@ -27,6 +27,12 @@ def test_init_new_config(test_app_config, test_config_full_path, test_db_full_pa
         "Archive": False,
     }
     assert test_app_config.no_category_task_color == "#004578"
+    assert test_app_config.work_hour_dict == {
+        "start_hour": "00",
+        "start_min": "00",
+        "end_hour": "00",
+        "end_min": "00",
+    }
 
 
 def test_KanbanTuiConfig(test_app_config: KanbanTuiConfig, test_config_full_path):
@@ -46,6 +52,9 @@ def test_KanbanTuiConfig(test_app_config: KanbanTuiConfig, test_config_full_path
     test_app_config.add_category(category="Test", color="#000000")
     assert test_app_config.category_color_dict["Test"] == "#000000"
 
+    test_app_config.set_work_hour_dict(entry="start_hour", new_value="08")
+    assert test_app_config.work_hour_dict["start_hour"] == "08"
+
     updated_config = KanbanTuiConfig(config_path=test_config_full_path)
 
     assert updated_config.tasks_always_expanded is True
@@ -54,3 +63,4 @@ def test_KanbanTuiConfig(test_app_config: KanbanTuiConfig, test_config_full_path
     assert updated_config.columns[2] == "TestColumn"
     assert updated_config.column_dict["Archive"] is True
     assert updated_config.category_color_dict["Test"] == "#000000"
+    assert test_app_config.work_hour_dict["start_hour"] == "08"

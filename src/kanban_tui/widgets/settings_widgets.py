@@ -33,21 +33,32 @@ class WorkingHoursSelector(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "work_hours.settings"
+        self.border_title = "kanban.settings.work_hours"
 
         yield Label("Working Hours")
         with Horizontal():
+            # yield HourMinute(hour_value=self.app.cfg.work_hour_dict['start_hour'], min_value=self.app.cfg.work_hour_dict['start_min'], id="hour_minute_start")
             yield HourMinute(id="hour_minute_start")
             yield Label("to")
+            # yield HourMinute(hour_value=self.app.cfg.work_hour_dict['end_hour'], min_value=self.app.cfg.work_hour_dict['end_min'], id="hour_minute_end")
             yield HourMinute(id="hour_minute_end")
         return super().compose()
 
 
 class HourMinute(Horizontal):
+    def __init__(
+        self, hour_value: str = "00", min_value: str = "00", id: str | None = None
+    ) -> None:
+        self.hour_value = hour_value
+        self.min_value = min_value
+        super().__init__(id=id)
+
     def compose(self) -> Iterable[Widget]:
+        # yield Input(value=self.hour_value, placeholder="HH")
         yield Input(placeholder="HH")
         yield Label(":")
         yield Input(placeholder="MM")
+        # yield Input(value=self.hour_value, placeholder="MM")
         return super().compose()
 
 

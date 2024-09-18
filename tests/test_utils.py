@@ -54,6 +54,7 @@ from kanban_tui.utils import calculate_work_on_time
             "16:00",
             10 * 60,
         ),
+        # Always count the whole time
         (
             datetime(year=2024, month=7, day=6, hour=12, minute=0, second=0),
             datetime(year=2024, month=7, day=7, hour=12, minute=0, second=0),
