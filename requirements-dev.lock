@@ -99,6 +99,7 @@ python-dateutil==2.9.0.post0
     # via pendulum
     # via time-machine
 pyyaml==6.0.2
+    # via kanban-tui
     # via pre-commit
 rich==13.8.0
     # via textual

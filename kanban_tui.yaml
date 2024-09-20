@@ -1,0 +1,19 @@
+database:
+  database_path: C:/Users/grams/rye_projects/kanban-tui/database.db
+category.colors:
+  green: '#00FF00'
+  blue: '#0000FF'
+  red: '#FF0000'
+column.visibility:
+  Ready: true
+  Doing: true
+  Done: true
+  Archive: false
+kanban.settings:
+  tasks_always_expanded: false
+  no_category_task_color: '#004578'
+  work_hours:
+    start_hour: '00'
+    start_min: '00'
+    end_hour: '00'
+    end_min: '00'

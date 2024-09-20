@@ -10,7 +10,7 @@ DB_LOCATION = Path().cwd()
 # )
 DB_FULL_PATH = DB_LOCATION / DB_NAME
 
-CONFIG_NAME = "kanban_tui.ini"
+CONFIG_NAME = "kanban_tui.yaml"
 CONFIG_LOCATION = Path().cwd()
 # CONFIG_LOCATION = Path(
 #     user_config_dir(appname="kanban-tui", appauthor=False, ensure_exists=True)
