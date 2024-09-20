@@ -126,7 +126,6 @@ class TaskCard(Vertical):
             if not self.app.cfg.tasks_always_expanded:
                 self.query_one(Markdown).add_class("hidden")
 
-    # TODO N
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
             case "left":

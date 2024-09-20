@@ -10,10 +10,10 @@ from kanban_tui.constants import CONFIG_FULL_PATH, DB_FULL_PATH
 class KanbanTuiConfig(BaseModel):
     config_path: Path = CONFIG_FULL_PATH
     database_path: Path = DB_FULL_PATH
-    config: dict[str, dict[str, Any]] = {}
+    config: dict[str, Any] = {}
     tasks_always_expanded: bool = False
     no_category_task_color: str = "#004578"
-    category_color_dict: dict[str, str] = {}
+    category_color_dict: dict[str | None, str] = {}
     column_dict: dict[str, bool] = {
         "Ready": True,
         "Doing": True,
