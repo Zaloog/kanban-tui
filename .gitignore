@@ -13,4 +13,5 @@ wheels/
 # dev
 *.db
 *.ini
+kanban_tui.yaml
 todo.md

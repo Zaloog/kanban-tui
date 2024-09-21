@@ -417,10 +417,15 @@ SettingsView{
                 ChangeColumnVisibilitySwitch {
                     height:auto;
                     width:1fr;
-                    Label{
+                    Label {
                         width:1fr;
                         # text-align:center;
                         padding:1 0 0 0 ;
+                    }
+                    Button {
+                        width:8;
+                        min-width: 8;
+                        margin: 0 1 0 0;
                     }
                     Switch {
                         width:2fr;
