@@ -31,6 +31,12 @@ def test_KanbanTuiConfig(
     assert updated_config.no_category_task_color == "#000000"
     assert updated_config.column_dict["TestColumn"] is True
     assert updated_config.columns[2] == "TestColumn"
+
+    updated_config.delete_column(column_to_delete="TestColumn")
+    assert updated_config.column_dict.get("TestColumn", False) is False
+    assert "TestColumn" not in updated_config.columns
+
+    assert updated_config.columns[2] == "Done"
     assert updated_config.column_dict["Archive"] is True
     assert updated_config.category_color_dict["Test"] == "#000000"
     assert test_app_config.work_hour_dict["start_hour"] == "08"
