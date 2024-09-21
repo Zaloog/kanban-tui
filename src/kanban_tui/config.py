@@ -66,6 +66,11 @@ class KanbanTuiConfig(BaseModel):
         self.column_dict = self.config["column.visibility"]
         self.save()
 
+    def delete_column(self, column_to_delete: str) -> None:
+        self.column_dict.pop(column_to_delete)
+        self.config["column.visibility"] = self.column_dict
+        self.save()
+
     def set_column_dict(self, column_name: str) -> None:
         self.column_dict.update({column_name: not self.column_dict[column_name]})
         self.config["column.visibility"][column_name] = self.column_dict[column_name]

@@ -15,6 +15,7 @@ from textual.containers import Horizontal, VerticalScroll, Vertical
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
+from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.constants import COLUMNS
 
 
@@ -210,9 +211,9 @@ class ColumnSelector(Vertical):
             self.app.cfg.add_new_column(
                 new_column=col_name, position=event.addrule.position
             )
-            for rule in self.query_one(VerticalScroll).query(AddRule):
-                if rule.position > event.addrule.position:
-                    rule.position += 1
+            # for rule in self.query_one(VerticalScroll).query(AddRule):
+            #     if rule.position > event.addrule.position:
+            #         rule.position += 1
             self.query_one(VerticalScroll).mount(
                 AddRule(id=col_name, position=event.addrule.position),
                 after=f"#{event.addrule.id}",
@@ -221,7 +222,53 @@ class ColumnSelector(Vertical):
                 ChangeColumnVisibilitySwitch(column_name=col_name),
                 after=f"#{event.addrule.id}",
             )
+
+            for new_position, rule in enumerate(self.query(AddRule), start=1):
+                rule.position = new_position
+
+            self.notify(
+                title="Columns Updated",
+                message=f"Column [blue]{col_name}[/] created",
+                timeout=2,
+            )
             self.amount_visible += 1
+
+    @on(Button.Pressed)
+    def delete_column(self, event: Button.Pressed):
+        # Implement Modal
+        if not event.button.id:
+            return
+        # TODO check if column empty
+
+        self.app.push_screen(
+            ModalConfirmScreen(
+                text=f'Delete Column [blue]{event.button.id.split('_')[-1]}[/]'
+            ),
+            callback=lambda x: self.modal_delete_column(event=event, delete_yn=x),
+        )
+
+    def modal_delete_column(self, event: Button.Pressed, delete_yn: bool) -> None:
+        if delete_yn:
+            column_name = event.button.id.split("_")[-1]
+
+            if column_name in self.app.cfg.visible_columns:
+                self.app.cfg.delete_column(column_to_delete=column_name)
+                self.amount_visible -= 1
+            else:
+                self.app.cfg.delete_column(column_to_delete=column_name)
+                self.watch_amount_visible()
+
+            event.button.parent.remove()
+            self.query_one(f"#{column_name}").remove()
+
+            for new_position, rule in enumerate(self.query(AddRule), start=1):
+                rule.position = new_position
+
+            self.notify(
+                title="Columns Updated",
+                message=f"Column [blue]{column_name}[/] deleted",
+                timeout=2,
+            )
 
     def watch_amount_visible(self):
         self.query_one("#label_amount_visible", Label).update(

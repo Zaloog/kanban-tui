@@ -185,7 +185,7 @@ ModalTaskEditScreen {
    }
 }
 
-ModalTaskDeleteScreen {
+ModalConfirmScreen {
     align:center middle;
     Vertical{
         width:60%;

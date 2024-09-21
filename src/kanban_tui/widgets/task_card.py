@@ -16,7 +16,7 @@ from textual.message import Message
 from kanban_tui.classes.task import Task
 from kanban_tui.modal.modal_task_screen import (
     ModalTaskEditScreen,
-    ModalTaskDeleteScreen,
+    ModalConfirmScreen,
 )
 
 
@@ -156,7 +156,8 @@ class TaskCard(Vertical):
 
     def action_delete_task(self) -> None:
         self.app.push_screen(
-            ModalTaskDeleteScreen(task=self.task_), callback=self.from_modal_delete_task
+            ModalConfirmScreen(text=f"Delete Task [blue]{self.task_.title}[/]?"),
+            callback=self.from_modal_delete_task,
         )
 
     def from_modal_delete_task(self, delete_yn: bool) -> None:
