@@ -239,11 +239,21 @@ class ColumnSelector(Vertical):
         if not event.button.id:
             return
         # TODO check if column empty
+        column_name = event.button.id.split("_")[-1]
+        if (
+            len([task for task in self.app.task_list if task.column == column_name])
+            != 0
+        ):
+            self.notify(
+                title="Column not empty",
+                message=f"Remove all tasks in column [blue]{column_name}[/] before deletion",
+                timeout=1,
+                severity="error",
+            )
+            return
 
         self.app.push_screen(
-            ModalConfirmScreen(
-                text=f'Delete Column [blue]{event.button.id.split('_')[-1]}[/]'
-            ),
+            ModalConfirmScreen(text=f"Delete Column [blue]{column_name}[/]"),
             callback=lambda x: self.modal_delete_column(event=event, delete_yn=x),
         )
 
