@@ -54,7 +54,7 @@ TaskCard {
         width: 1fr;
         height: auto;
         color:auto;
-        background: darkblue;
+        # background: darkblue;
         margin:0;
     }
 }
@@ -132,7 +132,7 @@ ModalTaskEditScreen {
             TextArea{
                 height: 1fr;
                 width: 1fr;
-                background:darkblue;
+                color:auto;
             }
         }
         DetailInfos{

@@ -13,6 +13,7 @@ from textual.containers import Vertical
 from textual.widgets import Label, Markdown
 from textual.message import Message
 
+
 from kanban_tui.classes.task import Task
 from kanban_tui.modal.modal_task_screen import (
     ModalTaskEditScreen,
@@ -73,7 +74,7 @@ class TaskCard(Vertical):
 
     def _on_mount(self, event: Mount) -> None:
         if self.app.cfg.tasks_always_expanded:
-            self.query_one(Markdown).remove_class("hidden")
+            self.description.remove_class("hidden")
 
         return super()._on_mount(event)
 
@@ -97,9 +98,11 @@ class TaskCard(Vertical):
                 )
 
         yield Label(self.task_.title)
-        yield Markdown(
+        self.description = Markdown(
             markdown=self.task_.description,
         )
+        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
+        yield self.description
         return super().compose()
 
     @on(Enter)

@@ -20,6 +20,7 @@ from kanban_tui.classes.task import Task
 from kanban_tui.database import create_new_task_db, update_task_entry_db
 from kanban_tui.widgets.modal_task_widgets import (
     CreationDateInfo,
+    CategorySelector,
     StartDateInfo,
     FinishDateInfo,
     DetailInfos,
@@ -53,6 +54,7 @@ class ModalTaskEditScreen(ModalScreen):
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
+        self.watch(CategorySelector, "value", self.update_description_background)
         if self.kanban_task:
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#label_header", Label).update("Edit Task")
@@ -108,11 +110,24 @@ class ModalTaskEditScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):
-        self.app.pop_screen()  # .dismiss()
+        self.app.pop_screen()
+
+    def update_description_background(self, category: str):
+        if category != CategorySelector.NEW:
+            self.query_one(
+                TextArea
+            ).styles.background = self.app.cfg.category_color_dict.get(
+                category, self.app.cfg.no_category_task_color
+            )
+            self.query_one(TextArea).styles.background = self.query_one(
+                TextArea
+            ).styles.background.darken(0.2)
 
     def read_values_from_task(self):
         self.query_one("#input_title", Input).value = self.kanban_task.title
         self.query_one(TextArea).text = self.kanban_task.description
+        # self.update_description_background(category=self.kanban_task.category)
+
         self.query_one(Select).value = (
             self.kanban_task.category if self.kanban_task.category else Select.BLANK
         )
