@@ -26,12 +26,10 @@ class Task(BaseModel):
         if self.finish_date:
             self.finished = True
 
-    def get_days_since_creation(self):
-        self.days_since_creation = (
-            (datetime.now().replace(microsecond=0) - self.creation_date)
-            // timedelta(days=1)
-            + 1,
-        )
+    def get_days_since_creation(self) -> int:
+        return (
+            datetime.now().replace(microsecond=0) - self.creation_date
+        ) // timedelta(days=1)  # + 1
 
     def get_days_left_till_due(self):
         self.days_left = max(

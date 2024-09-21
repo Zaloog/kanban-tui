@@ -31,24 +31,35 @@ Column{
 TaskCard {
     width: 1fr;
     height: auto;
+    min-height:5;
     margin:0 0 1 0;
     &:focus {
         border: tall $success;
         border-title-color:$success;
         border-title-background:black;
+        border-title-align:center;
         border-subtitle-color:$error;
         border-subtitle-background:black;
+        border-subtitle-align:center;
     }
 
 
-    Label {
+    .label-title {
         width:1fr;
-        height: 3;
+        height: auto;
         color:auto;
         text-align:center;
         &:hover {
             tint: 10%;
         }
+    }
+    .label-infos {
+        width:1fr;
+        color:auto;
+    }
+    .rules-taskinfo-separator {
+        color:auto;
+        margin:0;
     }
     Markdown {
         width: 1fr;

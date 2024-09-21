@@ -7,10 +7,10 @@ if TYPE_CHECKING:
 from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
-from textual.events import Enter, Leave, Mount, Click
+from textual.events import Enter, Leave, Click
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Label, Markdown
+from textual.widgets import Label, Markdown, Rule
 from textual.message import Message
 
 
@@ -72,32 +72,18 @@ class TaskCard(Vertical):
         self.can_focus_children = False
         super().__init__(id=f"taskcard_{self.task_.task_id}")
 
-    def _on_mount(self, event: Mount) -> None:
-        if self.app.cfg.tasks_always_expanded:
-            self.description.remove_class("hidden")
-
-        return super()._on_mount(event)
-
     def compose(self) -> ComposeResult:
         self.styles.background = self.app.cfg.category_color_dict.get(
             self.task_.category, self.app.cfg.no_category_task_color
         )
         self.border_title = self.task_.title
-        match self.task_.days_left:
-            case 0:
-                self.border_subtitle = (
-                    f":hourglass_done: {self.task_.days_left} days left"
-                )
-            case 1:
-                self.border_subtitle = f":hourglass_not_done: {self.task_.days_left} day left :face_screaming_in_fear:"
-            case None:
-                self.border_subtitle = ""
-            case _:
-                self.border_subtitle = (
-                    f":hourglass_not_done: {self.task_.days_left} days left"
-                )
+        self.border_subtitle = self.get_due_date_str() if self.task_.days_left else ""
 
-        yield Label(self.task_.title)
+        yield Label(self.task_.title, classes="label-title")
+        yield Rule(classes="rules-taskinfo-separator")
+        yield Label(renderable=self.get_creation_date_str(), classes="label-infos")
+        yield Label(renderable=self.get_due_date_str(), classes="label-infos")
+        yield Rule(classes="rules-taskinfo-separator")
         self.description = Markdown(
             markdown=self.task_.description,
         )
@@ -122,12 +108,16 @@ class TaskCard(Vertical):
 
     def watch_expanded(self):
         if self.expanded:
-            self.query_one(Label).add_class("hidden")
+            self.query_one(".label-title").add_class("hidden")
+            self.query(".label-infos").remove_class("hidden")
             self.query_one(Markdown).remove_class("hidden")
+            self.query_one(".rules-taskinfo-separator").remove_class("hidden")
         else:
-            self.query_one(Label).remove_class("hidden")
+            self.query_one(".label-title").remove_class("hidden")
             if not self.app.cfg.tasks_always_expanded:
                 self.query_one(Markdown).add_class("hidden")
+                self.query_one(".rules-taskinfo-separator").add_class("hidden")
+                self.query(".label-infos").add_class("hidden")
 
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
@@ -146,6 +136,32 @@ class TaskCard(Vertical):
 
         self.task_.update_task_status(new_column=new_column)
         self.post_message(self.Moved(taskcard=self, new_column=new_column))
+
+    def get_due_date_str(self) -> str:
+        match self.task_.days_left:
+            case 0:
+                return f":hourglass_done: due date: {self.task_.days_left} days left"
+            case 1:
+                return f":hourglass_not_done: due date: {self.task_.days_left} day left :face_screaming_in_fear:"
+            case None:
+                return ":smiling_face_with_sunglasses: no due date"
+            case _:
+                return (
+                    f":hourglass_not_done: due date: {self.task_.days_left} days left"
+                )
+
+    def get_creation_date_str(self) -> str:
+        creation_date_str = ":calendar: created: "
+        match self.task_.days_since_creation:
+            case 0:
+                creation_date_str += "today"
+                return creation_date_str
+            case 1:
+                creation_date_str += "yesterday"
+                return creation_date_str
+            case _:
+                creation_date_str += f"{self.task_.days_since_creation} days ago"
+                return creation_date_str
 
     @on(Click)
     def action_edit_task(self) -> None:

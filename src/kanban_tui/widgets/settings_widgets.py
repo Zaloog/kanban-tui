@@ -56,11 +56,12 @@ class HourMinute(Horizontal):
         super().__init__(id=id)
 
     def compose(self) -> Iterable[Widget]:
-        # yield Input(value=self.hour_value, placeholder="HH")
-        yield Input(placeholder="HH")
-        yield Label(":")
-        yield Input(placeholder="MM")
-        # yield Input(value=self.hour_value, placeholder="MM")
+        with self.prevent(Input.Changed):
+            yield Input(value=self.hour_value, placeholder="HH")
+            # yield Input(placeholder="HH")
+            yield Label(":")
+            yield Input(value=self.min_value, placeholder="MM")
+            # yield Input(placeholder="MM")
         return super().compose()
 
 
