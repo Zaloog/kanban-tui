@@ -3,6 +3,7 @@ import pytest
 from kanban_tui.constants import CONFIG_NAME, DB_NAME
 from kanban_tui.config import init_new_config, KanbanTuiConfig
 from kanban_tui.database import init_new_db, create_new_task_db
+from kanban_tui.app import KanbanTui
 
 
 # Paths
@@ -72,3 +73,27 @@ def test_db(test_db_full_path):
         column="Done",
         database=test_db_full_path,
     )
+
+
+@pytest.fixture
+def empty_app(test_config_full_path, test_db_full_path):
+    return KanbanTui(config_path=test_config_full_path, database_path=test_db_full_path)
+
+
+@pytest.fixture
+def test_app(test_config_full_path, test_db_full_path, test_db, test_app_config):
+    cfg = test_app_config
+    cfg.add_category(
+        category="green",
+        color="#00FF00",
+    )
+    cfg.add_category(
+        category="blue",
+        color="#0000FF",
+    )
+    cfg.add_category(
+        category="red",
+        color="#FF0000",
+    )
+
+    return KanbanTui(config_path=test_config_full_path, database_path=test_db_full_path)

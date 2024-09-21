@@ -7,6 +7,7 @@ from kanban_tui.views.main_view import MainView
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 from kanban_tui.database import init_new_db, get_all_tasks_db
 from kanban_tui.classes.task import Task
+from kanban_tui.constants import DB_FULL_PATH, CONFIG_FULL_PATH
 
 
 class KanbanTui(App):
@@ -18,9 +19,11 @@ class KanbanTui(App):
     cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
 
-    def __init__(self) -> None:
-        init_new_config()
-        self.cfg = KanbanTuiConfig()
+    def __init__(
+        self, config_path: Path = CONFIG_FULL_PATH, database_path: Path = DB_FULL_PATH
+    ) -> None:
+        init_new_config(config_path=config_path, database=database_path)
+        self.cfg = KanbanTuiConfig(config_path=config_path, database_path=database_path)
 
         init_new_db(database=self.cfg.database_path)
         super().__init__()
