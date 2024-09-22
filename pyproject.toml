@@ -6,11 +6,12 @@ authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
 dependencies = [
-    "textual>=0.76.0",
+    "textual>=0.79.1",
     "textual-plotext>=0.2.1",
     "textual-datepicker>=0.2.4",
-    "pydantic>=2.8.2",
     "pyyaml>=6.0.2",
+    "pydantic>=2.9.2",
+    "plotext<5.3", # new release messes things up
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -33,31 +34,12 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = [
     "pre-commit>=3.8.0",
-    "pytest>=8.3.2",
+    "pytest>=8.3.3",
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",
     "textual-dev>=1.6.1",
 ]
-
-#[tool.mypy]
-#plugins = [
-#  "pydantic.mypy"
-#]
-
-#follow_imports = "silent"
-#warn_redundant_casts = true
-#warn_unused_ignores = true
-#disallow_any_generics = true
-#check_untyped_defs = true
-#no_implicit_reexport = true
-# for strict mypy: (this is the tricky one :-))
-#disallow_untyped_defs = true
-
-#[tool.pydantic-mypy]
-#init_forbid_extra = true
-#init_typed = true
-#warn_required_dynamic_aliases = true
 
 [tool.hatch.metadata]
 allow-direct-references = true

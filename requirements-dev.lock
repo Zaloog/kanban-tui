@@ -37,14 +37,14 @@ distlib==0.3.8
     # via virtualenv
 execnet==2.1.1
     # via pytest-xdist
-filelock==3.15.4
+filelock==3.16.1
     # via virtualenv
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
-identify==2.6.0
+identify==2.6.1
     # via pre-commit
-idna==3.8
+idna==3.10
     # via yarl
 iniconfig==2.0.0
     # via pytest
@@ -59,13 +59,13 @@ markdown-it-py==3.0.0
     # via textual
 markupsafe==2.1.5
     # via jinja2
-mdit-py-plugins==0.4.1
+mdit-py-plugins==0.4.2
     # via markdown-it-py
 mdurl==0.1.2
     # via markdown-it-py
-msgpack==1.0.8
+msgpack==1.1.0
     # via textual-dev
-multidict==6.0.5
+multidict==6.1.0
     # via aiohttp
     # via yarl
 nodeenv==1.9.1
@@ -74,21 +74,22 @@ packaging==24.1
     # via pytest
 pendulum==3.0.0
     # via textual-datepicker
-platformdirs==4.2.2
+platformdirs==4.3.6
     # via textual
     # via virtualenv
 plotext==5.2.8
+    # via kanban-tui
     # via textual-plotext
 pluggy==1.5.0
     # via pytest
 pre-commit==3.8.0
-pydantic==2.8.2
+pydantic==2.9.2
     # via kanban-tui
-pydantic-core==2.20.1
+pydantic-core==2.23.4
     # via pydantic
 pygments==2.18.0
     # via rich
-pytest==8.3.2
+pytest==8.3.3
     # via pytest-asyncio
     # via pytest-cov
     # via pytest-xdist
@@ -101,7 +102,7 @@ python-dateutil==2.9.0.post0
 pyyaml==6.0.2
     # via kanban-tui
     # via pre-commit
-rich==13.8.0
+rich==13.8.1
     # via textual
     # via textual-serve
 six==1.16.0
@@ -117,7 +118,7 @@ textual-datepicker==0.2.4
 textual-dev==1.6.1
 textual-plotext==0.2.1
     # via kanban-tui
-textual-serve==1.1.0
+textual-serve==1.1.1
     # via textual-dev
 time-machine==2.15.0
     # via pendulum
@@ -130,7 +131,7 @@ tzdata==2024.1
     # via pendulum
 uc-micro-py==1.0.3
     # via linkify-it-py
-virtualenv==20.26.3
+virtualenv==20.26.5
     # via pre-commit
-yarl==1.9.7
+yarl==1.11.1
     # via aiohttp
