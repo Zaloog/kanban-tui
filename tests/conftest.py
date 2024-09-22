@@ -34,40 +34,40 @@ def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig
 @pytest.fixture
 def test_db(test_db_full_path):
     init_new_db(database=test_db_full_path)
-    # Ready
+    # Ready 3
     create_new_task_db(
-        title="Task_green_ready",
+        title="Task_ready_0",
         description="Hallo",
         category="green",
         column="Ready",
         database=test_db_full_path,
     )
     create_new_task_db(
-        title="Task_blue_ready",
+        title="Task_ready_1",
         description="Hallo",
         category="blue",
         column="Ready",
         database=test_db_full_path,
     )
     create_new_task_db(
-        title="Task_none_ready",
+        title="Task_ready_2",
         description="Hallo",
         category=None,
         column="Ready",
         database=test_db_full_path,
     )
 
-    # Doing
+    # Doing 1
     create_new_task_db(
-        title="Task_green_doing",
+        title="Task_doing_0",
         description="Hallo",
         category="green",
         column="Doing",
         database=test_db_full_path,
     )
-    # Done
+    # Done 1
     create_new_task_db(
-        title="Task_red_done",
+        title="Task_done_0",
         description="Hallo",
         category="red",
         column="Done",

@@ -35,7 +35,7 @@ class ModalTaskEditScreen(ModalScreen):
 
     def __init__(self, task: Task | None = None) -> None:
         self.kanban_task = task
-        super().__init__(id="test_modal")
+        super().__init__()
 
     def compose(self) -> Iterable[Widget]:
         with Vertical(id="vertical_modal"):

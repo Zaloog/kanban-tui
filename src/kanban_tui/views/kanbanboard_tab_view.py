@@ -86,7 +86,6 @@ class KanbanBoard(Horizontal):
                         ].focus()
                     case _:
                         self.app.action_focus_next()
-            # TODO I
             case "right":
                 new_column_id = (
                     self.app.cfg.visible_columns.index(self.selected_task.column) + 1
@@ -106,7 +105,6 @@ class KanbanBoard(Horizontal):
                         self.query_one(f"#column_{new_column_name}", Column).query(
                             TaskCard
                         )[row_idx].focus()
-            # TODO J
             case "left":
                 new_column_id = (
                     self.app.cfg.visible_columns.index(self.selected_task.column)
