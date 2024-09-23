@@ -142,7 +142,7 @@ class KanbanBoard(Horizontal):
         ).remove_task(self.selected_task)
 
         self.selected_task.column = event.new_column
-        update_task_db(task=self.selected_task)
+        update_task_db(task=self.selected_task, database=self.app.cfg.database_path)
 
         self.query_one(f"#column_{event.new_column}", Column).place_task(
             self.selected_task
@@ -157,7 +157,9 @@ class KanbanBoard(Horizontal):
         await self.query_one(
             f"#column_{event.taskcard.task_.column}", Column
         ).remove_task(task=event.taskcard.task_)
-        delete_task_db(task_id=event.taskcard.task_.task_id)
+        delete_task_db(
+            task_id=event.taskcard.task_.task_id, database=self.app.cfg.database_path
+        )
         self.app.update_task_list()
 
     def get_first_card(self):
