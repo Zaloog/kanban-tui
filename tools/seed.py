@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from kanban_tui.database import create_new_task_db, init_new_db
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 
@@ -32,21 +32,21 @@ def main():
         description="Hallo",
         category="green",
         column="Ready",
-        start_date=datetime(year=2024, month=1, day=15, hour=12, minute=30),
+        due_date=datetime.now(),
     )
     create_new_task_db(
         title="Task_blue_ready",
         description="Hallo",
         category="blue",
         column="Ready",
-        start_date=datetime(year=2024, month=1, day=16, hour=12, minute=30),
+        due_date=datetime.now() + timedelta(days=1),
     )
     create_new_task_db(
         title="Task_none_ready",
         description="Hallo",
         category=None,
         column="Ready",
-        start_date=datetime(year=2024, month=1, day=17, hour=12, minute=30),
+        due_date=datetime.now() + timedelta(days=3),
     )
 
     # Doing
@@ -55,7 +55,6 @@ def main():
         description="Hallo",
         category="green",
         column="Doing",
-        start_date=datetime(year=2024, month=2, day=15, hour=12, minute=30),
     )
     # Done
     create_new_task_db(
@@ -64,31 +63,27 @@ def main():
         category="red",
         column="Done",
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
+        finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
     )
     # Archive
     for month in range(5, 10):
         create_new_task_db(
-            title="Task_red_done",
+            title="Task_red_archive",
             description="Hallo",
             category="red",
             column="Archive",
             start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
+            finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
         )
     for day in range(20, 25):
         create_new_task_db(
-            title="Task_red_done",
+            title="Task_red_archive",
             description="Hallo",
             category="red",
             column="Archive",
             start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
+            finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
         )
-    # create_new_task_db(
-    #     title="Past Task",
-    #     description="Hallo",
-    #     category=None,
-    #     column="Archive",
-    #     start_date=datetime(year=2023, month=12, day=15, hour=12, minute=30),
-    # )
 
 
 if __name__ == "__main__":
