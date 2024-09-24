@@ -29,21 +29,21 @@ def main():
     # Ready
     create_new_task_db(
         title="Task_green_ready",
-        description="Hallo",
+        description="First Task",
         category="green",
         column="Ready",
         due_date=datetime.now(),
     )
     create_new_task_db(
         title="Task_blue_ready",
-        description="Hallo",
+        description="Second Task",
         category="blue",
         column="Ready",
         due_date=datetime.now() + timedelta(days=1),
     )
     create_new_task_db(
         title="Task_none_ready",
-        description="Hallo",
+        description="Third Task",
         category=None,
         column="Ready",
         due_date=datetime.now() + timedelta(days=3),
@@ -52,14 +52,14 @@ def main():
     # Doing
     create_new_task_db(
         title="Task_green_doing",
-        description="Hallo",
+        description="Task I am working on",
         category="green",
         column="Doing",
     )
     # Done
     create_new_task_db(
         title="Task_red_done",
-        description="Hallo",
+        description="Task Finished",
         category="red",
         column="Done",
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),

@@ -136,7 +136,6 @@ class KanbanBoard(Horizontal):
         # remove focus and give focus back to same task in new column
         self.app.app_focus = False
 
-        # TODO K
         await self.query_one(
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)

@@ -82,6 +82,8 @@ def empty_app(test_config_full_path, test_db_full_path):
 
 @pytest.fixture
 def test_app(test_config_full_path, test_db_full_path, test_db, test_app_config):
+    # with initialized test_db
+    # add categories to config
     cfg = test_app_config
     cfg.add_category(
         category="green",
