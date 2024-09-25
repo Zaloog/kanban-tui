@@ -12,7 +12,7 @@
 -e file:.
 aiohappyeyeballs==2.4.0
     # via aiohttp
-aiohttp==3.10.5
+aiohttp==3.10.6
     # via aiohttp-jinja2
     # via textual-dev
     # via textual-serve
@@ -77,8 +77,7 @@ pendulum==3.0.0
 platformdirs==4.3.6
     # via textual
     # via virtualenv
-plotext==5.2.8
-    # via kanban-tui
+plotext==5.3.2
     # via textual-plotext
 pluggy==1.5.0
     # via pytest
@@ -107,7 +106,7 @@ rich==13.8.1
     # via textual-serve
 six==1.16.0
     # via python-dateutil
-textual==0.79.1
+textual==0.80.1
     # via kanban-tui
     # via textual-datepicker
     # via textual-dev
@@ -127,11 +126,11 @@ typing-extensions==4.12.2
     # via pydantic-core
     # via textual
     # via textual-dev
-tzdata==2024.1
+tzdata==2024.2
     # via pendulum
 uc-micro-py==1.0.3
     # via linkify-it-py
 virtualenv==20.26.5
     # via pre-commit
-yarl==1.11.1
+yarl==1.12.1
     # via aiohttp

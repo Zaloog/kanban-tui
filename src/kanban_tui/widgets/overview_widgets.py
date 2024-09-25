@@ -77,7 +77,7 @@ class TaskPlot(HorizontalScroll):
                     )
                 ]
 
-        date_range = plt.datetimes_to_string(date_range)
+        date_range = plt.datetimes_to_strings(date_range)
         # Adjust Plotext size, if there are only a few entries
         if len(date_range) < 12:
             self.query_one(PlotextPlot).styles.width = "1fr"
@@ -108,7 +108,7 @@ class TaskPlot(HorizontalScroll):
                     category_values.values()
                     for category_values in category_value_dict.values()
                 ],
-                label=[
+                labels=[
                     category or "No Category" for category in category_value_dict.keys()
                 ],
                 color=[
@@ -127,7 +127,7 @@ class TaskPlot(HorizontalScroll):
             )
 
         else:
-            task_dates = plt.datetimes_to_string(
+            task_dates = plt.datetimes_to_strings(
                 {task["date"] for task in ordered_tasks}
             )
             task_counter = Counter(task_dates)

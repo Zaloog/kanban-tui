@@ -26,8 +26,7 @@ pendulum==3.0.0
     # via textual-datepicker
 platformdirs==4.3.6
     # via textual
-plotext==5.2.8
-    # via kanban-tui
+plotext==5.3.2
     # via textual-plotext
 pydantic==2.9.2
     # via kanban-tui
@@ -44,7 +43,7 @@ rich==13.8.1
     # via textual
 six==1.16.0
     # via python-dateutil
-textual==0.79.1
+textual==0.80.1
     # via kanban-tui
     # via textual-datepicker
     # via textual-plotext
@@ -58,7 +57,7 @@ typing-extensions==4.12.2
     # via pydantic
     # via pydantic-core
     # via textual
-tzdata==2024.1
+tzdata==2024.2
     # via pendulum
 uc-micro-py==1.0.3
     # via linkify-it-py

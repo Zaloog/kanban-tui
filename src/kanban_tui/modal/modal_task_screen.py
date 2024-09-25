@@ -47,14 +47,19 @@ class ModalTaskEditScreen(ModalScreen):
                 yield FinishDateInfo()
             with Horizontal(id="horizontal_detail"):
                 yield DescriptionInfos()
-                yield DetailInfos(id="detail_infos")
+                self.detail_infos = DetailInfos(id="detail_infos")
+                yield self.detail_infos
             with Horizontal(id="horizontal_buttons"):
                 yield Button("Create Task", id="btn_continue", variant="success")
                 yield Button("Cancel", id="btn_cancel", variant="error")
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        self.watch(CategorySelector, "value", self.update_description_background)
+        self.watch(
+            self.detail_infos.query_one(CategorySelector),
+            "value",
+            self.update_description_background,
+        )
         if self.kanban_task:
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#label_header", Label).update("Edit Task")
