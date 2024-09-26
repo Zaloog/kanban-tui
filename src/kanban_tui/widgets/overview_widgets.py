@@ -30,8 +30,8 @@ class TaskPlot(HorizontalScroll):
     async def update_task_plot(
         self,
         switch_categories: bool,
-        select_frequency: str,
         select_amount: str,
+        select_frequency: str,
         scroll_reset: bool = True,
     ):
         await self.recompose()
@@ -89,7 +89,9 @@ class TaskPlot(HorizontalScroll):
         if switch_categories:
             category_value_dict = {}
 
-            for category in list(self.app.cfg.category_color_dict.keys()) + [None]:
+            # for category in list(self.app.cfg.category_color_dict.keys()) + [None]:
+            # Still shows
+            for category in set(task.category for task in self.app.task_list):
                 category_value_dict[category] = plot_values.copy()
 
                 task_counter = Counter(
@@ -106,10 +108,13 @@ class TaskPlot(HorizontalScroll):
                 plot_values.keys(),
                 [
                     category_values.values()
-                    for category_values in category_value_dict.values()
+                    for _category, category_values in category_value_dict.items()
+                    if sum(category_values.values()) > 0
                 ],
                 labels=[
-                    category or "No Category" for category in category_value_dict.keys()
+                    category or "No Category"
+                    for category, category_values in category_value_dict.items()
+                    if sum(category_values.values()) > 0
                 ],
                 color=[
                     getrgb(
@@ -117,7 +122,8 @@ class TaskPlot(HorizontalScroll):
                             category, self.app.cfg.no_category_task_color
                         )
                     )
-                    for category in list(category_value_dict.keys())
+                    for category, category_values in category_value_dict.items()
+                    if sum(category_values.values()) > 0
                 ],
                 width=0.5,
                 yside="2",
