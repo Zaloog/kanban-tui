@@ -41,7 +41,6 @@ class TaskCard(Vertical):
             return self.taskcard
 
     class Moved(Message):
-        # TODO M
         def __init__(self, taskcard: TaskCard, new_column: str) -> None:
             self.taskcard = taskcard
             self.new_column = new_column

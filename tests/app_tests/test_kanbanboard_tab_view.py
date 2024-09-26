@@ -5,6 +5,7 @@ from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 
 from kanban_tui.widgets.task_card import TaskCard
+from kanban_tui.widgets.filter_sidebar import FilterOverlay
 
 APP_SIZE = (120, 80)
 
@@ -108,3 +109,81 @@ async def test_kanbanboard_movement(test_app: KanbanTui):
         assert pilot.app.focused.task_.title == "Task_ready_2"
         assert pilot.app.focused.task_.column == "Ready"
         assert pilot.app.focused.row == 2
+
+
+async def test_kanbanboard_card_movement(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+        assert pilot.app.focused.task_.title == "Task_ready_0"
+        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.row == 0
+
+        # try move card left
+        # ready -> ready
+        await pilot.press("H")
+        assert pilot.app.focused.task_.title == "Task_ready_0"
+        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.row == 0
+
+        await pilot.press("L")
+        assert pilot.app.focused.task_.title == "Task_ready_0"
+        assert pilot.app.focused.task_.column == "Doing"
+        assert pilot.app.focused.row == 1
+
+        await pilot.press("h")
+        assert pilot.app.focused.task_.title == "Task_ready_2"
+        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.row == 1
+
+        await pilot.press("L")
+        assert pilot.app.focused.task_.title == "Task_ready_2"
+        assert pilot.app.focused.task_.column == "Doing"
+        assert pilot.app.focused.row == 2
+
+
+async def test_filter_empty_app(empty_app: KanbanTui):
+    async with empty_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, KanbanBoard)
+
+        assert "-hidden" in pilot.app.query_one(FilterOverlay).classes
+        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+
+        # Open Filter
+        await pilot.press("f1")
+        await pilot.wait_for_animation()
+        assert pilot.app.query_one(FilterOverlay).offset[0] == 0
+        assert pilot.app.focused.id == "category_filter"
+        assert all(task.disabled for task in pilot.app.query(TaskCard))
+
+        # Close Filter
+        await pilot.press("f1")
+        await pilot.wait_for_animation()
+        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+        assert isinstance(pilot.app.focused, KanbanBoard)
+
+
+async def test_filter(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+
+        assert "-hidden" in pilot.app.query_one(FilterOverlay).classes
+        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+
+        # Open Filter
+        await pilot.press("f1")
+        await pilot.wait_for_animation()
+        assert pilot.app.query_one(FilterOverlay).offset[0] == 0
+        assert pilot.app.focused.id == "category_filter"
+        assert all(task.disabled for task in pilot.app.query(TaskCard))
+
+        # Close Filter
+        await pilot.press("f1")
+        await pilot.wait_for_animation()
+        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+        assert isinstance(pilot.app.focused, TaskCard)
