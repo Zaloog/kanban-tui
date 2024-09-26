@@ -15,6 +15,50 @@ kanban-tui is a customizable task manager in the terminal.
 ## Demo
 
 ## Features
+Expand for more detailed information
+
+</details>
+<details><summary>Following the XDG basedir convention</summary>
+
+kanban-tui utilizes [platformdirs] `user_config_dir` to save the config file and `user_data_dir` for
+the board specific task files. After creating your first board, you can use `kanban configure` to show the current settings table.
+The config path in the table caption and the path for the task files can be found in the kanban_boards section.
+</details>
+
+</details>
+<details><summary>Customizeable Board</summary>
+
+- 4 default columns (more can be added via settings)
+    - Ready
+    - Doing
+    - Done
+    - Archive (default not visible)
+</details>
+
+</details>
+<details><summary>Task Management</summary>
+
+Features task creation, editing, deletion, movement between columns
+</details>
+
+</details>
+<details><summary>Database Infomation</summary>
+
+- Task attributes
+    - Title
+    - Category
+    - Description
+    - Due Date
+    - Creation Date (updated on task creation)
+    - Start Date (updated on movement to Doing column)
+    - Finish Date (updated on movement to Done column)
+</details>
+
+</details>
+<details><summary>Visual Summary</summary>
+
+Uses plotext to show cool stuff
+</details>
 
 ## Installation
 
@@ -50,8 +94,10 @@ Also check the [Changelog] for new updates.
 [platformdirs]: https://platformdirs.readthedocs.io/en/latest/
 [textual]: https://textual.textualize.io
 [pipx]: https://github.com/pypa/pipx
-[PyPi]: https://pypi.org/project/rye-tui/
+[PyPi]: https://pypi.org/project/kanban-tui/
+[plotext]: Link
 
 <!-- external Links Others -->
 [XDG]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-[rye]: https://rye-up.com
+[rye]: https://rye-up.com # Update
+[uv]: https://rye-up.com # Update
