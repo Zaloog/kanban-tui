@@ -97,8 +97,11 @@ class ModalTaskEditScreen(ModalScreen):
             self.kanban_task.title = title
             if due_date is not None:
                 self.kanban_task.due_date = datetime.fromisoformat(due_date)
-                # self.kanban_task.due_date = due_date
-                self.kanban_task.get_days_left_till_due()
+                self.kanban_task.days_left = self.kanban_task.get_days_left_till_due()
+            else:
+                self.kanban_task.due_date = None
+                self.kanban_task.days_left = self.kanban_task.get_days_left_till_due()
+
             self.kanban_task.description = description
             self.kanban_task.category = category
 
@@ -141,9 +144,10 @@ class ModalTaskEditScreen(ModalScreen):
         )
         if self.kanban_task.due_date:
             # toggle switch
-            self.query_one(Switch).toggle()
+            self.query_one(Switch).value = True
             # set date in widget
             self.query_one(DateSelect).date = pendulum.instance(
+                # self.query_one(CustomDateSelect).date = pendulum.instance(
                 self.kanban_task.due_date
             )
             self.query_one(DetailInfos).due_date = self.kanban_task.due_date.replace(

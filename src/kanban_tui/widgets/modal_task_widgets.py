@@ -62,13 +62,13 @@ class DetailInfos(Vertical):
         if self.query_one(Switch).value:
             self.query_one(CustomDateSelect).remove_class("hidden")
             self.query_one("#label_days_left").remove_class("hidden")
-            # self.app.action_focus_next()
         else:
             self.query_one("#label_days_left").add_class("hidden")
-            self.query_one(CustomDateSelect).add_class("hidden")
+            self.query_one(CustomDateSelect).add_class("hidden").date = None
+            self.due_date = None
 
     def on_date_picker_selected(self):
-        self.due_date = self.query_one(CustomDateSelect).value.replace(
+        self.due_date = self.query_one(CustomDateSelect).date.replace(
             microsecond=0, tzinfo=None
         )
 

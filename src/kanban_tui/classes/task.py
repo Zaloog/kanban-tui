@@ -21,7 +21,7 @@ class Task(BaseModel):
     def model_post_init(self, __context):
         self.days_since_creation = self.get_days_since_creation()
         if self.due_date:
-            self.get_days_left_till_due()
+            self.days_left = self.get_days_left_till_due()
 
         if self.finish_date:
             self.finished = True
@@ -32,11 +32,14 @@ class Task(BaseModel):
         ) // timedelta(days=1)  # + 1
 
     def get_days_left_till_due(self):
-        self.days_left = max(
-            0,
-            (self.due_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
-            + 1,
-        )
+        if self.due_date:
+            return max(
+                0,
+                (self.due_date - datetime.now().replace(microsecond=0))
+                // timedelta(days=1)
+                + 1,
+            )
+        return None
 
     def update_time_worked_on(self):
         """get duration in hours from start till finish of task"""

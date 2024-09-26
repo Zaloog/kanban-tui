@@ -38,8 +38,6 @@ class KanbanBoard(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        # for idx, column_name in enumerate(COLUMNS):
-        # TODO D
         for column_name in self.app.cfg.visible_columns:
             col_tasks = [
                 task for task in self.app.task_list if task.column == column_name
