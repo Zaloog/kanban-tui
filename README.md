@@ -30,7 +30,7 @@ the config file and `user_data_dir` for the sqlite database.
 
 kanban-tui comes with four default columns
 (`Ready`, `Doing`, `Done`, `Archive`).
-More columns can be created via the Settings-Tab. Also the visibility of columns can be toggled.
+More columns can be created via the `Settings`-Tab. Also the visibility of columns can be toggled.
 Deletion of an existing columns is only possible, if no task is present in the column you want to delete.
 </details>
 
@@ -56,10 +56,10 @@ When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or
 </details>
 <details><summary>Visual Summary</summary>
 
-To give you an overview over the amount of tasks you created/started or finished, kanban-tui
-provides an `Overview`-Tab to show you a bar-chart on a monthly/weekly or daily scale.
+To give you an overview over the amount of tasks you `created`, `started` or `finished`, kanban-tui
+provides an `Overview`-Tab to show you a bar-chart on a `monthly`, `weekly` or `daily` scale.
 It also can be changed to a stacked bar chart per category.
-This is powered by the [plotext] library with help of [textual-plotext].
+This feature is powered by the [plotext] library with help of [textual-plotext].
 </details>
 
 ## Installation
