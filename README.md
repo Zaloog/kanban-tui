@@ -1,5 +1,5 @@
 <!-- Icons -->
-<!-- Ruff -->
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Rye](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/rye/main/artwork/badge.json)](https://rye-up.com)
 [![PyPI-Server](https://img.shields.io/pypi/v/kanban-tui.svg)](https://pypi.org/project/kanban-tui/)
 [![Pyversions](https://img.shields.io/pypi/pyversions/kanban-tui.svg)](https://pypi.python.org/pypi/kanban-tui)
@@ -31,13 +31,13 @@ the config file and `user_data_dir` for the sqlite database.
 kanban-tui comes with four default columns
 (`Ready`, `Doing`, `Done`, `Archive`).
 More columns can be created via the Settings-Tab. Also the visibility of columns can be toggled.
+Deletion of an existing columns is only possible, if no task is present in the column you want to delete.
 </details>
 
 </details>
 <details><summary>Task Management</summary>
 
-When on the `Kanban Board`-Tab you can
-Features task creation, editing, deletion, movement between columns
+When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or `move (H, L)` tasks between columns.
 </details>
 
 </details>
@@ -56,7 +56,10 @@ Features task creation, editing, deletion, movement between columns
 </details>
 <details><summary>Visual Summary</summary>
 
-Uses plotext to show cool stuff
+To give you an overview over the amount of tasks you created/started or finished, kanban-tui
+provides an `Overview`-Tab to show you a bar-chart on a monthly/weekly or daily scale.
+It also can be changed to a stacked bar chart per category.
+This is powered by the [plotext] library with help of [textual-plotext].
 </details>
 
 ## Installation
@@ -79,14 +82,22 @@ rye install kanban-tui
 ```bash
 uv tool install kanban-tui
 ```
-I recommend using [pipx] or [rye] or [uv] to install CLI Tools into an isolated environment.
+I recommend using [pipx], [rye] or [uv] to install CLI Tools into an isolated environment.
+
+
+## Usage
+```bash
+ktui
+```
 
 ## Feedback and Issues
-Feel free to reach out and share your feedback, or open an Issue, if something doesnt work as expected.
+Feel free to reach out and share your feedback, or open an [Issue],
+if something doesnt work as expected.
 Also check the [Changelog] for new updates.
 
 <!-- Repo Links -->
 [Changelog]: https://github.com/Zaloog/kanban-tui/blob/main/CHANGELOG.md
+[Issue]: https://github.com/Zaloog/kanban-tui/issues
 
 
 <!-- external Links Python -->
@@ -94,9 +105,10 @@ Also check the [Changelog] for new updates.
 [textual]: https://textual.textualize.io
 [pipx]: https://github.com/pypa/pipx
 [PyPi]: https://pypi.org/project/kanban-tui/
-[plotext]: Link
+[plotext]: https://github.com/piccolomo/plotext
+[textual-plotext]: https://github.com/Textualize/textual-plotext
 
 <!-- external Links Others -->
 [XDG]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-[rye]: https://rye-up.com # Update
-[uv]: https://rye-up.com # Update
+[rye]: https://rye.astral.sh
+[uv]: https://docs.astral.sh/uv
