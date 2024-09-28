@@ -23,6 +23,9 @@ def test_Task():
     assert test_task.finished
     assert test_task.time_worked_on == 10 * 24 * 60
 
+    test_task.due_date = None
+    test_task.get_days_left_till_due() is None
+
 
 def test_finished_Task():
     test_task_finished = Task(

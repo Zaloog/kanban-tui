@@ -51,8 +51,8 @@ class KanbanBoard(Horizontal):
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
     def place_new_task(self, task: Task):
-        self.query_one("#column_Ready", Column).place_task(task=task)  # TODO E
-        # self.query(Column)[self.app.cfg.start_column].place_task(task=task)
+        # self.query_one("#column_Ready", Column).place_task(task=task)  # TODO E
+        self.query(Column)[0].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 

@@ -10,7 +10,8 @@
 
 kanban-tui is a customizable task manager in the terminal.
 
-![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png)
+![board_image](images/image_kanbanboard.png)
+(https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png)
 
 ## Demo
 
@@ -20,24 +21,22 @@ Expand for more detailed information
 </details>
 <details><summary>Following the XDG basedir convention</summary>
 
-kanban-tui utilizes [platformdirs] `user_config_dir` to save the config file and `user_data_dir` for
-the board specific task files. After creating your first board, you can use `kanban configure` to show the current settings table.
-The config path in the table caption and the path for the task files can be found in the kanban_boards section.
+kanban-tui utilizes [platformdirs] `user_config_dir` to save
+the config file and `user_data_dir` for the sqlite database.
 </details>
 
 </details>
 <details><summary>Customizeable Board</summary>
 
-- 4 default columns (more can be added via settings)
-    - Ready
-    - Doing
-    - Done
-    - Archive (default not visible)
+kanban-tui comes with four default columns
+(`Ready`, `Doing`, `Done`, `Archive`).
+More columns can be created via the Settings-Tab. Also the visibility of columns can be toggled.
 </details>
 
 </details>
 <details><summary>Task Management</summary>
 
+When on the `Kanban Board`-Tab you can
 Features task creation, editing, deletion, movement between columns
 </details>
 

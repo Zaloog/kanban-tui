@@ -47,8 +47,6 @@ class Task(BaseModel):
             minutes=1
         ) + 1
 
-        # self.time_worked_on += function(start_date, finish_date, start_work, finish_work)
-
     def start_task(self):
         self.start_date = datetime.now().replace(microsecond=0)
 

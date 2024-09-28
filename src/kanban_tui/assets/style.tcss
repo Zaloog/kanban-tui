@@ -105,6 +105,7 @@ ModalTaskEditScreen {
 
     #horizontal_dates {
         height:10%;
+        min-height:3;
         width:1fr;
 
         StartDateInfo{
@@ -133,7 +134,7 @@ ModalTaskEditScreen {
 
     #horizontal_detail{
         width:1fr;
-        height:60%;
+        height:5fr;
 
         DescriptionInfos{
             border:$success;
@@ -189,9 +190,15 @@ ModalTaskEditScreen {
         }
     }
 
-    Button {
-        width:1fr;
+    #horizontal_buttons {
         height:1fr;
+        min-height:3;
+        width:1fr;
+        Button {
+            width:1fr;
+            min-height:3;
+            height:1fr;
+        }
     }
    }
 }

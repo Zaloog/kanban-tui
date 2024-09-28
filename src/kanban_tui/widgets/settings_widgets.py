@@ -16,7 +16,6 @@ from textual.containers import Horizontal, VerticalScroll, Vertical
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
-from kanban_tui.constants import COLUMNS
 
 
 class DataBasePathInput(Horizontal):
@@ -141,13 +140,13 @@ class ChangeColumnVisibilitySwitch(Horizontal):
         yield Switch(
             value=self.app.cfg.column_dict[self.column_name],
             id=f"switch_col_vis_{self.column_name}",
-            disabled=True if self.column_name in COLUMNS[:3] else False,
+            # disabled=True if self.column_name in COLUMNS[:3] else False,
         )
         yield Button(
             label="Delete",
             id=f"button_col_del_{self.column_name}",
             variant="error",
-            disabled=True if self.column_name in COLUMNS else False,
+            # disabled=True if self.column_name in COLUMNS else False,
         )
         return super().compose()
 
