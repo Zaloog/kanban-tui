@@ -14,7 +14,7 @@ dependencies = [
     #"plotext<5.3", # new release messes things up
 ]
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.10"
 license = { text = "MIT" }
 
 [project.scripts]
@@ -30,8 +30,8 @@ testpaths = ["tests"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.rye]
-managed = true
+[tool.uv]
+#managed = true
 dev-dependencies = [
     "pre-commit>=3.8.0",
     "pytest>=8.3.3",
