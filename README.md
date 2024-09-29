@@ -10,10 +10,9 @@
 
 kanban-tui is a customizable task manager in the terminal.
 
-![board_image](images/image_kanbanboard.png)
-(https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png)
+![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png)
 
-## Demo
+<!-- ## Demo -->
 
 ## Features
 Expand for more detailed information
@@ -40,7 +39,7 @@ Deletion of an existing columns is only possible, if no task is present in the c
 When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or `move (H, L)` tasks between columns.
 </details>
 
-</details>
+<!-- </details>
 <details><summary>Database Infomation</summary>
 
 - Task attributes
@@ -51,7 +50,7 @@ When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or
     - Creation Date (updated on task creation)
     - Start Date (updated on movement to Doing column)
     - Finish Date (updated on movement to Done column)
-</details>
+</details> -->
 
 </details>
 <details><summary>Visual Summary</summary>

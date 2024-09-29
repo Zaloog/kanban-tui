@@ -1,7 +1,7 @@
 [project]
 name = "kanban-tui"
 version = "0.1.0"
-description = "Add your description here"
+description = "customizeable task tui powered by textual"
 authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
@@ -11,11 +11,27 @@ dependencies = [
     "textual-datepicker>=0.2.4",
     "pyyaml>=6.0.2",
     "pydantic>=2.9.2",
-    #"plotext<5.3", # new release messes things up
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
 license = { text = "MIT" }
+
+keywords = ["python", "textual", "tui", "kanban"]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.urls]
+Repository = "https://github.com/Zaloog/kanban-tui"
+Changelog = "https://github.com/Zaloog/kanban-tui/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ktui = "kanban_tui.__main__:main"
@@ -31,7 +47,6 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv]
-#managed = true
 dev-dependencies = [
     "pre-commit>=3.8.0",
     "pytest>=8.3.3",
