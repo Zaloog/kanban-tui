@@ -1,0 +1,38 @@
+on:
+  workflow_run:
+    workflows: ["Post Coverage"]
+    types:
+      - completed
+
+jobs:
+  finalize coverage:
+    if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    environment: 'publish'
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      # id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: "Build Package"
+        run: uv build
+
+      - name: "Publish Package to PyPi"
+        env:
+          UV_PUBLISH_USERNAME: __token__
+          UV_PUBLISH_TOKEN: ${{secrets.PYPI_TOKEN}}
+        run: uv publish
+      # - name: Publish package distributions to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1

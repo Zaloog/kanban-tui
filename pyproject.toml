@@ -1,6 +1,6 @@
 [project]
 name = "kanban-tui"
-version = "0.1.1"
+version = "0.1.2"
 description = "customizeable task tui powered by textual"
 authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
