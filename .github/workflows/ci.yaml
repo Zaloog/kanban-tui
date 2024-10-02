@@ -94,7 +94,7 @@ jobs:
 
       - name: "Publish Package to PyPi"
         env:
-          UV_PUBLISH_USERNAME: __token__
+          # UV_PUBLISH_USERNAME: __token__
           UV_PUBLISH_TOKEN: ${{secrets.PYPI_TOKEN}}
 
         run: uv publish
