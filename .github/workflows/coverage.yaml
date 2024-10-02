@@ -9,7 +9,7 @@ on:
       - completed
 
 jobs:
-  finalize coverage:
+  finalize_coverage:
     runs-on: ubuntu-latest
     steps:
       - name: Finalize coverage report
