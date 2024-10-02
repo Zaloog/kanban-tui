@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.2
+## v0.1.2...v0.1.3
 - Add CICD automation
 
 ## v0.1.1
