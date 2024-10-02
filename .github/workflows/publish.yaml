@@ -2,7 +2,7 @@ name: Publish to PyPi
 
 on:
   workflow_run:
-    workflows: ["Post Coverage"]
+    workflows: ["Continuous Integration"]
     types:
       - completed
 
@@ -35,6 +35,7 @@ jobs:
         env:
           UV_PUBLISH_USERNAME: __token__
           UV_PUBLISH_TOKEN: ${{secrets.PYPI_TOKEN}}
+
         run: uv publish
       # - name: Publish package distributions to PyPI
       #   uses: pypa/gh-action-pypi-publish@release/v1
