@@ -104,6 +104,7 @@ Feel free to reach out and share your feedback, or open an [Issue],
 if something doesnt work as expected.
 Also check the [Changelog] for new updates.
 
+
 <!-- Repo Links -->
 [Changelog]: https://github.com/Zaloog/kanban-tui/blob/main/CHANGELOG.md
 [Issue]: https://github.com/Zaloog/kanban-tui/issues

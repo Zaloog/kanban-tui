@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.2.0 (soon)
+## v0.2.0
 - Added Click Options `demo` and `clear`
 - Added command for Demo-Mode with tasks and Demo-Mode without tasks (`--clean` -flag)
 - Added command to delete config and database
