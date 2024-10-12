@@ -11,6 +11,7 @@ dependencies = [
     "textual-datepicker>=0.2.4",
     "pyyaml>=6.0.2",
     "pydantic>=2.9.2",
+    "click>=8.1.7",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -34,7 +35,7 @@ Repository = "https://github.com/Zaloog/kanban-tui"
 Changelog = "https://github.com/Zaloog/kanban-tui/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ktui = "kanban_tui.__main__:main"
+ktui = "kanban_tui.__main__:cli"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

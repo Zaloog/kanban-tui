@@ -368,9 +368,10 @@ wheels = [
 
 [[package]]
 name = "kanban-tui"
-version = "0.1.1"
+version = "0.1.6"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "textual" },
@@ -390,6 +391,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.1.7" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "textual", specifier = ">=0.79.1" },
