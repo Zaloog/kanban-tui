@@ -20,10 +20,14 @@ class KanbanTui(App):
     task_list: reactive[list[Task]] = reactive([], init=False)
 
     def __init__(
-        self, config_path: Path = CONFIG_FULL_PATH, database_path: Path = DB_FULL_PATH
+        self,
+        config_path: Path = CONFIG_FULL_PATH,
+        database_path: Path = DB_FULL_PATH,
+        demo_mode: bool = False,
     ) -> None:
         init_new_config(config_path=config_path, database=database_path)
         self.cfg = KanbanTuiConfig(config_path=config_path, database_path=database_path)
+        self.demo_mode = demo_mode
 
         init_new_db(database=self.cfg.database_path)
         super().__init__()

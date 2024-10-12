@@ -1,10 +1,15 @@
 # Changelog
 
+## v0.2.0 (soon)
+- Added Click Options `demo` and `clear`
+- Added command for Demo-Mode with tasks and Demo-Mode without tasks (`--clean` -flag)
+- Added command to delete config and database
+
 ## v0.1.2...v0.1.6
-- Add CICD automation
+- Added CICD automation
 
 ## v0.1.1
-- switch database and config path from `CWD` for developing to `XDG`
+- Switched database and config path from `CWD` for developing to `XDG`
 
 ## v0.1.0
-- published on PyPi
+- Published on PyPi

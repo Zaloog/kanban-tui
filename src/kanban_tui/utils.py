@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import re
-import datetime
+from pathlib import Path
+from datetime import datetime, timedelta
 from functools import lru_cache
+
+from kanban_tui.database import create_new_task_db, init_new_db
+from kanban_tui.config import KanbanTuiConfig, init_new_config
 
 
 @lru_cache
@@ -310,13 +314,13 @@ colormap: dict[str, str | tuple[int, int, int]] = {
 
 
 def calculate_work_on_time(
-    start_date: datetime.datetime,
-    finish_date: datetime.datetime,
+    start_date: datetime,
+    finish_date: datetime,
     start_work: str,
     finish_work: str,
 ):
     if start_work == finish_work:
-        return (finish_date - start_date) / datetime.timedelta(minutes=1)
+        return (finish_date - start_date) / timedelta(minutes=1)
 
     workon_time = 0
     start_hours, start_minutes = (int(time) for time in start_work.split(":"))
@@ -342,23 +346,106 @@ def calculate_work_on_time(
         )
 
     if delta_days < 1:
-        workon_time += (finish_date - start_date) // datetime.timedelta(minutes=1)
+        workon_time += (finish_date - start_date) // timedelta(minutes=1)
     else:
         for day in range(0, delta_days + 1):
             # first day
             if day == 0:
-                workon_time += (end_limit_start - start_date) // datetime.timedelta(
-                    minutes=1
-                )
+                workon_time += (end_limit_start - start_date) // timedelta(minutes=1)
             # last day
             elif day == delta_days:
                 workon_time += (
                     finish_date - start_limit.replace(day=finish_date.day)
-                ) // datetime.timedelta(minutes=1)
+                ) // timedelta(minutes=1)
             # between days
             else:
-                workon_time += (end_limit_start - start_limit) // datetime.timedelta(
-                    minutes=1
-                )
+                workon_time += (end_limit_start - start_limit) // timedelta(minutes=1)
 
     return workon_time
+
+
+def create_demo_tasks(database_path: Path, config_path: Path):
+    init_new_config(config_path=config_path, database=database_path)
+
+    cfg = KanbanTuiConfig(config_path=config_path)
+
+    cfg.add_category(
+        category="green",
+        color="#00FF00",
+    )
+    cfg.add_category(
+        category="blue",
+        color="#0000FF",
+    )
+    cfg.add_category(
+        category="red",
+        color="#FF0000",
+    )
+
+    init_new_db(database=database_path)
+    # Ready
+    create_new_task_db(
+        title="Task_green_ready",
+        description="First Task",
+        category="green",
+        column="Ready",
+        due_date=datetime.now(),
+        database=database_path,
+    )
+    create_new_task_db(
+        title="Task_blue_ready",
+        description="Second Task",
+        category="blue",
+        column="Ready",
+        due_date=datetime.now() + timedelta(days=1),
+        database=database_path,
+    )
+    create_new_task_db(
+        title="Task_none_ready",
+        description="Third Task",
+        category=None,
+        column="Ready",
+        due_date=datetime.now() + timedelta(days=3),
+        database=database_path,
+    )
+
+    # Doing
+    create_new_task_db(
+        title="Task_green_doing",
+        description="Task I am working on",
+        category="green",
+        column="Doing",
+        start_date=datetime.now(),
+        database=database_path,
+    )
+    # Done
+    create_new_task_db(
+        title="Task_red_done",
+        description="Task Finished",
+        category="red",
+        column="Done",
+        start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
+        finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
+        database=database_path,
+    )
+    # Archive
+    for month in range(5, 10):
+        create_new_task_db(
+            title="Task_red_archive",
+            description="Hallo",
+            category="red",
+            column="Archive",
+            start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
+            finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
+            database=database_path,
+        )
+    for day in range(20, 25):
+        create_new_task_db(
+            title="Task_red_archive",
+            description="Hallo",
+            category="red",
+            column="Archive",
+            start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
+            finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
+            database=database_path,
+        )

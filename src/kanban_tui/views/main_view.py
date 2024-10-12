@@ -38,12 +38,31 @@ class MainView(Screen):
 
     def _on_mount(self, event: Mount) -> None:
         self.query_one(ContentTabs).can_focus = False
+        if self.app.demo_mode:
+            self.show_demo_notification()
         return super()._on_mount(event)
 
     def action_show_tab(self, tab: str) -> None:
         """Switch to a new tab."""
         self.get_child_by_type(TabbedContent).active = tab
         self.app.action_focus_next()
+
+    def show_demo_notification(self):
+        self.title = "Kanban-Tui (Demo Mode)"
+        pop_up_msg = "Using a temporary Database and Config. Kanban-Tui will delete those after closing the app."
+        if self.app.task_list:
+            self.notify(
+                title="Demo Mode active",
+                message=pop_up_msg
+                + " For a clean demo run [green]ktui demo --clean[/]",
+                severity="warning",
+            )
+        else:
+            self.notify(
+                title="Demo Mode active (clean)",
+                message=pop_up_msg,
+                severity="warning",
+            )
 
     @on(TabbedContent.TabActivated)
     async def refresh_board(self, event: TabbedContent.TabActivated):

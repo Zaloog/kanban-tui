@@ -1,6 +1,7 @@
 import click
 from kanban_tui.app import KanbanTui
 
+from kanban_tui.utils import create_demo_tasks
 from kanban_tui.constants import (
     TEMP_CONFIG_FULL_PATH,
     TEMP_DB_FULL_PATH,
@@ -23,11 +24,21 @@ def cli(ctx):
 
 
 @cli.command("demo")
-def run_demo_app():
+@click.option("--clean", is_flag=True, default=False, help="Do not create dummy tasks")
+def run_demo_app(clean: bool):
     """
-    Start a Demo App with temporary DB and Config
+    Starts a Demo App with temporary DB and Config
     """
-    app = KanbanTui(config_path=TEMP_CONFIG_FULL_PATH, database_path=TEMP_DB_FULL_PATH)
+    if not clean:
+        create_demo_tasks(
+            config_path=TEMP_CONFIG_FULL_PATH, database_path=TEMP_DB_FULL_PATH
+        )
+
+    app = KanbanTui(
+        config_path=TEMP_CONFIG_FULL_PATH,
+        database_path=TEMP_DB_FULL_PATH,
+        demo_mode=True,
+    )
     app.run()
 
     TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
@@ -35,7 +46,7 @@ def run_demo_app():
 
 
 @cli.command("clear")
-def delete_database_and_config():
+def delete_config_and_database():
     """
     Deletes DB and Config
     """

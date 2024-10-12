@@ -85,8 +85,18 @@ I recommend using [pipx], [rye] or [uv] to install CLI Tools into an isolated en
 
 
 ## Usage
+### Normal Mode
 ```bash
 ktui
+```
+
+### Demo Mode
+Creates a temporary Config and Database which is populated with example Tasks to play around.
+Kanban-Tui will delete the temporary Config and Database after closing the application.
+Pass the `--clean` flag to start with an empty demo app.
+
+```bash
+ktui demo
 ```
 
 ## Feedback and Issues
