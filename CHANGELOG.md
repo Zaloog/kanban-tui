@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.3.0
+- Add `--keep` flag to demo mode to prevent kanban-tui from deleting the temporary files
+
 ## v0.2.0
 - Added Click Options `demo` and `clear`
 - Added command for Demo-Mode with tasks and Demo-Mode without tasks (`--clean` -flag)
