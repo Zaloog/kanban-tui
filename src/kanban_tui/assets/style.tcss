@@ -322,6 +322,10 @@ FilterOverlay {
     }
 }
 
+TabbedContent {
+    border:green;
+}
+
 SettingsView{
     content-align:center middle;
     height:1fr;

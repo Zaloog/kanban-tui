@@ -51,16 +51,28 @@ def init_new_db(database: Path = DB_FULL_PATH):
     );
     """
 
+    board_db_creation_str = """
+    CREATE TABLE IF NOT EXISTS boards (
+    board_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    icon TEXT,
+    creation_date DATETIME NOT NULL,
+    CHECK (name <> "")
+    );
+    """
+
     indexes_creation_str = """
     CREATE INDEX IF NOT EXISTS idx_task_title ON tasks(title);
+    CREATE INDEX IF NOT EXISTS idx_board_name ON boards(name);
     """
 
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
             con.execute(task_db_creation_str)
-            con.execute(indexes_creation_str)
+            con.execute(board_db_creation_str)
 
+            con.executescript(indexes_creation_str)
             return 0
         except sqlite3.Error as e:
             print(e)
@@ -222,6 +234,7 @@ def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
             return e.sqlite_errorname
 
 
+# For Plotting
 def get_ordered_tasks_db(
     order_by: str,
     database: Path = DB_FULL_PATH,
