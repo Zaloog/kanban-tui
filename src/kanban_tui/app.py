@@ -5,8 +5,14 @@ from textual.reactive import reactive
 
 from kanban_tui.views.main_view import MainView
 from kanban_tui.config import KanbanTuiConfig, init_new_config
-from kanban_tui.database import init_new_db, get_all_tasks_db
+from kanban_tui.database import (
+    init_new_db,
+    get_all_tasks_db,
+    get_all_boards_db,
+    init_first_board,
+)
 from kanban_tui.classes.task import Task
+from kanban_tui.classes.board import Board
 from kanban_tui.constants import DB_FULL_PATH, CONFIG_FULL_PATH
 
 
@@ -18,6 +24,7 @@ class KanbanTui(App):
 
     cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
+    board_list: reactive[list[Board]] = reactive([], init=False)
 
     def __init__(
         self,
@@ -30,12 +37,19 @@ class KanbanTui(App):
         self.demo_mode = demo_mode
 
         init_new_db(database=self.cfg.database_path)
+        init_first_board(database=self.cfg.database_path)
         super().__init__()
 
     def on_mount(self) -> None:
         self.update_task_list()
+        self.update_board_list()
         self.push_screen("MainView")
 
     def update_task_list(self):
         tasks = get_all_tasks_db(database=self.app.cfg.database_path)
         self.task_list = tasks
+
+    def update_board_list(self):
+        boards = get_all_boards_db(database=self.app.cfg.database_path)
+        self.board_list = boards
+        self.log(self.board_list)

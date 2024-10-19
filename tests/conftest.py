@@ -2,7 +2,7 @@ import pytest
 
 from kanban_tui.constants import CONFIG_NAME, DB_NAME
 from kanban_tui.config import init_new_config, KanbanTuiConfig
-from kanban_tui.database import init_new_db, create_new_task_db
+from kanban_tui.database import init_new_db, create_new_task_db, create_new_board_db
 from kanban_tui.app import KanbanTui
 
 
@@ -35,6 +35,8 @@ def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig
 def init_test_db(test_db_full_path):
     init_new_db(database=test_db_full_path)
     # Ready 3
+    create_new_board_db(name="Test_Board", icon=":bug:", database=test_db_full_path)
+
     create_new_task_db(
         title="Task_ready_0",
         description="Hallo",
