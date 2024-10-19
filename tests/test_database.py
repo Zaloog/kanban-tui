@@ -1,7 +1,13 @@
 import pytest
 
-from kanban_tui.database import init_new_db, create_connection, task_factory
+from kanban_tui.database import (
+    init_new_db,
+    create_connection,
+    task_factory,
+    board_factory,
+)
 from kanban_tui.classes.task import Task
+from kanban_tui.classes.board import Board
 import sqlite3
 
 
@@ -21,3 +27,10 @@ def test_task_factory(init_test_db, test_db_full_path):
         con.row_factory = task_factory
         row = con.execute("SELECT * from tasks WHERE task_id = 1").fetchone()
         assert isinstance(row, Task)
+
+
+def test_board_factory(init_test_db, test_db_full_path):
+    with create_connection(database=test_db_full_path) as con:
+        con.row_factory = board_factory
+        row = con.execute("SELECT * from boards WHERE board_id = 1").fetchone()
+        assert isinstance(row, Board)
