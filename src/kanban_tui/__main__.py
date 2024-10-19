@@ -25,14 +25,21 @@ def cli(ctx):
 
 @cli.command("demo")
 @click.option("--clean", is_flag=True, default=False, help="Do not create dummy tasks")
-def run_demo_app(clean: bool):
+@click.option(
+    "--keep", is_flag=True, default=False, help="Do not delete db/config after closing"
+)
+def run_demo_app(clean: bool, keep: bool):
     """
     Starts a Demo App with temporary DB and Config
     """
-    if not clean:
-        create_demo_tasks(
-            config_path=TEMP_CONFIG_FULL_PATH, database_path=TEMP_DB_FULL_PATH
-        )
+    if clean:
+        TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
+        TEMP_DB_FULL_PATH.unlink(missing_ok=True)
+    else:
+        if not TEMP_DB_FULL_PATH.exists():
+            create_demo_tasks(
+                config_path=TEMP_CONFIG_FULL_PATH, database_path=TEMP_DB_FULL_PATH
+            )
 
     app = KanbanTui(
         config_path=TEMP_CONFIG_FULL_PATH,
@@ -41,8 +48,9 @@ def run_demo_app(clean: bool):
     )
     app.run()
 
-    TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
-    TEMP_DB_FULL_PATH.unlink(missing_ok=True)
+    if not keep:
+        TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
+        TEMP_DB_FULL_PATH.unlink(missing_ok=True)
 
 
 @cli.command("clear")

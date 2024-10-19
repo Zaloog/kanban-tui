@@ -49,12 +49,12 @@ class MainView(Screen):
 
     def show_demo_notification(self):
         self.title = "Kanban-Tui (Demo Mode)"
-        pop_up_msg = "Using a temporary Database and Config. Kanban-Tui will delete those after closing the app."
+        pop_up_msg = "Using a temporary Database and Config. Kanban-Tui will delete those after closing the app when not using [green]--keep[/]."
         if self.app.task_list:
             self.notify(
                 title="Demo Mode active",
                 message=pop_up_msg
-                + " For a clean demo run [green]ktui demo --clean[/]",
+                + " For a clean demo pass the [green]--clean[/] flag",
                 severity="warning",
             )
         else:
