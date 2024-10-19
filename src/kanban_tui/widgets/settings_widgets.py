@@ -192,6 +192,7 @@ class ColumnSelector(Vertical):
     def compose(self) -> Iterable[Widget]:
         yield Label(id="label_amount_visible")
         with VerticalScroll():
+            yield AddRule(id="first_position", position=0)
             for position, column in enumerate(self.app.cfg.columns, start=1):
                 yield ChangeColumnVisibilitySwitch(column_name=column)
                 yield AddRule(id=column, position=position)
@@ -211,17 +212,16 @@ class ColumnSelector(Vertical):
             self.app.cfg.add_new_column(
                 new_column=col_name, position=event.addrule.position
             )
-            # for rule in self.query_one(VerticalScroll).query(AddRule):
-            #     if rule.position > event.addrule.position:
-            #         rule.position += 1
-            self.query_one(VerticalScroll).mount(
-                AddRule(id=col_name, position=event.addrule.position),
-                after=f"#{event.addrule.id}",
-            )
-            self.query_one(VerticalScroll).mount(
-                ChangeColumnVisibilitySwitch(column_name=col_name),
-                after=f"#{event.addrule.id}",
-            )
+
+            if event.addrule.id:
+                self.query_one(VerticalScroll).mount(
+                    AddRule(id=col_name, position=event.addrule.position),
+                    after=f"#{event.addrule.id}",  # if event.addrule.id else 2,
+                )
+                self.query_one(VerticalScroll).mount(
+                    ChangeColumnVisibilitySwitch(column_name=col_name),
+                    after=f"#{event.addrule.id}",  # if event.addrule.id else 2,
+                )
 
             for new_position, rule in enumerate(self.query(AddRule), start=1):
                 rule.position = new_position

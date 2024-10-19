@@ -28,9 +28,9 @@ the config file and `user_data_dir` for the sqlite database.
 <details><summary>Customizeable Board</summary>
 
 kanban-tui comes with four default columns
-(`Ready`, `Doing`, `Done`, `Archive`).
+(`Ready`, `Doing`, `Done`, `Archive`) but can be customized to your needs.
 More columns can be created via the `Settings`-Tab. Also the visibility of columns can be toggled.
-Deletion of an existing columns is only possible, if no task is present in the column you want to delete.
+Deletion of existing columns is only possible, if no task is present in the column you want to delete.
 </details>
 
 </details>
@@ -94,6 +94,7 @@ ktui
 Creates a temporary Config and Database which is populated with example Tasks to play around.
 Kanban-Tui will delete the temporary Config and Database after closing the application.
 Pass the `--clean` flag to start with an empty demo app.
+Pass the `--keep` flag to tell `kanban-tui` not to delete the temporary Database and Config.
 
 ```bash
 ktui demo

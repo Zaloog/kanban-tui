@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1
+- Fix add a new Rule Widget in the `columns.visibility`-Settings to create columns at position 0
+and also enables creation if all columns are deleted
+
 ## v0.3.0
 - Add `--keep` flag to demo mode to prevent kanban-tui from deleting the temporary files
 
