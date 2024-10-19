@@ -27,14 +27,16 @@ class MainView(Screen):
     def compose(self) -> Iterable[Widget]:
         yield Header()
         yield Footer()
-        with TabbedContent(initial="tab_board"):
+        tabbed_content = TabbedContent(initial="tab_board")
+        tabbed_content.border_title = "Main Board"
+        with tabbed_content:
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
                 yield OverView()
             with TabPane("Settings", id="tab_settings"):
                 yield SettingsView()
-            return super().compose()
+        return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
         self.query_one(ContentTabs).can_focus = False

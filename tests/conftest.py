@@ -32,7 +32,7 @@ def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig
 
 
 @pytest.fixture
-def test_db(test_db_full_path):
+def init_test_db(test_db_full_path):
     init_new_db(database=test_db_full_path)
     # Ready 3
     create_new_task_db(
@@ -81,7 +81,7 @@ def empty_app(test_config_full_path, test_db_full_path):
 
 
 @pytest.fixture
-def test_app(test_config_full_path, test_db_full_path, test_db, test_app_config):
+def test_app(test_config_full_path, test_db_full_path, init_test_db, test_app_config):
     # with initialized test_db
     # add categories to config
     cfg = test_app_config

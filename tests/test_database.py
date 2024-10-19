@@ -16,7 +16,7 @@ def test_init_new_db(test_db_full_path):
             con.execute("CREATE TABLE tasks(test_id );")
 
 
-def test_task_factory(test_db, test_db_full_path):
+def test_task_factory(init_test_db, test_db_full_path):
     with create_connection(database=test_db_full_path) as con:
         con.row_factory = task_factory
         row = con.execute("SELECT * from tasks WHERE task_id = 1").fetchone()
