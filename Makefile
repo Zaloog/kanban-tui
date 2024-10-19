@@ -18,6 +18,8 @@ NEXT_MAJOR         := $(shell echo $$(($(MAJOR)+1)))
 NEXT_MINOR         := $(shell echo $$(($(MINOR)+1)))
 NEXT_MICRO         := $(shell echo $$(($(MICRO)+1)))
 
+# most of it found here
+# https://gist.github.com/grihabor/4a750b9d82c9aa55d5276bd5503829be
 # -- Increment Tags ---
 .PHONY: micro
 micro:

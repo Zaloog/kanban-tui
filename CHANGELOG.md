@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.4.0 (soon)
+- ...
+
 ## v0.3.1
 - Fix add a new Rule Widget in the `columns.visibility`-Settings to create columns at position 0
 and also enables creation if all columns are deleted
