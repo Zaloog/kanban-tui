@@ -7,8 +7,8 @@ from kanban_tui.views.main_view import MainView
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 from kanban_tui.database import (
     init_new_db,
-    get_all_tasks_db,
     get_all_boards_db,
+    get_all_tasks_on_board_db,
     init_first_board,
 )
 from kanban_tui.classes.task import Task
@@ -41,15 +41,17 @@ class KanbanTui(App):
         super().__init__()
 
     def on_mount(self) -> None:
-        self.update_task_list()
         self.update_board_list()
+        self.update_task_list()
         self.push_screen("MainView")
 
     def update_task_list(self):
-        tasks = get_all_tasks_db(database=self.app.cfg.database_path)
+        tasks = get_all_tasks_on_board_db(
+            database=self.app.cfg.database_path, board_id=self.board_list[0].board_id
+        )
         self.task_list = tasks
 
     def update_board_list(self):
         boards = get_all_boards_db(database=self.app.cfg.database_path)
         self.board_list = boards
-        self.log(self.board_list)
+        self.notify(f"{self.board_list}")

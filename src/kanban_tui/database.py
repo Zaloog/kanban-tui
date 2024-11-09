@@ -53,6 +53,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     finish_date DATETIME,
     due_date DATETIME,
     time_worked_on INTEGER,
+    board_id INTEGER,
     CHECK (title <> "")
     );
     """
@@ -116,6 +117,7 @@ def create_new_board_db(
 
 def create_new_task_db(
     title: str,
+    board_id: int,
     column: str = "Ready",  # TODO B
     category: str | None = None,
     description: str | None = None,
@@ -135,6 +137,7 @@ def create_new_task_db(
         "due_date": due_date,
         "description": description,
         "time_worked_on": time_worked_on,
+        "board_id": board_id,
     }
 
     transaction_str = """
@@ -149,7 +152,8 @@ def create_new_task_db(
         :start_date,
         :finish_date,
         :due_date,
-        :time_worked_on
+        :time_worked_on,
+        :board_id
         );"""
 
     with create_connection(database=database) as con:
@@ -168,7 +172,7 @@ def get_all_tasks_db(
 ) -> list[Task] | None:
     query_str = """
     SELECT *
-    FROM tasks;
+    FROM tasks ;
     """
 
     with create_connection(database=database) as con:
@@ -181,10 +185,32 @@ def get_all_tasks_db(
             return None
 
 
+def get_all_tasks_on_board_db(
+    board_id: int,
+    database: Path = DB_FULL_PATH,
+) -> list[Task] | None:
+    board_id_dict = {"board_id": board_id}
+
+    query_str = """
+    SELECT *
+    FROM tasks
+    WHERE board_id = :board_id ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            tasks = con.execute(query_str, board_id_dict).fetchall()
+            return tasks
+        except sqlite3.Error as e:
+            print(e)
+            return None
+
+
 def init_first_board(database: Path = DB_FULL_PATH) -> None:
     # Check if Boards exist
     if not get_all_boards_db(database=database):
-        create_new_board_db(name="Kanban Board", icon=":sparkle:")
+        create_new_board_db(name="Kanban Board", icon=":sparkle:", database=database)
 
 
 def get_all_boards_db(

@@ -28,7 +28,7 @@ class MainView(Screen):
         yield Header()
         yield Footer()
         tabbed_content = TabbedContent(initial="tab_board")
-        tabbed_content.border_title = "Test"  # self.app.board_list[0].name
+        tabbed_content.border_title = f" [red]Active Board:[/] {self.app.board_list[0].icon} {self.app.board_list[0].name}"
         with tabbed_content:
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()

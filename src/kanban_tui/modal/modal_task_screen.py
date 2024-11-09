@@ -92,6 +92,7 @@ class ModalTaskEditScreen(ModalScreen):
                 else None,
                 category=category,
                 due_date=due_date,
+                board_id=self.app.board_list[0].board_id,
                 database=self.app.cfg.database_path,
             )
 
