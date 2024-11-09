@@ -44,15 +44,14 @@ class ModalNewColumnScreen(ModalScreen):
 
     @on(Input.Changed)
     def show_help(self, event: Input.Changed):
-        if not event.validation_result.is_valid:
-            self.query_exactly_one("#btn_continue_new_col", Button).disabled = True
-        else:
-            self.query_exactly_one("#btn_continue_new_col", Button).disabled = False
+        self.query_exactly_one(
+            "#btn_continue_new_col", Button
+        ).disabled = not event.validation_result.is_valid
 
 
 class ValidColumn(Validator):
     def validate(self, value: str) -> ValidationResult:
-        """Check a string is equal to its reverse."""
+        """Check if string is a single word without special characters."""
         if self.is_single_string(value):
             return self.success()
         else:

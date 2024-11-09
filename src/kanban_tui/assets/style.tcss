@@ -224,6 +224,52 @@ ModalConfirmScreen {
     }
 }
 
+ModalNewBoardScreen {
+    align:center middle;
+    Vertical{
+        width:60%;
+        border:$success;
+        height:40%;
+        align:center middle;
+        content-align:center middle;
+
+        #label_header {
+            width:1fr;
+            height:1fr;
+            background: $background;
+            align:center middle;
+            text-align:center;
+        }
+
+        #input_board_icon{
+            width:2fr;
+            height: 1fr;
+            text-align:center;
+        }
+        #input_board_name{
+            width:5fr;
+            height: 1fr;
+            text-align:center;
+        }
+        #static_preview_icon{
+            width:1fr;
+            height: 1fr;
+            color: $text-disabled;
+            text-align:center;
+            padding: 1 0 0 0;
+        }
+        CreationDateInfo{
+            width:1fr;
+            height:1fr;
+            align:center middle;
+        }
+        Button {
+            width: 1fr;
+            height:1fr;
+        }
+    }
+}
+
 CategoryColorPicker{
     align:center middle;
     Vertical {
