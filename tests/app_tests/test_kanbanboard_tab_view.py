@@ -37,6 +37,18 @@ async def test_kanbanboard_task_creation(empty_app: KanbanTui):
         assert len(list(pilot.app.query(TaskCard).results())) == 1
 
 
+# https://github.com/Zaloog/kanban-tui/issues/1
+async def test_kanbanboard_movement_empty_app(empty_app: KanbanTui):
+    async with empty_app.run_test(size=APP_SIZE) as pilot:
+        # check if board has focus
+        assert isinstance(pilot.app.focused, KanbanBoard)
+
+        # if no card is present, should just return and dont do any movevemt
+        await pilot.press("h")
+
+        assert isinstance(pilot.app.focused, KanbanBoard)
+
+
 async def test_kanbanboard_movement(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused

@@ -58,10 +58,12 @@ class KanbanBoard(Horizontal):
 
     # Movement
     def action_movement(self, direction: Literal["up", "right", "down", "left"]):
+        if not self.app.task_list:
+            return
+
         current_column_tasks = self.query_one(
             f"#column_{self.selected_task.column}", Column
         ).task_amount  # TODO F
-        # current_column = self.query(Column)[self.selected_task.column]
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
         ).row
