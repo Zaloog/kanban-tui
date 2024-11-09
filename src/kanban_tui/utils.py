@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from functools import lru_cache
 
-from kanban_tui.database import create_new_task_db, init_new_db, init_first_board
+from kanban_tui.database import create_new_task_db, init_new_db, create_new_board_db
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 
 
@@ -383,7 +383,15 @@ def create_demo_tasks(database_path: Path, config_path: Path):
     )
 
     init_new_db(database=database_path)
-    init_first_board(database=database_path)
+
+    # Create 2 Demo Boards
+    create_new_board_db(
+        name="Demo Board No1", icon=":construction:", database=database_path
+    )
+    create_new_board_db(
+        name="Demo Board No2", icon=":sparkles:", database=database_path
+    )
+
     # Ready
     create_new_task_db(
         title="Task_green_ready",
