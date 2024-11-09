@@ -14,7 +14,7 @@ from textual.containers import Horizontal
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
-from kanban_tui.modal.modal_board_screen import ModalNewBoardScreen
+from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
 from kanban_tui.database import update_task_db, delete_task_db
 
@@ -26,12 +26,14 @@ class KanbanBoard(Horizontal):
 
     BINDINGS = [
         Binding("n", "new_task", "New Task", show=True, priority=True),
-        Binding("f1", "toggle_filter", "Filter", key_display="F1", show=True),
+        Binding(
+            "f1", "toggle_filter", "Filter", key_display="F1", show=False
+        ),  # Change to True Once implemented Properly
         Binding("j,down", "movement('down')", "Down", show=False),
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),
         Binding("l, right", "movement('right')", "Right", show=False),
-        Binding("N", "new_board", "New Board", show=True, priority=True),
+        Binding("B", "show_boards", "Show Boards", show=True, priority=True),
     ]
     selected_task: reactive[Task | None] = reactive(None)
 
@@ -52,8 +54,8 @@ class KanbanBoard(Horizontal):
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
-    def action_new_board(self) -> None:
-        self.app.push_screen(ModalNewBoardScreen(), callback=None)
+    def action_show_boards(self) -> None:
+        self.app.push_screen(ModalBoardOverviewScreen(), callback=None)
 
     def place_new_task(self, task: Task):
         # self.query_one("#column_Ready", Column).place_task(task=task)  # TODO E

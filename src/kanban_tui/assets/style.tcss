@@ -270,6 +270,27 @@ ModalNewBoardScreen {
     }
 }
 
+ModalBoardOverviewScreen {
+    align:center middle;
+    Vertical{
+        width:70%;
+        border:$success;
+        height:75%;
+        align:center middle;
+        content-align:center middle;
+
+        Label{
+            width:1fr;
+            height: 1fr;
+            text-align:center;
+        }
+        Button {
+            width: 1fr;
+            height:1fr;
+        }
+    }
+}
+
 CategoryColorPicker{
     align:center middle;
     Vertical {

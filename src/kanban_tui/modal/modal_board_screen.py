@@ -6,7 +6,7 @@ from textual.binding import Binding
 from textual.events import Mount
 from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
-from textual.widgets import Input, Button, Static, Label
+from textual.widgets import Input, Button, Static, Label, Footer
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
@@ -24,7 +24,7 @@ class ModalNewBoardScreen(ModalScreen):
         if self.kanban_board:
             self.query_one("#btn_continue_new_board", Button).label = "Edit Board"
             self.query_one("#label_header", Label).update("Edit Board")
-            self.read_values_from_task()
+            # self.read_values_from_task()
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -92,3 +92,31 @@ class ValidBoard(Validator):
     @staticmethod
     def is_empty(value: str) -> bool:
         return value == ""
+
+
+class ModalBoardOverviewScreen(ModalScreen):
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Close"),
+        Binding("n", "new_board", "New Board", show=True, priority=True),
+    ]
+
+    def _on_mount(self, event: Mount) -> None:
+        return super()._on_mount(event)
+
+    def compose(self) -> Iterable[Widget]:
+        with Vertical():
+            yield Label("Your Boards", id="label_header")
+            with Horizontal(id="horizontal_buttons_delete"):
+                yield Button(
+                    "New Board",
+                    id="btn_create_board",
+                    variant="success",
+                )
+                yield Button("Edit", id="btn_edit_board", variant="warning")
+                yield Button("Delete", id="btn_delete_board", variant="error")
+
+            yield Footer(show_command_palette=False)
+        return super().compose()
+
+    def action_new_board(self) -> None:
+        self.app.push_screen(ModalNewBoardScreen(), callback=None)

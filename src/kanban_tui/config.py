@@ -98,7 +98,8 @@ class KanbanTuiConfig(BaseModel):
 
     def save(self) -> None:
         with open(self.config_path, "w") as yaml_file:
-            yaml_file.write(yaml.dump(self.config, sort_keys=False))
+            dump = yaml.dump(self.config, sort_keys=False, indent=4, line_break="\n")
+            yaml_file.write(dump)
 
 
 def init_new_config(
