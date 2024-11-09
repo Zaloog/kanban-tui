@@ -32,7 +32,7 @@ def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig
 
 
 @pytest.fixture
-def init_test_db(test_db_full_path):
+def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
     init_new_db(database=test_db_full_path)
     # Ready 3
     create_new_board_db(name="Test_Board", icon=":bug:", database=test_db_full_path)
@@ -42,7 +42,7 @@ def init_test_db(test_db_full_path):
         description="Hallo",
         category="green",
         column="Ready",
-        board_id=1,
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
     create_new_task_db(
@@ -50,7 +50,7 @@ def init_test_db(test_db_full_path):
         description="Hallo",
         category="blue",
         column="Ready",
-        board_id=1,
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
     create_new_task_db(
@@ -58,7 +58,7 @@ def init_test_db(test_db_full_path):
         description="Hallo",
         category=None,
         column="Ready",
-        board_id=1,
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
 
@@ -68,7 +68,7 @@ def init_test_db(test_db_full_path):
         description="Hallo",
         category="green",
         column="Doing",
-        board_id=1,
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
     # Done 1
@@ -77,7 +77,7 @@ def init_test_db(test_db_full_path):
         description="Hallo",
         category="red",
         column="Done",
-        board_id=1,
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
 

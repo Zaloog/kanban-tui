@@ -391,7 +391,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category="green",
         column="Ready",
         due_date=datetime.now(),
-        board_id=1,
+        board_id=cfg.active_board,
         database=database_path,
     )
     create_new_task_db(
@@ -400,7 +400,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category="blue",
         column="Ready",
         due_date=datetime.now() + timedelta(days=1),
-        board_id=1,
+        board_id=cfg.active_board,
         database=database_path,
     )
     create_new_task_db(
@@ -409,7 +409,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category=None,
         column="Ready",
         due_date=datetime.now() + timedelta(days=3),
-        board_id=1,
+        board_id=cfg.active_board,
         database=database_path,
     )
 
@@ -420,7 +420,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category="green",
         column="Doing",
         start_date=datetime.now(),
-        board_id=1,
+        board_id=cfg.active_board,
         database=database_path,
     )
     # Done
@@ -431,7 +431,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         column="Done",
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
         finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
-        board_id=1,
+        board_id=cfg.active_board,
         database=database_path,
     )
     # Archive
@@ -443,7 +443,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             column="Archive",
             start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
             finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
-            board_id=1,
+            board_id=cfg.active_board,
             database=database_path,
         )
     for day in range(20, 25):
@@ -454,6 +454,6 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             column="Archive",
             start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
             finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
-            board_id=1,
+            board_id=cfg.active_board,
             database=database_path,
         )

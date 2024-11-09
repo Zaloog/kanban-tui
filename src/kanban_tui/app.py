@@ -25,6 +25,7 @@ class KanbanTui(App):
     cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
+    active_board: Board = None
 
     def __init__(
         self,
@@ -54,4 +55,10 @@ class KanbanTui(App):
     def update_board_list(self):
         boards = get_all_boards_db(database=self.app.cfg.database_path)
         self.board_list = boards
-        self.notify(f"{self.board_list}")
+        self.active_board = self.get_active_board()
+
+    def get_active_board(self):
+        for board in self.board_list:
+            if board.board_id == self.cfg.active_board:
+                return board
+        return None
