@@ -210,7 +210,8 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     @on(BoardList.Selected)
     def activate_board(self, event: BoardList.Selected):
-        self.app.cfg.set_active_board(new_active_board=event.list_view.index + 1)
+        active_board_id = self.app.board_list[event.list_view.index].board_id
+        self.app.cfg.set_active_board(new_active_board=active_board_id)
         self.app.update_board_list()
         self.dismiss(True)
 

@@ -47,8 +47,8 @@ class KanbanBoard(Horizontal):
                 task for task in self.app.task_list if task.column == column_name
             ]
             yield Column(title=column_name, tasklist=col_tasks)
-        self.can_focus = False if self.app.task_list else True
         yield FilterOverlay()
+
         return super().compose()
 
     def action_new_task(self) -> None:

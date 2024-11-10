@@ -22,7 +22,11 @@ class BoardList(ListView):
 
     def __init__(self, boards: list[Board]) -> None:
         children = [BoardListItem(board=board) for board in boards]
-        initial_index = self.app.cfg.active_board - 1
+
+        # get index of active board to set as active index
+        for board_index, board in enumerate(self.app.board_list):
+            if board.board_id == self.app.cfg.active_board:
+                initial_index = board_index
 
         super().__init__(*children, initial_index=initial_index, id="board_list")
 
