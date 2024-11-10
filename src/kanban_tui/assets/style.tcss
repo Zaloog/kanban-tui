@@ -284,15 +284,26 @@ ModalBoardOverviewScreen {
         align:center middle;
         content-align:center middle;
 
-        Label{
+        #label_header{
             width:1fr;
             height: auto;
             text-align:center;
+            padding:0 0 1 0;
 
-        VerticalScroll{
-            width:1fr;
-            height: auto;
+        }
+        BoardList{
+            # border:outer $success;
+        }
+        BoardListItem{
+            height:auto;
+            padding:1 0;
+            content-align:center middle;
+
+            Label{
+                text-align:left;
             }
+
+
         }
         Button {
             width: 1fr;

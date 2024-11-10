@@ -391,6 +391,10 @@ def create_demo_tasks(database_path: Path, config_path: Path):
     create_new_board_db(
         name="Demo Board No2", icon=":sparkles:", database=database_path
     )
+    for i in range(3, 6):
+        create_new_board_db(
+            name=f"Demo Board No{i}", icon=":sparkles:", database=database_path
+        )
 
     # Ready
     create_new_task_db(

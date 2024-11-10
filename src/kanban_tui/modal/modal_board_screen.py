@@ -48,7 +48,6 @@ class ModalNewBoardScreen(ModalScreen):
                     validators=[ValidBoard()],
                     id="input_board_name",
                 )
-            # yield CreationDateInfo()
             yield Label(
                 f"Board created at: {datetime.now().replace(microsecond=0)}",
                 id="label_create_date",
@@ -105,6 +104,7 @@ class ModalBoardOverviewScreen(ModalScreen):
     BINDINGS = [
         Binding("escape", "app.pop_screen", "Close"),
         Binding("n", "new_board", "New Board", show=True, priority=True),
+        Binding("e", "edit_board", "Edit Board", show=True, priority=True),
     ]
 
     def _on_mount(self, event: Mount) -> None:
@@ -123,5 +123,12 @@ class ModalBoardOverviewScreen(ModalScreen):
             yield Footer(show_command_palette=False)
         return super().compose()
 
+    @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
         self.app.push_screen(ModalNewBoardScreen(), callback=None)
+
+    def action_edit_board(self) -> None:
+        highlighted_board = self.query_one(BoardList).highlighted_child.board
+        self.app.push_screen(
+            ModalNewBoardScreen(board=highlighted_board), callback=None
+        )
