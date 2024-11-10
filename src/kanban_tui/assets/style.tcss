@@ -229,43 +229,48 @@ ModalNewBoardScreen {
     Vertical{
         width:60%;
         border:$success;
-        height:40%;
+        height:auto;
         align:center middle;
         content-align:center middle;
 
-        #label_header {
+        Horizontal{
+            height:auto;
+        }
+        Label{
             width:1fr;
-            height:1fr;
+            height:auto;
             background: $background;
             align:center middle;
             text-align:center;
+            padding: 1 0;
         }
 
         #input_board_icon{
             width:2fr;
-            height: 1fr;
+            height: auto;
+            border: tall $success;
+            border-title-align:center;
             text-align:center;
         }
         #input_board_name{
             width:5fr;
-            height: 1fr;
+            height: auto;
+            border: tall $success;
+            border-title-align:center;
             text-align:center;
         }
         #static_preview_icon{
-            width:1fr;
-            height: 1fr;
+            width:2fr;
+            height: auto;
             color: $text-disabled;
+            border: tall $success;
+            border-title-align:center;
             text-align:center;
-            padding: 1 0 0 0;
-        }
-        CreationDateInfo{
-            width:1fr;
-            height:1fr;
-            align:center middle;
+            padding: 0 0 0 0;
         }
         Button {
             width: 1fr;
-            height:1fr;
+            height:auto;
         }
     }
 }
@@ -275,18 +280,23 @@ ModalBoardOverviewScreen {
     Vertical{
         width:70%;
         border:$success;
-        height:75%;
+        height:50%;
         align:center middle;
         content-align:center middle;
 
         Label{
             width:1fr;
-            height: 1fr;
+            height: auto;
             text-align:center;
+
+        VerticalScroll{
+            width:1fr;
+            height: auto;
+            }
         }
         Button {
             width: 1fr;
-            height:1fr;
+            height:auto;
         }
     }
 }

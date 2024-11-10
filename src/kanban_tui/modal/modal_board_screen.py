@@ -1,4 +1,5 @@
 from typing import Iterable
+from datetime import datetime
 
 from textual import on
 from textual.widget import Widget
@@ -10,7 +11,7 @@ from textual.widgets import Input, Button, Static, Label, Footer
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
-from kanban_tui.widgets.modal_task_widgets import CreationDateInfo
+from kanban_tui.widgets.modal_board_widgets import BoardList
 
 
 class ModalNewBoardScreen(ModalScreen):
@@ -24,7 +25,11 @@ class ModalNewBoardScreen(ModalScreen):
         if self.kanban_board:
             self.query_one("#btn_continue_new_board", Button).label = "Edit Board"
             self.query_one("#label_header", Label).update("Edit Board")
-            # self.read_values_from_task()
+
+        self.query_one("#input_board_icon", Input).border_title = "Icon"
+        self.query_one("#input_board_name", Input).border_title = "Board Name"
+        self.query_one("#static_preview_icon", Static).border_title = "Preview"
+        # self.read_values_from_board()
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -32,20 +37,22 @@ class ModalNewBoardScreen(ModalScreen):
             yield Label("Create New Board", id="label_header")
             with Horizontal():
                 yield Input(
-                    placeholder="Icon",
-                    value="books",
-                    # validate_on=["changed"],
-                    # validators=[ValidBoard()],
+                    placeholder="e.g. books",
+                    value="",
                     id="input_board_icon",
                 )
-                yield Static(id="static_preview_icon")
+                yield Static(":books:", id="static_preview_icon")
                 yield Input(
-                    placeholder="New Board Name",
+                    placeholder="Enter Board Name",
                     validate_on=["changed"],
                     validators=[ValidBoard()],
                     id="input_board_name",
                 )
-            yield CreationDateInfo()
+            # yield CreationDateInfo()
+            yield Label(
+                f"Board created at: {datetime.now().replace(microsecond=0)}",
+                id="label_create_date",
+            )
             with Horizontal(id="horizontal_buttons_delete"):
                 yield Button(
                     "Create Board",
@@ -78,7 +85,7 @@ class ModalNewBoardScreen(ModalScreen):
             )
         else:
             self.query_exactly_one("#static_preview_icon", Static).update(
-                "[gray]Preview[/]"
+                "[gray]No Icon[/]"
             )
 
 
@@ -106,14 +113,12 @@ class ModalBoardOverviewScreen(ModalScreen):
     def compose(self) -> Iterable[Widget]:
         with Vertical():
             yield Label("Your Boards", id="label_header")
-            with Horizontal(id="horizontal_buttons_delete"):
-                yield Button(
-                    "New Board",
-                    id="btn_create_board",
-                    variant="success",
-                )
-                yield Button("Edit", id="btn_edit_board", variant="warning")
-                yield Button("Delete", id="btn_delete_board", variant="error")
+            yield BoardList()
+            yield Button(
+                "New Board",
+                id="btn_create_board",
+                variant="success",
+            )
 
             yield Footer(show_command_palette=False)
         return super().compose()
