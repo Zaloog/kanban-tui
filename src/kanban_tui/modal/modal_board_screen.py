@@ -184,6 +184,14 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_delete_board(self) -> None:
         highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
+        if highlighted_board.board_id == self.app.cfg.active_board:
+            self.notify(
+                title="Can not delete the active board",
+                severity="error",
+                message="Please activate a different board first",
+            )
+            return
+
         self.app.push_screen(
             ModalConfirmScreen(
                 text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?"
