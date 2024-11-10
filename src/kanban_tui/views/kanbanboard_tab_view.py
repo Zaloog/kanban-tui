@@ -60,12 +60,14 @@ class KanbanBoard(Horizontal):
         )
 
     # Active Board Change
-    def refresh_on_board_change(self, refresh_needed: bool = False) -> None:
-        self.app.query_one(
-            "#tabbed_content_boards"
-        ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
-        self.refresh(recompose=True)
-        self.focus()
+    def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
+        if refresh_needed:
+            self.app.query_one(
+                "#tabbed_content_boards"
+            ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
+            self.refresh(recompose=True)
+            self.can_focus = False
+            self.focus()
 
     def place_new_task(self, task: Task):
         self.query(Column)[0].place_task(task=task)

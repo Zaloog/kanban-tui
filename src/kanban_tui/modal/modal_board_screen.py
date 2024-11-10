@@ -15,7 +15,12 @@ from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
 from kanban_tui.widgets.modal_board_widgets import BoardList
-from kanban_tui.database import update_board_entry_db, create_new_board_db
+from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.database import (
+    update_board_entry_db,
+    create_new_board_db,
+    delete_board_db,
+)
 
 
 class ModalNewBoardScreen(ModalScreen):
@@ -105,7 +110,6 @@ class ModalNewBoardScreen(ModalScreen):
 
             self.app.update_board_list()
         self.dismiss(result=None)
-        # self.dismiss(result=self.app.task_list[-1])
 
     @on(Button.Pressed, "#btn_cancel_new_board")
     def cancel_new_board(self):
@@ -145,9 +149,10 @@ class ModalBoardOverviewScreen(ModalScreen):
     app: "KanbanTui"
     BINDINGS = [
         # Binding("escape", "app.pop_screen", "Close"),
-        Binding("escape", "close_boards", "Close"),
+        Binding("escape", "dismiss", "Close"),
         Binding("n", "new_board", "New Board", show=True, priority=True),
         Binding("e", "edit_board", "Edit Board", show=True, priority=True),
+        Binding("d", "delete_board", "Delete Board", show=True, priority=True),
     ]
 
     def _on_mount(self, event: Mount) -> None:
@@ -168,24 +173,41 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
-        self.app.push_screen(ModalNewBoardScreen(), callback=self.update_list)
+        self.app.push_screen(ModalNewBoardScreen(), callback=self.update_board_listview)
 
     def action_edit_board(self) -> None:
         highlighted_board = self.query_one(BoardList).highlighted_child.board
         self.app.push_screen(
-            ModalNewBoardScreen(board=highlighted_board), callback=self.update_list
+            ModalNewBoardScreen(board=highlighted_board),
+            callback=self.update_board_listview,
         )
+
+    def action_delete_board(self) -> None:
+        highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
+        self.app.push_screen(
+            ModalConfirmScreen(
+                text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?"
+            ),
+            callback=self.from_modal_delete_board,
+        )
+
+    def from_modal_delete_board(self, delete_yn: bool) -> None:
+        highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
+        if delete_yn:
+            delete_board_db(
+                board_id=highlighted_board.board_id, database=self.app.cfg.database_path
+            )
+            self.app.update_board_list()
+            self.refresh(recompose=True)
 
     @on(BoardList.Selected)
     def activate_board(self, event: BoardList.Selected):
-        self.notify(f"{self.app.cfg.active_board}")
-        self.notify(f"{event.list_view.index}")
         self.app.cfg.set_active_board(new_active_board=event.list_view.index + 1)
         self.app.update_board_list()
         self.dismiss(True)
 
-    def update_list(self, result: None = None):
+    def update_board_listview(self, result: None = None):
         self.refresh(recompose=True)
 
-    def action_close_boards(self):
-        self.dismiss(True)
+    # def action_close_boards(self):
+    #     self.dismiss(True)
