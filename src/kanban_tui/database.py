@@ -374,14 +374,20 @@ def update_board_entry_db(
 
 
 def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
-    delete_str = """
+    delete_board_str = """
     DELETE FROM boards
+    WHERE board_id = ?
+    """
+
+    delete_task_str = """
+    DELETE FROM tasks
     WHERE board_id = ?
     """
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            con.execute(delete_str, (board_id,))
+            con.execute(delete_board_str, (board_id,))
+            con.execute(delete_task_str, (board_id,))
             return 0
         except sqlite3.Error as e:
             con.rollback()

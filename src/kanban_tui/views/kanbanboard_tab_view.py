@@ -47,7 +47,7 @@ class KanbanBoard(Horizontal):
                 task for task in self.app.task_list if task.column == column_name
             ]
             yield Column(title=column_name, tasklist=col_tasks)
-        self.can_focus = False
+        self.can_focus = False if self.app.task_list else True
         yield FilterOverlay()
         return super().compose()
 
@@ -66,8 +66,6 @@ class KanbanBoard(Horizontal):
                 "#tabbed_content_boards"
             ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
             self.refresh(recompose=True)
-            self.can_focus = False
-            self.focus()
 
     def place_new_task(self, task: Task):
         self.query(Column)[0].place_task(task=task)
