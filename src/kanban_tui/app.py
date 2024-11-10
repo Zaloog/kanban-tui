@@ -43,12 +43,12 @@ class KanbanTui(App):
 
     def on_mount(self) -> None:
         self.update_board_list()
-        self.update_task_list()
+        # self.update_task_list()
         self.push_screen("MainView")
 
     def update_task_list(self):
         tasks = get_all_tasks_on_board_db(
-            database=self.app.cfg.database_path, board_id=self.board_list[0].board_id
+            database=self.app.cfg.database_path, board_id=self.active_board.board_id
         )
         self.task_list = tasks
 
@@ -56,8 +56,9 @@ class KanbanTui(App):
         boards = get_all_boards_db(database=self.app.cfg.database_path)
         self.board_list = boards
         self.active_board = self.get_active_board()
+        self.update_task_list()
 
-    def get_active_board(self):
+    def get_active_board(self) -> None | Board:
         for board in self.board_list:
             if board.board_id == self.cfg.active_board:
                 return board

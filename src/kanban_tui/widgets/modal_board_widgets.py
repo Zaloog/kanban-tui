@@ -20,8 +20,8 @@ class BoardList(ListView):
         Binding(key="k", action="cursor_up", show=False),
     ]
 
-    def __init__(self) -> None:
-        children = [BoardListItem(board=board) for board in self.app.board_list]
+    def __init__(self, boards: list[Board]) -> None:
+        children = [BoardListItem(board=board) for board in boards]
         initial_index = self.app.cfg.active_board - 1
 
         super().__init__(*children, initial_index=initial_index, id="board_list")

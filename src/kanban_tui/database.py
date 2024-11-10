@@ -337,3 +337,53 @@ def get_ordered_tasks_db(
         except sqlite3.Error as e:
             print(e)
             return None
+
+
+# Boards Stuff
+# After Editing
+def update_board_entry_db(
+    board_id: int,
+    name: str,
+    icon: str | None = None,
+    database: Path = DB_FULL_PATH,
+) -> str | int:
+    update_board_dict = {
+        "board_id": board_id,
+        "name": name,
+        "icon": icon,
+    }
+
+    transaction_str = """
+    UPDATE boards
+    SET
+        name = :name,
+        icon = :icon
+    WHERE board_id = :board_id;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_board_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
+    delete_str = """
+    DELETE FROM boards
+    WHERE board_id = ?
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(delete_str, (board_id,))
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname

@@ -1,5 +1,8 @@
-from typing import Iterable
 from datetime import datetime
+from typing import Iterable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from kanban_tui.app import KanbanTui
 
 from textual import on
 from textual.widget import Widget
@@ -12,10 +15,12 @@ from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
 from kanban_tui.widgets.modal_board_widgets import BoardList
+from kanban_tui.database import update_board_entry_db, create_new_board_db
 
 
 class ModalNewBoardScreen(ModalScreen):
     BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
+    app: "KanbanTui"
 
     def __init__(self, board: Board | None = None) -> None:
         self.kanban_board = board
@@ -23,13 +28,20 @@ class ModalNewBoardScreen(ModalScreen):
 
     def _on_mount(self, event: Mount) -> None:
         if self.kanban_board:
-            self.query_one("#btn_continue_new_board", Button).label = "Edit Board"
-            self.query_one("#label_header", Label).update("Edit Board")
+            self.query_exactly_one(
+                "#btn_continue_new_board", Button
+            ).label = "Edit Board"
+            self.query_exactly_one("#label_header", Label).update("Edit Board")
+            self.query_exactly_one(
+                "#input_board_name", Input
+            ).value = self.kanban_board.name
+            self.query_exactly_one(
+                "#input_board_icon", Input
+            ).value = self.kanban_board.icon.strip(":")
 
-        self.query_one("#input_board_icon", Input).border_title = "Icon"
-        self.query_one("#input_board_name", Input).border_title = "Board Name"
-        self.query_one("#static_preview_icon", Static).border_title = "Preview"
-        # self.read_values_from_board()
+        self.query_exactly_one("#input_board_icon", Input).border_title = "Icon"
+        self.query_exactly_one("#input_board_name", Input).border_title = "Board Name"
+        self.query_exactly_one("#static_preview_icon", Static).border_title = "Preview"
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -64,7 +76,36 @@ class ModalNewBoardScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_continue_new_board")
     def confirm_new_board(self):
-        self.dismiss(result=(self.query_one(Input).value))
+        if self.kanban_board:
+            self.kanban_board.name = self.query_exactly_one(
+                "#input_board_name", Input
+            ).value
+            self.kanban_board.icon = (
+                f':{self.query_exactly_one('#input_board_icon', Input).value}:'
+            )
+            update_board_entry_db(
+                board_id=self.kanban_board.board_id,
+                name=self.kanban_board.name,
+                icon=self.kanban_board.icon,
+                database=self.app.cfg.database_path,
+            )
+
+            # self.dismiss(result=self.kanban_board)
+        else:
+            new_board_name = self.query_exactly_one("#input_board_name", Input).value
+            new_board_icon = self.query_exactly_one("#input_board_icon", Input).value
+            if new_board_icon:
+                new_board_icon = f":{new_board_icon}:"
+
+            create_new_board_db(
+                name=new_board_name,
+                icon=new_board_icon,
+                database=self.app.cfg.database_path,
+            )
+
+            self.app.update_board_list()
+        self.dismiss(result=None)
+        # self.dismiss(result=self.app.task_list[-1])
 
     @on(Button.Pressed, "#btn_cancel_new_board")
     def cancel_new_board(self):
@@ -101,8 +142,10 @@ class ValidBoard(Validator):
 
 
 class ModalBoardOverviewScreen(ModalScreen):
+    app: "KanbanTui"
     BINDINGS = [
-        Binding("escape", "app.pop_screen", "Close"),
+        # Binding("escape", "app.pop_screen", "Close"),
+        Binding("escape", "close_boards", "Close"),
         Binding("n", "new_board", "New Board", show=True, priority=True),
         Binding("e", "edit_board", "Edit Board", show=True, priority=True),
     ]
@@ -113,7 +156,7 @@ class ModalBoardOverviewScreen(ModalScreen):
     def compose(self) -> Iterable[Widget]:
         with Vertical():
             yield Label("Your Boards", id="label_header")
-            yield BoardList()
+            yield BoardList(boards=self.app.board_list)
             yield Button(
                 "New Board",
                 id="btn_create_board",
@@ -125,10 +168,24 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
-        self.app.push_screen(ModalNewBoardScreen(), callback=None)
+        self.app.push_screen(ModalNewBoardScreen(), callback=self.update_list)
 
     def action_edit_board(self) -> None:
         highlighted_board = self.query_one(BoardList).highlighted_child.board
         self.app.push_screen(
-            ModalNewBoardScreen(board=highlighted_board), callback=None
+            ModalNewBoardScreen(board=highlighted_board), callback=self.update_list
         )
+
+    @on(BoardList.Selected)
+    def activate_board(self, event: BoardList.Selected):
+        self.notify(f"{self.app.cfg.active_board}")
+        self.notify(f"{event.list_view.index}")
+        self.app.cfg.set_active_board(new_active_board=event.list_view.index + 1)
+        self.app.update_board_list()
+        self.dismiss(True)
+
+    def update_list(self, result: None = None):
+        self.refresh(recompose=True)
+
+    def action_close_boards(self):
+        self.dismiss(True)

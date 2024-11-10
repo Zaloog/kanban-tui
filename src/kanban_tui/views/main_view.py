@@ -27,9 +27,7 @@ class MainView(Screen):
     def compose(self) -> Iterable[Widget]:
         yield Header()
         yield Footer()
-        tabbed_content = TabbedContent(initial="tab_board")
-        tabbed_content.border_title = f" [red]Active Board:[/] {self.app.active_board.icon} {self.app.active_board.name}"
-        with tabbed_content:
+        with TabbedContent(initial="tab_board", id="tabbed_content_boards"):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
@@ -42,6 +40,9 @@ class MainView(Screen):
         self.query_one(ContentTabs).can_focus = False
         if self.app.demo_mode:
             self.show_demo_notification()
+        self.app.query_one(
+            "#tabbed_content_boards"
+        ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
         return super()._on_mount(event)
 
     def action_show_tab(self, tab: str) -> None:

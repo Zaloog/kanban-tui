@@ -246,7 +246,7 @@ ModalNewBoardScreen {
         }
 
         #input_board_icon{
-            width:2fr;
+            width:3fr;
             height: auto;
             border: tall $success;
             border-title-align:center;
@@ -280,30 +280,22 @@ ModalBoardOverviewScreen {
     Vertical{
         width:70%;
         border:$success;
-        height:50%;
+        height:60%;
         align:center middle;
         content-align:center middle;
-
         #label_header{
             width:1fr;
             height: auto;
             text-align:center;
             padding:0 0 1 0;
-
-        }
-        BoardList{
-            # border:outer $success;
         }
         BoardListItem{
             height:auto;
             padding:1 0;
             content-align:center middle;
-
             Label{
                 text-align:left;
             }
-
-
         }
         Button {
             width: 1fr;

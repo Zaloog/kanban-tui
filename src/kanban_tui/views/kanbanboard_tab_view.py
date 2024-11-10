@@ -55,10 +55,19 @@ class KanbanBoard(Horizontal):
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
     def action_show_boards(self) -> None:
-        self.app.push_screen(ModalBoardOverviewScreen(), callback=None)
+        self.app.push_screen(
+            ModalBoardOverviewScreen(), callback=self.refresh_on_board_change
+        )
+
+    # Active Board Change
+    def refresh_on_board_change(self, refresh_needed: bool = False) -> None:
+        self.app.query_one(
+            "#tabbed_content_boards"
+        ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
+        self.refresh(recompose=True)
+        self.focus()
 
     def place_new_task(self, task: Task):
-        # self.query_one("#column_Ready", Column).place_task(task=task)  # TODO E
         self.query(Column)[0].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
@@ -70,7 +79,7 @@ class KanbanBoard(Horizontal):
 
         current_column_tasks = self.query_one(
             f"#column_{self.selected_task.column}", Column
-        ).task_amount  # TODO F
+        ).task_amount
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
         ).row
@@ -88,9 +97,7 @@ class KanbanBoard(Horizontal):
                     case row_idx if row_idx == (current_column_tasks - 1):
                         self.query_one(
                             f"#column_{self.selected_task.column}", Column
-                        ).query(TaskCard)[  # TODO H
-                            0
-                        ].focus()
+                        ).query(TaskCard)[0].focus()
                     case _:
                         self.app.action_focus_next()
             case "right":
