@@ -210,7 +210,7 @@ def get_all_tasks_on_board_db(
 def init_first_board(database: Path = DB_FULL_PATH) -> None:
     # Check if Boards exist
     if not get_all_boards_db(database=database):
-        create_new_board_db(name="Kanban Board", icon=":sparkle:", database=database)
+        create_new_board_db(name="Kanban Board", icon=":sparkles:", database=database)
 
 
 def get_all_boards_db(
