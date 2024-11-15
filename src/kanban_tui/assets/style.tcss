@@ -291,10 +291,15 @@ ModalBoardOverviewScreen {
         }
         BoardListItem{
             height:auto;
-            padding:1 0;
             content-align:center middle;
             Label{
+                width: 1fr;
+                padding:1 0;
                 text-align:left;
+            }
+            Rule{
+                height:auto;
+                color:black;
             }
         }
         Button {

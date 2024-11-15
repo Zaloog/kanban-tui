@@ -37,6 +37,11 @@ def board_factory(cursor, row):
     return Board(**{k: v for k, v in zip(fields, row)})
 
 
+def info_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return {k: v for k, v in zip(fields, row)}
+
+
 def init_new_db(database: Path = DB_FULL_PATH):
     if database.exists():
         return
@@ -224,8 +229,8 @@ def get_all_boards_db(
     with create_connection(database=database) as con:
         con.row_factory = board_factory
         try:
-            tasks = con.execute(query_str).fetchall()
-            return tasks
+            boards = con.execute(query_str).fetchall()
+            return boards
         except sqlite3.Error as e:
             print(e)
             return None
@@ -393,3 +398,26 @@ def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
             con.rollback()
             print(e.sqlite_errorname)
             return e.sqlite_errorname
+
+
+def get_all_board_infos(
+    database: Path = DB_FULL_PATH,
+) -> list[dict] | None:
+    query_str = """
+    SELECT
+    b.board_id AS board_id,
+    COUNT(t.task_id) AS amount_tasks,
+    MIN(t.due_date) AS next_due
+    FROM boards b
+    LEFT JOIN tasks t ON b.board_id = t.board_id
+    GROUP BY b.board_id;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = info_factory
+        try:
+            board_infos = con.execute(query_str).fetchall()
+            return board_infos
+        except sqlite3.Error as e:
+            print(e)
+            return None

@@ -469,3 +469,14 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             board_id=cfg.active_board,
             database=database_path,
         )
+
+
+def get_days_left_till_due(due_date: str | None):
+    if due_date is not None:
+        due_date_date = datetime.fromisoformat(due_date)
+        return max(
+            0,
+            (due_date_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
+            + 1,
+        )
+    return None
