@@ -148,7 +148,6 @@ class ValidBoard(Validator):
 class ModalBoardOverviewScreen(ModalScreen):
     app: "KanbanTui"
     BINDINGS = [
-        # Binding("escape", "app.pop_screen", "Close"),
         Binding("escape", "dismiss", "Close"),
         Binding("n", "new_board", "New Board", show=True, priority=True),
         Binding("e", "edit_board", "Edit Board", show=True, priority=True),

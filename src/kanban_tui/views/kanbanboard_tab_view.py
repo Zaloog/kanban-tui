@@ -66,6 +66,7 @@ class KanbanBoard(Horizontal):
                 "#tabbed_content_boards"
             ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
             self.refresh(recompose=True)
+            self.set_timer(delay=0.1, callback=self.app.action_focus_next)
 
     def place_new_task(self, task: Task):
         self.query(Column)[0].place_task(task=task)
