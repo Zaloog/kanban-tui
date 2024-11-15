@@ -17,7 +17,7 @@ APP_SIZE = (120, 80)
 
 async def test_modal_board_creation(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        # open modal to create Task
+        # open Board View
 
         await pilot.press("B")
         assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
@@ -47,7 +47,7 @@ async def test_modal_board_creation(test_app: KanbanTui):
 
         # new Board no tasks
         assert len(list(pilot.app.query(TaskCard).results())) == 5
-        assert len(list(pilot.app.board_list)) == 2
+        assert len(pilot.app.board_list) == 2
 
 
 @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ async def test_modal_board_creation_list_check(test_app: KanbanTui):
 
         await pilot.press("B")
         assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
-        assert len(list(pilot.app.board_list)) == 3
+        assert len(pilot.app.board_list) == 3
 
 
 async def test_modal_board_edit(test_app: KanbanTui):
@@ -113,7 +113,7 @@ async def test_modal_board_edit(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
         assert pilot.app.focused.id == "board_list"
         assert pilot.app.focused.highlighted_child.board.board_id == 1
-        assert len(list(pilot.app.board_list)) == 1
+        assert len(pilot.app.board_list) == 1
 
         await pilot.press("e")
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
@@ -139,7 +139,7 @@ async def test_modal_board_edit(test_app: KanbanTui):
         assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
 
         await pilot.click("#btn_continue_new_board")
-        assert len(list(pilot.app.board_list)) == 1
+        assert len(pilot.app.board_list) == 1
 
 
 async def test_modal_board_edit_cancel(test_app: KanbanTui):
@@ -172,7 +172,7 @@ async def test_modal_board_delete_board(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         await pilot.click("#btn_continue_delete")
         assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
-        assert len(list(pilot.app.board_list)) == 2
+        assert len(pilot.app.board_list) == 2
 
 
 async def test_modal_board_activate_board(test_app: KanbanTui):
@@ -193,3 +193,21 @@ async def test_modal_board_activate_board(test_app: KanbanTui):
         await pilot.press("enter")
         assert isinstance(pilot.app.screen, MainView)
         assert pilot.app.active_board.name == "Test Board 2"
+
+
+async def test_modal_board_copy_board(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # open modal to show Boards
+        await pilot.press("B")
+
+        # copy board
+        await pilot.press("c")
+
+        await pilot.press("j")
+        assert pilot.app.focused.highlighted_child.board.board_id == 2
+        assert pilot.app.focused.highlighted_child.board.name == "Test_Board_copy"
+        assert pilot.app.focused.highlighted_child.board.icon == ":bug:"
+        await pilot.press("enter")
+        assert isinstance(pilot.app.screen, MainView)
+        assert pilot.app.active_board.name == "Test_Board_copy"
+        assert len(pilot.app.board_list) == 2

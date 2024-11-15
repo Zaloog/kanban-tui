@@ -152,6 +152,7 @@ class ModalBoardOverviewScreen(ModalScreen):
         Binding("n", "new_board", "New Board", show=True, priority=True),
         Binding("e", "edit_board", "Edit Board", show=True, priority=True),
         Binding("d", "delete_board", "Delete Board", show=True, priority=True),
+        Binding("c", "copy_board", "Copy Board", show=True, priority=True),
     ]
 
     def _on_mount(self, event: Mount) -> None:
@@ -180,6 +181,17 @@ class ModalBoardOverviewScreen(ModalScreen):
             ModalNewBoardScreen(board=highlighted_board),
             callback=self.update_board_listview,
         )
+
+    def action_copy_board(self) -> None:
+        highlighted_board = self.query_one(BoardList).highlighted_child.board
+        create_new_board_db(
+            name=f"{highlighted_board.name}_copy",
+            icon=highlighted_board.icon,
+            database=self.app.cfg.database_path,
+        )
+
+        self.app.update_board_list()
+        self.update_board_listview()
 
     def action_delete_board(self) -> None:
         highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
