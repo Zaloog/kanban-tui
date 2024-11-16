@@ -42,6 +42,7 @@ class KanbanTui(App):
         super().__init__()
 
     def on_mount(self) -> None:
+        self.theme = "dracula"
         self.update_board_list()
         # self.update_task_list()
         self.push_screen("MainView")

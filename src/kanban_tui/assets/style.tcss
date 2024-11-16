@@ -628,8 +628,8 @@ Rule{
     color:$success-lighten-3;
 }
 
-    DatePicker DayLabel:focus {
-        text-style: bold reverse;
-        background:$success;
-        color:auto;
-    }
+DatePicker DayLabel:focus {
+    text-style: bold reverse;
+    background:$success;
+    color:auto;
+}
