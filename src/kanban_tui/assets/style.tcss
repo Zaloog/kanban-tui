@@ -627,3 +627,9 @@ Rule{
     align:center middle;
     color:$success-lighten-3;
 }
+
+    DatePicker DayLabel:focus {
+        text-style: bold reverse;
+        background:$success;
+        color:auto;
+    }
