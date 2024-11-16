@@ -96,6 +96,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
             con.execute(task_db_creation_str)
             con.execute(board_db_creation_str)
             con.execute(column_db_creation_str)
+            con.commit()
 
             # con.executescript(indexes_creation_str)
             return 0
@@ -163,6 +164,7 @@ def create_new_colum_db(
             con.commit()
             return 0
         except sqlite3.Error as e:
+            raise e
             con.rollback()
             return e.sqlite_errorname
 
@@ -359,6 +361,7 @@ def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
         con.row_factory = sqlite3.Row
         try:
             con.execute(delete_str, (task_id,))
+            con.commit()
             return 0
         except sqlite3.Error as e:
             con.rollback()
@@ -440,6 +443,7 @@ def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
         try:
             con.execute(delete_board_str, (board_id,))
             con.execute(delete_task_str, (board_id,))
+            con.commit()
             return 0
         except sqlite3.Error as e:
             con.rollback()

@@ -19,6 +19,7 @@ from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.database import (
     update_board_entry_db,
     create_new_board_db,
+    create_new_colum_db,
     delete_board_db,
 )
 
@@ -86,7 +87,7 @@ class ModalNewBoardScreen(ModalScreen):
                 "#input_board_name", Input
             ).value
             self.kanban_board.icon = (
-                f':{self.query_exactly_one('#input_board_icon', Input).value}:'
+                f":{self.query_exactly_one('#input_board_icon', Input).value}:"
             )
             update_board_entry_db(
                 board_id=self.kanban_board.board_id,
@@ -102,9 +103,14 @@ class ModalNewBoardScreen(ModalScreen):
             if new_board_icon:
                 new_board_icon = f":{new_board_icon}:"
 
-            create_new_board_db(
+            new_board_id = create_new_board_db(
                 name=new_board_name,
                 icon=new_board_icon,
+                database=self.app.cfg.database_path,
+            )
+            create_new_colum_db(
+                column_dict={"New1": 1, "New2": 0},
+                last_board_id=new_board_id,
                 database=self.app.cfg.database_path,
             )
 
