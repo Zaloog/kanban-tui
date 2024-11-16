@@ -6,7 +6,7 @@ authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
 dependencies = [
-    "textual>=0.79.1",
+    "textual<0.86",
     "textual-plotext>=0.2.1",
     "textual-datepicker>=0.2.4",
     "pyyaml>=6.0.2",

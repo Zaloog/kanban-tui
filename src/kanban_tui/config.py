@@ -133,6 +133,7 @@ def init_new_config(
     }
 
     with open(config_path, "w") as yaml_file:
-        yaml_file.write(yaml.dump(config, sort_keys=False, default_flow_style=True))
+        dump = yaml.dump(config, sort_keys=False, indent=4, line_break="\n")
+        yaml_file.write(dump)
 
     return "Config Created"
