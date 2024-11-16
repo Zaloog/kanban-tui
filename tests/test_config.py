@@ -12,6 +12,9 @@ def test_KanbanTuiConfig(
     test_app_config.set_no_category_task_color(new_color="#000000")
     assert test_app_config.no_category_task_color == "#000000"
 
+    test_app_config.set_active_board(new_active_board=2)
+    assert test_app_config.active_board == 2
+
     test_app_config.add_new_column(new_column="TestColumn", position=2)
     assert test_app_config.column_dict["TestColumn"] is True
     assert test_app_config.columns[2] == "TestColumn"
@@ -63,6 +66,7 @@ def test_init_new_config(
     assert test_app_config.database_path == test_db_full_path
     assert test_app_config.tasks_always_expanded is False
     assert test_app_config.category_color_dict == {}
+    assert test_app_config.active_board == 1
     assert test_app_config.visible_columns == ["Ready", "Doing", "Done"]
     assert test_app_config.columns == ["Ready", "Doing", "Done", "Archive"]
     assert test_app_config.column_dict == {

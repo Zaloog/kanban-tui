@@ -14,6 +14,7 @@ from textual.containers import Horizontal
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
+from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
 from kanban_tui.database import update_task_db, delete_task_db
 
@@ -24,12 +25,15 @@ class KanbanBoard(Horizontal):
     app: "KanbanTui"
 
     BINDINGS = [
-        Binding("n", "new_task", "New", show=True, priority=True),
-        Binding("f1", "toggle_filter", "Filter", key_display="F1", show=True),
+        Binding("n", "new_task", "New Task", show=True, priority=True),
+        Binding(
+            "f1", "toggle_filter", "Filter", key_display="F1", show=False
+        ),  # Change to True Once implemented Properly
         Binding("j,down", "movement('down')", "Down", show=False),
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),
         Binding("l, right", "movement('right')", "Right", show=False),
+        Binding("B", "show_boards", "Show Boards", show=True, priority=True),
     ]
     selected_task: reactive[Task | None] = reactive(None)
 
@@ -43,15 +47,28 @@ class KanbanBoard(Horizontal):
                 task for task in self.app.task_list if task.column == column_name
             ]
             yield Column(title=column_name, tasklist=col_tasks)
-        self.can_focus = False
         yield FilterOverlay()
+
         return super().compose()
 
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
+    def action_show_boards(self) -> None:
+        self.app.push_screen(
+            ModalBoardOverviewScreen(), callback=self.refresh_on_board_change
+        )
+
+    # Active Board Change
+    def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
+        if refresh_needed:
+            self.app.query_one(
+                "#tabbed_content_boards"
+            ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
+            self.refresh(recompose=True)
+            self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+
     def place_new_task(self, task: Task):
-        # self.query_one("#column_Ready", Column).place_task(task=task)  # TODO E
         self.query(Column)[0].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
@@ -63,7 +80,7 @@ class KanbanBoard(Horizontal):
 
         current_column_tasks = self.query_one(
             f"#column_{self.selected_task.column}", Column
-        ).task_amount  # TODO F
+        ).task_amount
         row_idx = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
         ).row
@@ -81,9 +98,7 @@ class KanbanBoard(Horizontal):
                     case row_idx if row_idx == (current_column_tasks - 1):
                         self.query_one(
                             f"#column_{self.selected_task.column}", Column
-                        ).query(TaskCard)[  # TODO H
-                            0
-                        ].focus()
+                        ).query(TaskCard)[0].focus()
                     case _:
                         self.app.action_focus_next()
             case "right":

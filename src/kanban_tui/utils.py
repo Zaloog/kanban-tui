@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from functools import lru_cache
 
-from kanban_tui.database import create_new_task_db, init_new_db
+from kanban_tui.database import create_new_task_db, init_new_db, create_new_board_db
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 
 
@@ -383,6 +383,19 @@ def create_demo_tasks(database_path: Path, config_path: Path):
     )
 
     init_new_db(database=database_path)
+
+    # Create 2 Demo Boards
+    create_new_board_db(
+        name="Demo Board No1", icon=":construction:", database=database_path
+    )
+    create_new_board_db(
+        name="Demo Board No2", icon=":sparkles:", database=database_path
+    )
+    for i in range(3, 6):
+        create_new_board_db(
+            name=f"Demo Board No{i}", icon=":sparkles:", database=database_path
+        )
+
     # Ready
     create_new_task_db(
         title="Task_green_ready",
@@ -390,6 +403,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category="green",
         column="Ready",
         due_date=datetime.now(),
+        board_id=cfg.active_board,
         database=database_path,
     )
     create_new_task_db(
@@ -398,6 +412,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category="blue",
         column="Ready",
         due_date=datetime.now() + timedelta(days=1),
+        board_id=cfg.active_board,
         database=database_path,
     )
     create_new_task_db(
@@ -406,6 +421,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category=None,
         column="Ready",
         due_date=datetime.now() + timedelta(days=3),
+        board_id=cfg.active_board,
         database=database_path,
     )
 
@@ -416,6 +432,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         category="green",
         column="Doing",
         start_date=datetime.now(),
+        board_id=cfg.active_board,
         database=database_path,
     )
     # Done
@@ -426,6 +443,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         column="Done",
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
         finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
+        board_id=cfg.active_board,
         database=database_path,
     )
     # Archive
@@ -437,6 +455,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             column="Archive",
             start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
             finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
+            board_id=cfg.active_board,
             database=database_path,
         )
     for day in range(20, 25):
@@ -447,5 +466,17 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             column="Archive",
             start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
             finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
+            board_id=cfg.active_board,
             database=database_path,
         )
+
+
+def get_days_left_till_due(due_date: str | None):
+    if due_date is not None:
+        due_date_date = datetime.fromisoformat(due_date)
+        return max(
+            0,
+            (due_date_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
+            + 1,
+        )
+    return None

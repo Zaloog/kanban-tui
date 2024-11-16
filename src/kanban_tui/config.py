@@ -13,6 +13,7 @@ class KanbanTuiConfig(BaseModel):
     config: dict[str, Any] = {}
     tasks_always_expanded: bool = False
     no_category_task_color: str = "#004578"
+    active_board: int = 1
     category_color_dict: dict[str | None, str] = {}
     column_dict: dict[str, bool] = {
         "Ready": True,
@@ -35,6 +36,7 @@ class KanbanTuiConfig(BaseModel):
         self.no_category_task_color = self.config["kanban.settings"][
             "no_category_task_color"
         ]
+        self.active_board = self.config["kanban.settings"]["active_board"]
         self.category_color_dict = self.config["category.colors"]
         self.column_dict = self.config["column.visibility"]
         self.work_hour_dict = self.config["kanban.settings"]["work_hours"]
@@ -47,6 +49,11 @@ class KanbanTuiConfig(BaseModel):
     @property
     def columns(self) -> list[str]:
         return [column for column in self.config["column.visibility"].keys()]
+
+    def set_active_board(self, new_active_board: int) -> None:
+        self.active_board = new_active_board
+        self.config["kanban.settings"]["active_board"] = new_active_board
+        self.save()
 
     def set_tasks_always_expanded(self, new_value: bool) -> None:
         self.tasks_always_expanded = new_value
@@ -91,7 +98,8 @@ class KanbanTuiConfig(BaseModel):
 
     def save(self) -> None:
         with open(self.config_path, "w") as yaml_file:
-            yaml_file.write(yaml.dump(self.config, sort_keys=False))
+            dump = yaml.dump(self.config, sort_keys=False, indent=4, line_break="\n")
+            yaml_file.write(dump)
 
 
 def init_new_config(
@@ -114,6 +122,7 @@ def init_new_config(
     }
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
+        "active_board": 1,
         "no_category_task_color": "#004578",
         "work_hours": {
             "start_hour": "00",

@@ -27,19 +27,22 @@ class MainView(Screen):
     def compose(self) -> Iterable[Widget]:
         yield Header()
         yield Footer()
-        with TabbedContent(initial="tab_board"):
+        with TabbedContent(initial="tab_board", id="tabbed_content_boards"):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
                 yield OverView()
             with TabPane("Settings", id="tab_settings"):
                 yield SettingsView()
-            return super().compose()
+        return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
         self.query_one(ContentTabs).can_focus = False
         if self.app.demo_mode:
             self.show_demo_notification()
+        self.app.query_one(
+            "#tabbed_content_boards"
+        ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
         return super()._on_mount(event)
 
     def action_show_tab(self, tab: str) -> None:
@@ -69,7 +72,7 @@ class MainView(Screen):
         if event.tab.id == "--content-tab-tab_board":
             if self.query_one(SettingsView).config_has_changed:
                 self.query_one(KanbanBoard).refresh(recompose=True)
-                self.set_timer(delay=0.2, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.1, callback=self.app.action_focus_next)
             self.query_one(SettingsView).config_has_changed = False
         elif event.tab.id == "--content-tab-tab_overview":
             await self.query_one(OverView).update_plot_by_filters()

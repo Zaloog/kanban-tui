@@ -162,8 +162,6 @@ class CreationDateInfo(Horizontal):
             f"Task created at: {datetime.now().replace(microsecond=0)}",
             id="label_create_date",
         )
-        self.border = "$success"
-        self.border_title = "Creation Date"
         return super().compose()
 
 

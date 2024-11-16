@@ -224,6 +224,91 @@ ModalConfirmScreen {
     }
 }
 
+ModalNewBoardScreen {
+    align:center middle;
+    Vertical{
+        width:60%;
+        border:$success;
+        height:auto;
+        align:center middle;
+        content-align:center middle;
+
+        Horizontal{
+            height:auto;
+        }
+        Label{
+            width:1fr;
+            height:auto;
+            background: $background;
+            align:center middle;
+            text-align:center;
+            padding: 1 0;
+        }
+
+        #input_board_icon{
+            width:3fr;
+            height: auto;
+            border: tall $success;
+            border-title-align:center;
+            text-align:center;
+        }
+        #input_board_name{
+            width:5fr;
+            height: auto;
+            border: tall $success;
+            border-title-align:center;
+            text-align:center;
+        }
+        #static_preview_icon{
+            width:2fr;
+            height: auto;
+            color: $text-disabled;
+            border: tall $success;
+            border-title-align:center;
+            text-align:center;
+            padding: 0 0 0 0;
+        }
+        Button {
+            width: 1fr;
+            height:auto;
+        }
+    }
+}
+
+ModalBoardOverviewScreen {
+    align:center middle;
+    Vertical{
+        width:70%;
+        border:$success;
+        height:60%;
+        align:center middle;
+        content-align:center middle;
+        #label_header{
+            width:1fr;
+            height: auto;
+            text-align:center;
+            padding:0 0 1 0;
+        }
+        BoardListItem{
+            height:auto;
+            content-align:center middle;
+            Label{
+                width: 1fr;
+                padding:1 0;
+                text-align:left;
+            }
+            Rule{
+                height:auto;
+                color:black;
+            }
+        }
+        Button {
+            width: 1fr;
+            height:auto;
+        }
+    }
+}
+
 CategoryColorPicker{
     align:center middle;
     Vertical {
@@ -320,6 +405,10 @@ FilterOverlay {
         height:1fr;
         color:green;
     }
+}
+
+TabbedContent {
+    border:green;
 }
 
 SettingsView{

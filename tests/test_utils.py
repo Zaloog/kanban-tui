@@ -1,6 +1,8 @@
 import pytest
 from datetime import datetime
-from kanban_tui.utils import calculate_work_on_time
+from kanban_tui.utils import calculate_work_on_time, get_days_left_till_due
+
+from freezegun import freeze_time
 
 
 @pytest.mark.parametrize(
@@ -72,3 +74,19 @@ def test_calculate_work_on_time(
     )
 
     assert workon_time == expected_result
+
+
+@pytest.mark.parametrize(
+    "due_date, expected_result",
+    [
+        ("2024-01-06T00:00:00", 1),
+        ("2024-01-02T00:00:00", 0),
+        ("2024-01-20T00:00:00", 15),
+        (None, None),
+    ],
+)
+def test_get_days_left_till_due(due_date, expected_result):
+    with freeze_time(datetime(year=2024, month=1, day=5, hour=0, minute=0, second=1)):
+        calculated_days = get_days_left_till_due(due_date=due_date)
+
+        assert calculated_days == expected_result

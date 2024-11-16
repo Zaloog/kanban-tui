@@ -1,8 +1,12 @@
 from kanban_tui.app import KanbanTui
-from textual.widgets import Input
+from textual.widgets import Input, Button
 from kanban_tui.views.main_view import MainView
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
+from kanban_tui.modal.modal_board_screen import (
+    ModalBoardOverviewScreen,
+    ModalNewBoardScreen,
+)
 
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
@@ -35,6 +39,36 @@ async def test_kanbanboard_task_creation(empty_app: KanbanTui):
         assert isinstance(pilot.app.screen, MainView)
 
         assert len(list(pilot.app.query(TaskCard).results())) == 1
+
+
+async def test_kanbanboard_board_view(empty_app: KanbanTui):
+    async with empty_app.run_test(size=APP_SIZE) as pilot:
+        # open modal to show Boards
+        await pilot.press("B")
+        assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
+
+        # Open Board Creation Screen
+        await pilot.press("n")
+        assert isinstance(pilot.app.screen, ModalNewBoardScreen)
+        assert pilot.app.focused.id == "input_board_icon"
+        assert pilot.app.query_one("#input_board_name", Input).value == ""
+        assert pilot.app.query_one("#btn_continue_new_board", Button).disabled
+
+        # Enter new board name
+        await pilot.click("#input_board_name")
+        await pilot.press(*"Test Board")
+
+        assert pilot.app.query_one("#input_board_name").value == "Test Board"
+        assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
+
+        # save board
+        await pilot.click("#btn_continue_new_board")
+        await pilot.press("escape")
+        assert isinstance(pilot.app.screen, MainView)
+
+        # new Board no tasks
+        assert len(list(pilot.app.query(TaskCard).results())) == 0
+        assert len(list(pilot.app.board_list)) == 2
 
 
 # https://github.com/Zaloog/kanban-tui/issues/1

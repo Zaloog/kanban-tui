@@ -2,7 +2,7 @@ import pytest
 
 from kanban_tui.constants import CONFIG_NAME, DB_NAME
 from kanban_tui.config import init_new_config, KanbanTuiConfig
-from kanban_tui.database import init_new_db, create_new_task_db
+from kanban_tui.database import init_new_db, create_new_task_db, create_new_board_db
 from kanban_tui.app import KanbanTui
 
 
@@ -32,14 +32,17 @@ def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig
 
 
 @pytest.fixture
-def test_db(test_db_full_path):
+def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
     init_new_db(database=test_db_full_path)
     # Ready 3
+    create_new_board_db(name="Test_Board", icon=":bug:", database=test_db_full_path)
+
     create_new_task_db(
         title="Task_ready_0",
         description="Hallo",
         category="green",
         column="Ready",
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
     create_new_task_db(
@@ -47,6 +50,7 @@ def test_db(test_db_full_path):
         description="Hallo",
         category="blue",
         column="Ready",
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
     create_new_task_db(
@@ -54,6 +58,7 @@ def test_db(test_db_full_path):
         description="Hallo",
         category=None,
         column="Ready",
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
 
@@ -63,6 +68,7 @@ def test_db(test_db_full_path):
         description="Hallo",
         category="green",
         column="Doing",
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
     # Done 1
@@ -71,6 +77,7 @@ def test_db(test_db_full_path):
         description="Hallo",
         category="red",
         column="Done",
+        board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
 
@@ -81,7 +88,7 @@ def empty_app(test_config_full_path, test_db_full_path):
 
 
 @pytest.fixture
-def test_app(test_config_full_path, test_db_full_path, test_db, test_app_config):
+def test_app(test_config_full_path, test_db_full_path, init_test_db, test_app_config):
     # with initialized test_db
     # add categories to config
     cfg = test_app_config
