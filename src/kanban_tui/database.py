@@ -59,6 +59,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     due_date DATETIME,
     time_worked_on INTEGER,
     board_id INTEGER,
+    FOREIGN KEY (board_id) REFERENCES boards(board_id),
     CHECK (title <> "")
     );
     """
@@ -66,25 +67,37 @@ def init_new_db(database: Path = DB_FULL_PATH):
     board_db_creation_str = """
     CREATE TABLE IF NOT EXISTS boards (
     board_id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     icon TEXT,
     creation_date DATETIME NOT NULL,
     CHECK (name <> "")
     );
     """
-
-    indexes_creation_str = """
-    CREATE INDEX IF NOT EXISTS idx_task_title ON tasks(title);
-    CREATE INDEX IF NOT EXISTS idx_board_name ON boards(name);
+    column_db_creation_str = """
+    CREATE TABLE IF NOT EXISTS columns (
+    column_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    visible BOOLEAN,
+    board_id INTEGER,
+    FOREIGN KEY (board_id) REFERENCES boards(board_id),
+    CHECK (name <> "")
+    );
     """
+
+    # indexes_creation_str = """
+    # CREATE INDEX IF NOT EXISTS idx_task_title ON tasks(title);
+    # CREATE INDEX IF NOT EXISTS idx_board_name ON boards(name);
+    # CREATE INDEX IF NOT EXISTS idx_column_name ON boards(name);
+    # """
 
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
             con.execute(task_db_creation_str)
             con.execute(board_db_creation_str)
+            con.execute(column_db_creation_str)
 
-            con.executescript(indexes_creation_str)
+            # con.executescript(indexes_creation_str)
             return 0
         except sqlite3.Error as e:
             print(e)
@@ -107,12 +120,46 @@ def create_new_board_db(
         :name,
         :icon,
         :creation_date
+        )
+        RETURNING board_id
+        ;"""
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            (last_board_id,) = con.execute(
+                transaction_str,
+                board_dict,
+            ).fetchone()
+            con.commit()
+            return last_board_id
+        except sqlite3.Error as e:
+            con.rollback()
+            return e.sqlite_errorname
+
+
+def create_new_colum_db(
+    column_dict: dict[str, int | str], last_board_id: int, database: Path = DB_FULL_PATH
+):
+    transaction_str_cols = """
+    INSERT INTO columns
+    VALUES (
+        NULL,
+        :name,
+        :visible,
+        :board_id
         );"""
 
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            con.execute(transaction_str, board_dict)
+            for column_name, visibility in column_dict.items():
+                column_dict = {
+                    "name": column_name,
+                    "visible": visibility,
+                    "board_id": last_board_id,
+                }
+                con.execute(transaction_str_cols, column_dict)
             con.commit()
             return 0
         except sqlite3.Error as e:

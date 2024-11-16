@@ -65,12 +65,13 @@ async def test_task_edit(test_app: KanbanTui):
 
         # This somehow fixed the OSError: [WinError 6] Invalid Handle
         # When testing locally
-        await pilot.pause(delay=0.5)
+        # await pilot.pause(delay=0.5)
 
         assert isinstance(pilot.app.focused, TaskCard)
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause(delay=0.5)
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         assert pilot.app.screen.kanban_task is not None
 
