@@ -290,7 +290,7 @@ ModalBoardOverviewScreen {
             padding:0 0 1 0;
         }
         BoardListItem{
-            height:auto;
+            height:3;
             content-align:center middle;
             Label{
                 width: 1fr;

@@ -6,12 +6,12 @@ authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
 dependencies = [
-    "textual<0.86",
-    "textual-plotext>=0.2.1",
     "textual-datepicker>=0.2.4",
     "pyyaml>=6.0.2",
     "pydantic>=2.9.2",
     "click>=8.1.7",
+    "textual>=0.85.2",
+    "textual-plotext>=0.2.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -57,6 +57,9 @@ dev-dependencies = [
     "textual-dev>=1.6.1",
     "freezegun>=1.5.1",
 ]
+
+[tool.uv.sources]
+textual-plotext = { git = "https://github.com/Zaloog/textual-plotext" }
 
 [tool.hatch.metadata]
 allow-direct-references = true

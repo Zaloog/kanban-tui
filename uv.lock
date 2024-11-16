@@ -423,9 +423,9 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.7" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "textual", specifier = "<0.86" },
+    { name = "textual", specifier = ">=0.85.2" },
     { name = "textual-datepicker", specifier = ">=0.2.4" },
-    { name = "textual-plotext", specifier = ">=0.2.1" },
+    { name = "textual-plotext", git = "https://github.com/Zaloog/textual-plotext" },
 ]
 
 [package.metadata.requires-dev]
@@ -1083,7 +1083,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.85.2"
+version = "0.86.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1091,9 +1091,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/71/69/8b2c90ef5863b67f2adb067772b259412130a10c7080e1fede39c6245f73/textual-0.85.2.tar.gz", hash = "sha256:2a416995c49d5381a81d0a6fd23925cb0e3f14b4f239ed05f35fa3c981bb1df2", size = 1462599 }
+sdist = { url = "https://files.pythonhosted.org/packages/56/c6/435723343db6a65ed92950d1e20ded920c4c22e6e785ea0e369abd4ac1c7/textual-0.86.1.tar.gz", hash = "sha256:a6e68de5383415f222f26b4049c2a92ed204071fdfebe3d729f8dd373ca5f519", size = 1496752 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/f0/29bd25c7cd53f2b53bc0205a936b5d3a37c88a70bb91037c939d313d8462/textual-0.85.2-py3-none-any.whl", hash = "sha256:9ccdeb6b8a6a0ff72d497f714934f2e524f2eb67783b459fb08b1339ee537dc0", size = 614939 },
+    { url = "https://files.pythonhosted.org/packages/fe/a3/2b7bfd8d0665072a77459f51b600445939aee8a9d25bc3d546c9ac879a19/textual-0.86.1-py3-none-any.whl", hash = "sha256:ebc2bfd92c2f1a451c12dcbcfda002598a2fc9793d1684be83514b5fba75f915", size = 646857 },
 ]
 
 [[package]]
@@ -1129,14 +1129,10 @@ wheels = [
 [[package]]
 name = "textual-plotext"
 version = "0.2.1"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/Zaloog/textual-plotext#1bb5401fc1b4ac71adf2002175c8af8201949608" }
 dependencies = [
     { name = "plotext" },
     { name = "textual" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/bf/195b67009154bb9eceb02028fb50fb39ab6a81b628b9451397fa9b0c7da6/textual_plotext-0.2.1.tar.gz", hash = "sha256:bc6f2d75d8e20dda6321f8254dc3decda8f41f60e6e70a3ddd83b652b890c081", size = 16397 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/00/125486e77be52a4222ba5690af564814688f1d5466df1d566540d1950db5/textual_plotext-0.2.1-py3-none-any.whl", hash = "sha256:a1055cf50fac9af11f56b5ff73442570eb5fd051e513b20aeb8b15a6a2abfcff", size = 16513 },
 ]
 
 [[package]]
