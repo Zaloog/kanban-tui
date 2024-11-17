@@ -16,6 +16,8 @@ from textual.containers import Horizontal, VerticalScroll, Vertical
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.classes.column import Column
+from kanban_tui.database import update_column_visibility_db, delete_column_db
 
 
 class DataBasePathInput(Horizontal):
@@ -129,26 +131,36 @@ class DefaultTaskColorSelector(Horizontal):
 
 
 class ChangeColumnVisibilitySwitch(Horizontal):
+    class Deleted(Message):
+        def __init__(self, column_element: ChangeColumnVisibilitySwitch) -> None:
+            self.column_element = column_element
+            super().__init__()
+
+        @property
+        def control(self):
+            return self.column_element
+
     app: "KanbanTui"
 
-    def __init__(self, column_name: str) -> None:
-        self.column_name = column_name
+    def __init__(self, column: Column) -> None:
+        self.column = column
         super().__init__()
 
     def compose(self) -> Iterable[Widget]:
-        yield Label(f"Show [blue]{self.column_name}[/]")
+        yield Label(f"Show [blue]{self.column.name}[/]")
         yield Switch(
-            value=self.app.cfg.column_dict[self.column_name],
-            id=f"switch_col_vis_{self.column_name}",
-            # disabled=True if self.column_name in COLUMNS[:3] else False,
+            value=self.column.visible,
+            id=f"switch_col_vis_{self.column.column_id}",
         )
         yield Button(
             label="Delete",
-            id=f"button_col_del_{self.column_name}",
+            id=f"button_col_del_{self.column.column_id}",
             variant="error",
-            # disabled=True if self.column_name in COLUMNS else False,
         )
         return super().compose()
+
+    def on_button_pressed(self):
+        self.post_message(self.Deleted(column_element=self))
 
 
 # Widget to Add new columns and change column visibility
@@ -193,9 +205,9 @@ class ColumnSelector(Vertical):
         yield Label(id="label_amount_visible")
         with VerticalScroll():
             yield AddRule(id="first_position", position=0)
-            for position, column in enumerate(self.app.cfg.columns, start=1):
-                yield ChangeColumnVisibilitySwitch(column_name=column)
-                yield AddRule(id=column, position=position)
+            for column in self.app.column_list:
+                yield ChangeColumnVisibilitySwitch(column=column)
+                yield AddRule(id=column.name, position=column.position)
 
         return super().compose()
 
@@ -209,6 +221,7 @@ class ColumnSelector(Vertical):
     def modal_add_new_column(self, event_col_name: tuple[AddRule.Pressed, str] | None):
         if event_col_name:
             event, col_name = event_col_name
+            # TODO
             self.app.cfg.add_new_column(
                 new_column=col_name, position=event.addrule.position
             )
@@ -219,7 +232,7 @@ class ColumnSelector(Vertical):
                     after=f"#{event.addrule.id}",  # if event.addrule.id else 2,
                 )
                 self.query_one(VerticalScroll).mount(
-                    ChangeColumnVisibilitySwitch(column_name=col_name),
+                    ChangeColumnVisibilitySwitch(column=col_name),
                     after=f"#{event.addrule.id}",  # if event.addrule.id else 2,
                 )
 
@@ -232,14 +245,12 @@ class ColumnSelector(Vertical):
                 timeout=2,
             )
             self.amount_visible += 1
+            self.app.update_column_list()
 
-    @on(Button.Pressed)
-    def delete_column(self, event: Button.Pressed):
-        # Implement Modal
-        if not event.button.id:
-            return
+    @on(ChangeColumnVisibilitySwitch.Deleted)
+    def delete_column(self, event: ChangeColumnVisibilitySwitch.Deleted):
         # TODO check if column empty
-        column_name = event.button.id.split("_")[-1]
+        column_name = event.column_element.column.name
         if (
             len([task for task in self.app.task_list if task.column == column_name])
             != 0
@@ -257,18 +268,21 @@ class ColumnSelector(Vertical):
             callback=lambda x: self.modal_delete_column(event=event, delete_yn=x),
         )
 
-    def modal_delete_column(self, event: Button.Pressed, delete_yn: bool) -> None:
+    def modal_delete_column(
+        self, event: ChangeColumnVisibilitySwitch.Deleted, delete_yn: bool
+    ) -> None:
         if delete_yn:
-            column_name = event.button.id.split("_")[-1]
+            column_id = event.column_element.column.column_id
+            column_name = event.column_element.column.name
 
-            if column_name in self.app.cfg.visible_columns:
-                self.app.cfg.delete_column(column_to_delete=column_name)
+            delete_column_db(column_id=column_id, database=self.app.cfg.database_path)
+            self.app.update_column_list()
+            if event.column_element.column.visible:
                 self.amount_visible -= 1
             else:
-                self.app.cfg.delete_column(column_to_delete=column_name)
                 self.watch_amount_visible()
 
-            event.button.parent.remove()
+            event.column_element.remove()
             self.query_one(f"#{column_name}").remove()
 
             for new_position, rule in enumerate(self.query(AddRule), start=1):
@@ -282,11 +296,18 @@ class ColumnSelector(Vertical):
 
     def watch_amount_visible(self):
         self.query_one("#label_amount_visible", Label).update(
-            f"Show {self.amount_visible} / {len(self.app.cfg.columns)} Columns"
+            f"Show {self.amount_visible} / {len(self.app.column_list)} Columns"
         )
 
     def on_switch_changed(self, event: Switch.Changed):
         self.amount_visible += 1 if event.value else -1
-        column = event.switch.id.split("_")[-1]
+        column_id = event.switch.id.split("_")[-1]
+        self.notify(f"{column_id}")
+        update_column_visibility_db(
+            column_id=column_id,
+            visible=event.value,
+            database=self.app.cfg.database_path,
+        )
 
-        self.app.cfg.set_column_dict(column_name=column)
+        # self.app.cfg.set_column_dict(column_name=column)
+        self.app.update_column_list()

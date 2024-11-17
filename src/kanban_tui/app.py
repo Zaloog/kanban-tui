@@ -55,7 +55,7 @@ class KanbanTui(App):
         self.active_board = self.get_active_board()
         self.update_task_list()
         self.update_column_list()
-        self.notify(f"{self.column_list}")
+        # self.notify(f"{self.column_list}")
 
     def update_task_list(self):
         self.task_list = get_all_tasks_on_board_db(

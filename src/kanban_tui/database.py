@@ -323,6 +323,35 @@ def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
             return e.sqlite_errorname
 
 
+def update_column_visibility_db(
+    column_id: int,
+    visible: bool,
+    database: Path = DB_FULL_PATH,
+) -> str | int:
+    update_column_dict = {
+        "column_id": column_id,
+        "visible": visible,
+    }
+
+    transaction_str = """
+    UPDATE columns
+    SET
+        visible = :visible
+    WHERE column_id = :column_id;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_column_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
 # After Editing
 def update_task_entry_db(
     task_id: int,
@@ -354,6 +383,23 @@ def update_task_entry_db(
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str, update_task_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def delete_column_db(column_id: int, database: Path = DB_FULL_PATH) -> int | str:
+    delete_str = """
+    DELETE FROM columns
+    WHERE column_id = ?
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(delete_str, (column_id,))
             con.commit()
             return 0
         except sqlite3.Error as e:
