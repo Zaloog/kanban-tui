@@ -42,11 +42,16 @@ class KanbanBoard(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        for column_name in self.app.cfg.visible_columns:
-            col_tasks = [
-                task for task in self.app.task_list if task.column == column_name
-            ]
-            yield Column(title=column_name, tasklist=col_tasks)
+        # for column_name in self.app.cfg.visible_columns:
+        #     col_tasks = [
+        #         task for task in self.app.task_list if task.column == column_name
+        #     ]
+        for column in self.app.column_list:
+            if column.visible:
+                column_tasks = [
+                    task for task in self.app.task_list if task.column == column.name
+                ]
+                yield Column(title=column.name, tasklist=column_tasks)
         yield FilterOverlay()
 
         return super().compose()

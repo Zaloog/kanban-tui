@@ -18,8 +18,8 @@ from kanban_tui.widgets.modal_board_widgets import BoardList
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.database import (
     update_board_entry_db,
+    get_all_columns_on_board_db,
     create_new_board_db,
-    create_new_colum_db,
     delete_board_db,
 )
 
@@ -103,14 +103,9 @@ class ModalNewBoardScreen(ModalScreen):
             if new_board_icon:
                 new_board_icon = f":{new_board_icon}:"
 
-            new_board_id = create_new_board_db(
+            create_new_board_db(
                 name=new_board_name,
                 icon=new_board_icon,
-                database=self.app.cfg.database_path,
-            )
-            create_new_colum_db(
-                column_dict={"New1": 1, "New2": 0},
-                last_board_id=new_board_id,
                 database=self.app.cfg.database_path,
             )
 
@@ -190,9 +185,13 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_copy_board(self) -> None:
         highlighted_board = self.query_one(BoardList).highlighted_child.board
+        highlighted_board_cols = get_all_columns_on_board_db(
+            board_id=highlighted_board.board_id, database=self.app.cfg.database_path
+        )
         create_new_board_db(
             name=f"{highlighted_board.name}_copy",
             icon=highlighted_board.icon,
+            column_dict={col.name: col.visible for col in highlighted_board_cols},
             database=self.app.cfg.database_path,
         )
 

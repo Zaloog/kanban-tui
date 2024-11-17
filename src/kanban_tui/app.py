@@ -9,6 +9,7 @@ from kanban_tui.database import (
     init_new_db,
     get_all_boards_db,
     get_all_tasks_on_board_db,
+    get_all_columns_on_board_db,
     init_first_board,
 )
 from kanban_tui.classes.task import Task
@@ -25,6 +26,7 @@ class KanbanTui(App):
     cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
+    column_list: reactive[list[Board]] = reactive([], init=False)
     active_board: Board = None
 
     def __init__(
@@ -43,21 +45,27 @@ class KanbanTui(App):
 
     def on_mount(self) -> None:
         self.theme = "dracula"
+        # After boards got updated and active board
+        # is set, also updates tasks
         self.update_board_list()
-        # self.update_task_list()
         self.push_screen("MainView")
 
-    def update_task_list(self):
-        tasks = get_all_tasks_on_board_db(
-            database=self.app.cfg.database_path, board_id=self.active_board.board_id
-        )
-        self.task_list = tasks
-
     def update_board_list(self):
-        boards = get_all_boards_db(database=self.app.cfg.database_path)
-        self.board_list = boards
+        self.board_list = get_all_boards_db(database=self.app.cfg.database_path)
         self.active_board = self.get_active_board()
         self.update_task_list()
+        self.update_column_list()
+        self.notify(f"{self.column_list}")
+
+    def update_task_list(self):
+        self.task_list = get_all_tasks_on_board_db(
+            database=self.app.cfg.database_path, board_id=self.active_board.board_id
+        )
+
+    def update_column_list(self):
+        self.column_list = get_all_columns_on_board_db(
+            database=self.app.cfg.database_path, board_id=self.active_board.board_id
+        )
 
     def get_active_board(self) -> None | Board:
         for board in self.board_list:

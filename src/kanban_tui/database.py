@@ -2,9 +2,10 @@ import sqlite3
 from pathlib import Path
 import datetime
 
-from kanban_tui.constants import DB_FULL_PATH
+from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
+from kanban_tui.classes.column import Column
 
 
 def adapt_datetime_iso(val: datetime.datetime) -> str:
@@ -35,6 +36,11 @@ def task_factory(cursor, row):
 def board_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return Board(**{k: v for k, v in zip(fields, row)})
+
+
+def column_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return Column(**{k: v for k, v in zip(fields, row)})
 
 
 def info_factory(cursor, row):
@@ -78,6 +84,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     column_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     visible BOOLEAN,
+    position INTEGER,
     board_id INTEGER,
     FOREIGN KEY (board_id) REFERENCES boards(board_id),
     CHECK (name <> "")
@@ -107,7 +114,10 @@ def init_new_db(database: Path = DB_FULL_PATH):
 
 
 def create_new_board_db(
-    name: str, icon: str | None = None, database: Path = DB_FULL_PATH
+    name: str,
+    icon: str | None = None,
+    column_dict: dict[str, int | str] = DEFAULT_COLUMN_DICT,
+    database: Path = DB_FULL_PATH,
 ) -> str | int:
     board_dict = {
         "name": name,
@@ -125,13 +135,33 @@ def create_new_board_db(
         RETURNING board_id
         ;"""
 
+    transaction_str_cols = """
+    INSERT INTO columns
+    VALUES (
+        NULL,
+        :name,
+        :visible,
+        :position,
+        :board_id
+        );"""
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
+            # create Board
             (last_board_id,) = con.execute(
                 transaction_str,
                 board_dict,
             ).fetchone()
+
+            # create Columns
+            for position, (column_name, visibility) in enumerate(column_dict.items()):
+                column_dict = {
+                    "name": column_name,
+                    "visible": visibility,
+                    "position": position,
+                    "board_id": last_board_id,
+                }
+                con.execute(transaction_str_cols, column_dict)
             con.commit()
             return last_board_id
         except sqlite3.Error as e:
@@ -139,40 +169,10 @@ def create_new_board_db(
             return e.sqlite_errorname
 
 
-def create_new_colum_db(
-    column_dict: dict[str, int | str], last_board_id: int, database: Path = DB_FULL_PATH
-):
-    transaction_str_cols = """
-    INSERT INTO columns
-    VALUES (
-        NULL,
-        :name,
-        :visible,
-        :board_id
-        );"""
-
-    with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
-        try:
-            for column_name, visibility in column_dict.items():
-                column_dict = {
-                    "name": column_name,
-                    "visible": visibility,
-                    "board_id": last_board_id,
-                }
-                con.execute(transaction_str_cols, column_dict)
-            con.commit()
-            return 0
-        except sqlite3.Error as e:
-            raise e
-            con.rollback()
-            return e.sqlite_errorname
-
-
 def create_new_task_db(
     title: str,
     board_id: int,
-    column: str = "Ready",  # TODO B
+    column: str = "Ready",
     category: str | None = None,
     description: str | None = None,
     start_date: datetime.datetime | None = None,
@@ -221,24 +221,6 @@ def create_new_task_db(
             return e.sqlite_errorname
 
 
-def get_all_tasks_db(
-    database: Path = DB_FULL_PATH,
-) -> list[Task] | None:
-    query_str = """
-    SELECT *
-    FROM tasks ;
-    """
-
-    with create_connection(database=database) as con:
-        con.row_factory = task_factory
-        try:
-            tasks = con.execute(query_str).fetchall()
-            return tasks
-        except sqlite3.Error as e:
-            print(e)
-            return None
-
-
 def get_all_tasks_on_board_db(
     board_id: int,
     database: Path = DB_FULL_PATH,
@@ -261,10 +243,38 @@ def get_all_tasks_on_board_db(
             return None
 
 
+def get_all_columns_on_board_db(
+    board_id: int,
+    database: Path = DB_FULL_PATH,
+) -> list[Task] | None:
+    board_id_dict = {"board_id": board_id}
+
+    query_str = """
+    SELECT *
+    FROM columns
+    WHERE board_id = :board_id
+    ORDER BY position;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = column_factory
+        try:
+            columns = con.execute(query_str, board_id_dict).fetchall()
+            return columns
+        except sqlite3.Error as e:
+            print(e)
+            return None
+
+
 def init_first_board(database: Path = DB_FULL_PATH) -> None:
     # Check if Boards exist
     if not get_all_boards_db(database=database):
-        create_new_board_db(name="Kanban Board", icon=":sparkles:", database=database)
+        create_new_board_db(
+            name="Kanban Board",
+            icon=":sparkles:",
+            column_dict=DEFAULT_COLUMN_DICT,
+            database=database,
+        )
 
 
 def get_all_boards_db(

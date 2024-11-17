@@ -1,13 +1,9 @@
 from platformdirs import user_config_path, user_data_path, user_runtime_path
 
-COLUMNS = ["Ready", "Doing", "Done", "Archive"]
+DEFAULT_COLUMN_DICT = {"Ready": True, "Doing": True, "Done": True, "Archive": False}
 
 DB_NAME = "database.db"
 CONFIG_NAME = "kanban_tui.yaml"
-
-# For Developing
-# DB_LOCATION = Path().cwd()
-# CONFIG_LOCATION = Path().cwd()
 
 # Normal Use
 DB_LOCATION = user_data_path(appname="kanban-tui", appauthor=False, ensure_exists=True)
