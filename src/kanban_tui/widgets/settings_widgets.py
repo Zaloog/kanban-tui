@@ -203,7 +203,7 @@ class ColumnSelector(Vertical):
 
     def _on_mount(self, event: Mount) -> None:
         self.border_title = "column.visibility"
-        self.amount_visible = len([col for col in self.app.column_list if col.visible])
+        self.amount_visible = len(self.app.visible_column_list)
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:

@@ -84,11 +84,9 @@ class ModalTaskEditScreen(ModalScreen):
             create_new_task_db(
                 title=title,
                 description=description,
-                column=self.app.cfg.visible_columns[
-                    0
-                ],  # "Ready",  # TODO (Start Column) P
+                column=self.app.visible_column_list[0],
                 start_date=datetime.now()
-                if self.app.cfg.visible_columns[0] == "Doing"
+                if (self.app.visible_column_list[0] == "Doing")
                 else None,
                 category=category,
                 due_date=due_date,

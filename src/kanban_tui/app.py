@@ -14,6 +14,7 @@ from kanban_tui.database import (
 )
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
+from kanban_tui.classes.column import Column
 from kanban_tui.constants import DB_FULL_PATH, CONFIG_FULL_PATH
 
 
@@ -72,3 +73,7 @@ class KanbanTui(App):
             if board.board_id == self.cfg.active_board:
                 return board
         return None
+
+    @property
+    def visible_column_list(self) -> list[Column]:
+        return [col.name for col in self.column_list if col.visible]

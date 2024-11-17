@@ -42,10 +42,6 @@ class KanbanBoard(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        # for column_name in self.app.cfg.visible_columns:
-        #     col_tasks = [
-        #         task for task in self.app.task_list if task.column == column_name
-        #     ]
         for column in self.app.column_list:
             if column.visible:
                 column_tasks = [
@@ -108,9 +104,9 @@ class KanbanBoard(Horizontal):
                         self.app.action_focus_next()
             case "right":
                 new_column_id = (
-                    self.app.cfg.visible_columns.index(self.selected_task.column) + 1
-                ) % len(self.app.cfg.visible_columns)
-                new_column_name = self.app.cfg.visible_columns[new_column_id]
+                    self.app.visible_column_list.index(self.selected_task.column) + 1
+                ) % len(self.app.visible_column_list)
+                new_column_name = self.app.visible_column_list[new_column_id]
                 new_column_tasks = self.query_one(
                     f"#column_{new_column_name}", Column
                 ).task_amount
@@ -127,11 +123,11 @@ class KanbanBoard(Horizontal):
                         )[row_idx].focus()
             case "left":
                 new_column_id = (
-                    self.app.cfg.visible_columns.index(self.selected_task.column)
-                    + len(self.app.cfg.visible_columns)
+                    self.app.visible_column_list.index(self.selected_task.column)
+                    + len(self.app.visible_column_list)
                     - 1
-                ) % len(self.app.cfg.visible_columns)
-                new_column_name = self.app.cfg.visible_columns[new_column_id]
+                ) % len(self.app.visible_column_list)
+                new_column_name = self.app.visible_column_list[new_column_id]
                 new_column_tasks = self.query_one(
                     f"#column_{new_column_name}", Column
                 ).task_amount

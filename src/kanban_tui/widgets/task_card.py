@@ -121,16 +121,16 @@ class TaskCard(Vertical):
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
             case "left":
-                if self.app.cfg.visible_columns[0] == self.task_.column:
+                if self.app.visible_column_list[0] == self.task_.column:
                     return
-                new_column = self.app.cfg.visible_columns[
-                    self.app.cfg.visible_columns.index(self.task_.column) - 1
+                new_column = self.app.visible_column_list[
+                    self.app.visible_column_list.index(self.task_.column) - 1
                 ]
             case "right":
-                if self.app.cfg.visible_columns[-1] == self.task_.column:
+                if self.app.visible_column_list[-1] == self.task_.column:
                     return
-                new_column = self.app.cfg.visible_columns[
-                    self.app.cfg.visible_columns.index(self.task_.column) + 1
+                new_column = self.app.visible_column_list[
+                    self.app.visible_column_list.index(self.task_.column) + 1
                 ]
 
         self.task_.update_task_status(new_column=new_column)

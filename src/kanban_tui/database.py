@@ -281,7 +281,7 @@ def get_all_tasks_on_board_db(
 def get_all_columns_on_board_db(
     board_id: int,
     database: Path = DB_FULL_PATH,
-) -> list[Task] | None:
+) -> list[Column] | None:
     board_id_dict = {"board_id": board_id}
 
     query_str = """
@@ -581,10 +581,12 @@ def get_all_board_infos(
     query_str = """
     SELECT
     b.board_id AS board_id,
-    COUNT(t.task_id) AS amount_tasks,
+    COUNT(DISTINCT t.task_id) AS amount_tasks,
+    COUNT(DISTINCT c.column_id) AS amount_columns,
     MIN(t.due_date) AS next_due
     FROM boards b
     LEFT JOIN tasks t ON b.board_id = t.board_id
+    LEFT JOIN columns c ON b.board_id = c.board_id
     GROUP BY b.board_id;
     """
 
