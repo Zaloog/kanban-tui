@@ -229,12 +229,14 @@ class ColumnSelector(Vertical):
             update_column_positions_db(
                 board_id=self.app.active_board.board_id,
                 new_position=event.addrule.position,
+                database=self.app.cfg.database_path,
             )
             create_new_column_db(
                 board_id=self.app.active_board.board_id,
                 position=event.addrule.position + 1,
                 name=column_name,
                 visible=True,
+                database=self.app.cfg.database_path,
             )
 
             self.app.update_column_list()
