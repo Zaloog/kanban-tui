@@ -494,11 +494,17 @@ def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
     DELETE FROM tasks
     WHERE board_id = ?
     """
+
+    delete_column_str = """
+    DELETE FROM columns
+    WHERE board_id = ?
+    """
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
             con.execute(delete_board_str, (board_id,))
             con.execute(delete_task_str, (board_id,))
+            con.execute(delete_column_str, (board_id,))
             con.commit()
             return 0
         except sqlite3.Error as e:
