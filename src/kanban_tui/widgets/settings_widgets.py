@@ -10,8 +10,18 @@ from textual.events import Mount, DescendantBlur
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Input, Collapsible, DataTable, Rule, Button
-from textual.containers import Horizontal, VerticalScroll, Vertical
+from textual.widgets import (
+    Label,
+    Switch,
+    Input,
+    Collapsible,
+    DataTable,
+    Rule,
+    Button,
+    ListView,
+    ListItem,
+)
+from textual.containers import Horizontal, Vertical
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
@@ -192,12 +202,66 @@ class AddRule(Rule):
         self.post_message(self.Pressed(self))
 
 
-class ColumnSelector(Vertical):
+class ColumnListItem(ListItem):
+    app: "KanbanTui"
+
+    class Deleted(Message):
+        def __init__(self, column_list_item: ColumnListItem) -> None:
+            self.column_list_item = column_list_item
+            super().__init__()
+
+        @property
+        def control(self):
+            return self.column_list_item
+
+    def __init__(self, column: Column) -> None:
+        self.column = column
+        super().__init__(id=f"listitem_column_{self.column.column_id}")
+
+    def compose(self) -> Iterable[Widget]:
+        with Horizontal():
+            yield Label(f"Show [blue]{self.column.name}[/]")
+            yield Switch(
+                value=self.column.visible,
+                id=f"switch_col_vis_{self.column.column_id}",
+            )
+            yield Button(
+                label="Delete",
+                id=f"button_col_del_{self.column.column_id}",
+                variant="error",
+            )
+        yield AddRule(position=self.column.position, id=self.column.name)
+
+        return super().compose()
+
+    def on_button_pressed(self, event: Button.Pressed):
+        if event.button.id:
+            self.post_message(self.Deleted(self))
+
+
+class FirstListItem(ListItem):
+    app: "KanbanTui"
+
+    def __init__(self) -> None:
+        super().__init__(id="listitem_column_0")
+
+    def compose(self) -> Iterable[Widget]:
+        yield AddRule(id="first_position", position=0)
+
+        return super().compose()
+
+
+class ColumnSelector(ListView):
     app: "KanbanTui"
 
     BINDINGS = [
-        Binding("up,k", "cursor_up", "Cursor Up", show=False),
-        Binding("down,j", "cursor_down", "Cursor Down", show=False),
+        Binding(key="j", action="cursor_down", show=False),
+        Binding(key="k", action="cursor_up", show=False),
+        Binding(key="enter,space", action="select_cursor", show=False),
+        Binding(key="d", action="delete_press", description="Delete Column", show=True),
+        Binding(
+            key="n", action="addrule_press", description="Insert Column", show=True
+        ),
     ]
     amount_visible: reactive[int] = reactive(0)
 
@@ -206,50 +270,62 @@ class ColumnSelector(Vertical):
         self.amount_visible = len(self.app.visible_column_list)
         return super()._on_mount(event)
 
-    def compose(self) -> Iterable[Widget]:
-        yield Label(id="label_amount_visible")
-        with VerticalScroll():
-            yield AddRule(id="first_position", position=0)
-            for column in self.app.column_list:
-                yield ChangeColumnVisibilitySwitch(column=column)
-                yield AddRule(id=column.name, position=column.position)
+    def __init__(self) -> None:
+        children = [FirstListItem()] + [
+            ColumnListItem(column=column) for column in self.app.column_list
+        ]
+        super().__init__(*children, id="column_list", initial_index=None)
 
-        return super().compose()
+    # New Column
+    def action_addrule_press(self):
+        self.highlighted_child.query_one(AddRule).query_one(Button).press()
 
     @on(AddRule.Pressed)
     def add_new_column(self, event: AddRule.Pressed):
-        # Implement Modal
+        async def modal_add_new_column(
+            event_col_name: tuple[AddRule.Pressed, str] | None,
+        ):
+            if event_col_name:
+                event, column_name = event_col_name
+                update_column_positions_db(
+                    board_id=self.app.active_board.board_id,
+                    new_position=event.addrule.position,
+                    database=self.app.cfg.database_path,
+                )
+                create_new_column_db(
+                    board_id=self.app.active_board.board_id,
+                    position=event.addrule.position + 1,
+                    name=column_name,
+                    visible=True,
+                    database=self.app.cfg.database_path,
+                )
+                self.app.update_column_list()
+                await self.clear()
+                self.extend(
+                    [FirstListItem()]
+                    + [ColumnListItem(column=column) for column in self.app.column_list]
+                )
+                self.index = event.addrule.position + 1
+                self.amount_visible += 1
+
+                self.notify(
+                    title="Columns Updated",
+                    message=f"Column [blue]{column_name}[/] created",
+                    timeout=2,
+                )
+
         self.app.push_screen(
-            ModalNewColumnScreen(event=event), callback=self.modal_add_new_column
+            ModalNewColumnScreen(event=event), callback=modal_add_new_column
         )
 
-    def modal_add_new_column(self, event_col_name: tuple[AddRule.Pressed, str] | None):
-        if event_col_name:
-            event, column_name = event_col_name
-            update_column_positions_db(
-                board_id=self.app.active_board.board_id,
-                new_position=event.addrule.position,
-                database=self.app.cfg.database_path,
-            )
-            create_new_column_db(
-                board_id=self.app.active_board.board_id,
-                position=event.addrule.position + 1,
-                name=column_name,
-                visible=True,
-                database=self.app.cfg.database_path,
-            )
+    # Delete Column
+    def action_delete_press(self):
+        if isinstance(self.highlighted_child, ColumnListItem):
+            self.highlighted_child.query_one(Button).press()
 
-            self.app.update_column_list()
-            self.refresh(recompose=True)
-            self.notify(
-                title="Columns Updated",
-                message=f"Column [blue]{column_name}[/] created",
-                timeout=2,
-            )
-
-    @on(ChangeColumnVisibilitySwitch.Deleted)
-    def delete_column(self, event: ChangeColumnVisibilitySwitch.Deleted):
-        column_name = event.column_element.column.name
+    @on(ColumnListItem.Deleted)
+    def delete_column(self, event: ColumnListItem.Deleted):
+        column_name = event.column_list_item.column.name
         if (
             len([task for task in self.app.task_list if task.column == column_name])
             != 0
@@ -262,48 +338,48 @@ class ColumnSelector(Vertical):
             )
             return
 
+        def modal_delete_column(event: ColumnListItem.Deleted, delete_yn: bool) -> None:
+            if delete_yn:
+                column_id = event.column_list_item.column.column_id
+                column_name = event.column_list_item.column.name
+
+                delete_column_db(
+                    column_id=column_id, database=self.app.cfg.database_path
+                )
+                self.app.update_column_list()
+                if event.column_list_item.column.visible:
+                    self.amount_visible -= 1
+                else:
+                    self.watch_amount_visible()
+
+                # Remove ListItem
+                event.column_list_item.remove()
+
+                self.notify(
+                    title="Columns Updated",
+                    message=f"Column [blue]{column_name}[/] deleted",
+                    timeout=2,
+                )
+
         self.app.push_screen(
             ModalConfirmScreen(text=f"Delete Column [blue]{column_name}[/]"),
-            callback=lambda x: self.modal_delete_column(event=event, delete_yn=x),
+            callback=lambda x: modal_delete_column(event=event, delete_yn=x),
         )
-
-    def modal_delete_column(
-        self, event: ChangeColumnVisibilitySwitch.Deleted, delete_yn: bool
-    ) -> None:
-        if delete_yn:
-            column_id = event.column_element.column.column_id
-            column_name = event.column_element.column.name
-
-            delete_column_db(column_id=column_id, database=self.app.cfg.database_path)
-            self.app.update_column_list()
-            if event.column_element.column.visible:
-                self.amount_visible -= 1
-            else:
-                self.watch_amount_visible()
-
-            # Remove Col Switch Element
-            event.column_element.remove()
-            # Remove Corresponding Addrule
-            self.query_one(f"#{column_name}").remove()
-
-            for new_position, rule in enumerate(self.query(AddRule), start=1):
-                rule.position = new_position
-
-            self.notify(
-                title="Columns Updated",
-                message=f"Column [blue]{column_name}[/] deleted",
-                timeout=2,
-            )
 
     def watch_amount_visible(self):
-        self.query_one("#label_amount_visible", Label).update(
-            f"Show {self.amount_visible} / {len(self.app.column_list)} Columns"
-        )
+        self.border_title = f"columns.visible  [blue]{self.amount_visible} / {len(self.app.column_list)}[/]"
 
-    def on_switch_changed(self, event: Switch.Changed):
+    @on(ListView.Selected)
+    def on_space_key(self, event: ListView.Selected):
+        if isinstance(event.list_view.highlighted_child, FirstListItem):
+            self.action_addrule_press()
+        else:
+            event.list_view.highlighted_child.query_one(Switch).toggle()
+
+    @on(Switch.Changed)
+    def update_visibility(self, event: Switch.Changed):
         self.amount_visible += 1 if event.value else -1
         column_id = event.switch.id.split("_")[-1]
-        self.notify(f"{column_id}")
         update_column_visibility_db(
             column_id=column_id,
             visible=event.value,

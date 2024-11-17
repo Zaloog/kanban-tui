@@ -510,16 +510,7 @@ SettingsView{
             VerticalScroll{
                 margin:1 0 0 0;
                 height:1fr;
-                AddRule{
 
-                    margin:0;
-                    align:center middle;
-                    color:$success-lighten-3;
-                    Button{
-                        border:none;
-                        height:1;
-                    }
-                }
 
                 ChangeColumnVisibilitySwitch {
                     height:auto;
@@ -632,4 +623,40 @@ DatePicker DayLabel:focus {
     text-style: bold reverse;
     background:$success;
     color:auto;
+}
+
+ColumnSelector2{
+    border:$success;
+    height:1fr;
+    width:1fr;
+    margin:0;
+
+
+}
+ColumnListItem{
+    height:4;
+    content-align:center middle;
+    Label{
+        width: 2fr;
+        padding:1 0;
+        text-align:left;
+    }
+    Switch{
+        width: 3fr;
+    }
+    & > Button{
+        width: 1fr;
+        min-width:1fr;
+    }
+}
+AddRule{
+    margin:0;
+    align:left middle;
+    color:$success-lighten-3;
+    Button{
+        width:auto;
+        min-width:5;
+        border:none;
+        height:1;
+    }
 }
