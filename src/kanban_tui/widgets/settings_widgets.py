@@ -197,8 +197,8 @@ class ColumnSelector(Vertical):
     amount_visible: reactive[int] = reactive(0)
 
     def _on_mount(self, event: Mount) -> None:
-        self.amount_visible = len(self.app.cfg.visible_columns)
         self.border_title = "column.visibility"
+        self.amount_visible = len([col for col in self.app.column_list if col.visible])
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -249,7 +249,6 @@ class ColumnSelector(Vertical):
 
     @on(ChangeColumnVisibilitySwitch.Deleted)
     def delete_column(self, event: ChangeColumnVisibilitySwitch.Deleted):
-        # TODO check if column empty
         column_name = event.column_element.column.name
         if (
             len([task for task in self.app.task_list if task.column == column_name])
@@ -282,7 +281,9 @@ class ColumnSelector(Vertical):
             else:
                 self.watch_amount_visible()
 
+            # Remove Col Switch Element
             event.column_element.remove()
+            # Remove Corresponding Addrule
             self.query_one(f"#{column_name}").remove()
 
             for new_position, rule in enumerate(self.query(AddRule), start=1):
@@ -309,5 +310,4 @@ class ColumnSelector(Vertical):
             database=self.app.cfg.database_path,
         )
 
-        # self.app.cfg.set_column_dict(column_name=column)
         self.app.update_column_list()

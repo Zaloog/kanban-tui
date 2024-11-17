@@ -76,3 +76,5 @@ class MainView(Screen):
             self.query_one(SettingsView).config_has_changed = False
         elif event.tab.id == "--content-tab-tab_overview":
             await self.query_one(OverView).update_plot_by_filters()
+        elif event.tab.id == "--content-tab-tab_settings":
+            self.query_one(SettingsView).refresh(recompose=True)
