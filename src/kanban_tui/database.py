@@ -154,7 +154,9 @@ def create_new_board_db(
             ).fetchone()
 
             # create Columns
-            for position, (column_name, visibility) in enumerate(column_dict.items()):
+            for position, (column_name, visibility) in enumerate(
+                column_dict.items(), start=1
+            ):
                 column_dict = {
                     "name": column_name,
                     "visible": visibility,
@@ -214,6 +216,39 @@ def create_new_task_db(
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str, task_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            return e.sqlite_errorname
+
+
+def create_new_column_db(
+    name: str,
+    position: int,
+    board_id: int,
+    visible: bool = True,
+    database: Path = DB_FULL_PATH,
+):
+    transaction_str_cols = """
+    INSERT INTO columns
+    VALUES (
+        NULL,
+        :name,
+        :visible,
+        :position,
+        :board_id
+        );"""
+    column_dict = {
+        "name": name,
+        "visible": visible,
+        "position": position,
+        "board_id": board_id,
+    }
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str_cols, column_dict)
             con.commit()
             return 0
         except sqlite3.Error as e:
@@ -344,6 +379,33 @@ def update_column_visibility_db(
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str, update_column_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def update_column_positions_db(
+    board_id: int, new_position: int, database: Path = DB_FULL_PATH
+) -> str | int:
+    update_column_position_dict = {"board_id": board_id, "new_position": new_position}
+
+    transaction_str = """
+    UPDATE columns
+    SET
+        position = position + 1
+    WHERE
+        board_id = :board_id
+        AND position > :new_position
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_column_position_dict)
             con.commit()
             return 0
         except sqlite3.Error as e:

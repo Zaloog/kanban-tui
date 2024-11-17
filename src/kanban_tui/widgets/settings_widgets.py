@@ -17,7 +17,12 @@ from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
-from kanban_tui.database import update_column_visibility_db, delete_column_db
+from kanban_tui.database import (
+    update_column_visibility_db,
+    delete_column_db,
+    create_new_column_db,
+    update_column_positions_db,
+)
 
 
 class DataBasePathInput(Horizontal):
@@ -220,32 +225,25 @@ class ColumnSelector(Vertical):
 
     def modal_add_new_column(self, event_col_name: tuple[AddRule.Pressed, str] | None):
         if event_col_name:
-            event, col_name = event_col_name
-            # TODO
-            self.app.cfg.add_new_column(
-                new_column=col_name, position=event.addrule.position
+            event, column_name = event_col_name
+            update_column_positions_db(
+                board_id=self.app.active_board.board_id,
+                new_position=event.addrule.position,
+            )
+            create_new_column_db(
+                board_id=self.app.active_board.board_id,
+                position=event.addrule.position + 1,
+                name=column_name,
+                visible=True,
             )
 
-            if event.addrule.id:
-                self.query_one(VerticalScroll).mount(
-                    AddRule(id=col_name, position=event.addrule.position),
-                    after=f"#{event.addrule.id}",  # if event.addrule.id else 2,
-                )
-                self.query_one(VerticalScroll).mount(
-                    ChangeColumnVisibilitySwitch(column=col_name),
-                    after=f"#{event.addrule.id}",  # if event.addrule.id else 2,
-                )
-
-            for new_position, rule in enumerate(self.query(AddRule), start=1):
-                rule.position = new_position
-
+            self.app.update_column_list()
+            self.refresh(recompose=True)
             self.notify(
                 title="Columns Updated",
-                message=f"Column [blue]{col_name}[/] created",
+                message=f"Column [blue]{column_name}[/] created",
                 timeout=2,
             )
-            self.amount_visible += 1
-            self.app.update_column_list()
 
     @on(ChangeColumnVisibilitySwitch.Deleted)
     def delete_column(self, event: ChangeColumnVisibilitySwitch.Deleted):
