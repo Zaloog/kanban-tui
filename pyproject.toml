@@ -10,8 +10,8 @@ dependencies = [
     "pyyaml>=6.0.2",
     "pydantic>=2.9.2",
     "click>=8.1.7",
-    "textual>=0.85.2",
     "textual-plotext>=0.2.1",
+    "textual>=0.86.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"

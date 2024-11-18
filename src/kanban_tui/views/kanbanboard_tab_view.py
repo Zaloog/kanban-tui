@@ -26,9 +26,9 @@ class KanbanBoard(Horizontal):
 
     BINDINGS = [
         Binding("n", "new_task", "New Task", show=True, priority=True),
-        Binding(
-            "f1", "toggle_filter", "Filter", key_display="F1", show=False
-        ),  # Change to True Once implemented Properly
+        # Binding(
+        # "f1", "toggle_filter", "Filter", key_display="F1", show=False
+        # ),  # Change to True Once implemented Properly
         Binding("j,down", "movement('down')", "Down", show=False),
         Binding("k, up", "movement('up')", "Up", show=False),
         Binding("h, left", "movement('left')", "Left", show=False),
@@ -48,7 +48,7 @@ class KanbanBoard(Horizontal):
                     task for task in self.app.task_list if task.column == column.name
                 ]
                 yield Column(title=column.name, tasklist=column_tasks)
-        yield FilterOverlay()
+        # yield FilterOverlay()
 
         return super().compose()
 
