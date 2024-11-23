@@ -25,10 +25,18 @@ class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
     BINDINGS = [
-        Binding("H", "move_task('left')", "<-", show=True, key_display="shift-h"),
-        Binding("e", "edit_task", "Edit", show=True),
-        Binding("d", "delete_task", "Delete", show=True),
-        Binding("L", "move_task('right')", "->", show=True, key_display="shift-l"),
+        Binding(
+            "H", "move_task('left')", description="👈", show=True, key_display="shift-h"
+        ),
+        Binding("e", "edit_task", description="Edit", show=True),
+        Binding("d", "delete_task", description="Delete", show=True),
+        Binding(
+            "L",
+            "move_task('right')",
+            description="👉",
+            show=True,
+            key_display="shift-l",
+        ),
     ]
 
     class Focused(Message):
