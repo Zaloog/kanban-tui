@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
-from textual.events import Enter, Leave, Click
+from textual.events import Click
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Label, Markdown, Rule
@@ -98,8 +98,9 @@ class TaskCard(Vertical):
         yield self.description
         return super().compose()
 
-    @on(Enter)
-    @on(Leave)
+    # Remove those, cause it messes with tab selection
+    # @on(Enter)
+    # @on(Leave)
     def show_details(self) -> None:
         if self.is_mouse_over:
             self.focus()
