@@ -145,39 +145,6 @@ class DefaultTaskColorSelector(Horizontal):
         self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
 
 
-class ChangeColumnVisibilitySwitch(Horizontal):
-    class Deleted(Message):
-        def __init__(self, column_element: ChangeColumnVisibilitySwitch) -> None:
-            self.column_element = column_element
-            super().__init__()
-
-        @property
-        def control(self):
-            return self.column_element
-
-    app: "KanbanTui"
-
-    def __init__(self, column: Column) -> None:
-        self.column = column
-        super().__init__()
-
-    def compose(self) -> Iterable[Widget]:
-        yield Label(f"Show [blue]{self.column.name}[/]")
-        yield Switch(
-            value=self.column.visible,
-            id=f"switch_col_vis_{self.column.column_id}",
-        )
-        yield Button(
-            label="Delete",
-            id=f"button_col_del_{self.column.column_id}",
-            variant="error",
-        )
-        return super().compose()
-
-    def on_button_pressed(self):
-        self.post_message(self.Deleted(column_element=self))
-
-
 # Widget to Add new columns and change column visibility
 # Select Widget, visible Green, not visible red
 class AddRule(Rule):
