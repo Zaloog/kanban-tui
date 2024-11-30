@@ -1,5 +1,5 @@
 MAKE               := make --no-print-directory
-RUN 							 := uv run
+RUN 			   := uv run
 
 DESCRIBE           := $(shell git describe --match "v*" --always --tags)
 DESCRIBE_PARTS     := $(subst -, ,$(DESCRIBE))
@@ -24,17 +24,17 @@ NEXT_MICRO         := $(shell echo $$(($(MICRO)+1)))
 .PHONY: micro
 micro:
 	@echo "v$(MAJOR).$(MINOR).$(NEXT_MICRO)"
-	git tag "v$(MAJOR).$(MINOR).$(NEXT_MICRO)"
+	# git tag "v$(MAJOR).$(MINOR).$(NEXT_MICRO)"
 
 .PHONY: minor
 minor:
 	@echo "v$(MAJOR).$(NEXT_MINOR).0"
-	git tag  "v$(MAJOR).$(NEXT_MINOR).0"
+	# git tag  "v$(MAJOR).$(NEXT_MINOR).0"
 
 .PHONY: major
 major:
 	@echo "v$(NEXT_MAJOR).0.0"
-	git tag  "v$(NEXT_MAJOR).0.0"
+	# git tag  "v$(NEXT_MAJOR).0.0"
 
 
 # -- Testing ---
