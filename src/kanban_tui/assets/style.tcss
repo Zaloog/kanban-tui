@@ -285,23 +285,23 @@ ModalBoardOverviewScreen {
             text-align:center;
             padding:0 0 1 0;
         }
-        BoardListItem{
-            height:3;
-            content-align:center middle;
-            Label{
-                width: 1fr;
-                padding:1 0;
-                text-align:left;
-            }
-            Rule{
-                height:auto;
-                color:black;
-            }
-        }
         Button {
             width: 1fr;
             height:auto;
         }
+    }
+}
+BoardListItem{
+    height:3;
+    content-align:center middle;
+    Label{
+        width: 1fr;
+        padding:1 0;
+        text-align:left;
+    }
+    Rule{
+        height:auto;
+        color:black;
     }
 }
 
@@ -408,104 +408,99 @@ TabbedContent {
 SettingsView{
     content-align:center middle;
     height:1fr;
+}
+SettingsView Placeholder{
+    height:1fr;
+}
+DataBasePathInput{
+    border:$success;
+    height:auto;
+    width:1fr;
+    Label{
+        padding:1 0 0 0 ;
+    }
+    Input{
+       width:1fr;
+    }
 
-    DataBasePathInput{
-        border:$success;
-        height:auto;
+}
+AlwaysExpandedSwitch{
+    border:$success;
+    height:auto;
+    width:1fr;
+    padding:1 0 1 0 ;
+    Label{
         width:1fr;
-        Label{
-            padding:1 0 0 0 ;
-        }
-        Input{
-           width:1fr;
-        }
-
+        text-align:center;
+        padding:1 0 0 0 ;
     }
-    #horizontal_expand_work_hours{
+    Switch {
+        width:1fr;
+    }
+}
+#horizontal_expand_work_hours{
+    height:auto;
+}
+WorkingHoursSelector{
+    border:$success;
+    height:auto;
+    width:1fr;
+}
+WorkingHoursSelector Label{
+    width:1fr;
+    text-align:center;
+    padding:0 0 1 0 ;
+}
+WorkingHoursSelector Horizontal{
+    align:center middle;
+    height:auto;
+    Label{
+        width:auto;
+        text-align:center;
+        padding:1 0 0 0 ;
+    }
+    Input {
         height:auto;
-        AlwaysExpandedSwitch{
-            border:$success;
-            height:auto;
-            width:1fr;
-            padding:1 0 1 0 ;
-            Label{
-                width:1fr;
-                text-align:center;
-                padding:1 0 0 0 ;
-            }
-            Switch {
-                width:1fr;
-            }
-
-        }
-        WorkingHoursSelector{
-            border:$success;
-            height:auto;
-            width:1fr;
-            Label{
-                width:1fr;
-                text-align:center;
-                padding:0 0 1 0 ;
-            }
-            Horizontal{
-                align:center middle;
-                height:auto;
-                Label{
-                    width:auto;
-                    text-align:center;
-                    padding:1 0 0 0 ;
-                }
-                Input {
-                    height:auto;
-                    width:auto;
-                }
-            }
-
-        }
+        width:auto;
     }
-    #horizontal_color_column_selector{
+}
+DefaultTaskColorSelector{
+    border:$success;
+    height:1fr;
+
+    TitleInput{
+        height:4;
+        border-title-align:right;
+    }
+    Label{
+        width:1fr;
+        padding:0 0 1 0;
+    }
+    Collapsible > Contents{
         height:1fr;
-
-        DefaultTaskColorSelector{
-            border:$success;
-            height:1fr;
-
-            TitleInput{
-                height:4;
-                border-title-align:right;
-            }
-            Label{
-                width:1fr;
-                padding:0 0 1 0;
-            }
-            Collapsible > Contents{
-                height:1fr;
-                padding:0;
-                margin:0;
-            }
-            ColorTable {
-                width:1fr;
-                height:1fr;
-                text-align:center;
-                &:focus {
-                    & .datatable--cursor {
-                        color:white;
-                    }
-                }
-            }
-
-        }
-        ColumnSelector{
-            border:$success;
-            height:1fr;
-            width:1fr;
-            margin:0;
-        }
+        padding:0;
+        margin:0;
     }
-    Placeholder{
+    ColorTable {
+        width:1fr;
         height:1fr;
+        text-align:center;
+        &:focus {
+            & .datatable--cursor {
+                color:white;
+            }
+        }
     }
 
+}
+#horizontal_color_column_selector{
+    height:1fr;
+}
+ColumnSelector{
+    border:$success;
+    height:1fr;
+    width:1fr;
+    margin:0;
 }
 ModalNewColumnScreen {
     align: center middle;
