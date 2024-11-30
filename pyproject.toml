@@ -10,8 +10,8 @@ dependencies = [
     "pyyaml>=6.0.2",
     "pydantic>=2.9.2",
     "click>=8.1.7",
-    "textual-plotext>=0.2.1",
-    "textual>=0.86.1",
+    "textual-plotext>=1.0.0",
+    "textual>=0.88.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -57,9 +57,6 @@ dev-dependencies = [
     "textual-dev>=1.6.1",
     "freezegun>=1.5.1",
 ]
-
-[tool.uv.sources]
-textual-plotext = { git = "https://github.com/Textualize/textual-plotext" }
 
 [tool.hatch.metadata]
 allow-direct-references = true

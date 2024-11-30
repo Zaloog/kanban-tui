@@ -419,9 +419,9 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.7" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "textual", specifier = ">=0.86.1" },
+    { name = "textual", specifier = ">=0.88.1" },
     { name = "textual-datepicker", specifier = ">=0.2.4" },
-    { name = "textual-plotext", git = "https://github.com/Textualize/textual-plotext" },
+    { name = "textual-plotext", specifier = ">=1.0.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1087,7 +1087,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "0.86.3"
+version = "0.88.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1095,9 +1095,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4a/a6/c62991e51e3030a7e0bfb196f22c9c57a36257d52b09f6a6b6c78aaa6508/textual-0.86.3.tar.gz", hash = "sha256:3c4d68612243af351e8b2d3dabe44d3cf87624624d7ea657f4d718853206188f", size = 1498694 }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/e8/76b3aa49dd2f83410ab78b5ab04d65fee095e4720d2811f9ef72f073d11f/textual-0.88.1.tar.gz", hash = "sha256:9c56d953dc7d1a8ddf06acc910d9224027e02416551f92920e70f435bd28e062", size = 1516320 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/df/77/82e0593c98895e7bc18f15323c353d30e74fc0d2096a6d326fc31fddcc88/textual-0.86.3-py3-none-any.whl", hash = "sha256:ffe85bc749de7d71e0e048af301b6027abfca8942263ffb680620261cd1baa6f", size = 647192 },
+    { url = "https://files.pythonhosted.org/packages/4f/99/3e99a58f62426771a628a83de300588e0ec04383d76652afb2f944a46852/textual-0.88.1-py3-none-any.whl", hash = "sha256:f2db8ce892007f724dab57a2b791e55f9d7ce04d333c50fb4b6fb7f3990d4cec", size = 654912 },
 ]
 
 [[package]]
@@ -1132,11 +1132,15 @@ wheels = [
 
 [[package]]
 name = "textual-plotext"
-version = "1.0.0"
-source = { git = "https://github.com/Textualize/textual-plotext#65776b95320cabacefe271ef9c4dbf2e571b1efc" }
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "plotext" },
     { name = "textual" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9a/b0/e4e0f38df057db778252db0dd2c08522d7222b8537b6a0181d797b9044bd/textual_plotext-1.0.1.tar.gz", hash = "sha256:836f53a3316756609e194129a35c2875638e7958c261f541e0a794f7c98011be", size = 16489 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/35/53/fba7da208f9d3f59254413660fa0aa6599f2aca806f3ae356670455fd4ea/textual_plotext-1.0.1-py3-none-any.whl", hash = "sha256:6b6bfd00b29f121ddf216eaaf9bdac9d688ed72f40028484d279a10cbbb169ed", size = 16558 },
 ]
 
 [[package]]
