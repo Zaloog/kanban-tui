@@ -59,7 +59,7 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-textual-plotext = { git = "https://github.com/Zaloog/textual-plotext" }
+textual-plotext = { git = "https://github.com/Textualize/textual-plotext" }
 
 [tool.hatch.metadata]
 allow-direct-references = true
