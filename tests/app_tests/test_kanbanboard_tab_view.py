@@ -15,7 +15,7 @@ from kanban_tui.widgets.filter_sidebar import FilterOverlay
 APP_SIZE = (120, 80)
 
 
-async def test_kanbanboard(empty_app: KanbanTui):
+async def test_empty_kanbanboard(empty_app: KanbanTui):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 0
         assert isinstance(pilot.app.screen, MainView)

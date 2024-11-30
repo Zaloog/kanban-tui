@@ -78,3 +78,4 @@ class MainView(Screen):
             await self.query_one(OverView).update_plot_by_filters()
         elif event.tab.id == "--content-tab-tab_settings":
             self.query_one(SettingsView).refresh(recompose=True)
+            self.set_timer(delay=0.1, callback=self.app.action_focus_next)
