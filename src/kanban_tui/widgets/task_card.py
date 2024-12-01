@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
-from textual.events import Enter, Leave, Click
+from textual.events import Click
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.widgets import Label, Markdown, Rule
@@ -25,10 +25,18 @@ class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
     BINDINGS = [
-        Binding("H", "move_task('left')", "<-", show=True, key_display="shift-h"),
-        Binding("e", "edit_task", "Edit", show=True),
-        Binding("d", "delete_task", "Delete", show=True),
-        Binding("L", "move_task('right')", "->", show=True, key_display="shift-l"),
+        Binding(
+            "H", "move_task('left')", description="👈", show=True, key_display="shift-h"
+        ),
+        Binding("e", "edit_task", description="Edit", show=True),
+        Binding("d", "delete_task", description="Delete", show=True),
+        Binding(
+            "L",
+            "move_task('right')",
+            description="👉",
+            show=True,
+            key_display="shift-l",
+        ),
     ]
 
     class Focused(Message):
@@ -90,8 +98,9 @@ class TaskCard(Vertical):
         yield self.description
         return super().compose()
 
-    @on(Enter)
-    @on(Leave)
+    # Remove those, cause it messes with tab selection
+    # @on(Enter)
+    # @on(Leave)
     def show_details(self) -> None:
         if self.is_mouse_over:
             self.focus()
@@ -121,16 +130,16 @@ class TaskCard(Vertical):
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
             case "left":
-                if self.app.cfg.visible_columns[0] == self.task_.column:
+                if self.app.visible_column_list[0] == self.task_.column:
                     return
-                new_column = self.app.cfg.visible_columns[
-                    self.app.cfg.visible_columns.index(self.task_.column) - 1
+                new_column = self.app.visible_column_list[
+                    self.app.visible_column_list.index(self.task_.column) - 1
                 ]
             case "right":
-                if self.app.cfg.visible_columns[-1] == self.task_.column:
+                if self.app.visible_column_list[-1] == self.task_.column:
                     return
-                new_column = self.app.cfg.visible_columns[
-                    self.app.cfg.visible_columns.index(self.task_.column) + 1
+                new_column = self.app.visible_column_list[
+                    self.app.visible_column_list.index(self.task_.column) + 1
                 ]
 
         self.task_.update_task_status(new_column=new_column)

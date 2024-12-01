@@ -78,12 +78,16 @@ async def test_modal_board_icon_check(
         )
         if input_icon in ["Vampire ", "books "]:
             assert (
-                pilot.app.query_one("#static_preview_icon", Static).renderable._text[0]
+                pilot.app.query_one(
+                    "#static_preview_icon", Static
+                ).visual._renderable._text[0]
                 == Emoji(expected_preview_result)._char
             )
         else:
             assert (
-                pilot.app.query_one("#static_preview_icon", Static).renderable._text[0]
+                pilot.app.query_one(
+                    "#static_preview_icon", Static
+                ).visual._renderable._text[0]
                 == expected_preview_result
             )
 
@@ -130,8 +134,7 @@ async def test_modal_board_edit(test_app: KanbanTui):
             == "Edit Board"
         )
         assert (
-            pilot.app.query_exactly_one("#label_header", Label).renderable._text[0]
-            == "Edit Board"
+            pilot.app.query_exactly_one("#label_header", Label)._content == "Edit Board"
         )
 
         assert pilot.app.query_one("#input_board_name", Input).value == "Test_Board"

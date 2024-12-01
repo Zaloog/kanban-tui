@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 from textual import on
 from textual.widget import Widget
+from textual.binding import Binding
 from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
 from textual.widgets import Input, Button
@@ -13,6 +14,8 @@ from textual.containers import Horizontal, Vertical
 
 
 class ModalNewColumnScreen(ModalScreen):
+    BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
+
     def __init__(self, event: "AddRule.Pressed") -> None:
         self.event = event
         super().__init__()

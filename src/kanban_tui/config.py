@@ -15,12 +15,6 @@ class KanbanTuiConfig(BaseModel):
     no_category_task_color: str = "#004578"
     active_board: int = 1
     category_color_dict: dict[str | None, str] = {}
-    column_dict: dict[str, bool] = {
-        "Ready": True,
-        "Doing": True,
-        "Done": True,
-        "Archive": False,
-    }
     work_hour_dict: dict[str, str] = {
         "start_hour": "00",
         "start_min": "00",
@@ -38,17 +32,9 @@ class KanbanTuiConfig(BaseModel):
         ]
         self.active_board = self.config["kanban.settings"]["active_board"]
         self.category_color_dict = self.config["category.colors"]
-        self.column_dict = self.config["column.visibility"]
+        # self.column_dict = self.config["column.visibility"]
         self.work_hour_dict = self.config["kanban.settings"]["work_hours"]
         self.database_path = Path(self.config["database"]["database_path"])
-
-    @property
-    def visible_columns(self) -> list[str]:
-        return [column for column, visible in self.column_dict.items() if visible]
-
-    @property
-    def columns(self) -> list[str]:
-        return [column for column in self.config["column.visibility"].keys()]
 
     def set_active_board(self, new_active_board: int) -> None:
         self.active_board = new_active_board
@@ -63,24 +49,6 @@ class KanbanTuiConfig(BaseModel):
     def set_no_category_task_color(self, new_color: str) -> None:
         self.no_category_task_color = new_color
         self.config["kanban.settings"]["no_category_task_color"] = new_color
-        self.save()
-
-    def add_new_column(self, new_column: str, position: int) -> None:
-        actual_columns = list(self.config["column.visibility"].items())
-        actual_columns.insert(position, (new_column, True))
-
-        self.config["column.visibility"] = dict(actual_columns)
-        self.column_dict = self.config["column.visibility"]
-        self.save()
-
-    def delete_column(self, column_to_delete: str) -> None:
-        self.column_dict.pop(column_to_delete)
-        self.config["column.visibility"] = self.column_dict
-        self.save()
-
-    def set_column_dict(self, column_name: str) -> None:
-        self.column_dict.update({column_name: not self.column_dict[column_name]})
-        self.config["column.visibility"][column_name] = self.column_dict[column_name]
         self.save()
 
     def add_category(self, category: str, color: str) -> None:
@@ -114,12 +82,6 @@ def init_new_config(
     config: dict[str, dict[str, Any]] = {}
     config["database"] = {"database_path": database.as_posix()}
     config["category.colors"] = {}
-    config["column.visibility"] = {
-        "Ready": True,
-        "Doing": True,
-        "Done": True,
-        "Archive": False,
-    }
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
         "active_board": 1,
@@ -133,6 +95,7 @@ def init_new_config(
     }
 
     with open(config_path, "w") as yaml_file:
-        yaml_file.write(yaml.dump(config, sort_keys=False, default_flow_style=True))
+        dump = yaml.dump(config, sort_keys=False, indent=4, line_break="\n")
+        yaml_file.write(dump)
 
     return "Config Created"

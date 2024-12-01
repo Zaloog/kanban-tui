@@ -18,6 +18,7 @@ from kanban_tui.widgets.modal_board_widgets import BoardList
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.database import (
     update_board_entry_db,
+    get_all_columns_on_board_db,
     create_new_board_db,
     delete_board_db,
 )
@@ -86,7 +87,7 @@ class ModalNewBoardScreen(ModalScreen):
                 "#input_board_name", Input
             ).value
             self.kanban_board.icon = (
-                f':{self.query_exactly_one('#input_board_icon', Input).value}:'
+                f":{self.query_exactly_one('#input_board_icon', Input).value}:"
             )
             update_board_entry_db(
                 board_id=self.kanban_board.board_id,
@@ -184,9 +185,13 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_copy_board(self) -> None:
         highlighted_board = self.query_one(BoardList).highlighted_child.board
+        highlighted_board_cols = get_all_columns_on_board_db(
+            board_id=highlighted_board.board_id, database=self.app.cfg.database_path
+        )
         create_new_board_db(
             name=f"{highlighted_board.name}_copy",
             icon=highlighted_board.icon,
+            column_dict={col.name: col.visible for col in highlighted_board_cols},
             database=self.app.cfg.database_path,
         )
 

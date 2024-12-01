@@ -48,6 +48,7 @@ class BoardListItem(ListItem):
     def __init__(self, board: Board, info_dict: dict) -> None:
         self.board = board
         self.amount_tasks = info_dict.get("amount_tasks")
+        self.amount_columns = info_dict.get("amount_columns")
         self.next_due = get_days_left_till_due(info_dict.get("next_due"))
 
         super().__init__(id=f"listitem_board_{self.board.board_id}")
@@ -57,6 +58,8 @@ class BoardListItem(ListItem):
             self.styles.background = "green"
         with Horizontal():
             yield Label(self.board.full_name)
+            yield Rule(orientation="vertical")
+            yield Label(f"Columns: {self.amount_columns}")
             yield Rule(orientation="vertical")
             yield Label(f"Tasks: {self.amount_tasks}")
             yield Rule(orientation="vertical")

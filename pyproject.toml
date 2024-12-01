@@ -6,12 +6,12 @@ authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
 dependencies = [
-    "textual>=0.79.1",
-    "textual-plotext>=0.2.1",
     "textual-datepicker>=0.2.4",
     "pyyaml>=6.0.2",
     "pydantic>=2.9.2",
     "click>=8.1.7",
+    "textual-plotext>=1.0.0",
+    "textual>=0.88.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
