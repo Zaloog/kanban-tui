@@ -2,6 +2,7 @@
 
 ## v0.4.0
 - Add Multi Board support
+- Add Individual Columns for each board
 
 ## v0.3.2
 - Bugfix: Attempting to move a task with h/j/k/l caused Error, when no task was present

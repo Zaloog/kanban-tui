@@ -10,10 +10,16 @@
 
 kanban-tui is a customizable task manager in the terminal.
 
-![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png)
+<!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
 
 ## Demo GIF
 ![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/demo.gif)
+
+If you want to test `kanban-tui` you can directly run this demo yourself with the help of [uv] using `uvx` with
+
+```bash
+uvx --from kanban-tui ktui demo
+```
 
 ## Features
 Expand for more detailed information
@@ -32,6 +38,15 @@ kanban-tui comes with four default columns
 (`Ready`, `Doing`, `Done`, `Archive`) but can be customized to your needs.
 More columns can be created via the `Settings`-Tab. Also the visibility of columns can be toggled.
 Deletion of existing columns is only possible, if no task is present in the column you want to delete.
+</details>
+
+</details>
+<details><summary>Multi Board Support</summary>
+
+With version v0.4.0 kanban-tui allows the creation of multiple boards.
+Use `B` on the `Kanban Board`-Tab to get an overview over all Boards including
+the amount of columns, tasks and the closest Due Date.
+Each Board starts with the default columns, but the columns are individual for each board.
 </details>
 
 </details>
@@ -99,6 +114,14 @@ Pass the `--keep` flag to tell `kanban-tui` not to delete the temporary Database
 
 ```bash
 ktui demo
+```
+
+### Clear Database and Configuration
+If you want to start with a fresh database and configuration file, you can use this command to
+delete your current database and configuration file.
+
+```bash
+ktui clear
 ```
 
 ## Feedback and Issues
