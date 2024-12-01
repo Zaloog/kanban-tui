@@ -12,7 +12,8 @@ kanban-tui is a customizable task manager in the terminal.
 
 ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png)
 
-<!-- ## Demo -->
+## Demo GIF
+![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/demo.gif)
 
 ## Features
 Expand for more detailed information
