@@ -12,7 +12,7 @@ from textual.events import Mount
 from textual.widget import Widget
 from textual.binding import Binding
 from textual.screen import ModalScreen
-from textual.widgets import Input, TextArea, Button, Select, Label, Switch
+from textual.widgets import Input, TextArea, Button, Select, Label, Switch, Footer
 from textual.containers import Horizontal, Vertical
 from textual_datepicker import DateSelect
 
@@ -31,7 +31,10 @@ from kanban_tui.widgets.modal_task_widgets import (
 class ModalTaskEditScreen(ModalScreen):
     app: "KanbanTui"
 
-    BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Close"),
+        Binding("ctrl+j", "update_task", "Save/Edit Task", priority=True),
+    ]
 
     def __init__(self, task: Task | None = None) -> None:
         self.kanban_task = task
@@ -52,6 +55,7 @@ class ModalTaskEditScreen(ModalScreen):
             with Horizontal(id="horizontal_buttons"):
                 yield Button("Create Task", id="btn_continue", variant="success")
                 yield Button("Cancel", id="btn_cancel", variant="error")
+            yield Footer()
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
@@ -67,7 +71,7 @@ class ModalTaskEditScreen(ModalScreen):
         return super()._on_mount(event)
 
     @on(Button.Pressed, "#btn_continue")
-    def update_task(self):
+    def action_update_task(self):
         title = self.query_one("#input_title", Input).value
         description = self.query_one(TextArea).text
         category = (

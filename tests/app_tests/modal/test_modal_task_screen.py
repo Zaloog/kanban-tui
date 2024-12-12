@@ -58,7 +58,7 @@ async def test_task_creation(empty_app: KanbanTui):
         assert pilot.app.focused.id == "taskcard_1"
 
 
-async def test_task_edit(test_app: KanbanTui):
+async def test_task_edit_button(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
@@ -80,6 +80,33 @@ async def test_task_edit(test_app: KanbanTui):
         # add 1 to title
         await pilot.press("1")
         await pilot.click("#btn_continue")
+
+        assert pilot.app.focused.id == "taskcard_1"
+        assert pilot.app.focused.task_.title == "Task_ready_01"
+
+
+async def test_task_edit_shortcut(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+
+        assert isinstance(pilot.app.focused, TaskCard)
+
+        # open edit window
+        await pilot.press("e")
+        assert isinstance(pilot.app.screen, ModalTaskEditScreen)
+        assert pilot.app.screen.kanban_task is not None
+
+        # Check Task Stats
+        assert (
+            pilot.app.query_exactly_one("#input_title", Input).value == "Task_ready_0"
+        )
+        assert pilot.app.query_exactly_one(TextArea).text == "Hallo"
+        assert pilot.app.query_exactly_one(CategorySelector).value == "green"
+
+        # add 1 to title
+        await pilot.press("1")
+        await pilot.press("ctrl+j")
 
         assert pilot.app.focused.id == "taskcard_1"
         assert pilot.app.focused.task_.title == "Task_ready_01"
