@@ -3,9 +3,11 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from textual import on
+from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import ListView, ListItem, Label, Rule
+from textual.widgets import ListView, ListItem, Label, Rule, Button, Input
 from textual.containers import Horizontal
 
 from kanban_tui.classes.board import Board
@@ -75,3 +77,26 @@ class BoardListItem(ListItem):
             yield Label(due_string)
 
         return super().compose()
+
+
+class CustomColumnList(ListView):
+    app: "KanbanTui"
+    columns: reactive[list] = reactive([])
+
+    def __init__(self) -> None:
+        children = [NewColumnItem()]
+        super().__init__(*children, id="new_column_list", classes="hidden")
+
+    @on(Input.Changed)
+    def add_new_empty_column(self, event: Input.Changed):
+        if event.input.value and self.children[-1].column_name:
+            self.extend(NewColumnItem())
+
+
+class NewColumnItem(ListItem):
+    column_name: reactive[str] = ""
+
+    def compose(self) -> Iterable[Widget]:
+        with Horizontal():
+            yield Input(placeholder="Enter New Column Name")
+            yield Button("Delete", variant="error")

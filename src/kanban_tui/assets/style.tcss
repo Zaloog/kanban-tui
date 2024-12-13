@@ -268,6 +268,9 @@ ModalNewBoardScreen {
             width: 1fr;
             height:auto;
         }
+        ListView {
+            height: auto;
+        }
     }
 }
 
@@ -303,6 +306,15 @@ BoardListItem{
         height:auto;
         color:black;
     }
+}
+#horizontal_custom_columns Switch{
+    width:1fr;
+}
+NewColumnItem Input {
+    width:3fr;
+}
+NewColumnItem Button {
+    width:1fr;
 }
 
 CategoryColorPicker{
