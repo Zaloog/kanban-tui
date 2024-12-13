@@ -78,7 +78,7 @@ async def test_task_edit_button(test_app: KanbanTui):
         assert pilot.app.query_exactly_one(CategorySelector).value == "green"
 
         # add 1 to title
-        await pilot.press("1")
+        await pilot.press(*"Task_ready_01")
         await pilot.click("#btn_continue")
 
         assert pilot.app.focused.id == "taskcard_1"
@@ -105,7 +105,7 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
         assert pilot.app.query_exactly_one(CategorySelector).value == "green"
 
         # add 1 to title
-        await pilot.press("1")
+        await pilot.press(*"Task_ready_01")
         await pilot.press("ctrl+j")
 
         assert pilot.app.focused.id == "taskcard_1"
