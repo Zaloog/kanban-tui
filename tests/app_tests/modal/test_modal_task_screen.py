@@ -82,7 +82,7 @@ async def test_task_edit(test_app: KanbanTui):
         await pilot.click("#btn_continue")
 
         assert pilot.app.focused.id == "taskcard_1"
-        assert pilot.app.focused.task_.title == "Task_ready_01"
+        assert pilot.app.focused.task_.title == "1"
 
 
 async def test_task_edit_cancel(test_app: KanbanTui):
