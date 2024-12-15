@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -8,7 +9,7 @@ from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
 from textual.widgets import ListView, ListItem, Label, Rule, Button, Input
-from textual.containers import Horizontal
+from textual.containers import Horizontal, VerticalScroll
 
 from kanban_tui.classes.board import Board
 from kanban_tui.database import get_all_board_infos
@@ -79,9 +80,8 @@ class BoardListItem(ListItem):
         return super().compose()
 
 
-class CustomColumnList(ListView):
+class CustomColumnList(VerticalScroll):
     app: "KanbanTui"
-    columns: reactive[list] = reactive([])
 
     def __init__(self) -> None:
         children = [NewColumnItem()]
@@ -90,13 +90,25 @@ class CustomColumnList(ListView):
     @on(Input.Changed)
     def add_new_empty_column(self, event: Input.Changed):
         if event.input.value and self.children[-1].column_name:
-            self.extend(NewColumnItem())
+            self.mount(NewColumnItem())
+            self.scroll_down(animate=False)
+        if (not event.input.value) & (not self.children[-1].column_name):
+            self.remove_children(self.children[-1:])
 
 
-class NewColumnItem(ListItem):
+class NewColumnItem(Horizontal):
     column_name: reactive[str] = ""
 
     def compose(self) -> Iterable[Widget]:
-        with Horizontal():
-            yield Input(placeholder="Enter New Column Name")
-            yield Button("Delete", variant="error")
+        yield Input(placeholder="Enter New Column Name")
+        yield Button("Delete", variant="error", disabled=True)
+
+    def on_input_changed(self, event: Input.Changed):
+        self.column_name = event.input.value
+        if self.column_name:
+            self.query_exactly_one(Button).disabled = False
+        else:
+            self.query_exactly_one(Button).disabled = True
+
+    def on_button_pressed(self):
+        self.remove()

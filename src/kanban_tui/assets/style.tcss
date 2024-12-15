@@ -310,6 +310,13 @@ BoardListItem{
 #horizontal_custom_columns Switch{
     width:1fr;
 }
+#label_new_column_switch {
+    background: $boost;
+}
+CustomColumnList {
+    max-height:12;
+    height:auto;
+}
 NewColumnItem Input {
     width:3fr;
 }

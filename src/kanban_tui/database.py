@@ -106,17 +106,15 @@ def init_new_db(database: Path = DB_FULL_PATH):
             con.commit()
 
             # con.executescript(indexes_creation_str)
-            return 0
         except sqlite3.Error as e:
-            print(e)
             con.rollback()
-            return 1
+            raise e
 
 
 def create_new_board_db(
     name: str,
     icon: str | None = None,
-    column_dict: dict[str, int | str] = DEFAULT_COLUMN_DICT,
+    column_dict: dict[str, bool] = DEFAULT_COLUMN_DICT,
     database: Path = DB_FULL_PATH,
 ) -> str | int:
     board_dict = {
@@ -148,7 +146,7 @@ def create_new_board_db(
         con.row_factory = sqlite3.Row
         try:
             # create Board
-            (last_board_id,) = con.execute(
+            (created_board_id,) = con.execute(
                 transaction_str,
                 board_dict,
             ).fetchone()
@@ -157,18 +155,18 @@ def create_new_board_db(
             for position, (column_name, visibility) in enumerate(
                 column_dict.items(), start=1
             ):
-                column_dict = {
+                transaction_column_dict = {
                     "name": column_name,
                     "visible": visibility,
                     "position": position,
-                    "board_id": last_board_id,
+                    "board_id": created_board_id,
                 }
-                con.execute(transaction_str_cols, column_dict)
+                con.execute(transaction_str_cols, transaction_column_dict)
             con.commit()
-            return last_board_id
+            return created_board_id
         except sqlite3.Error as e:
             con.rollback()
-            return e.sqlite_errorname
+            raise e
 
 
 def create_new_task_db(

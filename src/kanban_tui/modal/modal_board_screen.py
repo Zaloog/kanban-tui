@@ -75,8 +75,8 @@ class ModalNewBoardScreen(ModalScreen):
             # initializing columns on new board
             if not self.kanban_board:
                 with Horizontal(id="horizontal_custom_columns"):
-                    yield Label("Use default Columns")
-                    yield Switch(value=True)
+                    yield Label("Use default Columns", id="label_new_column_switch")
+                    yield Switch(value=True, id="switch_use_default_columns")
 
             yield CustomColumnList()
 
@@ -118,11 +118,24 @@ class ModalNewBoardScreen(ModalScreen):
             if new_board_icon:
                 new_board_icon = f":{new_board_icon}:"
 
-            create_new_board_db(
-                name=new_board_name,
-                icon=new_board_icon,
-                database=self.app.cfg.database_path,
-            )
+            if self.query_exactly_one("#switch_use_default_columns").value:
+                create_new_board_db(
+                    name=new_board_name,
+                    icon=new_board_icon,
+                    database=self.app.cfg.database_path,
+                )
+            else:
+                custom_columns = self.query_exactly_one(CustomColumnList).children
+                create_new_board_db(
+                    name=new_board_name,
+                    icon=new_board_icon,
+                    column_dict={
+                        col.column_name: True
+                        for col in custom_columns
+                        if col.column_name
+                    },
+                    database=self.app.cfg.database_path,
+                )
 
             self.app.update_board_list()
         self.dismiss(result=None)

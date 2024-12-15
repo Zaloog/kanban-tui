@@ -50,10 +50,8 @@ async def test_modal_board_creation_default(test_app: KanbanTui):
         assert len(list(pilot.app.query(TaskCard).results())) == 5
         assert len(pilot.app.board_list) == 2
 
-        # TODO
 
-
-@pytest.mark.skip(reason="Soon to be implemented")
+# @pytest.mark.skip(reason="Soon to be implemented")
 async def test_modal_board_creation_custom(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # open Board View
@@ -80,15 +78,34 @@ async def test_modal_board_creation_custom(test_app: KanbanTui):
         assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
 
         # Add Custom Columns
+        # CustomList visible after switch press
+        assert pilot.app.query_one("#new_column_list").has_class("hidden")
+        await pilot.click("#switch_use_default_columns")
+        assert not pilot.app.query_one("#new_column_list").has_class("hidden")
+
+        # Focus vscroll
+        await pilot.press("tab")
+        # Focus input
+        await pilot.press("tab")
+        await pilot.press(*"test_column")
+        assert len(pilot.app.query_one("#new_column_list").children) == 2
+        # next column input
+        await pilot.press("tab", "tab")
+        await pilot.press(*"test_column2")
+        assert len(pilot.app.query_one("#new_column_list").children) == 3
+        await pilot.press("shift+tab", "shift+tab", "delete")
+        assert pilot.app.focused.value == ""
+        assert len(pilot.app.query_one("#new_column_list").children) == 2
 
         # save board
         await pilot.click("#btn_continue_new_board")
-        # TODO Click to activate new Board
-        await pilot.press("escape")
+        # Click to activate new Board
+        await pilot.press("j", "enter")
         assert isinstance(pilot.app.screen, MainView)
 
         # new Board no tasks
-        assert len(list(pilot.app.query(TaskCard).results())) == 5
+        assert len(pilot.app.column_list) == 1
+        assert pilot.app.column_list[0].name == "test_column2"
         assert len(pilot.app.board_list) == 2
 
 
