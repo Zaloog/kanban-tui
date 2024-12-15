@@ -13,7 +13,6 @@ APP_SIZE = (120, 80)
 async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         assert isinstance(pilot.app.screen, MainView)
         assert isinstance(pilot.app.focused, Input)
         assert pilot.app.focused.value == test_db_full_path.as_posix()
@@ -22,7 +21,6 @@ async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
 async def test_settings_view(test_app: KanbanTui, test_db_full_path):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         assert isinstance(pilot.app.screen, MainView)
         assert isinstance(pilot.app.focused, Input)
         assert pilot.app.focused.value == test_db_full_path.as_posix()
@@ -31,7 +29,6 @@ async def test_settings_view(test_app: KanbanTui, test_db_full_path):
 async def test_task_expand_switch(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         assert isinstance(pilot.app.focused, Input)
 
         assert not pilot.app.cfg.tasks_always_expanded
@@ -48,7 +45,6 @@ async def test_task_expand_switch(test_app: KanbanTui):
 async def test_column_selector(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -57,7 +53,6 @@ async def test_column_selector(test_app: KanbanTui):
 async def test_column_selector_navigation(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -74,7 +69,6 @@ async def test_column_selector_navigation(test_app: KanbanTui):
 async def test_column_visibility(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -99,7 +93,6 @@ async def test_column_visibility(test_app: KanbanTui):
 async def test_column_delete_press(empty_app: KanbanTui):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -119,7 +112,6 @@ async def test_column_delete_press(empty_app: KanbanTui):
 async def test_column_delete_click(empty_app: KanbanTui):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -147,7 +139,6 @@ async def test_column_delete_click(empty_app: KanbanTui):
 async def test_column_creation(test_app: KanbanTui, column_name, position, column_list):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -164,7 +155,6 @@ async def test_column_creation(test_app: KanbanTui, column_name, position, colum
 async def test_column_creation_cancel_press(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)
@@ -181,7 +171,6 @@ async def test_column_creation_cancel_press(test_app: KanbanTui):
 async def test_column_creation_cancel_click(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
-        await pilot.pause(delay=0.2)
         # focus selector
         await pilot.press("shift+tab")
         assert isinstance(pilot.app.focused, ColumnSelector)

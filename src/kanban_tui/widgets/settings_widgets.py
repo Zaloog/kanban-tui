@@ -43,7 +43,9 @@ class DataBasePathInput(Horizontal):
 
         yield Label("Database File")
         with self.prevent(Input.Changed):
-            yield Input(value=self.app.cfg.database_path.as_posix())
+            yield Input(
+                value=self.app.cfg.database_path.as_posix(), select_on_focus=False
+            )
         return super().compose()
 
 
