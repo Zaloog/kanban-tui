@@ -102,6 +102,7 @@ I recommend using [pipx], [rye] or [uv] to install CLI Tools into an isolated en
 
 ## Usage
 ### Normal Mode
+Starts `kanban-tui` with a starting board. The application can be closed by pressing `ctrl+q`.
 ```bash
 ktui
 ```
