@@ -45,7 +45,7 @@ jobs:
 
       - name: Run tests
         # For example, using `pytest`
-        run: uv run pytest tests -p ${{matrix.python-version}}
+        run: uv run -p ${{matrix.python-version}} pytest tests
 
         # Generate Coverage
       - name: Generate coverage report
