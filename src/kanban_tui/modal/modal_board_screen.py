@@ -10,11 +10,11 @@ from textual.binding import Binding
 from textual.events import Mount
 from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
-from textual.widgets import Input, Button, Static, Label, Footer
+from textual.widgets import Input, Button, Static, Label, Footer, Switch
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
-from kanban_tui.widgets.modal_board_widgets import BoardList
+from kanban_tui.widgets.modal_board_widgets import BoardList, CustomColumnList
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.database import (
     update_board_entry_db,
@@ -33,6 +33,7 @@ class ModalNewBoardScreen(ModalScreen):
         super().__init__()
 
     def _on_mount(self, event: Mount) -> None:
+        # Change Names Based on Editing/ Creating a Board
         if self.kanban_board:
             self.query_exactly_one(
                 "#btn_continue_new_board", Button
@@ -70,6 +71,15 @@ class ModalNewBoardScreen(ModalScreen):
                 f"Board created at: {datetime.now().replace(microsecond=0)}",
                 id="label_create_date",
             )
+            # For later
+            # initializing columns on new board
+            if not self.kanban_board:
+                with Horizontal(id="horizontal_custom_columns"):
+                    yield Label("Use default Columns", id="label_new_column_switch")
+                    yield Switch(value=True, id="switch_use_default_columns")
+
+            yield CustomColumnList()
+
             with Horizontal(id="horizontal_buttons_delete"):
                 yield Button(
                     "Create Board",
@@ -79,6 +89,13 @@ class ModalNewBoardScreen(ModalScreen):
                 )
                 yield Button("Cancel", id="btn_cancel_new_board", variant="error")
             return super().compose()
+
+    def on_switch_changed(self):
+        if self.query_one(Switch).value:
+            self.query_one(CustomColumnList).add_class("hidden")
+        else:
+            self.query_one(CustomColumnList).remove_class("hidden")
+            self.due_date = None
 
     @on(Button.Pressed, "#btn_continue_new_board")
     def confirm_new_board(self):
@@ -95,19 +112,30 @@ class ModalNewBoardScreen(ModalScreen):
                 icon=self.kanban_board.icon,
                 database=self.app.cfg.database_path,
             )
-
-            # self.dismiss(result=self.kanban_board)
         else:
             new_board_name = self.query_exactly_one("#input_board_name", Input).value
             new_board_icon = self.query_exactly_one("#input_board_icon", Input).value
             if new_board_icon:
                 new_board_icon = f":{new_board_icon}:"
 
-            create_new_board_db(
-                name=new_board_name,
-                icon=new_board_icon,
-                database=self.app.cfg.database_path,
-            )
+            if self.query_exactly_one("#switch_use_default_columns").value:
+                create_new_board_db(
+                    name=new_board_name,
+                    icon=new_board_icon,
+                    database=self.app.cfg.database_path,
+                )
+            else:
+                custom_columns = self.query_exactly_one(CustomColumnList).children
+                create_new_board_db(
+                    name=new_board_name,
+                    icon=new_board_icon,
+                    column_dict={
+                        col.column_name: True
+                        for col in custom_columns
+                        if col.column_name
+                    },
+                    database=self.app.cfg.database_path,
+                )
 
             self.app.update_board_list()
         self.dismiss(result=None)

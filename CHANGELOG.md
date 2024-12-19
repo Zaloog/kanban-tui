@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0
+- Add Footer to Task Edit and Shortcut to save/edit Task
+- Add Custom Column Creation on Board Creation
+
 ## v0.4.0
 - Add Multi Board support
 - Add Individual Columns for each board

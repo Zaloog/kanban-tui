@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-from textual import on
+from textual import on  # , events
+
+# from textual.geometry import Offset
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.events import Click
@@ -24,6 +26,8 @@ from kanban_tui.modal.modal_task_screen import (
 class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
+    mouse_down: reactive[bool] = reactive(False)
+
     BINDINGS = [
         Binding(
             "H", "move_task('left')", description="👈", show=True, key_display="shift-h"
@@ -130,12 +134,14 @@ class TaskCard(Vertical):
     def action_move_task(self, direction: Literal["left", "right"]):
         match direction:
             case "left":
+                # check if at left border
                 if self.app.visible_column_list[0] == self.task_.column:
                     return
                 new_column = self.app.visible_column_list[
                     self.app.visible_column_list.index(self.task_.column) - 1
                 ]
             case "right":
+                # check if at right border
                 if self.app.visible_column_list[-1] == self.task_.column:
                     return
                 new_column = self.app.visible_column_list[
@@ -190,3 +196,42 @@ class TaskCard(Vertical):
     def from_modal_delete_task(self, delete_yn: bool) -> None:
         if delete_yn:
             self.post_message(self.Delete(taskcard=self))
+
+    # Move Task with Mouse
+
+    # def on_mouse_down(self, event: events.MouseDown):
+    #     self.notify('Mouse Down')
+    #     lab = Label('TEST', id='pos')
+    #     lab.offset = event.offset
+    #     lab.styles.layer = 'above'
+    #     self.mouse_down = True
+    #     self.click_pos = event.screen_offset
+    #     # self.mount(lab)
+    #
+    # def on_mouse_move(self, event: events.MouseMove):
+    #     if not self.mouse_down:
+    #         return
+    #     x_pos_delta = (event.screen_offset.x - self.click_pos.x)
+    #     if x_pos_delta < -3:
+    #         self.styles.border_right = 'tall', 'red'
+    #         return
+    #     if x_pos_delta > 3:
+    #         self.styles.border_left = 'tall', 'red'
+    #         return
+    #
+    #     if x_pos_delta > 0:
+    #         self.offset = Offset(self.offset.x + 1, self.offset.y)
+    #         # self.click_pos = event.screen_offset
+    #     elif x_pos_delta < 0:
+    #         self.offset = Offset(self.offset.x - 1 , self.offset.y)
+    #         # self.click_pos = event.screen_offset
+    #
+    #
+    #     self.log.error(x_pos_delta)
+    #     self.log.error(f'eventoffset {event.offset}')
+    #     self.log.error(f'eventscreenoffset {event.screen_offset}')
+    #
+    # def on_mouse_up(self, event: events.MouseUp):
+    #     self.mouse_down = False
+    #     self.notify('Mouse Up')
+    #     # self.query_exactly_one('#pos', Label).remove()
