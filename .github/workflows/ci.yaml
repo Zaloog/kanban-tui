@@ -36,12 +36,12 @@ jobs:
         with:
           enable-cache: true
 
-      # - name: "Set up Python"
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: ${{matrix.python-version}}
-      # - name: Install the project
-      #   run: uv sync --all-extras --dev
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{matrix.python-version}}
+      - name: Install the project
+        run: uv sync --all-extras --dev -p ${{matrix.python-version}}
 
       - name: Run tests
         # For example, using `pytest`
