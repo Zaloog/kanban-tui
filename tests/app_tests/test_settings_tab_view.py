@@ -51,7 +51,7 @@ async def test_column_selector(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -62,7 +62,7 @@ async def test_column_selector_navigation(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -81,7 +81,7 @@ async def test_column_visibility(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -108,7 +108,7 @@ async def test_column_delete_press(empty_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -130,7 +130,7 @@ async def test_column_delete_click(empty_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -160,7 +160,7 @@ async def test_column_creation(test_app: KanbanTui, column_name, position, colum
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -179,7 +179,7 @@ async def test_column_creation_cancel_press(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -198,7 +198,7 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        await pilot.app.action_focus_previous()
+        pilot.app.action_focus_previous()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
