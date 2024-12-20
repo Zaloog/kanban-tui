@@ -16,7 +16,8 @@ async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
         await pilot.pause()
 
         assert isinstance(pilot.app.screen, MainView)
-        # assert isinstance(pilot.app.focused, Input)
+        await pilot.click("#input_database_path")
+        assert isinstance(pilot.app.focused, Input)
         assert pilot.app.focused.value == test_db_full_path.as_posix()
 
 
