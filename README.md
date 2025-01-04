@@ -99,10 +99,19 @@ uv tool install kanban-tui
 ```
 I recommend using [pipx], [rye] or [uv] to install CLI Tools into an isolated environment.
 
+To be able to use `kanban-tui` in your browser with the `--web`-flag, the optional dependency
+`textual-serve` is needed. You can add this to `kanban-tui` by installing the optional `web`-dependency
+with the installer of your choice, for example with [uv]:
+
+```bash
+uv tool install kanban-tui[web]
+```
+
 
 ## Usage
 ### Normal Mode
 Starts `kanban-tui` with a starting board. The application can be closed by pressing `ctrl+q`.
+Pass the `--web` flag and follow the shown link to open `kanban-tui` in your browser.
 ```bash
 ktui
 ```
@@ -112,6 +121,7 @@ Creates a temporary Config and Database which is populated with example Tasks to
 Kanban-Tui will delete the temporary Config and Database after closing the application.
 Pass the `--clean` flag to start with an empty demo app.
 Pass the `--keep` flag to tell `kanban-tui` not to delete the temporary Database and Config.
+Pass the `--web` flag and follow the shown link to open `kanban-tui` in your browser.
 
 ```bash
 ktui demo

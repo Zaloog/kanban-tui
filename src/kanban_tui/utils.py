@@ -493,4 +493,6 @@ def get_time_range(
         case "week":
             return list(rrule(freq=WEEKLY, dtstart=start, until=end))
         case "month":
+            # Still a bit buggy
+            # doesnt show task for jan25 when color hue is active
             return list(rrule(freq=MONTHLY, dtstart=start, until=end))

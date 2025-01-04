@@ -3,6 +3,7 @@
 ## v0.6.0
 - Add Confirmation prompt to database and config deletion
 - Add serving on localhost via `textual-serve` with new`--web`-flag
+- Fix Bug in Overview Daterange Creation
 
 ## v0.5.0
 - Add Footer to Task Edit and Shortcut to save/edit Task
