@@ -1,6 +1,5 @@
 import click
 from rich.console import Console
-from rich.markup import escape
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.utils import create_demo_tasks
@@ -25,7 +24,7 @@ def cli(ctx, web: bool):
         except ModuleNotFoundError:
             Console().print("[yellow]textual-serve[/] dependency not found.")
             Console().print(
-                f"Please install [yellow]kanban-tui{escape('[web]')}[/] to add web support."
+                "Please install [yellow]kanban-tui\\[web][/] to add web support."
             )
             return
 
@@ -65,7 +64,7 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
         except ModuleNotFoundError:
             Console().print("[yellow]textual-serve[/] dependency not found.")
             Console().print(
-                f"Please install [yellow]kanban-tui{escape('[web]')}[/] to add web support."
+                "Please install [yellow]kanban-tui\\[web][/] to add web support."
             )
             return
 
