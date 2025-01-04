@@ -104,7 +104,7 @@ To be able to use `kanban-tui` in your browser with the `--web`-flag, the option
 with the installer of your choice, for example with [uv]:
 
 ```bash
-uv tool install kanban-tui[web]
+uv tool install 'kanban-tui[web]'
 ```
 
 
