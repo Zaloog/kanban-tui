@@ -45,27 +45,25 @@ class TaskPlot(HorizontalScroll):
             return
 
         earliest: datetime.datetime = min([task["date"] for task in ordered_tasks])
+        latest: datetime.datetime = max([task["date"] for task in ordered_tasks])
         match select_frequency:
             case "day":
                 plt.date_form("d-b-Y")
                 plt.xlabel("Date")
-                date_range = get_time_range(
-                    interval="day", start=earliest, end=datetime.datetime.now()
-                )
+                date_range = get_time_range(interval="day", start=earliest, end=latest)
             case "week":
                 plt.date_form("V-Y")
                 plt.xlabel("Week-Year")
-                date_range = get_time_range(
-                    interval="week", start=earliest, end=datetime.datetime.now()
-                )
+                date_range = get_time_range(interval="week", start=earliest, end=latest)
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
                 date_range = get_time_range(
-                    interval="month", start=earliest, end=datetime.datetime.now()
+                    interval="month", start=earliest, end=latest
                 )
 
         date_range = plt.datetimes_to_strings(date_range)
+        self.log.error(f"dates: {date_range}")
         # Adjust Plotext size, if there are only a few entries
         if len(date_range) < 12:
             self.query_one(PlotextPlot).styles.width = "1fr"
@@ -92,7 +90,6 @@ class TaskPlot(HorizontalScroll):
                 category_value_dict[category].update(task_counter)
 
             # plot
-            self.log.error(f"{category_value_dict}")
             plt.stacked_bar(
                 plot_values.keys(),
                 [
