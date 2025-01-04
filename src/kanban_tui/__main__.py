@@ -1,6 +1,8 @@
 import click
-from kanban_tui.app import KanbanTui
+from rich.console import Console
+from rich.markup import escape
 
+from kanban_tui.app import KanbanTui
 from kanban_tui.utils import create_demo_tasks
 from kanban_tui.constants import (
     TEMP_CONFIG_FULL_PATH,
@@ -14,13 +16,28 @@ from kanban_tui.constants import (
     context_settings={"ignore_unknown_options": True}, invoke_without_command=True
 )
 @click.version_option(prog_name="kanban-tui")
+@click.option("--web", is_flag=True, default=False, help="Host app locally")
 @click.pass_context
-def cli(ctx):
-    if ctx.invoked_subcommand is None:
-        app = KanbanTui()
-        app.run()
+def cli(ctx, web: bool):
+    if web:
+        try:
+            from textual_serve.server import Server
+        except ModuleNotFoundError:
+            Console().print("[yellow]textual-serve[/] dependency not found.")
+            Console().print(
+                f"Please install [yellow]kanban-tui{escape('[web]')}[/] to add web support."
+            )
+            return
+
+        command = "ktui"
+        server = Server(command)
+        server.serve()
     else:
-        pass
+        if ctx.invoked_subcommand is None:
+            app = KanbanTui()
+            app.run()
+        else:
+            pass
 
 
 @cli.command("demo")
@@ -28,7 +45,8 @@ def cli(ctx):
 @click.option(
     "--keep", is_flag=True, default=False, help="Do not delete db/config after closing"
 )
-def run_demo_app(clean: bool, keep: bool):
+@click.option("--web", is_flag=True, default=False, help="Host app locally")
+def run_demo_app(clean: bool, keep: bool, web: bool):
     """
     Starts a Demo App with temporary DB and Config
     """
@@ -41,12 +59,28 @@ def run_demo_app(clean: bool, keep: bool):
                 config_path=TEMP_CONFIG_FULL_PATH, database_path=TEMP_DB_FULL_PATH
             )
 
-    app = KanbanTui(
-        config_path=TEMP_CONFIG_FULL_PATH,
-        database_path=TEMP_DB_FULL_PATH,
-        demo_mode=True,
-    )
-    app.run()
+    if web:
+        try:
+            from textual_serve.server import Server
+        except ModuleNotFoundError:
+            Console().print("[yellow]textual-serve[/] dependency not found.")
+            Console().print(
+                f"Please install [yellow]kanban-tui{escape('[web]')}[/] to add web support."
+            )
+            return
+
+        command = "ktui demo"
+        command += " --clean" if clean else ""
+        command += " --keep" if keep else ""
+        server = Server(command)
+        server.serve()
+    else:
+        app = KanbanTui(
+            config_path=TEMP_CONFIG_FULL_PATH,
+            database_path=TEMP_DB_FULL_PATH,
+            demo_mode=True,
+        )
+        app.run()
 
     if not keep:
         TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
@@ -54,13 +88,21 @@ def run_demo_app(clean: bool, keep: bool):
 
 
 @cli.command("clear")
-def delete_config_and_database():
+@click.option(
+    "--confirm",
+    is_flag=True,
+    expose_value=True,
+    prompt="Are you sure you want to delete the db and config?",
+    help="Do not ask for confirmation",
+)
+def delete_config_and_database(confirm: bool):
     """
     Deletes DB and Config
     """
-
-    CONFIG_FULL_PATH.unlink(missing_ok=True)
-    DB_FULL_PATH.unlink(missing_ok=True)
+    if confirm:
+        CONFIG_FULL_PATH.unlink(missing_ok=True)
+        DB_FULL_PATH.unlink(missing_ok=True)
+        Console().print("Config and DB deleted [green]successfully[/]")
 
 
 if __name__ == "__main__":
