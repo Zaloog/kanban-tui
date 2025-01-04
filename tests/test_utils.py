@@ -1,6 +1,10 @@
 import pytest
 from datetime import datetime
-from kanban_tui.utils import calculate_work_on_time, get_days_left_till_due
+from kanban_tui.utils import (
+    calculate_work_on_time,
+    get_days_left_till_due,
+    get_time_range,
+)
 
 from freezegun import freeze_time
 
@@ -90,3 +94,69 @@ def test_get_days_left_till_due(due_date, expected_result):
         calculated_days = get_days_left_till_due(due_date=due_date)
 
         assert calculated_days == expected_result
+
+
+@pytest.mark.parametrize(
+    "test_start, test_end, frequency, expected_result",
+    [
+        # start inside limit, end inside limit next 2 days
+        (
+            datetime(year=2024, month=7, day=1),
+            datetime(year=2024, month=7, day=2),
+            "day",
+            2,
+        ),
+        (
+            datetime(year=2024, month=7, day=1),
+            datetime(year=2024, month=9, day=1),
+            "day",
+            63,
+        ),
+        (
+            datetime(year=2024, month=1, day=1),
+            datetime(year=2025, month=1, day=1),
+            "day",
+            367,
+        ),
+        (
+            datetime(year=2024, month=7, day=1),
+            datetime(year=2024, month=7, day=2),
+            "month",
+            1,
+        ),
+        (
+            datetime(year=2024, month=7, day=1),
+            datetime(year=2024, month=12, day=1),
+            "month",
+            6,
+        ),
+        (
+            datetime(year=2024, month=4, day=1),
+            datetime(year=2025, month=8, day=1),
+            "month",
+            17,
+        ),
+        (
+            datetime(year=2024, month=7, day=1),
+            datetime(year=2024, month=7, day=2),
+            "week",
+            1,
+        ),
+        (
+            datetime(year=2024, month=7, day=1),
+            datetime(year=2024, month=8, day=15),
+            "week",
+            7,
+        ),
+        (
+            datetime(year=2024, month=4, day=1),
+            datetime(year=2025, month=8, day=1),
+            "week",
+            70,
+        ),
+    ],
+)
+def test_get_time_range(test_start, test_end, frequency, expected_result):
+    delta = get_time_range(interval=frequency, start=test_start, end=test_end)
+
+    assert len(delta) == expected_result

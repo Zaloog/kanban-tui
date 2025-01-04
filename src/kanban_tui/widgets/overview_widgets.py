@@ -15,7 +15,7 @@ from textual.containers import HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
 from kanban_tui.database import get_ordered_tasks_db
-from kanban_tui.utils import getrgb
+from kanban_tui.utils import getrgb, get_time_range
 
 
 class TaskPlot(HorizontalScroll):
@@ -49,33 +49,21 @@ class TaskPlot(HorizontalScroll):
             case "day":
                 plt.date_form("d-b-Y")
                 plt.xlabel("Date")
-                date_range = [
-                    earliest + datetime.timedelta(days=day)
-                    for day in range(0, (datetime.datetime.now() - earliest).days + 1)
-                ]
+                date_range = get_time_range(
+                    interval="day", start=earliest, end=datetime.datetime.now()
+                )
             case "week":
                 plt.date_form("V-Y")
                 plt.xlabel("Week-Year")
-                date_range = [
-                    earliest + datetime.timedelta(days=7) * week
-                    for week in range(
-                        0,
-                        (
-                            datetime.datetime.now().isocalendar().week
-                            - earliest.isocalendar().week
-                        )
-                        + 1,
-                    )
-                ]
+                date_range = get_time_range(
+                    interval="week", start=earliest, end=datetime.datetime.now()
+                )
             case "month":
                 plt.date_form("b-Y")
                 plt.xlabel("Month-Year")
-                date_range = [
-                    earliest.replace(month=earliest.month + month)
-                    for month in range(
-                        0, (datetime.datetime.now().month - earliest.month) + 1
-                    )
-                ]
+                date_range = get_time_range(
+                    interval="month", start=earliest, end=datetime.datetime.now()
+                )
 
         date_range = plt.datetimes_to_strings(date_range)
         # Adjust Plotext size, if there are only a few entries
@@ -104,6 +92,7 @@ class TaskPlot(HorizontalScroll):
                 category_value_dict[category].update(task_counter)
 
             # plot
+            self.log.error(f"{category_value_dict}")
             plt.stacked_bar(
                 plot_values.keys(),
                 [

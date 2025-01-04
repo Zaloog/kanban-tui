@@ -1,8 +1,10 @@
 from __future__ import annotations
+from typing import Literal, Any
 
 import re
 from pathlib import Path
 from datetime import datetime, timedelta
+from dateutil.rrule import rrule, MONTHLY, WEEKLY, DAILY
 from functools import lru_cache
 
 from kanban_tui.database import create_new_task_db, init_new_db, create_new_board_db
@@ -480,3 +482,15 @@ def get_days_left_till_due(due_date: str | None):
             + 1,
         )
     return None
+
+
+def get_time_range(
+    interval: Literal["day", "week", "month"], start: datetime, end: datetime
+) -> list[Any]:
+    match interval:
+        case "day":
+            return list(rrule(freq=DAILY, dtstart=start, until=end))
+        case "week":
+            return list(rrule(freq=WEEKLY, dtstart=start, until=end))
+        case "month":
+            return list(rrule(freq=MONTHLY, dtstart=start, until=end))
