@@ -1,7 +1,6 @@
 from typing import Iterable
 from textual import on
 from textual.binding import Binding
-from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import Select, Switch
 from textual.containers import Vertical, Horizontal
@@ -19,10 +18,6 @@ class OverView(Vertical):
         Binding("H", "scroll_plot_left", "Scroll Left", show=True),
         Binding("L", "scroll_plot_right", "Scroll Right", show=True),
     ]
-
-    def _on_mount(self, event: Mount) -> None:
-        # self.watch(self.app, "task_list", self.update_plot_by_filters, init=True)
-        return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_overview_filters"):
