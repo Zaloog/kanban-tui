@@ -373,15 +373,15 @@ def create_demo_tasks(database_path: Path, config_path: Path):
 
     cfg.add_category(
         category="green",
-        color="#00FF00",
+        color="#008F00",
     )
     cfg.add_category(
         category="blue",
-        color="#0000FF",
+        color="#00008F",
     )
     cfg.add_category(
         category="red",
-        color="#FF0000",
+        color="#8F0000",
     )
 
     init_new_db(database=database_path)
