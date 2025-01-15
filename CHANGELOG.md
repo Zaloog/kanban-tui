@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.6.2
+- Fix Demo Category colors to be less bright
+
 ## v0.6.1
 - Fix flicker back when clicking on `Overview`-tab when on `KanbanBoard`-tab
 
