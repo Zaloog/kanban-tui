@@ -4,6 +4,7 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from rich.text import Text
 from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
@@ -60,7 +61,7 @@ class BoardListItem(ListItem):
         if self.board.board_id == self.app.cfg.active_board:
             self.styles.background = "green"
         with Horizontal():
-            yield Label(self.board.full_name)
+            yield Label(Text.from_markup(self.board.full_name))
             yield Rule(orientation="vertical")
             yield Label(f"Columns: {self.amount_columns}")
             yield Rule(orientation="vertical")

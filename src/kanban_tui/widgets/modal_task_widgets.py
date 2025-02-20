@@ -117,7 +117,12 @@ class CategorySelector(Select):
 
     def __init__(self):
         options = self.get_options()
-        super().__init__(options=options, prompt="No Category", allow_blank=True)
+        super().__init__(
+            options=options,
+            prompt="No Category",
+            allow_blank=True,
+            type_to_search=False,
+        )
 
     def watch_value(self):
         if self.value == self.NEW:

@@ -4,6 +4,7 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from rich.text import Text
 from textual import on
 from textual.widget import Widget
 from textual.binding import Binding
@@ -60,7 +61,7 @@ class ModalNewBoardScreen(ModalScreen):
                     value="",
                     id="input_board_icon",
                 )
-                yield Static(":books:", id="static_preview_icon")
+                yield Static(Text.from_markup(":books:"), id="static_preview_icon")
                 yield Input(
                     placeholder="Enter Board Name",
                     validate_on=["changed"],
@@ -154,7 +155,7 @@ class ModalNewBoardScreen(ModalScreen):
     def check_if_board_icon_can_is_empty(self, event: Input.Changed):
         if event.value:
             self.query_exactly_one("#static_preview_icon", Static).update(
-                f":{event.value}:"
+                Text.from_markup(f":{event.value}:")
             )
         else:
             self.query_exactly_one("#static_preview_icon", Static).update(
