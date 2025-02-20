@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.3
+- Bug Fixes due to breaking changes with textual 2.0 release
+    - Emojis are now rendered with rich.text.Text.from_markup
+    - Disabled the type_to_search functionality to keep vim-like navigation on CategorySelector
+
 ## v0.6.2
 - Fix Demo Category colors to be less bright
 
