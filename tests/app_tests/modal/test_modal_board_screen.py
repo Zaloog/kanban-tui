@@ -139,14 +139,12 @@ async def test_modal_board_icon_check(
             assert (
                 pilot.app.query_one(
                     "#static_preview_icon", Static
-                ).visual._renderable._text[0]
+                ).visual.markup  # ._text[0]
                 == Emoji(expected_preview_result)._char
             )
         else:
             assert (
-                pilot.app.query_one(
-                    "#static_preview_icon", Static
-                ).visual._renderable._text[0]
+                pilot.app.query_one("#static_preview_icon", Static).visual._text
                 == expected_preview_result
             )
 

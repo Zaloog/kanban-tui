@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 from textual import on  # , events
 
 # from textual.geometry import Offset
+from rich.text import Text
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.events import Click
@@ -154,18 +155,22 @@ class TaskCard(Vertical):
     def get_due_date_str(self) -> str:
         match self.task_.days_left:
             case 0:
-                return f":hourglass_done: due date: {self.task_.days_left} days left"
+                return Text.from_markup(
+                    f":hourglass_done: due date: {self.task_.days_left} days left"
+                )
             case 1:
-                return f":hourglass_not_done: due date: {self.task_.days_left} day left :face_screaming_in_fear:"
+                return Text.from_markup(
+                    f":hourglass_not_done: due date: {self.task_.days_left} day left :face_screaming_in_fear:"
+                )
             case None:
-                return ":smiling_face_with_sunglasses: no due date"
+                return Text.from_markup(":smiling_face_with_sunglasses: no due date")
             case _:
-                return (
+                return Text.from_markup(
                     f":hourglass_not_done: due date: {self.task_.days_left} days left"
                 )
 
     def get_creation_date_str(self) -> str:
-        creation_date_str = ":calendar: created: "
+        creation_date_str = Text.from_markup(":calendar: created: ")
         match self.task_.days_since_creation:
             case 0:
                 creation_date_str += "today"
