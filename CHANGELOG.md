@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.6.4
+- Fix emoji of boardname in border title
+
 ## v0.6.3
 - Bug Fixes due to breaking changes with textual 2.0 release
     - Emojis are now rendered with rich.text.Text.from_markup

@@ -3,6 +3,7 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from rich.text import Text
 from textual import on
 from textual.events import Mount
 from textual.widget import Widget
@@ -40,9 +41,9 @@ class MainView(Screen):
         self.query_one(ContentTabs).can_focus = False
         if self.app.demo_mode:
             self.show_demo_notification()
-        self.app.query_one(
-            "#tabbed_content_boards"
-        ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
+        self.app.query_one("#tabbed_content_boards").border_title = Text.from_markup(
+            f" [red]Active Board:[/] {self.app.active_board.full_name}"
+        )
         return super()._on_mount(event)
 
     def action_show_tab(self, tab: str) -> None:
