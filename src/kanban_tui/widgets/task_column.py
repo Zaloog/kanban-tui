@@ -22,12 +22,12 @@ class Column(Vertical):
         self.can_focus: bool = False
 
     def compose(self) -> Iterable[Widget]:
-        yield Label(self.title, id=f"label_{self.title}")
-        yield VerticalScroll(id=f"vscroll_{self.title}")
+        yield Label(self.title, id=f"label_{self.id}")
+        yield VerticalScroll(id=f"vscroll_{self.id}")
         return super().compose()
 
     def _on_mount(self, event: Mount) -> None:
-        self.query_one(f"#vscroll_{self.title}", VerticalScroll).can_focus = False
+        self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False
         for task in self.task_list:
             self.place_task(task=task)
         return super()._on_mount(event)

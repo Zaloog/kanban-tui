@@ -161,9 +161,9 @@ class AddRule(Rule):
         def control(self):
             return self.addrule
 
-    def __init__(self, position: int, id: str | None = None) -> None:
+    def __init__(self, position: int, id: int | None = None) -> None:
         self.position = position
-        super().__init__(id=id)
+        super().__init__(id=f"addrule_{id}")
 
     def compose(self) -> Iterable[Widget]:
         yield Button("+")
@@ -201,7 +201,7 @@ class ColumnListItem(ListItem):
                 id=f"button_col_del_{self.column.column_id}",
                 variant="error",
             )
-        yield AddRule(position=self.column.position, id=self.column.name)
+        yield AddRule(position=self.column.position, id=self.column.column_id)
 
         return super().compose()
 
@@ -217,7 +217,7 @@ class FirstListItem(ListItem):
         super().__init__(id="listitem_column_0")
 
     def compose(self) -> Iterable[Widget]:
-        yield AddRule(id="first_position", position=0)
+        yield AddRule(id=0, position=0)
 
         return super().compose()
 

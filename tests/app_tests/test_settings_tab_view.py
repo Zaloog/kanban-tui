@@ -149,14 +149,16 @@ async def test_column_delete_click(empty_app: KanbanTui):
 
 
 @pytest.mark.parametrize(
-    "column_name, position, column_dict",
+    "column_name, position, visible_column_dict",
     [
         ("Zero", 0, {5: "Zero", 1: "Ready", 2: "Doing", 3: "Done"}),
-        ("One", 1, {1: "Ready", 5: "One", 2: "Doing", 3: "Done"}),
-        ("Two", 2, {1: "Ready", 2: "Doing", 5: "Two", 3: "Done"}),
+        ("First Position", 1, {1: "Ready", 5: "First Position", 2: "Doing", 3: "Done"}),
+        ("Second Column", 2, {1: "Ready", 2: "Doing", 5: "Second Column", 3: "Done"}),
     ],
 )
-async def test_column_creation(test_app: KanbanTui, column_name, position, column_dict):
+async def test_column_creation(
+    test_app: KanbanTui, column_name, position, visible_column_dict
+):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
@@ -172,7 +174,7 @@ async def test_column_creation(test_app: KanbanTui, column_name, position, colum
         await pilot.press(*column_name)
         await pilot.click("#btn_continue_new_col")
 
-        assert pilot.app.visible_column_dict == column_dict
+        assert pilot.app.visible_column_dict == visible_column_dict
 
 
 async def test_column_creation_cancel_press(test_app: KanbanTui):
@@ -211,3 +213,22 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
         # Cancel Modal View
         await pilot.click("#btn_cancel_new_col")
         assert isinstance(pilot.app.screen, MainView)
+
+
+async def test_column_creation_column_name_present(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+        # focus selector
+        # await pilot.press("shift+tab")
+        pilot.app.query_exactly_one(ColumnSelector).focus()
+        await pilot.pause()
+        assert isinstance(pilot.app.focused, ColumnSelector)
+
+        # Click on First Position
+        await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
+        assert isinstance(pilot.app.screen, ModalNewColumnScreen)
+
+        # Cancel Modal View
+        await pilot.press(*"Ready")
+        assert pilot.app.query_exactly_one("#btn_continue_new_col").disabled
