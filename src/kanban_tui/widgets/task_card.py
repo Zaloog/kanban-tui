@@ -133,24 +133,27 @@ class TaskCard(Vertical):
                 self.query(".label-infos").add_class("hidden")
 
     def action_move_task(self, direction: Literal["left", "right"]):
+        column_id_list = list(self.app.visible_column_dict.keys())
         match direction:
             case "left":
                 # check if at left border
-                if self.app.visible_column_dict[0] == self.task_.column:
+                if column_id_list[0] == self.task_.column:
                     return
-                new_column = self.app.visible_column_dict[
-                    self.app.visible_column_dict.index(self.task_.column) - 1
-                ]
-            case "right":
-                # check if at right border
-                if self.app.visible_column_dict[-1] == self.task_.column:
-                    return
-                new_column = self.app.visible_column_dict[
-                    self.app.visible_column_dict.index(self.task_.column) + 1
+                new_column_id = column_id_list[
+                    column_id_list.index(self.task_.column) - 1
                 ]
 
-        self.task_.update_task_status(new_column=new_column)
-        self.post_message(self.Moved(taskcard=self, new_column=new_column))
+            case "right":
+                # check if at right border
+                if column_id_list[-1] == self.task_.column:
+                    return
+                new_column_id = column_id_list[
+                    column_id_list.index(self.task_.column) + 1
+                ]
+
+        # TODO Update Status based on defined reset/start/done column
+        self.task_.update_task_status(new_column=new_column_id)
+        self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
     def get_due_date_str(self) -> str:
         match self.task_.days_left:

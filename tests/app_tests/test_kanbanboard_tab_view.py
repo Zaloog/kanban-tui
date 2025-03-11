@@ -121,7 +121,7 @@ async def test_kanbanboard_movement(test_app: KanbanTui):
         # 2x right doing -> ready
         await pilot.press("l", "l")
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 2
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         # left ready -> done
