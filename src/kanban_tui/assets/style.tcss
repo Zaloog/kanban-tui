@@ -578,9 +578,6 @@ Switch.-on > .switch--slider {
         color: $success;
     }
 
-.hidden {
-    display:none;
-}
 
 VerticalScroll {
     scrollbar-color: $warning;
@@ -634,4 +631,15 @@ AddRule Button{
         min-width:5;
         border:none;
         height:1;
+}
+
+# Classes
+.setting-block {
+    &:focus-within {
+        border:yellow;
+    }
+
+}
+.hidden {
+    display:none;
 }

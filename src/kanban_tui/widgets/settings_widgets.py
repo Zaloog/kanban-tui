@@ -39,7 +39,7 @@ class DataBasePathInput(Horizontal):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "database.database_path"
+        self.border_title = "database.database_path [yellow on black]^d[/]"
 
         yield Label("Database File")
         with self.prevent(Input.Changed):
@@ -55,7 +55,7 @@ class WorkingHoursSelector(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.work_hours"
+        self.border_title = "kanban.settings.work_hours [yellow on black]^n[/]"
 
         yield Label("Working Hours (coming soon)")
         with Horizontal():
@@ -89,7 +89,9 @@ class AlwaysExpandedSwitch(Horizontal):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.tasks_always_expanded"
+        self.border_title = (
+            "kanban.settings.tasks_always_expanded [yellow on black]^e[/]"
+        )
 
         yield Label("Always Expand Tasks")
         yield Switch(value=self.app.cfg.tasks_always_expanded, id="switch_expand_tasks")
@@ -108,7 +110,7 @@ class DefaultTaskColorSelector(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.default_task_color"
+        self.border_title = "kanban.settings.default_task_color [yellow on black]^g[/]"
 
         with Vertical():
             yield Label("Default Task Color")
@@ -191,7 +193,7 @@ class ColumnListItem(ListItem):
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
-            yield Label(f"Show [blue]{self.column.name}[/]")
+            yield Label(f"Show [cyan]{self.column.name}[/]")
             yield Switch(
                 value=self.column.visible,
                 id=f"switch_col_vis_{self.column.column_id}",
@@ -237,15 +239,17 @@ class ColumnSelector(ListView):
     amount_visible: reactive[int] = reactive(0)
 
     def _on_mount(self, event: Mount) -> None:
-        self.border_title = "column.visibility"
+        self.border_title = "column.visibility [yellow on black]^c[/]"
         self.amount_visible = len(self.app.visible_column_dict)
         return super()._on_mount(event)
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         children = [FirstListItem()] + [
             ColumnListItem(column=column) for column in self.app.column_list
         ]
-        super().__init__(*children, id="column_list", initial_index=None)
+        super().__init__(
+            *children, id="column_list", initial_index=None, *args, **kwargs
+        )
 
     # New Column
     def action_addrule_press(self):
@@ -338,7 +342,7 @@ class ColumnSelector(ListView):
         )
 
     def watch_amount_visible(self):
-        self.border_title = f"columns.visible  [blue]{self.amount_visible} / {len(self.app.column_list)}[/]"
+        self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/] [yellow on black]^c[/]"
 
     @on(ListView.Selected)
     def on_space_key(self, event: ListView.Selected):
