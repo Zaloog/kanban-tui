@@ -46,17 +46,16 @@ class KanbanTui(App):
 
     def on_mount(self) -> None:
         self.theme = "dracula"
-        # After boards got updated and active board
-        # is set, also updates tasks
         self.update_board_list()
         self.push_screen("MainView")
 
     def update_board_list(self):
         self.board_list = get_all_boards_db(database=self.app.cfg.database_path)
         self.active_board = self.get_active_board()
+        # After boards got updated and active board
+        # is set, also updates tasks
         self.update_task_list()
         self.update_column_list()
-        # self.notify(f"{self.column_list}")
 
     def update_task_list(self):
         self.task_list = get_all_tasks_on_board_db(

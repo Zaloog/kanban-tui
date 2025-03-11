@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
+from rich.text import Text
 from textual import on
 from textual.binding import Binding
 from textual.events import Mount
@@ -65,7 +66,9 @@ class KanbanBoard(Horizontal):
         if refresh_needed:
             self.app.query_one(
                 "#tabbed_content_boards"
-            ).border_title = f" [red]Active Board:[/] {self.app.active_board.full_name}"
+            ).border_title = Text.from_markup(
+                f" [red]Active Board:[/] {self.app.active_board.full_name}"
+            )
             self.refresh(recompose=True)
             self.set_timer(delay=0.1, callback=self.app.action_focus_next)
 
