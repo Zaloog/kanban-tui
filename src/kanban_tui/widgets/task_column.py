@@ -15,9 +15,9 @@ class Column(Vertical):
     task_amount: reactive[int] = reactive(0)
     task_list: reactive[list[Task]] = reactive([])
 
-    def __init__(self, title: str, tasklist: list[Task] = []) -> None:
+    def __init__(self, title: str, id_num: int, tasklist: list[Task] = []) -> None:
         self.title = title
-        super().__init__(id=f"column_{title}")
+        super().__init__(id=f"column_{id_num}")
         self.task_list = tasklist
         self.can_focus: bool = False
 

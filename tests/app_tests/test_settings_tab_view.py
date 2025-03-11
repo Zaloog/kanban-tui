@@ -94,14 +94,14 @@ async def test_column_visibility(test_app: KanbanTui):
 
         # toggle visibility
         await pilot.press("space")
-        assert pilot.app.visible_column_list == ["Doing", "Done"]
+        assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
         # Go to Archive ColumnItem
         await pilot.press(*"jjj")
         assert pilot.app.focused.highlighted_child.id == "listitem_column_4"
 
         await pilot.press("space")
-        assert pilot.app.visible_column_list == ["Doing", "Done", "Archive"]
+        assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done", 4: "Archive"}
 
 
 async def test_column_delete_press(empty_app: KanbanTui):
@@ -123,7 +123,7 @@ async def test_column_delete_press(empty_app: KanbanTui):
         await pilot.press("enter")
         assert isinstance(pilot.app.screen, MainView)
         assert len(pilot.app.column_list) == 3
-        assert pilot.app.visible_column_list == ["Doing", "Done"]
+        assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
 
 async def test_column_delete_click(empty_app: KanbanTui):
@@ -145,18 +145,18 @@ async def test_column_delete_click(empty_app: KanbanTui):
         await pilot.click("#btn_continue_delete")
         assert isinstance(pilot.app.screen, MainView)
         assert len(pilot.app.column_list) == 3
-        assert pilot.app.visible_column_list == ["Doing", "Done"]
+        assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
 
 @pytest.mark.parametrize(
-    "column_name, position, column_list",
+    "column_name, position, column_dict",
     [
-        ("Zero", 0, ["Zero", "Ready", "Doing", "Done"]),
-        ("One", 1, ["Ready", "One", "Doing", "Done"]),
-        ("Two", 2, ["Ready", "Doing", "Two", "Done"]),
+        ("Zero", 0, {5: "Zero", 1: "Ready", 2: "Doing", 3: "Done"}),
+        ("One", 1, {1: "Ready", 5: "One", 2: "Doing", 3: "Done"}),
+        ("Two", 2, {1: "Ready", 2: "Doing", 5: "Two", 3: "Done"}),
     ],
 )
-async def test_column_creation(test_app: KanbanTui, column_name, position, column_list):
+async def test_column_creation(test_app: KanbanTui, column_name, position, column_dict):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
@@ -172,7 +172,7 @@ async def test_column_creation(test_app: KanbanTui, column_name, position, colum
         await pilot.press(*column_name)
         await pilot.click("#btn_continue_new_col")
 
-        assert pilot.app.visible_column_list == column_list
+        assert pilot.app.visible_column_dict == column_dict
 
 
 async def test_column_creation_cancel_press(test_app: KanbanTui):

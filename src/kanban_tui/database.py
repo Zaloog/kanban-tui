@@ -56,7 +56,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
-    column TEXT NOT NULL,
+    column INTEGER NOT NULL,
     category TEXT,
     description TEXT,
     creation_date DATETIME NOT NULL,
@@ -66,6 +66,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     time_worked_on INTEGER,
     board_id INTEGER,
     FOREIGN KEY (board_id) REFERENCES boards(board_id),
+    FOREIGN KEY (column) REFERENCES columns(column_id),
     CHECK (title <> "")
     );
     """
@@ -172,7 +173,8 @@ def create_new_board_db(
 def create_new_task_db(
     title: str,
     board_id: int,
-    column: str = "Ready",
+    # column: str = "Ready",
+    column: int,
     category: str | None = None,
     description: str | None = None,
     start_date: datetime.datetime | None = None,
@@ -370,7 +372,8 @@ def update_column_visibility_db(
     UPDATE columns
     SET
         visible = :visible
-    WHERE column_id = :column_id;
+    WHERE
+        column_id = :column_id;
     """
 
     with create_connection(database=database) as con:

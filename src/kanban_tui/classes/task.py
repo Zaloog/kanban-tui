@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class Task(BaseModel):
     task_id: int
     title: str
-    column: str
+    column: int
     creation_date: datetime = datetime.now().replace(microsecond=0)
     days_since_creation: int = Field(default=0, ge=0)
     start_date: datetime | None = None
@@ -47,8 +47,13 @@ class Task(BaseModel):
             minutes=1
         ) + 1
 
+    def reset_task(self):
+        self.start_date = None
+        self.finish_date = None
+
     def start_task(self):
         self.start_date = datetime.now().replace(microsecond=0)
+        self.finish_date = None
 
     def finish_task(self):
         self.finished = True
@@ -64,12 +69,10 @@ class Task(BaseModel):
         match new_column:
             # Move to Ready
             case "Ready":
-                self.start_date = None
-                self.finish_date = None
+                self.reset_task()
             # Move to 'Doing'
             case "Doing":
                 self.start_task()
-                self.finish_date = None
             # Move to 'Done'
             case "Done":
                 if self.column == "Doing":

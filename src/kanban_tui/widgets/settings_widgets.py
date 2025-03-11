@@ -238,7 +238,7 @@ class ColumnSelector(ListView):
 
     def _on_mount(self, event: Mount) -> None:
         self.border_title = "column.visibility"
-        self.amount_visible = len(self.app.visible_column_list)
+        self.amount_visible = len(self.app.visible_column_dict)
         return super()._on_mount(event)
 
     def __init__(self) -> None:

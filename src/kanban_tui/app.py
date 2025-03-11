@@ -27,7 +27,7 @@ class KanbanTui(App):
     cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
-    column_list: reactive[list[Board]] = reactive([], init=False)
+    column_list: reactive[list[Column]] = reactive([], init=False)
     active_board: Board = None
 
     def __init__(
@@ -74,5 +74,5 @@ class KanbanTui(App):
         return None
 
     @property
-    def visible_column_list(self) -> list[Column]:
-        return [col.name for col in self.column_list if col.visible]
+    def visible_column_dict(self) -> dict[int, str]:
+        return {col.column_id: col.name for col in self.column_list if col.visible}

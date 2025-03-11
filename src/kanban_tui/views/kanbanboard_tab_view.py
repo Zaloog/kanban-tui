@@ -30,10 +30,10 @@ class KanbanBoard(Horizontal):
         # Binding(
         # "f1", "toggle_filter", "Filter", key_display="F1", show=False
         # ),  # Change to True Once implemented Properly
-        Binding("j,down", "movement('down')", "Down", show=False),
-        Binding("k, up", "movement('up')", "Up", show=False),
-        Binding("h, left", "movement('left')", "Left", show=False),
-        Binding("l, right", "movement('right')", "Right", show=False),
+        Binding("j,down", "navigation('down')", "Down", show=False),
+        Binding("k, up", "navigation('up')", "Up", show=False),
+        Binding("h, left", "navigation('left')", "Left", show=False),
+        Binding("l, right", "navigation('right')", "Right", show=False),
         Binding("B", "show_boards", "Show Boards", show=True, priority=True),
     ]
     selected_task: reactive[Task | None] = reactive(None)
@@ -46,9 +46,13 @@ class KanbanBoard(Horizontal):
         for column in self.app.column_list:
             if column.visible:
                 column_tasks = [
-                    task for task in self.app.task_list if task.column == column.name
+                    task
+                    for task in self.app.task_list
+                    if task.column == column.column_id
                 ]
-                yield Column(title=column.name, tasklist=column_tasks)
+                yield Column(
+                    title=column.name, tasklist=column_tasks, id_num=column.column_id
+                )
         # yield FilterOverlay()
 
         return super().compose()
@@ -78,7 +82,7 @@ class KanbanBoard(Horizontal):
         self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
 
     # Movement
-    def action_movement(self, direction: Literal["up", "right", "down", "left"]):
+    def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
         if not self.app.task_list:
             return
 
@@ -106,43 +110,45 @@ class KanbanBoard(Horizontal):
                     case _:
                         self.app.action_focus_next()
             case "right":
-                new_column_id = (
-                    self.app.visible_column_list.index(self.selected_task.column) + 1
-                ) % len(self.app.visible_column_list)
-                new_column_name = self.app.visible_column_list[new_column_id]
+                column_id_list = list(self.app.visible_column_dict.keys())
+                column_index = column_id_list.index(self.selected_task.column)
+                new_column_index = (column_index + 1) % len(
+                    self.app.visible_column_dict
+                )
+                new_column_id = column_id_list[new_column_index]
                 new_column_tasks = self.query_one(
-                    f"#column_{new_column_name}", Column
+                    f"#column_{new_column_id}", Column
                 ).task_amount
                 match new_column_tasks:
                     case 0:
                         self.app.action_focus_next()
                     case new_column_tasks if new_column_tasks <= row_idx:
-                        self.query_one(f"#column_{new_column_name}", Column).query(
+                        self.query_one(f"#column_{new_column_id}", Column).query(
                             TaskCard
                         )[new_column_tasks - 1].focus()
                     case _:
-                        self.query_one(f"#column_{new_column_name}", Column).query(
+                        self.query_one(f"#column_{new_column_id}", Column).query(
                             TaskCard
                         )[row_idx].focus()
             case "left":
-                new_column_id = (
-                    self.app.visible_column_list.index(self.selected_task.column)
-                    + len(self.app.visible_column_list)
-                    - 1
-                ) % len(self.app.visible_column_list)
-                new_column_name = self.app.visible_column_list[new_column_id]
+                column_id_list = list(self.app.visible_column_dict.keys())
+                column_index = column_id_list.index(self.selected_task.column)
+                new_column_index = (
+                    column_index + len(self.app.visible_column_dict) - 1
+                ) % len(self.app.visible_column_dict)
+                new_column_id = column_id_list[new_column_index]
                 new_column_tasks = self.query_one(
-                    f"#column_{new_column_name}", Column
+                    f"#column_{new_column_id}", Column
                 ).task_amount
                 match new_column_tasks:
                     case 0:
                         self.app.action_focus_previous()
                     case new_column_tasks if new_column_tasks <= row_idx:
-                        self.query_one(f"#column_{new_column_name}", Column).query(
+                        self.query_one(f"#column_{new_column_id}", Column).query(
                             TaskCard
                         )[new_column_tasks - 1].focus()
                     case _:
-                        self.query_one(f"#column_{new_column_name}", Column).query(
+                        self.query_one(f"#column_{new_column_id}", Column).query(
                             TaskCard
                         )[row_idx].focus()
 

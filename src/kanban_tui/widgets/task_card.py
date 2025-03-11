@@ -136,17 +136,17 @@ class TaskCard(Vertical):
         match direction:
             case "left":
                 # check if at left border
-                if self.app.visible_column_list[0] == self.task_.column:
+                if self.app.visible_column_dict[0] == self.task_.column:
                     return
-                new_column = self.app.visible_column_list[
-                    self.app.visible_column_list.index(self.task_.column) - 1
+                new_column = self.app.visible_column_dict[
+                    self.app.visible_column_dict.index(self.task_.column) - 1
                 ]
             case "right":
                 # check if at right border
-                if self.app.visible_column_list[-1] == self.task_.column:
+                if self.app.visible_column_dict[-1] == self.task_.column:
                     return
-                new_column = self.app.visible_column_list[
-                    self.app.visible_column_list.index(self.task_.column) + 1
+                new_column = self.app.visible_column_dict[
+                    self.app.visible_column_dict.index(self.task_.column) + 1
                 ]
 
         self.task_.update_task_status(new_column=new_column)

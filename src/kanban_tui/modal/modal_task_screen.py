@@ -88,9 +88,9 @@ class ModalTaskEditScreen(ModalScreen):
             create_new_task_db(
                 title=title,
                 description=description,
-                column=self.app.visible_column_list[0],
+                column=list(self.app.visible_column_dict.keys())[0],
                 start_date=datetime.now()
-                if (self.app.visible_column_list[0] == "Doing")
+                if (list(self.app.visible_column_dict.keys())[0] == "Doing")
                 else None,
                 category=category,
                 due_date=due_date,

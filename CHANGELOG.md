@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.0
+- Better column management
+- Fixed Bug, that allowed duplicate column names
+
 ## v0.6.4
 - Fix emoji of boardname in border title
 
