@@ -2,7 +2,15 @@ import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Switch, Button
 from kanban_tui.views.main_view import MainView, SettingsView
-from kanban_tui.widgets.settings_widgets import ColumnSelector, AddRule
+from kanban_tui.widgets.settings_widgets import (
+    ColumnSelector,
+    AddRule,
+    DataBasePathInput,
+    AlwaysExpandedSwitch,
+    DefaultTaskColorSelector,
+    StatusColumnSelector,
+    WorkingHoursSelector,
+)
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 
@@ -232,3 +240,29 @@ async def test_column_creation_column_name_present(test_app: KanbanTui):
         # Cancel Modal View
         await pilot.press(*"Ready")
         assert pilot.app.query_exactly_one("#btn_continue_new_col").disabled
+
+
+async def test_setting_shortcuts(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+
+        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+
+        await pilot.press("ctrl+e")
+        assert pilot.app.query_exactly_one(AlwaysExpandedSwitch).has_focus_within
+
+        await pilot.press("ctrl+d")
+        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+
+        await pilot.press("ctrl+c")
+        assert pilot.app.query_exactly_one(ColumnSelector).has_focus_within
+
+        await pilot.press("ctrl+n")
+        assert pilot.app.query_exactly_one(WorkingHoursSelector).has_focus_within
+
+        await pilot.press("ctrl+g")
+        assert pilot.app.query_exactly_one(DefaultTaskColorSelector).has_focus_within
+
+        await pilot.press("ctrl+s")
+        assert pilot.app.query_exactly_one(StatusColumnSelector).has_focus_within

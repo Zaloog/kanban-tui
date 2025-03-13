@@ -485,15 +485,19 @@ WorkingHoursSelector Horizontal{
 }
 DefaultTaskColorSelector{
     border:$success;
-    height:1fr;
+    height:auto;
 
-    TitleInput{
-        height:4;
-        border-title-align:right;
-    }
-    Label{
-        width:1fr;
-        padding:0 0 1 0;
+    Vertical {
+        height:auto;
+
+        TitleInput{
+            height:3;
+            border-title-align:right;
+        }
+        Label{
+            width:1fr;
+            padding:0 0 1 0;
+        }
     }
     Collapsible > Contents{
         height:1fr;
@@ -514,6 +518,10 @@ DefaultTaskColorSelector{
 }
 #horizontal_color_column_selector{
     height:1fr;
+}
+StatusColumnSelector {
+    height:1fr;
+
 }
 ColumnSelector{
     border:$success;
@@ -635,6 +643,8 @@ AddRule Button{
 
 # Classes
 .setting-block {
+    border:$success;
+
     &:focus-within {
         border:yellow;
     }

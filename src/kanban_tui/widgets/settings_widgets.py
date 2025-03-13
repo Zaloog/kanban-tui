@@ -371,7 +371,9 @@ class StatusColumnSelector(Vertical):
     app: "KanbanTui"
     """Widget to select the columns, which are used to update the start/finish dates on tasks"""
 
-    def compose(self):
+    def compose(self) -> Iterable[Widget]:
+        self.border_title = "column.status_update [yellow on black]^s[/]"
+
         yield Select([(column.name, column.name) for column in self.app.column_list])
         yield Select([(column.name, column.name) for column in self.app.column_list])
         yield Select([(column.name, column.name) for column in self.app.column_list])

@@ -4,7 +4,7 @@ from textual import on
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Input, Switch, Button
+from textual.widgets import Input, Switch, Button, Select
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.settings_widgets import (
@@ -46,6 +46,12 @@ class SettingsView(Vertical):
             show=False,
             priority=True,
         ),
+        Binding(
+            key="ctrl+s",
+            action="quick_focus_setting('status')",
+            show=False,
+            priority=True,
+        ),
     ]
     config_has_changed: reactive[bool] = reactive(False, init=False)
 
@@ -55,10 +61,9 @@ class SettingsView(Vertical):
             yield AlwaysExpandedSwitch(classes="setting-block")
             yield WorkingHoursSelector(classes="setting-block")
         with Horizontal(id="horizontal_color_column_selector"):
-            with Vertical():
+            with Vertical(id="vertical_column_status"):
                 yield DefaultTaskColorSelector(classes="setting-block")
                 yield StatusColumnSelector(classes="setting-block")
-                # yield Placeholder("FutureStuff")
             yield ColumnSelector(classes="setting-block")
         return super().compose()
 
@@ -69,7 +74,8 @@ class SettingsView(Vertical):
         self.config_has_changed = True
 
     def action_quick_focus_setting(
-        self, block: Literal["db", "expand", "hours", "defaultcolor", "columns"]
+        self,
+        block: Literal["db", "expand", "hours", "defaultcolor", "columns", "status"],
     ):
         match block:
             case "db":
@@ -82,3 +88,5 @@ class SettingsView(Vertical):
                 self.query_one(DefaultTaskColorSelector).query_one(Input).focus()
             case "columns":
                 self.query_one(ColumnSelector).focus()
+            case "status":
+                self.query_one(StatusColumnSelector).query(Select).focus()
