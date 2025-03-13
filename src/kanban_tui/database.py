@@ -77,6 +77,12 @@ def init_new_db(database: Path = DB_FULL_PATH):
     name TEXT NOT NULL,
     icon TEXT,
     creation_date DATETIME NOT NULL,
+    reset_column INTEGER DEFAULT NULL,
+    start_column INTEGER DEFAULT NULL,
+    finish_column INTEGER DEFAULT NULL,
+    FOREIGN KEY (reset_column) REFERENCES columns(column_id),
+    FOREIGN KEY (start_column) REFERENCES columns(column_id),
+    FOREIGN KEY (finish_column) REFERENCES columns(column_id),
     CHECK (name <> "")
     );
     """
@@ -129,7 +135,10 @@ def create_new_board_db(
         NULL,
         :name,
         :icon,
-        :creation_date
+        :creation_date,
+        NULL,
+        NULL,
+        NULL
         )
         RETURNING board_id
         ;"""
@@ -173,7 +182,6 @@ def create_new_board_db(
 def create_new_task_db(
     title: str,
     board_id: int,
-    # column: str = "Ready",
     column: int,
     category: str | None = None,
     description: str | None = None,
