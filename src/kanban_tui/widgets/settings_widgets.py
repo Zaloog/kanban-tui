@@ -86,7 +86,7 @@ class HourMinute(Horizontal):
         return super().compose()
 
 
-class AlwaysExpandedSwitch(Horizontal):
+class AlwaysExpandedSwitch(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
@@ -102,7 +102,7 @@ class AlwaysExpandedSwitch(Horizontal):
         self.app.cfg.set_tasks_always_expanded(new_value=event.value)
 
 
-class DefaultTaskColorSelector(Horizontal):
+class DefaultTaskColorSelector(Vertical):
     app: "KanbanTui"
 
     def _on_mount(self, event: Mount) -> None:
@@ -113,15 +113,15 @@ class DefaultTaskColorSelector(Horizontal):
     def compose(self) -> Iterable[Widget]:
         self.border_title = "kanban.settings.default_task_color [yellow on black]^g[/]"
 
-        with Vertical():
-            yield Label("Default Task Color")
+        yield Label("Default Task Color")
+        with Horizontal():
             with self.prevent(Input.Changed):
                 yield TitleInput(
                     value=self.app.cfg.no_category_task_color, id="task_color_preview"
                 )
-        with Collapsible(title="Pick Color"):
-            with self.prevent(DataTable.CellHighlighted):
-                yield ColorTable()
+            with Collapsible(title="Pick Color"):
+                with self.prevent(DataTable.CellHighlighted):
+                    yield ColorTable()
 
         return super().compose()
 
@@ -374,9 +374,19 @@ class StatusColumnSelector(Vertical):
     def compose(self) -> Iterable[Widget]:
         self.border_title = "column.status_update [yellow on black]^s[/]"
 
-        yield Select([(column.name, column.name) for column in self.app.column_list])
-        yield Select([(column.name, column.name) for column in self.app.column_list])
-        yield Select([(column.name, column.name) for column in self.app.column_list])
+        with Horizontal():
+            yield Label("Reset")
+            yield Select(
+                [(column.name, column.name) for column in self.app.column_list]
+            )
+        with Horizontal():
+            yield Label("Start")
+            yield Select(
+                [(column.name, column.name) for column in self.app.column_list]
+            )
+        with Horizontal():
+            yield Label("Finish")
+            yield Select(
+                [(column.name, column.name) for column in self.app.column_list]
+            )
         return super().compose()
-
-    ...

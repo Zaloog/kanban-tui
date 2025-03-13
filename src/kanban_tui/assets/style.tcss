@@ -428,9 +428,6 @@ SettingsView{
     content-align:center middle;
     height:1fr;
 }
-SettingsView Placeholder{
-    height:1fr;
-}
 DataBasePathInput{
     border:$success;
     height:auto;
@@ -444,14 +441,12 @@ DataBasePathInput{
 
 }
 AlwaysExpandedSwitch{
-    border:$success;
     height:auto;
     width:1fr;
-    padding:1 0 1 0 ;
     Label{
         width:1fr;
         text-align:center;
-        padding:1 0 0 0 ;
+        padding:0 0 1 0 ;
     }
     Switch {
         width:1fr;
@@ -487,30 +482,36 @@ DefaultTaskColorSelector{
     border:$success;
     height:auto;
 
-    Vertical {
+    Label{
+        width: 1fr;
+        text-align: center;
+        padding:0 0 1 1;
+    }
+    Horizontal {
         height:auto;
 
         TitleInput{
+            width:1fr;
             height:3;
             border-title-align:right;
         }
-        Label{
-            width:1fr;
+        Collapsible {
             padding:0 0 1 0;
+
         }
-    }
-    Collapsible > Contents{
-        height:1fr;
-        padding:0;
-        margin:0;
-    }
-    ColorTable {
-        width:1fr;
-        height:1fr;
-        text-align:center;
-        &:focus {
-            & .datatable--cursor {
-                color:white;
+        Collapsible > Contents{
+            height:1fr;
+            padding:0;
+            margin:0;
+        }
+        ColorTable {
+            width:1fr;
+            height:1fr;
+            text-align:center;
+            &:focus {
+                & .datatable--cursor {
+                    color:white;
+                }
             }
         }
     }
@@ -521,6 +522,10 @@ DefaultTaskColorSelector{
 }
 StatusColumnSelector {
     height:1fr;
+    Label {
+        width:1fr;
+        padding: 1 0 0 1;
+    }
 
 }
 ColumnSelector{
@@ -619,7 +624,7 @@ ColumnListItem{
 }
 ColumnListItem Label{
         width: 2fr;
-        padding:1 0;
+        padding:1 0 0 1;
         text-align:left;
 }
 ColumnListItem Switch{
