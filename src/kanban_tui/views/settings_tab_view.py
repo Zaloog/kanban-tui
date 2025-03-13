@@ -4,7 +4,7 @@ from textual import on
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Input, Switch, Placeholder, Button
+from textual.widgets import Input, Switch, Button
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.settings_widgets import (
@@ -13,6 +13,7 @@ from kanban_tui.widgets.settings_widgets import (
     DataBasePathInput,
     WorkingHoursSelector,
     ColumnSelector,
+    StatusColumnSelector,
 )
 
 
@@ -56,7 +57,8 @@ class SettingsView(Vertical):
         with Horizontal(id="horizontal_color_column_selector"):
             with Vertical():
                 yield DefaultTaskColorSelector(classes="setting-block")
-                yield Placeholder("FutureStuff")
+                yield StatusColumnSelector(classes="setting-block")
+                # yield Placeholder("FutureStuff")
             yield ColumnSelector(classes="setting-block")
         return super().compose()
 

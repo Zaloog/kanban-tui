@@ -12,6 +12,7 @@ from textual.binding import Binding
 from textual.widget import Widget
 from textual.widgets import (
     Label,
+    Select,
     Switch,
     Input,
     Collapsible,
@@ -225,6 +226,8 @@ class FirstListItem(ListItem):
 
 
 class ColumnSelector(ListView):
+    """Widget to add/delete/rename columns and change the column visibility"""
+
     app: "KanbanTui"
 
     BINDINGS = [
@@ -362,3 +365,16 @@ class ColumnSelector(ListView):
         )
 
         self.app.update_column_list()
+
+
+class StatusColumnSelector(Vertical):
+    app: "KanbanTui"
+    """Widget to select the columns, which are used to update the start/finish dates on tasks"""
+
+    def compose(self):
+        yield Select([(column.name, column.name) for column in self.app.column_list])
+        yield Select([(column.name, column.name) for column in self.app.column_list])
+        yield Select([(column.name, column.name) for column in self.app.column_list])
+        return super().compose()
+
+    ...
