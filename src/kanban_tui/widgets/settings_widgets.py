@@ -23,6 +23,7 @@ from textual.widgets import (
     ListItem,
 )
 from textual.containers import Horizontal, Vertical
+from rich.text import Text
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalNewColumnScreen
@@ -33,6 +34,7 @@ from kanban_tui.database import (
     delete_column_db,
     create_new_column_db,
     update_column_positions_db,
+    get_status_update_columns_db,
 )
 
 
@@ -194,7 +196,7 @@ class ColumnListItem(ListItem):
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
-            yield Label(f"Show [cyan]{self.column.name}[/]")
+            yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
             yield Switch(
                 value=self.column.visible,
                 id=f"switch_col_vis_{self.column.column_id}",
@@ -377,16 +379,33 @@ class StatusColumnSelector(Vertical):
         with Horizontal():
             yield Label("Reset")
             yield Select(
-                [(column.name, column.name) for column in self.app.column_list]
+                [
+                    (Text.from_markup(column.name), column.name)
+                    for column in self.app.column_list
+                ],
+                prompt="Select reset column",
+                id="select_reset",
             )
         with Horizontal():
             yield Label("Start")
             yield Select(
-                [(column.name, column.name) for column in self.app.column_list]
+                [(column.name, column.name) for column in self.app.column_list],
+                prompt="Select start column",
+                id="select_start",
             )
         with Horizontal():
             yield Label("Finish")
             yield Select(
-                [(column.name, column.name) for column in self.app.column_list]
+                [(column.name, column.name) for column in self.app.column_list],
+                prompt="Select finish column",
+                id="select_finish",
             )
         return super().compose()
+
+    @on(Select.Changed)
+    def update_status_columns(self, event: Select.Changed):
+        columns = get_status_update_columns_db(
+            board_id=self.app.active_board.board_id, database=self.app.cfg.database_path
+        )
+
+        self.notify(f"{[i for i in columns]}")

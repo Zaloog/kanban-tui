@@ -309,6 +309,28 @@ def get_all_columns_on_board_db(
             return None
 
 
+def get_status_update_columns_db(
+    board_id: int,
+    database: Path = DB_FULL_PATH,
+) -> sqlite3.Row | None:
+    board_id_dict = {"board_id": board_id}
+
+    query_str = """
+    SELECT reset_column, start_column, finish_column
+    FROM boards
+    WHERE board_id = :board_id
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            columns = con.execute(query_str, board_id_dict).fetchone()
+            return columns
+        except sqlite3.Error as e:
+            print(e)
+            return None
+
+
 def init_first_board(database: Path = DB_FULL_PATH) -> None:
     # Check if Boards exist
     if not get_all_boards_db(database=database):

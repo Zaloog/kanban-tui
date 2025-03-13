@@ -1,6 +1,6 @@
 from typing import Iterable
 
-
+from rich.text import Text
 from textual.events import Mount
 from textual.reactive import reactive
 from textual.widget import Widget
@@ -22,7 +22,7 @@ class Column(Vertical):
         self.can_focus: bool = False
 
     def compose(self) -> Iterable[Widget]:
-        yield Label(self.title, id=f"label_{self.id}")
+        yield Label(Text.from_markup(self.title), id=f"label_{self.id}")
         yield VerticalScroll(id=f"vscroll_{self.id}")
         return super().compose()
 
@@ -34,12 +34,14 @@ class Column(Vertical):
 
     def watch_task_amount(self) -> None:
         if self.task_amount == 0:
-            self.get_child_by_type(Label).update(self.title)
+            self.get_child_by_type(Label).update(Text.from_markup(self.title))
         elif self.task_amount == 1:
-            self.get_child_by_type(Label).update(f"{self.title} (1 Task)")
+            self.get_child_by_type(Label).update(
+                Text.from_markup(f"{self.title} (1 Task)")
+            )
         else:
             self.get_child_by_type(Label).update(
-                f"{self.title} ({self.task_amount} Tasks)"
+                Text.from_markup(f"{self.title} ({self.task_amount} Tasks)")
             )
 
     def place_task(self, task: Task) -> None:
