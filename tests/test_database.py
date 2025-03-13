@@ -5,7 +5,7 @@ from kanban_tui.database import (
     create_connection,
     task_factory,
     board_factory,
-    info_factory,
+    board_info_factory,
     column_factory,
     create_new_board_db,
     get_all_boards_db,
@@ -48,7 +48,7 @@ def test_board_factory(init_test_db, test_db_full_path):
         assert isinstance(row, Board)
 
 
-def test_info_factory(init_test_db, test_db_full_path):
+def test_board_info_factory(init_test_db, test_db_full_path):
     info_str = """
     SELECT
     b.board_id AS board_id,
@@ -61,7 +61,7 @@ def test_info_factory(init_test_db, test_db_full_path):
     GROUP BY b.board_id;
     """
     with create_connection(database=test_db_full_path) as con:
-        con.row_factory = info_factory
+        con.row_factory = board_info_factory
         info_dict = con.execute(info_str).fetchone()
         print(info_dict)
         assert isinstance(info_dict, dict)

@@ -43,7 +43,7 @@ def column_factory(cursor, row):
     return Column(**{k: v for k, v in zip(fields, row)})
 
 
-def info_factory(cursor, row):
+def board_info_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return {k: v for k, v in zip(fields, row)}
 
@@ -592,7 +592,7 @@ def get_all_board_infos(
     """
 
     with create_connection(database=database) as con:
-        con.row_factory = info_factory
+        con.row_factory = board_info_factory
         try:
             board_infos = con.execute(query_str).fetchall()
             return board_infos
