@@ -2,6 +2,9 @@
 
 ## v0.7.0
 - Better column management
+- Updated the settings tab UI and added shortcuts
+- Column names are no longer limited to single strings,
+emoji codes are also supported now
 - Fixed Bug, that allowed duplicate column names
 
 ## v0.6.4
