@@ -159,7 +159,7 @@ class TaskCard(Vertical):
             finish=self.app.active_board.finish_column,
         )
         self.task_.update_task_status(
-            new_column=new_column_id, update_column_dict=update_column_enum
+            new_column=new_column_id, update_column_enum=update_column_enum
         )
         self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
