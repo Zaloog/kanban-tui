@@ -266,3 +266,29 @@ async def test_setting_shortcuts(test_app: KanbanTui):
 
         await pilot.press("ctrl+s")
         assert pilot.app.query_exactly_one(StatusColumnSelector).has_focus_within
+
+
+async def test_status_column_selector(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+
+        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+
+        await pilot.press("ctrl+s")
+        assert pilot.app.query_exactly_one(StatusColumnSelector).has_focus_within
+
+        assert str(pilot.app.focused.value) == "Select.BLANK"
+
+        await pilot.click(pilot.app.focused)
+        await pilot.press("R")
+        await pilot.press("enter")
+
+        assert pilot.app.focused.value == 1
+        assert pilot.app.active_board.reset_column == 1
+
+        await pilot.click(pilot.app.query_one("#select_start"))
+        await pilot.press("R")
+        await pilot.press("enter")
+        assert pilot.app.active_board.reset_column is None
+        assert pilot.app.active_board.start_column == 1
