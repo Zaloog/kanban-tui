@@ -64,7 +64,7 @@ class Task(BaseModel):
         self.finish_date = datetime.now().replace(microsecond=0)
         self.update_time_worked_on()
 
-    def update_task_status(self, new_column: int, update_column_dict: "StatusEnum"):
+    def update_task_status(self, new_column: int, update_column_enum: "StatusEnum"):
         """Update Dates on Task Move
 
         Args:
@@ -72,12 +72,12 @@ class Task(BaseModel):
         """
         match new_column:
             # Move to Ready
-            case update_column_dict.RESET.value:
+            case update_column_enum.RESET.value:
                 self.reset_task()
             # Move to 'Doing'
-            case update_column_dict.START.value:
+            case update_column_enum.START.value:
                 self.start_task()
             # Move to 'Done'
-            case update_column_dict.FINISH.value:
-                if self.column == update_column_dict.START.value:
+            case update_column_enum.FINISH.value:
+                if self.column == update_column_enum.START.value:
                     self.finish_task()

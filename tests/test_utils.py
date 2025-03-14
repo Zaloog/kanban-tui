@@ -4,6 +4,7 @@ from kanban_tui.utils import (
     calculate_work_on_time,
     get_days_left_till_due,
     get_time_range,
+    get_status_enum,
 )
 
 from freezegun import freeze_time
@@ -160,3 +161,14 @@ def test_get_time_range(test_start, test_end, frequency, expected_result):
     delta = get_time_range(interval=frequency, start=test_start, end=test_end)
 
     assert len(delta) == expected_result
+
+
+def test_get_status_enum():
+    status_enum = get_status_enum(
+        reset=None,
+        start=1,
+        finish=2,
+    )
+    assert status_enum.RESET.value is None
+    assert status_enum.START.value == 1
+    assert status_enum.FINISH.value == 2

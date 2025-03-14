@@ -153,13 +153,13 @@ class TaskCard(Vertical):
                 ]
 
         # TODO Update Status based on defined reset/start/done column
-        update_column_dict = get_status_enum(
+        update_column_enum = get_status_enum(
             reset=self.app.active_board.reset_column,
             start=self.app.active_board.start_column,
             finish=self.app.active_board.finish_column,
         )
         self.task_.update_task_status(
-            new_column=new_column_id, update_column_dict=update_column_dict
+            new_column=new_column_id, update_column_dict=update_column_enum
         )
         self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
