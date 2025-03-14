@@ -18,6 +18,7 @@ from textual.message import Message
 
 
 from kanban_tui.classes.task import Task
+from kanban_tui.utils import get_status_enum
 from kanban_tui.modal.modal_task_screen import (
     ModalTaskEditScreen,
     ModalConfirmScreen,
@@ -152,7 +153,14 @@ class TaskCard(Vertical):
                 ]
 
         # TODO Update Status based on defined reset/start/done column
-        self.task_.update_task_status(new_column=new_column_id)
+        update_column_dict = get_status_enum(
+            reset=self.app.active_board.reset_column,
+            start=self.app.active_board.start_column,
+            finish=self.app.active_board.finish_column,
+        )
+        self.task_.update_task_status(
+            new_column=new_column_id, update_column_dict=update_column_dict
+        )
         self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
     def get_due_date_str(self) -> str:
