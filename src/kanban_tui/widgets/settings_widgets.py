@@ -23,6 +23,7 @@ from textual.widgets import (
     ListItem,
 )
 from textual.containers import Horizontal, Vertical
+from textual.widgets._select import BLANK
 from rich.text import Text
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
@@ -34,7 +35,7 @@ from kanban_tui.database import (
     delete_column_db,
     create_new_column_db,
     update_column_positions_db,
-    get_status_update_columns_db,
+    update_status_update_columns_db,
 )
 
 
@@ -373,6 +374,10 @@ class StatusColumnSelector(Vertical):
     app: "KanbanTui"
     """Widget to select the columns, which are used to update the start/finish dates on tasks"""
 
+    def on_mount(self):
+        with self.prevent(Select.Changed):
+            self.get_select_widget_values()
+
     def compose(self) -> Iterable[Widget]:
         self.border_title = "column.status_update [yellow on black]^s[/]"
 
@@ -380,32 +385,77 @@ class StatusColumnSelector(Vertical):
             yield Label("Reset")
             yield Select(
                 [
-                    (Text.from_markup(column.name), column.name)
+                    (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                prompt="Select reset column",
+                # value=self.app.active_board.reset_column or BLANK,
+                prompt="No reset column",
                 id="select_reset",
             )
         with Horizontal():
             yield Label("Start")
             yield Select(
-                [(column.name, column.name) for column in self.app.column_list],
-                prompt="Select start column",
+                [
+                    (Text.from_markup(column.name), column.column_id)
+                    for column in self.app.column_list
+                ],
+                # value=self.app.active_board.start_column or BLANK,
+                prompt="No start column",
                 id="select_start",
             )
         with Horizontal():
             yield Label("Finish")
             yield Select(
-                [(column.name, column.name) for column in self.app.column_list],
-                prompt="Select finish column",
+                [
+                    (Text.from_markup(column.name), column.column_id)
+                    for column in self.app.column_list
+                ],
+                # value=self.app.active_board.finish_column or BLANK,
+                prompt="No finish column",
                 id="select_finish",
             )
         return super().compose()
 
     @on(Select.Changed)
     def update_status_columns(self, event: Select.Changed):
-        columns = get_status_update_columns_db(
-            board_id=self.app.active_board.board_id, database=self.app.cfg.database_path
+        update_status_update_columns_db(
+            new_status=None if event.value == BLANK else event.value,
+            # Bug
+            # new_status=event.select.selection,
+            column_prefix=event.select.id.split("_")[-1],
+            board_id=self.app.active_board.board_id,
+            database=self.app.cfg.database_path,
         )
 
-        self.notify(f"{[i for i in columns]}")
+        self.app.update_board_list()
+        self.notify(f"{self.app.active_board}")
+
+        if event.value == BLANK:
+            # if event.select.selection is None:
+            return
+
+        # If column is already selected, clear the old column
+        for other_select in self.query(Select).exclude(f"#{event.select.id}"):
+            if event.value == other_select.value:
+                other_select.clear()
+                self.notify(
+                    title="Status update column cleared",
+                    message=f"Status update for [yellow]{other_select.id.split('_')[1]}[/] was removed",
+                    severity="warning",
+                )
+
+    def get_select_widget_values(self):
+        if self.app.active_board.reset_column is not None:
+            self.query_exactly_one(
+                "#select_reset", Select
+            ).value = self.app.active_board.reset_column
+
+        if self.app.active_board.start_column is not None:
+            self.query_exactly_one(
+                "#select_start", Select
+            ).value = self.app.active_board.start_column
+
+        if self.app.active_board.finish_column is not None:
+            self.query_exactly_one(
+                "#select_finish", Select
+            ).value = self.app.active_board.finish_column

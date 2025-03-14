@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from typing import Literal
 import datetime
 
 from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
@@ -309,26 +310,30 @@ def get_all_columns_on_board_db(
             return None
 
 
-def get_status_update_columns_db(
+def update_status_update_columns_db(
+    column_prefix: Literal["reset", "start", "finish"],
+    new_status: int | None,
     board_id: int,
     database: Path = DB_FULL_PATH,
-) -> sqlite3.Row | None:
-    board_id_dict = {"board_id": board_id}
+) -> int | str:
+    update_dict = {"board_id": board_id, "new_status": new_status}
 
-    query_str = """
-    SELECT reset_column, start_column, finish_column
-    FROM boards
-    WHERE board_id = :board_id
+    transaction_str = f"""
+    UPDATE boards
+    SET
+        {column_prefix}_column = :new_status
+    WHERE
+        board_id = :board_id
     """
-
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            columns = con.execute(query_str, board_id_dict).fetchone()
-            return columns
+            con.execute(transaction_str, update_dict)
+            return 0
         except sqlite3.Error as e:
-            print(e)
-            return None
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
 
 
 def init_first_board(database: Path = DB_FULL_PATH) -> None:
