@@ -11,7 +11,7 @@ from kanban_tui.widgets.settings_widgets import (
     StatusColumnSelector,
     WorkingHoursSelector,
 )
-from kanban_tui.modal.modal_settings import ModalNewColumnScreen
+from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 
 
@@ -177,7 +177,7 @@ async def test_column_creation(
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         await pilot.click(pilot.app.query(AddRule)[position].query_exactly_one(Button))
-        assert isinstance(pilot.app.screen, ModalNewColumnScreen)
+        assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         await pilot.press(*column_name)
         await pilot.click("#btn_continue_new_col")
@@ -197,7 +197,7 @@ async def test_column_creation_cancel_press(test_app: KanbanTui):
 
         # Click on First Position
         await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
-        assert isinstance(pilot.app.screen, ModalNewColumnScreen)
+        assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
         await pilot.press("escape")
@@ -216,7 +216,7 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
 
         # Click on First Position
         await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
-        assert isinstance(pilot.app.screen, ModalNewColumnScreen)
+        assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
         await pilot.click("#btn_cancel_new_col")
@@ -235,7 +235,7 @@ async def test_column_creation_column_name_present(test_app: KanbanTui):
 
         # Click on First Position
         await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
-        assert isinstance(pilot.app.screen, ModalNewColumnScreen)
+        assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
         await pilot.press(*"Ready")
