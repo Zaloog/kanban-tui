@@ -75,8 +75,13 @@ class ValidColumn(Validator):
     def column_is_valid(self, value: str) -> bool:
         return value not in self.columns
 
+    def column_is_empty(self, value: str) -> bool:
+        return value.strip() == ""
+
     def validate(self, value: str) -> ValidationResult:
         """Check if column name is already present"""
+        if self.column_is_empty(value):
+            return self.failure()
         if self.column_is_valid(value):
             return self.success()
         else:

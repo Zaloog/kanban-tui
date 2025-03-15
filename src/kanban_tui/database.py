@@ -450,6 +450,32 @@ def update_column_positions_db(
             return e.sqlite_errorname
 
 
+def update_column_name_db(
+    column_id: int, new_column_name: str, database: Path = DB_FULL_PATH
+) -> str | int:
+    update_column_name_dict = {"column_id": column_id, "new_name": new_column_name}
+
+    transaction_str = """
+    UPDATE columns
+    SET
+        name = :new_name
+    WHERE
+        column_id = :column_id
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_column_name_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
 # After Editing
 def update_task_entry_db(
     task_id: int,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -31,6 +32,7 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.database import (
+    update_column_name_db,
     update_column_visibility_db,
     delete_column_db,
     create_new_column_db,
@@ -268,8 +270,41 @@ class ColumnSelector(ListView):
             return
         column_id = self.highlighted_child.column.column_id
         column_name = self.highlighted_child.column.name
+
+        async def modal_rename_column(
+            event_col_name: tuple[Column, str] | None,
+        ):
+            if event_col_name:
+                column, new_column_name = event_col_name
+                update_column_name_db(
+                    column_id=column.column_id,
+                    new_column_name=new_column_name,
+                    database=self.app.cfg.database_path,
+                )
+
+                # Update state and Widgets
+                self.app.update_column_list()
+                await self.clear()
+                self.extend(
+                    [FirstListItem()]
+                    + [ColumnListItem(column=column) for column in self.app.column_list]
+                )
+                await self.app.query_one(StatusColumnSelector).recompose()
+                self.app.query_one(StatusColumnSelector).get_select_widget_values()
+                # Trigger Update on tab Switch
+                self.parent.parent.config_changes()
+
+                self.index = column.position
+
+                self.notify(
+                    title="Columns Updated",
+                    message=f"Column [blue]{column_name}[/] renamed to [blue]{new_column_name}[/]",
+                    timeout=2,
+                )
+
         self.app.push_screen(
-            ModalUpdateColumnScreen(column=self.highlighted_child.column)
+            ModalUpdateColumnScreen(column=self.highlighted_child.column),
+            callback=modal_rename_column,
         )
         self.notify(f"{column_id}: {column_name}")
 
@@ -391,8 +426,7 @@ class StatusColumnSelector(Vertical):
     """Widget to select the columns, which are used to update the start/finish dates on tasks"""
 
     def on_mount(self):
-        with self.prevent(Select.Changed):
-            self.get_select_widget_values()
+        self.get_select_widget_values()
 
     def compose(self) -> Iterable[Widget]:
         self.border_title = "column.status_update [yellow on black]^s[/]"
@@ -460,17 +494,18 @@ class StatusColumnSelector(Vertical):
                 )
 
     def get_select_widget_values(self):
-        if self.app.active_board.reset_column is not None:
-            self.query_exactly_one(
-                "#select_reset", Select
-            ).value = self.app.active_board.reset_column
+        with self.prevent(Select.Changed):
+            if self.app.active_board.reset_column is not None:
+                self.query_exactly_one(
+                    "#select_reset", Select
+                ).value = self.app.active_board.reset_column
 
-        if self.app.active_board.start_column is not None:
-            self.query_exactly_one(
-                "#select_start", Select
-            ).value = self.app.active_board.start_column
+            if self.app.active_board.start_column is not None:
+                self.query_exactly_one(
+                    "#select_start", Select
+                ).value = self.app.active_board.start_column
 
-        if self.app.active_board.finish_column is not None:
-            self.query_exactly_one(
-                "#select_finish", Select
-            ).value = self.app.active_board.finish_column
+            if self.app.active_board.finish_column is not None:
+                self.query_exactly_one(
+                    "#select_finish", Select
+                ).value = self.app.active_board.finish_column

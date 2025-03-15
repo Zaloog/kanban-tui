@@ -70,7 +70,7 @@ class SettingsView(Vertical):
     @on(Input.Changed)
     @on(Switch.Changed)
     @on(Button.Pressed)
-    def config_changes(self, event: Input.Changed | Switch.Changed | Button.Pressed):
+    def config_changes(self):
         self.config_has_changed = True
 
     def action_quick_focus_setting(
