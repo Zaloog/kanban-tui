@@ -1,4 +1,5 @@
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Optional
+
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -13,14 +14,25 @@ from textual.screen import ModalScreen
 from textual.widgets import Input, Button
 from textual.containers import Horizontal, Vertical
 
+from kanban_tui.classes.column import Column
 
-class ModalNewColumnScreen(ModalScreen):
+
+class ModalUpdateColumnScreen(ModalScreen):
     app: "KanbanTui"
     BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
 
-    def __init__(self, event: "AddRule.Pressed") -> None:
-        self.event = event
+    def __init__(
+        self, event: Optional["AddRule.Pressed"] = None, column: Column | None = None
+    ) -> None:
+        self.event = event or column
         super().__init__()
+
+    def on_mount(self):
+        if isinstance(self.event, Column):
+            self.query_exactly_one(
+                Input
+            ).placeholder = f"Current column name: '{self.event.name}'"
+            self.query_one(Button).label = "Rename column"
 
     def compose(self) -> Iterable[Widget]:
         column_names = [column.name for column in self.app.column_list]

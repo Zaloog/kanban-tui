@@ -534,7 +534,7 @@ ColumnSelector{
     width:1fr;
     margin:0;
 }
-ModalNewColumnScreen {
+ModalUpdateColumnScreen {
     align: center middle;
     Vertical{
         width: 30%;

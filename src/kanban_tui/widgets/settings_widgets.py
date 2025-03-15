@@ -27,7 +27,7 @@ from textual.widgets._select import BLANK
 from rich.text import Text
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
-from kanban_tui.modal.modal_settings import ModalNewColumnScreen
+from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.database import (
@@ -268,9 +268,9 @@ class ColumnSelector(ListView):
             return
         column_id = self.highlighted_child.column.column_id
         column_name = self.highlighted_child.column.name
-        # self.app.push_screen(
-        #     ModalRenameColumnScreen(column=self.highlighted_child.column)
-        # )
+        self.app.push_screen(
+            ModalUpdateColumnScreen(column=self.highlighted_child.column)
+        )
         self.notify(f"{column_id}: {column_name}")
 
     # New Column
@@ -312,7 +312,7 @@ class ColumnSelector(ListView):
                 )
 
         self.app.push_screen(
-            ModalNewColumnScreen(event=event), callback=modal_add_new_column
+            ModalUpdateColumnScreen(event=event), callback=modal_add_new_column
         )
 
     # Delete Column
