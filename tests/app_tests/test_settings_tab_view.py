@@ -272,6 +272,9 @@ async def test_column_rename(test_app: KanbanTui):
         assert pilot.app.focused.highlighted_child.column.name == "New Name!"
         assert pilot.app.column_list[0].name == "New Name!"
 
+        await pilot.press("ctrl+j")
+        assert pilot.app.query_one("#column_1").title == "New Name!"
+
 
 async def test_setting_shortcuts(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
