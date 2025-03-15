@@ -428,7 +428,6 @@ class StatusColumnSelector(Vertical):
         )
 
         self.app.update_board_list()
-        self.notify(f"{self.app.active_board}")
 
         if event.value == BLANK:
             # if event.select.selection is None:
