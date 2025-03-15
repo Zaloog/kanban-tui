@@ -90,51 +90,51 @@ async def test_kanbanboard_movement(test_app: KanbanTui):
         # 3 in ready, 1 in doing, 1 in done
         assert isinstance(pilot.app.focused, TaskCard)
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         # up 0 -> 2
         await pilot.press("k")
         assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 2
 
         # up 2- > 1
         await pilot.press("k")
         assert pilot.app.focused.task_.title == "Task_ready_1"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 1
 
         # 2x down 1 -> 0
         await pilot.press("j", "j")
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         # right ready -> doing
         await pilot.press("j")
         await pilot.press("l")
         assert pilot.app.focused.task_.title == "Task_doing_0"
-        assert pilot.app.focused.task_.column == "Doing"
+        assert pilot.app.focused.task_.column == 2
         assert pilot.app.focused.row == 0
 
         # 2x right doing -> ready
         await pilot.press("l", "l")
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         # left ready -> done
         await pilot.press("k")
         await pilot.press("h")
         assert pilot.app.focused.task_.title == "Task_done_0"
-        assert pilot.app.focused.task_.column == "Done"
+        assert pilot.app.focused.task_.column == 3
         assert pilot.app.focused.row == 0
 
         # 2x left done -> ready
         await pilot.press("h", "h")
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         # delete Done Task
@@ -142,19 +142,19 @@ async def test_kanbanboard_movement(test_app: KanbanTui):
         await pilot.press("d")
         await pilot.click("#btn_continue_delete")
         assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 2
 
         # move right skip done column
         await pilot.press("l")
         assert pilot.app.focused.task_.title == "Task_done_0"
-        assert pilot.app.focused.task_.column == "Done"
+        assert pilot.app.focused.task_.column == 3
         assert pilot.app.focused.row == 0
 
         # move left skip done column
         await pilot.press("h")
         assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 2
 
 
@@ -164,29 +164,29 @@ async def test_kanbanboard_card_movement(test_app: KanbanTui):
         # 3 in ready, 1 in doing, 1 in done
         assert isinstance(pilot.app.focused, TaskCard)
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         # try move card left
         # ready -> ready
         await pilot.press("H")
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
 
         await pilot.press("L")
         assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == "Doing"
+        assert pilot.app.focused.task_.column == 2
         assert pilot.app.focused.row == 1
 
         await pilot.press("h")
         assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == "Ready"
+        assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 1
 
         await pilot.press("L")
         assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == "Doing"
+        assert pilot.app.focused.task_.column == 2
         assert pilot.app.focused.row == 2
 
 

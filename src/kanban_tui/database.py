@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from typing import Literal
 import datetime
 
 from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
@@ -43,7 +44,7 @@ def column_factory(cursor, row):
     return Column(**{k: v for k, v in zip(fields, row)})
 
 
-def info_factory(cursor, row):
+def board_info_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return {k: v for k, v in zip(fields, row)}
 
@@ -56,7 +57,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
-    column TEXT NOT NULL,
+    column INTEGER NOT NULL,
     category TEXT,
     description TEXT,
     creation_date DATETIME NOT NULL,
@@ -66,6 +67,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     time_worked_on INTEGER,
     board_id INTEGER,
     FOREIGN KEY (board_id) REFERENCES boards(board_id),
+    FOREIGN KEY (column) REFERENCES columns(column_id),
     CHECK (title <> "")
     );
     """
@@ -76,6 +78,12 @@ def init_new_db(database: Path = DB_FULL_PATH):
     name TEXT NOT NULL,
     icon TEXT,
     creation_date DATETIME NOT NULL,
+    reset_column INTEGER DEFAULT NULL,
+    start_column INTEGER DEFAULT NULL,
+    finish_column INTEGER DEFAULT NULL,
+    FOREIGN KEY (reset_column) REFERENCES columns(column_id),
+    FOREIGN KEY (start_column) REFERENCES columns(column_id),
+    FOREIGN KEY (finish_column) REFERENCES columns(column_id),
     CHECK (name <> "")
     );
     """
@@ -128,7 +136,10 @@ def create_new_board_db(
         NULL,
         :name,
         :icon,
-        :creation_date
+        :creation_date,
+        NULL,
+        NULL,
+        NULL
         )
         RETURNING board_id
         ;"""
@@ -172,7 +183,7 @@ def create_new_board_db(
 def create_new_task_db(
     title: str,
     board_id: int,
-    column: str = "Ready",
+    column: int,
     category: str | None = None,
     description: str | None = None,
     start_date: datetime.datetime | None = None,
@@ -299,6 +310,32 @@ def get_all_columns_on_board_db(
             return None
 
 
+def update_status_update_columns_db(
+    column_prefix: Literal["reset", "start", "finish"],
+    new_status: int | None,
+    board_id: int,
+    database: Path = DB_FULL_PATH,
+) -> int | str:
+    update_dict = {"board_id": board_id, "new_status": new_status}
+
+    transaction_str = f"""
+    UPDATE boards
+    SET
+        {column_prefix}_column = :new_status
+    WHERE
+        board_id = :board_id
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_dict)
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
 def init_first_board(database: Path = DB_FULL_PATH) -> None:
     # Check if Boards exist
     if not get_all_boards_db(database=database):
@@ -370,7 +407,8 @@ def update_column_visibility_db(
     UPDATE columns
     SET
         visible = :visible
-    WHERE column_id = :column_id;
+    WHERE
+        column_id = :column_id;
     """
 
     with create_connection(database=database) as con:
@@ -404,6 +442,32 @@ def update_column_positions_db(
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str, update_column_position_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            print(e.sqlite_errorname)
+            return e.sqlite_errorname
+
+
+def update_column_name_db(
+    column_id: int, new_column_name: str, database: Path = DB_FULL_PATH
+) -> str | int:
+    update_column_name_dict = {"column_id": column_id, "new_name": new_column_name}
+
+    transaction_str = """
+    UPDATE columns
+    SET
+        name = :new_name
+    WHERE
+        column_id = :column_id
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_column_name_dict)
             con.commit()
             return 0
         except sqlite3.Error as e:
@@ -589,7 +653,7 @@ def get_all_board_infos(
     """
 
     with create_connection(database=database) as con:
-        con.row_factory = info_factory
+        con.row_factory = board_info_factory
         try:
             board_infos = con.execute(query_str).fetchall()
             return board_infos

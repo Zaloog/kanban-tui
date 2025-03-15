@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Literal, Any
+from enum import Enum
 
 import re
 from pathlib import Path
@@ -9,6 +10,10 @@ from functools import lru_cache
 
 from kanban_tui.database import create_new_task_db, init_new_db, create_new_board_db
 from kanban_tui.config import KanbanTuiConfig, init_new_config
+
+
+def get_status_enum(reset: int | None, start: int | None, finish: int | None) -> Enum:
+    return Enum("StatusEnum", [("RESET", reset), ("START", start), ("FINISH", finish)])
 
 
 @lru_cache
@@ -403,7 +408,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         title="Task_green_ready",
         description="First Task",
         category="green",
-        column="Ready",
+        column=1,
         due_date=datetime.now(),
         board_id=cfg.active_board,
         database=database_path,
@@ -412,7 +417,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         title="Task_blue_ready",
         description="Second Task",
         category="blue",
-        column="Ready",
+        column=1,
         due_date=datetime.now() + timedelta(days=1),
         board_id=cfg.active_board,
         database=database_path,
@@ -421,7 +426,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         title="Task_none_ready",
         description="Third Task",
         category=None,
-        column="Ready",
+        column=1,
         due_date=datetime.now() + timedelta(days=3),
         board_id=cfg.active_board,
         database=database_path,
@@ -432,7 +437,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         title="Task_green_doing",
         description="Task I am working on",
         category="green",
-        column="Doing",
+        column=2,
         start_date=datetime.now(),
         board_id=cfg.active_board,
         database=database_path,
@@ -442,7 +447,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
         title="Task_red_done",
         description="Task Finished",
         category="red",
-        column="Done",
+        column=3,
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
         finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
         board_id=cfg.active_board,
@@ -454,7 +459,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             title="Task_red_archive",
             description="Hallo",
             category="red",
-            column="Archive",
+            column=4,
             start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
             finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
             board_id=cfg.active_board,
@@ -465,7 +470,7 @@ def create_demo_tasks(database_path: Path, config_path: Path):
             title="Task_red_archive",
             description="Hallo",
             category="red",
-            column="Archive",
+            column=4,
             start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
             finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
             board_id=cfg.active_board,

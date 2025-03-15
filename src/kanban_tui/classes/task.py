@@ -1,12 +1,16 @@
-from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from kanban_tui.utils import StatusEnum
+
+from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 
 
 class Task(BaseModel):
     task_id: int
     title: str
-    column: str
+    column: int
     creation_date: datetime = datetime.now().replace(microsecond=0)
     days_since_creation: int = Field(default=0, ge=0)
     start_date: datetime | None = None
@@ -47,30 +51,33 @@ class Task(BaseModel):
             minutes=1
         ) + 1
 
+    def reset_task(self):
+        self.start_date = None
+        self.finish_date = None
+
     def start_task(self):
         self.start_date = datetime.now().replace(microsecond=0)
+        self.finish_date = None
 
     def finish_task(self):
         self.finished = True
         self.finish_date = datetime.now().replace(microsecond=0)
         self.update_time_worked_on()
 
-    def update_task_status(self, new_column: str):
+    def update_task_status(self, new_column: int, update_column_enum: "StatusEnum"):
         """Update Dates on Task Move
 
         Args:
-            new_column (str): Column where the task moved to
+            new_column (int): Column where the task moved to
         """
         match new_column:
             # Move to Ready
-            case "Ready":
-                self.start_date = None
-                self.finish_date = None
+            case update_column_enum.RESET.value:
+                self.reset_task()
             # Move to 'Doing'
-            case "Doing":
+            case update_column_enum.START.value:
                 self.start_task()
-                self.finish_date = None
             # Move to 'Done'
-            case "Done":
-                if self.column == "Doing":
+            case update_column_enum.FINISH.value:
+                if self.column == update_column_enum.START.value:
                     self.finish_task()

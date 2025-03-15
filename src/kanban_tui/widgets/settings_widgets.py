@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -12,6 +13,7 @@ from textual.binding import Binding
 from textual.widget import Widget
 from textual.widgets import (
     Label,
+    Select,
     Switch,
     Input,
     Collapsible,
@@ -22,16 +24,20 @@ from textual.widgets import (
     ListItem,
 )
 from textual.containers import Horizontal, Vertical
+from textual.widgets._select import BLANK
+from rich.text import Text
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
-from kanban_tui.modal.modal_settings import ModalNewColumnScreen
+from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.database import (
+    update_column_name_db,
     update_column_visibility_db,
     delete_column_db,
     create_new_column_db,
     update_column_positions_db,
+    update_status_update_columns_db,
 )
 
 
@@ -39,7 +45,7 @@ class DataBasePathInput(Horizontal):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "database.database_path"
+        self.border_title = "database.database_path [yellow on black]^d[/]"
 
         yield Label("Database File")
         with self.prevent(Input.Changed):
@@ -55,7 +61,7 @@ class WorkingHoursSelector(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.work_hours"
+        self.border_title = "kanban.settings.work_hours [yellow on black]^n[/]"
 
         yield Label("Working Hours (coming soon)")
         with Horizontal():
@@ -85,11 +91,13 @@ class HourMinute(Horizontal):
         return super().compose()
 
 
-class AlwaysExpandedSwitch(Horizontal):
+class AlwaysExpandedSwitch(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.tasks_always_expanded"
+        self.border_title = (
+            "kanban.settings.tasks_always_expanded [yellow on black]^e[/]"
+        )
 
         yield Label("Always Expand Tasks")
         yield Switch(value=self.app.cfg.tasks_always_expanded, id="switch_expand_tasks")
@@ -99,7 +107,7 @@ class AlwaysExpandedSwitch(Horizontal):
         self.app.cfg.set_tasks_always_expanded(new_value=event.value)
 
 
-class DefaultTaskColorSelector(Horizontal):
+class DefaultTaskColorSelector(Vertical):
     app: "KanbanTui"
 
     def _on_mount(self, event: Mount) -> None:
@@ -108,17 +116,17 @@ class DefaultTaskColorSelector(Horizontal):
         return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.default_task_color"
+        self.border_title = "kanban.settings.default_task_color [yellow on black]^g[/]"
 
-        with Vertical():
-            yield Label("Default Task Color")
+        yield Label("Default Task Color")
+        with Horizontal():
             with self.prevent(Input.Changed):
                 yield TitleInput(
                     value=self.app.cfg.no_category_task_color, id="task_color_preview"
                 )
-        with Collapsible(title="Pick Color"):
-            with self.prevent(DataTable.CellHighlighted):
-                yield ColorTable()
+            with Collapsible(title="Pick Color"):
+                with self.prevent(DataTable.CellHighlighted):
+                    yield ColorTable()
 
         return super().compose()
 
@@ -161,9 +169,11 @@ class AddRule(Rule):
         def control(self):
             return self.addrule
 
-    def __init__(self, position: int, id: str | None = None) -> None:
-        self.position = position
-        super().__init__(id=id)
+    def __init__(self, column: Column | None = None) -> None:
+        self.column = column
+        self.position = self.column.position if self.column else 0
+
+        super().__init__(id=f"addrule_{self.column.position if self.column else 0}")
 
     def compose(self) -> Iterable[Widget]:
         yield Button("+")
@@ -191,7 +201,7 @@ class ColumnListItem(ListItem):
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
-            yield Label(f"Show [blue]{self.column.name}[/]")
+            yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
             yield Switch(
                 value=self.column.visible,
                 id=f"switch_col_vis_{self.column.column_id}",
@@ -201,7 +211,7 @@ class ColumnListItem(ListItem):
                 id=f"button_col_del_{self.column.column_id}",
                 variant="error",
             )
-        yield AddRule(position=self.column.position, id=self.column.name)
+        yield AddRule(column=self.column)
 
         return super().compose()
 
@@ -217,12 +227,14 @@ class FirstListItem(ListItem):
         super().__init__(id="listitem_column_0")
 
     def compose(self) -> Iterable[Widget]:
-        yield AddRule(id="first_position", position=0)
+        yield AddRule()
 
         return super().compose()
 
 
 class ColumnSelector(ListView):
+    """Widget to add/delete/rename columns and change the column visibility"""
+
     app: "KanbanTui"
 
     BINDINGS = [
@@ -231,21 +243,70 @@ class ColumnSelector(ListView):
         Binding(key="enter,space", action="select_cursor", show=False),
         Binding(key="d", action="delete_press", description="Delete Column", show=True),
         Binding(
+            key="r", action="rename_column", description="Rename Column", show=True
+        ),
+        Binding(
             key="n", action="addrule_press", description="Insert Column", show=True
         ),
     ]
     amount_visible: reactive[int] = reactive(0)
 
     def _on_mount(self, event: Mount) -> None:
-        self.border_title = "column.visibility"
-        self.amount_visible = len(self.app.visible_column_list)
+        self.border_title = "column.visibility [yellow on black]^c[/]"
+        self.amount_visible = len(self.app.visible_column_dict)
         return super()._on_mount(event)
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         children = [FirstListItem()] + [
             ColumnListItem(column=column) for column in self.app.column_list
         ]
-        super().__init__(*children, id="column_list", initial_index=None)
+        super().__init__(
+            *children, id="column_list", initial_index=None, *args, **kwargs
+        )
+
+    # rename Column
+    def action_rename_column(self):
+        if not isinstance(self.highlighted_child, ColumnListItem):
+            return
+        column_id = self.highlighted_child.column.column_id
+        column_name = self.highlighted_child.column.name
+
+        async def modal_rename_column(
+            event_col_name: tuple[Column, str] | None,
+        ):
+            if event_col_name:
+                column, new_column_name = event_col_name
+                update_column_name_db(
+                    column_id=column.column_id,
+                    new_column_name=new_column_name,
+                    database=self.app.cfg.database_path,
+                )
+
+                # Update state and Widgets
+                self.app.update_column_list()
+                await self.clear()
+                self.extend(
+                    [FirstListItem()]
+                    + [ColumnListItem(column=column) for column in self.app.column_list]
+                )
+                await self.app.query_one(StatusColumnSelector).recompose()
+                self.app.query_one(StatusColumnSelector).get_select_widget_values()
+                # Trigger Update on tab Switch
+                self.parent.parent.config_changes()
+
+                self.index = column.position
+
+                self.notify(
+                    title="Columns Updated",
+                    message=f"Column [blue]{column_name}[/] renamed to [blue]{new_column_name}[/]",
+                    timeout=2,
+                )
+
+        self.app.push_screen(
+            ModalUpdateColumnScreen(column=self.highlighted_child.column),
+            callback=modal_rename_column,
+        )
+        self.notify(f"{column_id}: {column_name}")
 
     # New Column
     def action_addrule_press(self):
@@ -286,7 +347,7 @@ class ColumnSelector(ListView):
                 )
 
         self.app.push_screen(
-            ModalNewColumnScreen(event=event), callback=modal_add_new_column
+            ModalUpdateColumnScreen(event=event), callback=modal_add_new_column
         )
 
     # Delete Column
@@ -338,7 +399,7 @@ class ColumnSelector(ListView):
         )
 
     def watch_amount_visible(self):
-        self.border_title = f"columns.visible  [blue]{self.amount_visible} / {len(self.app.column_list)}[/]"
+        self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/] [yellow on black]^c[/]"
 
     @on(ListView.Selected)
     def on_space_key(self, event: ListView.Selected):
@@ -358,3 +419,93 @@ class ColumnSelector(ListView):
         )
 
         self.app.update_column_list()
+
+
+class StatusColumnSelector(Vertical):
+    app: "KanbanTui"
+    """Widget to select the columns, which are used to update the start/finish dates on tasks"""
+
+    def on_mount(self):
+        self.get_select_widget_values()
+
+    def compose(self) -> Iterable[Widget]:
+        self.border_title = "column.status_update [yellow on black]^s[/]"
+
+        with Horizontal():
+            yield Label("Reset")
+            yield Select(
+                [
+                    (Text.from_markup(column.name), column.column_id)
+                    for column in self.app.column_list
+                ],
+                # value=self.app.active_board.reset_column or BLANK,
+                prompt="No reset column",
+                id="select_reset",
+            )
+        with Horizontal():
+            yield Label("Start")
+            yield Select(
+                [
+                    (Text.from_markup(column.name), column.column_id)
+                    for column in self.app.column_list
+                ],
+                # value=self.app.active_board.start_column or BLANK,
+                prompt="No start column",
+                id="select_start",
+            )
+        with Horizontal():
+            yield Label("Finish")
+            yield Select(
+                [
+                    (Text.from_markup(column.name), column.column_id)
+                    for column in self.app.column_list
+                ],
+                # value=self.app.active_board.finish_column or BLANK,
+                prompt="No finish column",
+                id="select_finish",
+            )
+        return super().compose()
+
+    @on(Select.Changed)
+    def update_status_columns(self, event: Select.Changed):
+        update_status_update_columns_db(
+            new_status=None if event.value == BLANK else event.value,
+            # Bug
+            # new_status=event.select.selection,
+            column_prefix=event.select.id.split("_")[-1],
+            board_id=self.app.active_board.board_id,
+            database=self.app.cfg.database_path,
+        )
+
+        self.app.update_board_list()
+
+        if event.value == BLANK:
+            # if event.select.selection is None:
+            return
+
+        # If column is already selected, clear the old column
+        for other_select in self.query(Select).exclude(f"#{event.select.id}"):
+            if event.value == other_select.value:
+                other_select.clear()
+                self.notify(
+                    title="Status update column cleared",
+                    message=f"Status update for [yellow]{other_select.id.split('_')[1]}[/] was removed",
+                    severity="warning",
+                )
+
+    def get_select_widget_values(self):
+        with self.prevent(Select.Changed):
+            if self.app.active_board.reset_column is not None:
+                self.query_exactly_one(
+                    "#select_reset", Select
+                ).value = self.app.active_board.reset_column
+
+            if self.app.active_board.start_column is not None:
+                self.query_exactly_one(
+                    "#select_start", Select
+                ).value = self.app.active_board.start_column
+
+            if self.app.active_board.finish_column is not None:
+                self.query_exactly_one(
+                    "#select_finish", Select
+                ).value = self.app.active_board.finish_column

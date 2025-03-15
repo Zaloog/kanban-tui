@@ -27,7 +27,7 @@ class KanbanTui(App):
     cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
-    column_list: reactive[list[Board]] = reactive([], init=False)
+    column_list: reactive[list[Column]] = reactive([], init=False)
     active_board: Board = None
 
     def __init__(
@@ -46,17 +46,16 @@ class KanbanTui(App):
 
     def on_mount(self) -> None:
         self.theme = "dracula"
-        # After boards got updated and active board
-        # is set, also updates tasks
         self.update_board_list()
         self.push_screen("MainView")
 
     def update_board_list(self):
         self.board_list = get_all_boards_db(database=self.app.cfg.database_path)
         self.active_board = self.get_active_board()
+        # After boards got updated and active board
+        # is set, also updates tasks
         self.update_task_list()
         self.update_column_list()
-        # self.notify(f"{self.column_list}")
 
     def update_task_list(self):
         self.task_list = get_all_tasks_on_board_db(
@@ -75,5 +74,5 @@ class KanbanTui(App):
         return None
 
     @property
-    def visible_column_list(self) -> list[Column]:
-        return [col.name for col in self.column_list if col.visible]
+    def visible_column_dict(self) -> dict[int, str]:
+        return {col.column_id: col.name for col in self.column_list if col.visible}

@@ -41,7 +41,7 @@ def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
         title="Task_ready_0",
         description="Hallo",
         category="green",
-        column="Ready",
+        column=1,
         board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
@@ -49,7 +49,7 @@ def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
         title="Task_ready_1",
         description="Hallo",
         category="blue",
-        column="Ready",
+        column=1,
         board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
@@ -57,7 +57,7 @@ def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
         title="Task_ready_2",
         description="Hallo",
         category=None,
-        column="Ready",
+        column=1,
         board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
@@ -67,7 +67,7 @@ def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
         title="Task_doing_0",
         description="Hallo",
         category="green",
-        column="Doing",
+        column=2,
         board_id=test_app_config.active_board,
         database=test_db_full_path,
     )
@@ -76,7 +76,7 @@ def init_test_db(test_db_full_path, test_app_config: KanbanTuiConfig):
         title="Task_done_0",
         description="Hallo",
         category="red",
-        column="Done",
+        column=3,
         board_id=test_app_config.active_board,
         database=test_db_full_path,
     )

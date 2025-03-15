@@ -428,9 +428,6 @@ SettingsView{
     content-align:center middle;
     height:1fr;
 }
-SettingsView Placeholder{
-    height:1fr;
-}
 DataBasePathInput{
     border:$success;
     height:auto;
@@ -444,14 +441,12 @@ DataBasePathInput{
 
 }
 AlwaysExpandedSwitch{
-    border:$success;
     height:auto;
     width:1fr;
-    padding:1 0 1 0 ;
     Label{
         width:1fr;
         text-align:center;
-        padding:1 0 0 0 ;
+        padding:0 0 1 0 ;
     }
     Switch {
         width:1fr;
@@ -485,28 +480,38 @@ WorkingHoursSelector Horizontal{
 }
 DefaultTaskColorSelector{
     border:$success;
-    height:1fr;
+    height:auto;
 
-    TitleInput{
-        height:4;
-        border-title-align:right;
-    }
     Label{
-        width:1fr;
-        padding:0 0 1 0;
+        width: 1fr;
+        text-align: center;
+        padding:0 0 1 1;
     }
-    Collapsible > Contents{
-        height:1fr;
-        padding:0;
-        margin:0;
-    }
-    ColorTable {
-        width:1fr;
-        height:1fr;
-        text-align:center;
-        &:focus {
-            & .datatable--cursor {
-                color:white;
+    Horizontal {
+        height:auto;
+
+        TitleInput{
+            width:1fr;
+            height:3;
+            border-title-align:right;
+        }
+        Collapsible {
+            padding:0 0 1 0;
+
+        }
+        Collapsible > Contents{
+            height:1fr;
+            padding:0;
+            margin:0;
+        }
+        ColorTable {
+            width:1fr;
+            height:1fr;
+            text-align:center;
+            &:focus {
+                & .datatable--cursor {
+                    color:white;
+                }
             }
         }
     }
@@ -515,13 +520,21 @@ DefaultTaskColorSelector{
 #horizontal_color_column_selector{
     height:1fr;
 }
+StatusColumnSelector {
+    height:1fr;
+    Label {
+        width:1fr;
+        padding: 1 0 0 1;
+    }
+
+}
 ColumnSelector{
     border:$success;
     height:1fr;
     width:1fr;
     margin:0;
 }
-ModalNewColumnScreen {
+ModalUpdateColumnScreen {
     align: center middle;
     Vertical{
         width: 30%;
@@ -578,9 +591,6 @@ Switch.-on > .switch--slider {
         color: $success;
     }
 
-.hidden {
-    display:none;
-}
 
 VerticalScroll {
     scrollbar-color: $warning;
@@ -614,7 +624,7 @@ ColumnListItem{
 }
 ColumnListItem Label{
         width: 2fr;
-        padding:1 0;
+        padding:1 0 0 1;
         text-align:left;
 }
 ColumnListItem Switch{
@@ -634,4 +644,17 @@ AddRule Button{
         min-width:5;
         border:none;
         height:1;
+}
+
+# Classes
+.setting-block {
+    border:$success;
+
+    &:focus-within {
+        border:yellow;
+    }
+
+}
+.hidden {
+    display:none;
 }
