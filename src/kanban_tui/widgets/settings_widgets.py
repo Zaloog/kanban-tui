@@ -167,9 +167,11 @@ class AddRule(Rule):
         def control(self):
             return self.addrule
 
-    def __init__(self, position: int, id: int | None = None) -> None:
-        self.position = position
-        super().__init__(id=f"addrule_{id}")
+    def __init__(self, column: Column | None = None) -> None:
+        self.column = column
+        self.position = self.column.position if self.column else 0
+
+        super().__init__(id=f"addrule_{self.column.position if self.column else 0}")
 
     def compose(self) -> Iterable[Widget]:
         yield Button("+")
@@ -207,7 +209,7 @@ class ColumnListItem(ListItem):
                 id=f"button_col_del_{self.column.column_id}",
                 variant="error",
             )
-        yield AddRule(position=self.column.position, id=self.column.column_id)
+        yield AddRule(column=self.column)
 
         return super().compose()
 
@@ -223,7 +225,7 @@ class FirstListItem(ListItem):
         super().__init__(id="listitem_column_0")
 
     def compose(self) -> Iterable[Widget]:
-        yield AddRule(id=0, position=0)
+        yield AddRule()
 
         return super().compose()
 
@@ -238,6 +240,9 @@ class ColumnSelector(ListView):
         Binding(key="k", action="cursor_up", show=False),
         Binding(key="enter,space", action="select_cursor", show=False),
         Binding(key="d", action="delete_press", description="Delete Column", show=True),
+        Binding(
+            key="r", action="rename_column", description="Rename Column", show=True
+        ),
         Binding(
             key="n", action="addrule_press", description="Insert Column", show=True
         ),
@@ -256,6 +261,17 @@ class ColumnSelector(ListView):
         super().__init__(
             *children, id="column_list", initial_index=None, *args, **kwargs
         )
+
+    # rename Column
+    def action_rename_column(self):
+        if not isinstance(self.highlighted_child, ColumnListItem):
+            return
+        column_id = self.highlighted_child.column.column_id
+        column_name = self.highlighted_child.column.name
+        # self.app.push_screen(
+        #     ModalRenameColumnScreen(column=self.highlighted_child.column)
+        # )
+        self.notify(f"{column_id}: {column_name}")
 
     # New Column
     def action_addrule_press(self):
