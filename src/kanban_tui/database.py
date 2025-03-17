@@ -53,7 +53,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     if database.exists():
         return
 
-    task_db_creation_str = """
+    task_table_creation_str = """
     CREATE TABLE IF NOT EXISTS tasks (
     task_id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
@@ -72,7 +72,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     );
     """
 
-    board_db_creation_str = """
+    board_table_creation_str = """
     CREATE TABLE IF NOT EXISTS boards (
     board_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -87,7 +87,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     CHECK (name <> "")
     );
     """
-    column_db_creation_str = """
+    column_table_creation_str = """
     CREATE TABLE IF NOT EXISTS columns (
     column_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -99,6 +99,83 @@ def init_new_db(database: Path = DB_FULL_PATH):
     );
     """
 
+    audit_table_creation_str = """
+    CREATE TABLE IF NOT EXISTS audits (
+    event_id INTEGER PRIMARY KEY,
+    creation_date DATETIME NOT NULL,
+    event_type TEXT NOT NULL,
+    object_type TEXT NOT NULL,
+    object_id INTEGER NOT NULL,
+    object_name TEXT NOT NULL,
+    object_field TEXT,
+    value_old TEXT,
+    value_new TEXT
+    );
+    """
+
+    board_create_trigger_str = """
+    CREATE TRIGGER board_creation
+    AFTER INSERT on boards
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            creation_date,
+            event_type,
+            object_type,
+            object_id,
+            object_name
+            )
+        VALUES (
+            datetime('now'),
+            'CREATE',
+            'board',
+            NEW.board_id,
+            NEW.name
+        );
+    END;
+    """
+    column_create_trigger_str = """
+    CREATE TRIGGER column_creation
+    AFTER INSERT on columns
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            creation_date,
+            event_type,
+            object_type,
+            object_id,
+            object_name
+            )
+        VALUES (
+            datetime('now'),
+            'CREATE',
+            'column',
+            NEW.column_id,
+            NEW.name
+        );
+    END;
+    """
+    task_create_trigger_str = """
+    CREATE TRIGGER task_creation
+    AFTER INSERT on tasks
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            creation_date,
+            event_type,
+            object_type,
+            object_id,
+            object_name
+            )
+        VALUES (
+            datetime('now'),
+            'CREATE',
+            'task',
+            NEW.task_id,
+            NEW.title
+        );
+    END;
+    """
     # indexes_creation_str = """
     # CREATE INDEX IF NOT EXISTS idx_task_title ON tasks(title);
     # CREATE INDEX IF NOT EXISTS idx_board_name ON boards(name);
@@ -108,15 +185,26 @@ def init_new_db(database: Path = DB_FULL_PATH):
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            con.execute(task_db_creation_str)
-            con.execute(board_db_creation_str)
-            con.execute(column_db_creation_str)
+            con.execute(audit_table_creation_str)
+
+            con.execute(task_table_creation_str)
+            con.execute(task_create_trigger_str)
+
+            con.execute(board_table_creation_str)
+            con.execute(board_create_trigger_str)
+
+            con.execute(column_table_creation_str)
+            con.execute(column_create_trigger_str)
+
             con.commit()
 
             # con.executescript(indexes_creation_str)
         except sqlite3.Error as e:
             con.rollback()
             raise e
+
+
+# Audit Tables
 
 
 def create_new_board_db(
@@ -229,6 +317,7 @@ def create_new_task_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
+            raise e
             return e.sqlite_errorname
 
 
@@ -262,6 +351,7 @@ def create_new_column_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
+            raise e
             return e.sqlite_errorname
 
 
@@ -284,6 +374,7 @@ def get_all_tasks_on_board_db(
             return tasks
         except sqlite3.Error as e:
             print(e)
+            raise e
             return None
 
 
@@ -307,6 +398,7 @@ def get_all_columns_on_board_db(
             return columns
         except sqlite3.Error as e:
             print(e)
+            raise e
             return None
 
 
