@@ -157,6 +157,118 @@ def init_new_db(database: Path = DB_FULL_PATH):
     END;
     """
 
+    board_update_trigger_str = """
+    CREATE TRIGGER board_update
+    AFTER UPDATE on boards
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'board',
+            OLD.board_id,
+            OLD.name,
+            'name',
+            OLD.name,
+            NEW.name
+        WHERE OLD.name IS NOT NEW.name;
+
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'board',
+            OLD.board_id,
+            OLD.name,
+            'icon',
+            OLD.icon,
+            NEW.icon
+        WHERE OLD.icon IS NOT NEW.icon;
+
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'board',
+            OLD.board_id,
+            OLD.name,
+            'reset_column',
+            OLD.reset_column,
+            NEW.reset_column
+        WHERE OLD.reset_column IS NOT NEW.reset_column;
+
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'board',
+            OLD.board_id,
+            OLD.name,
+            'start_column',
+            OLD.start_column,
+            NEW.start_column
+        WHERE OLD.start_column IS NOT NEW.start_column;
+
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'board',
+            OLD.board_id,
+            OLD.name,
+            'finish_column',
+            OLD.finish_column,
+            NEW.finish_column
+        WHERE OLD.finish_column IS NOT NEW.finish_column;
+    END;
+    """
+
     column_create_trigger_str = """
     CREATE TRIGGER column_creation
     AFTER INSERT on columns
@@ -216,16 +328,16 @@ def init_new_db(database: Path = DB_FULL_PATH):
             value_old,
             value_new
             )
-        SELECT (
+        SELECT
             datetime('now'),
-            'DELETE',
+            'UPDATE',
             'column',
             OLD.column_id,
             OLD.name,
             'name',
             OLD.name,
             NEW.name
-        )
+
         WHERE OLD.name IS NOT NEW.name;
     END;
     """
@@ -320,8 +432,93 @@ def init_new_db(database: Path = DB_FULL_PATH):
             OLD.description,
             NEW.description
         WHERE OLD.description IS NOT NEW.description;
+
+        INSERT INTO audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'task',
+            OLD.task_id,
+            OLD.title,
+            'due_date',
+            OLD.due_date,
+            NEW.due_date
+        WHERE OLD.due_date IS NOT NEW.due_date;
+
+        INSERT INTO audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'task',
+            OLD.task_id,
+            OLD.title,
+            'start_date',
+            OLD.start_date,
+            NEW.start_date
+        WHERE OLD.start_date IS NOT NEW.start_date;
+
+        INSERT INTO audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'task',
+            OLD.task_id,
+            OLD.title,
+            'finish_date',
+            OLD.finish_date,
+            NEW.finish_date
+        WHERE OLD.finish_date IS NOT NEW.finish_date;
+
+        INSERT INTO audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'task',
+            OLD.task_id,
+            OLD.title,
+            'column',
+            OLD.column,
+            NEW.column
+        WHERE OLD.column IS NOT NEW.column;
     END;
     """
+
     # indexes_creation_str = """
     # CREATE INDEX IF NOT EXISTS idx_task_title ON tasks(title);
     # CREATE INDEX IF NOT EXISTS idx_board_name ON boards(name);
@@ -341,6 +538,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
             con.execute(board_table_creation_str)
             con.execute(board_create_trigger_str)
             con.execute(board_delete_trigger_str)
+            con.execute(board_update_trigger_str)
 
             con.execute(column_table_creation_str)
             con.execute(column_create_trigger_str)
