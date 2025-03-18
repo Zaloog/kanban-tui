@@ -102,7 +102,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     audit_table_creation_str = """
     CREATE TABLE IF NOT EXISTS audits (
     event_id INTEGER PRIMARY KEY,
-    creation_date DATETIME NOT NULL,
+    event_timestamp DATETIME NOT NULL,
     event_type TEXT NOT NULL,
     object_type TEXT NOT NULL,
     object_id INTEGER NOT NULL,
@@ -119,7 +119,7 @@ def init_new_db(database: Path = DB_FULL_PATH):
     FOR EACH ROW
     BEGIN
         INSERT into audits (
-            creation_date,
+            event_timestamp,
             event_type,
             object_type,
             object_id,
@@ -134,13 +134,36 @@ def init_new_db(database: Path = DB_FULL_PATH):
         );
     END;
     """
+
+    board_delete_trigger_str = """
+    CREATE TRIGGER board_deletion
+    AFTER DELETE on boards
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name
+            )
+        VALUES (
+            datetime('now'),
+            'DELETE',
+            'board',
+            OLD.board_id,
+            OLD.name
+        );
+    END;
+    """
+
     column_create_trigger_str = """
     CREATE TRIGGER column_creation
     AFTER INSERT on columns
     FOR EACH ROW
     BEGIN
         INSERT into audits (
-            creation_date,
+            event_timestamp,
             event_type,
             object_type,
             object_id,
@@ -155,13 +178,65 @@ def init_new_db(database: Path = DB_FULL_PATH):
         );
     END;
     """
+
+    column_delete_trigger_str = """
+    CREATE TRIGGER column_deletion
+    AFTER DELETE on columns
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name
+            )
+        VALUES (
+            datetime('now'),
+            'DELETE',
+            'column',
+            OLD.column_id,
+            OLD.name
+        );
+    END;
+    """
+
+    column_update_trigger_str = """
+    CREATE TRIGGER column_update
+    AFTER UPDATE on columns
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT (
+            datetime('now'),
+            'DELETE',
+            'column',
+            OLD.column_id,
+            OLD.name,
+            'name',
+            OLD.name,
+            NEW.name
+        )
+        WHERE OLD.name IS NOT NEW.name;
+    END;
+    """
+
     task_create_trigger_str = """
     CREATE TRIGGER task_creation
     AFTER INSERT on tasks
     FOR EACH ROW
     BEGIN
         INSERT into audits (
-            creation_date,
+            event_timestamp,
             event_type,
             object_type,
             object_id,
@@ -174,6 +249,77 @@ def init_new_db(database: Path = DB_FULL_PATH):
             NEW.task_id,
             NEW.title
         );
+    END;
+    """
+
+    task_delete_trigger_str = """
+    CREATE TRIGGER task_deletion
+    AFTER DELETE on tasks
+    FOR EACH ROW
+    BEGIN
+        INSERT into audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name
+            )
+        VALUES (
+            datetime('now'),
+            'DELETE',
+            'task',
+            OLD.task_id,
+            OLD.title
+        );
+    END;
+    """
+
+    task_update_trigger_str = """
+    CREATE TRIGGER task_update
+    AFTER UPDATE ON tasks
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'task',
+            OLD.task_id,
+            OLD.title,
+            'title',
+            OLD.title,
+            NEW.title
+        WHERE OLD.title IS NOT NEW.title;
+
+        INSERT INTO audits (
+            event_timestamp,
+            event_type,
+            object_type,
+            object_id,
+            object_name,
+            object_field,
+            value_old,
+            value_new
+            )
+        SELECT
+            datetime('now'),
+            'UPDATE',
+            'task',
+            OLD.task_id,
+            OLD.title,
+            'description',
+            OLD.description,
+            NEW.description
+        WHERE OLD.description IS NOT NEW.description;
     END;
     """
     # indexes_creation_str = """
@@ -189,12 +335,17 @@ def init_new_db(database: Path = DB_FULL_PATH):
 
             con.execute(task_table_creation_str)
             con.execute(task_create_trigger_str)
+            con.execute(task_delete_trigger_str)
+            con.execute(task_update_trigger_str)
 
             con.execute(board_table_creation_str)
             con.execute(board_create_trigger_str)
+            con.execute(board_delete_trigger_str)
 
             con.execute(column_table_creation_str)
             con.execute(column_create_trigger_str)
+            con.execute(column_delete_trigger_str)
+            con.execute(column_update_trigger_str)
 
             con.commit()
 

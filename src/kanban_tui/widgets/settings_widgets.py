@@ -268,7 +268,6 @@ class ColumnSelector(ListView):
     def action_rename_column(self):
         if not isinstance(self.highlighted_child, ColumnListItem):
             return
-        column_id = self.highlighted_child.column.column_id
         column_name = self.highlighted_child.column.name
 
         async def modal_rename_column(
@@ -306,7 +305,6 @@ class ColumnSelector(ListView):
             ModalUpdateColumnScreen(column=self.highlighted_child.column),
             callback=modal_rename_column,
         )
-        self.notify(f"{column_id}: {column_name}")
 
     # New Column
     def action_addrule_press(self):
