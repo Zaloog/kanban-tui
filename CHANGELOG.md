@@ -1,10 +1,11 @@
 # Changelog
 
 ## v0.7.0
-- Better column management
-- Updated the settings tab UI and added shortcuts
-- Column names are no longer limited to single strings,
-emoji codes are also supported now
+- Added better column management
+- Added improvements to the settings tab UI including shortcuts
+- Added support for arbitrary column names, also supporting emoji codes
+- Added manual refresh binding, helpful when having multiple sessions open to sync between them
+- Added new audit table in db
 - Fixed Bug, that allowed duplicate column names
 
 ## v0.6.4
