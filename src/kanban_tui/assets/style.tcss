@@ -420,7 +420,7 @@ FilterOverlay {
     }
 }
 
-TabbedContent {
+#tabbed_content_boards {
     border:green;
 }
 
@@ -429,7 +429,6 @@ SettingsView{
     height:1fr;
 }
 DataBasePathInput{
-    border:$success;
     height:auto;
     width:1fr;
     Label{
@@ -456,7 +455,6 @@ AlwaysExpandedSwitch{
     height:auto;
 }
 WorkingHoursSelector{
-    border:$success;
     height:auto;
     width:1fr;
 }
@@ -479,7 +477,6 @@ WorkingHoursSelector Horizontal{
     }
 }
 DefaultTaskColorSelector{
-    border:$success;
     height:auto;
 
     Label{
@@ -529,7 +526,6 @@ StatusColumnSelector {
 
 }
 ColumnSelector{
-    border:$success;
     height:1fr;
     width:1fr;
     margin:0;
@@ -554,7 +550,6 @@ OverView{
 }
 OverView #horizontal_overview_filters > Vertical{
     height:1fr;
-    border:tall $success;
 }
 OverView Label{
     width:1fr;
@@ -592,7 +587,7 @@ Switch.-on > .switch--slider {
     }
 
 
-VerticalScroll {
+* {
     scrollbar-color: $warning;
     scrollbar-color-active: $success;
     scrollbar-color-hover: $success;

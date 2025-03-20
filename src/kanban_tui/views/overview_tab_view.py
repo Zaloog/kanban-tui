@@ -21,9 +21,9 @@ class OverView(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_overview_filters"):
-            yield CategoryPlotFilter()
-            yield AmountPlotFilter()
-            yield FrequencyPlotFilter()
+            yield CategoryPlotFilter(classes="setting-block")
+            yield AmountPlotFilter(classes="setting-block")
+            yield FrequencyPlotFilter(classes="setting-block")
         yield TaskPlot()
         return super().compose()
 

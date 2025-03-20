@@ -308,6 +308,8 @@ class ColumnSelector(ListView):
 
     # New Column
     def action_addrule_press(self):
+        if self.highlighted_child is None:
+            return
         self.highlighted_child.query_one(AddRule).query_one(Button).press()
 
     @on(AddRule.Pressed)

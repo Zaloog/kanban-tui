@@ -187,9 +187,6 @@ class TaskPlot(HorizontalScroll):
 class CategoryPlotFilter(Vertical):
     app: "KanbanTui"
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def compose(self) -> Iterable[Widget]:
         yield Label("Show Category Detail")
         yield Switch(
@@ -201,9 +198,6 @@ class CategoryPlotFilter(Vertical):
 
 class FrequencyPlotFilter(Vertical):
     app: "KanbanTui"
-
-    def __init__(self) -> None:
-        super().__init__()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Select Detail Level")
@@ -221,9 +215,6 @@ class FrequencyPlotFilter(Vertical):
 
 class AmountPlotFilter(Vertical):
     app: "KanbanTui"
-
-    def __init__(self) -> None:
-        super().__init__()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Select KPI")
