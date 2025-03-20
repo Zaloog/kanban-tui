@@ -294,7 +294,7 @@ class LogDateFilter(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Select Time")
-        yield Select.from_values(["1M", "1W", "all"])
+        yield Select.from_values(["1M", "1W", "all"], id="select_logdate_filter")
 
 
 class LogTable(Vertical): ...
