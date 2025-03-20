@@ -13,7 +13,7 @@ from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
 
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
-from kanban_tui.views.overview_tab_view import OverViewPlot, OverViewLog
+from kanban_tui.views.overview_tab_view import OverView, OverViewPlot  # , OverViewLog
 from kanban_tui.views.settings_tab_view import SettingsView
 
 
@@ -32,12 +32,7 @@ class MainView(Screen):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
-                with TabbedContent(initial="tab_log", id="tabbed_content_overview"):
-                    with TabPane("Plot", id="tab_plot"):
-                        yield OverViewPlot()
-                    with TabPane("Log", id="tab_log"):
-                        yield OverViewLog()
-                # yield OverView()
+                yield OverView()
             with TabPane("Settings", id="tab_settings"):
                 yield SettingsView()
         return super().compose()

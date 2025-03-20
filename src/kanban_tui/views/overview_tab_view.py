@@ -2,7 +2,7 @@ from typing import Iterable
 from textual import on
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Select, Switch
+from textual.widgets import Select, Switch, TabbedContent, TabPane
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.overview_widgets import (
@@ -17,10 +17,30 @@ from kanban_tui.widgets.overview_widgets import (
 )
 
 
+class OverView(Horizontal):
+    BINDINGS = [
+        Binding("P", 'show_tab("tab_plot")', "Plot", show=True),
+        Binding("L", 'show_tab("tab_log")', "Log", show=True),
+    ]
+
+    def compose(self):
+        with TabbedContent(initial="tab_log", id="tabbed_content_overview"):
+            with TabPane("[yellow on black]P[/]lot", id="tab_plot"):
+                yield OverViewPlot()
+            with TabPane("[yellow on black]L[/]og", id="tab_log"):
+                yield OverViewLog()
+        return super().compose()
+
+    def action_show_tab(self, tab: str) -> None:
+        """Switch to a new tab."""
+        self.query_one("#tabbed_content_overview").active = tab
+        self.app.action_focus_next()
+
+
 class OverViewPlot(Vertical):
     BINDINGS = [
-        Binding("H", "scroll_plot_left", "Scroll Left", show=True),
-        Binding("L", "scroll_plot_right", "Scroll Right", show=True),
+        Binding("J", "scroll_plot_left", "Scroll Left", show=True),
+        Binding("K", "scroll_plot_right", "Scroll Right", show=True),
     ]
 
     def compose(self) -> Iterable[Widget]:
