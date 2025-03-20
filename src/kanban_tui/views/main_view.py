@@ -86,11 +86,11 @@ class MainView(Screen):
             case "tab_board":
                 if self.query_one(SettingsView).config_has_changed:
                     self.query_one(KanbanBoard).refresh(recompose=True)
-                    self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+                    self.set_timer(delay=0.05, callback=self.app.action_focus_next)
                 self.query_one(SettingsView).config_has_changed = False
             case "tab_overview":
                 await self.query_one(OverViewPlot).update_plot_by_filters()
                 self.query_one("#switch_plot_category_detail").focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)
-                self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.05, callback=self.app.action_focus_next)
