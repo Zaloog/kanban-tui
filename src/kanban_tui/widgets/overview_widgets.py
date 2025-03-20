@@ -2,6 +2,8 @@ import datetime
 from typing import Iterable, TYPE_CHECKING
 from collections import Counter
 
+from textual.reactive import reactive
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -255,15 +257,25 @@ class PlotOptionSelector(Select):
             self.screen.focus_next()
 
 
+class LogFilterButton(Button):
+    active: reactive[bool] = reactive(True)
+
+    def watch_active(self):
+        self.variant = "success" if self.active else "error"
+
+    def on_button_pressed(self):
+        self.active = not self.active
+
+
 class LogEventTypeFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Select Event")
         with Horizontal():
-            yield Button("CREATE", variant="success")
-            yield Button("UPDATE", variant="success")
-            yield Button("DELETE", variant="success")
+            yield LogFilterButton("CREATE", variant="success")
+            yield LogFilterButton("UPDATE", variant="success")
+            yield LogFilterButton("DELETE", variant="success")
 
 
 class LogObjectTypeFilter(Vertical):
@@ -272,9 +284,9 @@ class LogObjectTypeFilter(Vertical):
     def compose(self) -> Iterable[Widget]:
         yield Label("Select Object")
         with Horizontal():
-            yield Button("board", variant="success")
-            yield Button("column", variant="success")
-            yield Button("task", variant="success")
+            yield LogFilterButton("board", variant="success")
+            yield LogFilterButton("column", variant="success")
+            yield LogFilterButton("task", variant="success")
 
 
 class LogDateFilter(Vertical):

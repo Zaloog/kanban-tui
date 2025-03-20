@@ -548,10 +548,6 @@ OverViewPlot{
     height:1fr;
     align:center middle;
 }
-OverViewPlot Label{
-    width:1fr;
-    text-align:center;
-}
 OverViewPlot CategoryPlotFilter {
     height:1fr;
     width:1fr;
@@ -585,14 +581,6 @@ Switch.-on > .switch--slider {
     scrollbar-color-active: $success;
     scrollbar-color-hover: $success;
 }
-
-* {
-    transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
-}
-
-# *:focus {
-#     border:yellow;
-# }
 
 Rule{
     margin:0;
@@ -644,11 +632,21 @@ AddRule Button{
 
 }
 .overview-filter {
+    border:$success;
+    height: auto;
+
     & > Horizontal {
         height: auto;
     }
-    border:$success;
-    height: auto;
+    Button {
+        min-width: 1;
+        width: 1fr;
+    }
+    Label{
+        width:1fr;
+        text-align:center;
+    }
+
 
     &:focus-within {
         border:yellow;
@@ -657,4 +655,8 @@ AddRule Button{
 
 .hidden {
     display:none;
+}
+
+#bla {
+    transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
 }
