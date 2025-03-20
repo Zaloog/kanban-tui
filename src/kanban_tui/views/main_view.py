@@ -7,7 +7,7 @@ from rich.text import Text
 from textual import on
 from textual.events import Mount
 from textual.widget import Widget
-from textual.widgets import TabbedContent, TabPane, Header, Footer
+from textual.widgets import TabbedContent, TabPane, Header, Footer, Button
 from textual.screen import Screen
 from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
@@ -32,7 +32,12 @@ class MainView(Screen):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
-                yield OverView()
+                with TabbedContent(initial="tab_plot", id="tabbed_content_overview"):
+                    with TabPane("Plot", id="tab_plot"):
+                        yield OverView()
+                    with TabPane("Log", id="tab_log"):
+                        yield Button("Knopf")
+                # yield OverView()
             with TabPane("Settings", id="tab_settings"):
                 yield SettingsView()
         return super().compose()
