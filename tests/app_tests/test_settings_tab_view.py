@@ -15,7 +15,7 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 
 
-APP_SIZE = (120, 80)
+APP_SIZE = (120, 50)
 
 
 async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
