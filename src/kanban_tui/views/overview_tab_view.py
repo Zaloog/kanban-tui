@@ -10,10 +10,14 @@ from kanban_tui.widgets.overview_widgets import (
     CategoryPlotFilter,
     AmountPlotFilter,
     FrequencyPlotFilter,
+    LogEventTypeFilter,
+    LogObjectTypeFilter,
+    LogDateFilter,
+    LogTable,
 )
 
 
-class OverView(Vertical):
+class OverViewPlot(Vertical):
     BINDINGS = [
         Binding("H", "scroll_plot_left", "Scroll Left", show=True),
         Binding("L", "scroll_plot_right", "Scroll Right", show=True),
@@ -21,9 +25,9 @@ class OverView(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_overview_filters"):
-            yield CategoryPlotFilter(classes="setting-block")
-            yield AmountPlotFilter(classes="setting-block")
-            yield FrequencyPlotFilter(classes="setting-block")
+            yield CategoryPlotFilter(classes="overview-filter")
+            yield AmountPlotFilter(classes="overview-filter")
+            yield FrequencyPlotFilter(classes="overview-filter")
         yield TaskPlot()
         return super().compose()
 
@@ -48,3 +52,19 @@ class OverView(Vertical):
 
     def action_scroll_plot_left(self) -> None:
         return self.query_one(TaskPlot).action_scroll_left()
+
+
+class OverViewLog(Vertical):
+    # BINDINGS = [
+    #     Binding("H", "scroll_plot_left", "Scroll Left", show=True),
+    #     Binding("L", "scroll_plot_right", "Scroll Right", show=True),
+    # ]
+
+    def compose(self) -> Iterable[Widget]:
+        with Horizontal(id="horizontal_overview_filters"):
+            yield LogDateFilter(classes="overview-filter")
+            yield LogEventTypeFilter(classes="overview-filter")
+            yield LogObjectTypeFilter(classes="overview-filter")
+            # yield AmountPlotFilter(classes="setting-block")
+        yield LogTable()
+        return super().compose()

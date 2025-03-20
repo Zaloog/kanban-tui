@@ -7,13 +7,13 @@ from rich.text import Text
 from textual import on
 from textual.events import Mount
 from textual.widget import Widget
-from textual.widgets import TabbedContent, TabPane, Header, Footer, Button
+from textual.widgets import TabbedContent, TabPane, Header, Footer
 from textual.screen import Screen
 from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
 
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
-from kanban_tui.views.overview_tab_view import OverView
+from kanban_tui.views.overview_tab_view import OverViewPlot, OverViewLog
 from kanban_tui.views.settings_tab_view import SettingsView
 
 
@@ -32,11 +32,11 @@ class MainView(Screen):
             with TabPane("Kanban Board", id="tab_board"):
                 yield KanbanBoard()
             with TabPane("Overview", id="tab_overview"):
-                with TabbedContent(initial="tab_plot", id="tabbed_content_overview"):
+                with TabbedContent(initial="tab_log", id="tabbed_content_overview"):
                     with TabPane("Plot", id="tab_plot"):
-                        yield OverView()
+                        yield OverViewPlot()
                     with TabPane("Log", id="tab_log"):
-                        yield Button("Knopf")
+                        yield OverViewLog()
                 # yield OverView()
             with TabPane("Settings", id="tab_settings"):
                 yield SettingsView()
@@ -89,7 +89,7 @@ class MainView(Screen):
                     self.set_timer(delay=0.1, callback=self.app.action_focus_next)
                 self.query_one(SettingsView).config_has_changed = False
             case "tab_overview":
-                await self.query_one(OverView).update_plot_by_filters()
+                await self.query_one(OverViewPlot).update_plot_by_filters()
                 self.query_one("#switch_plot_category_detail").focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)

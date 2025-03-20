@@ -9,9 +9,9 @@ if TYPE_CHECKING:
 from textual.binding import Binding
 
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Select
+from textual.widgets import Label, Switch, Select, Button
 from textual_plotext import PlotextPlot
-from textual.containers import HorizontalScroll, Vertical
+from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
 from kanban_tui.database import get_ordered_tasks_db
@@ -253,3 +253,36 @@ class PlotOptionSelector(Select):
             self.query_one(SelectOverlay).action_cursor_down()
         else:
             self.screen.focus_next()
+
+
+class LogEventTypeFilter(Vertical):
+    app: "KanbanTui"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Select Event")
+        with Horizontal():
+            yield Button("CREATE", variant="success")
+            yield Button("UPDATE", variant="success")
+            yield Button("DELETE", variant="success")
+
+
+class LogObjectTypeFilter(Vertical):
+    app: "KanbanTui"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Select Object")
+        with Horizontal():
+            yield Button("board", variant="success")
+            yield Button("column", variant="success")
+            yield Button("task", variant="success")
+
+
+class LogDateFilter(Vertical):
+    app: "KanbanTui"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Select Time")
+        yield Select.from_values(["1M", "1W", "all"])
+
+
+class LogTable(Vertical): ...
