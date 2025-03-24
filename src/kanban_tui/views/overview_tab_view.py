@@ -3,7 +3,7 @@ from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Select, Switch, TabbedContent, TabPane
+from textual.widgets import Select, Switch, TabbedContent, TabPane, Button
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.overview_widgets import (
@@ -96,3 +96,27 @@ class OverViewLog(Vertical):
             yield LogObjectTypeFilter(classes="overview-filter")
         yield LogTable()
         return super().compose()
+
+    def on_button_pressed(self, event: Button.Pressed):
+        tmp_event_list = []
+        for button in self.query_one(LogEventTypeFilter).query(Button):
+            if button.active:
+                tmp_event_list.append(f"{button.label}")
+
+        tmp_object_list = []
+        for button in self.query_one(LogObjectTypeFilter).query(Button):
+            if button.active:
+                tmp_object_list.append(f"{button.label}")
+
+        self.active_event_types = tmp_event_list
+        self.active_object_types = tmp_object_list
+
+    def watch_active_event_types(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types, objects=self.active_object_types
+        )
+
+    def watch_active_object_types(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types, objects=self.active_object_types
+        )
