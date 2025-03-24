@@ -310,9 +310,10 @@ class LogTable(Vertical):
     events: reactive[list[LogEvent]] = reactive([])
 
     def compose(self):
-        yield DataTable(cursor_type="row", zebra_stripes=True)
+        yield DataTable(cursor_type="row", zebra_stripes=True, id="datatable_logs")
 
     def on_mount(self):
+        self.border_title = "Audit Log"
         self.query_one(DataTable).add_columns(
             "event_time",
             "event_type",

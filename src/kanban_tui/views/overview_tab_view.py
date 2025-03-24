@@ -76,10 +76,10 @@ class OverViewPlot(Vertical):
 
 
 class OverViewLog(Vertical):
-    # BINDINGS = [
-    #     Binding("H", "scroll_plot_left", "Scroll Left", show=True),
-    #     Binding("L", "scroll_plot_right", "Scroll Right", show=True),
-    # ]
+    BINDINGS = [
+        Binding("j", "table_down", "Scroll Down", show=True, priority=True),
+        Binding("k", "table_up", "Scroll UP", show=True, priority=True),
+    ]
 
     active_event_types: reactive[list[str]] = reactive(["CREATE", "UPDATE", "DELETE"])
     active_object_types: reactive[list[str]] = reactive(["board", "task", "column"])
@@ -110,6 +110,12 @@ class OverViewLog(Vertical):
 
         self.active_event_types = tmp_event_list
         self.active_object_types = tmp_object_list
+
+    def action_table_down(self):
+        self.query_one("#datatable_logs").action_cursor_down()
+
+    def action_table_up(self):
+        self.query_one("#datatable_logs").action_cursor_up()
 
     def watch_active_event_types(self):
         self.query_one(LogTable).load_events(

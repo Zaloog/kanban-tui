@@ -547,6 +547,10 @@ ModalUpdateColumnScreen {
 OverViewPlot{
     height:1fr;
     align:center middle;
+
+    &>Horizontal {
+        height:auto;
+    }
 }
 OverViewPlot CategoryPlotFilter {
     height:1fr;
@@ -556,13 +560,20 @@ OverViewPlot CategoryPlotFilter {
     }
 }
 OverViewPlot TaskPlot {
-    border:tall $success;
-    margin: 1 0 0 0;
-    padding:0 1;
-    height:3fr;
+    border:$success;
+    height:1fr;
     width:1fr;
     PlotextPlot{
         # width:200;
+    }
+}
+OverViewLog {
+    &>Horizontal {
+        height:auto;
+    }
+    LogTable {
+        border:$success;
+        height:1fr;
     }
 }
 
