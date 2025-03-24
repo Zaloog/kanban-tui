@@ -10,8 +10,8 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
+from rich.text import Text
 from textual.binding import Binding
-
 from textual.widget import Widget
 from textual.widgets import DataTable, Label, Switch, Select, Button
 from textual_plotext import PlotextPlot
@@ -192,7 +192,9 @@ class CategoryPlotFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        yield Label("Show Category Detail")
+        yield Label(
+            Text.from_markup(":magnifying_glass_tilted_right: Select Category Detail")
+        )
         yield Switch(
             value=False,
             id="switch_plot_category_detail",
@@ -204,7 +206,9 @@ class FrequencyPlotFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select Detail Level")
+        yield Label(
+            Text.from_markup(":magnifying_glass_tilted_right: Select Detail Level")
+        )
         yield PlotOptionSelector(
             options=[
                 ("Day", "day"),
@@ -221,7 +225,7 @@ class AmountPlotFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select KPI")
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select KPI"))
         yield PlotOptionSelector(
             options=[
                 ("Creation Date", "creation_date"),
@@ -273,7 +277,7 @@ class LogEventTypeFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select Event")
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Event"))
         with Horizontal():
             yield LogFilterButton("CREATE", variant="success")
             yield LogFilterButton("UPDATE", variant="success")
@@ -284,7 +288,7 @@ class LogObjectTypeFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select Object")
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Object"))
         with Horizontal():
             yield LogFilterButton("board", variant="success")
             yield LogFilterButton("column", variant="success")
@@ -295,8 +299,10 @@ class LogDateFilter(Vertical):
     app: "KanbanTui"
 
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select Time")
-        yield Select.from_values(["1M", "1W", "all"], id="select_logdate_filter")
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Time"))
+        yield Select.from_values(
+            ["all", "1M", "1W"], id="select_logdate_filter", allow_blank=False
+        )
 
 
 class LogTable(Vertical):
