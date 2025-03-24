@@ -1,5 +1,6 @@
 from typing import Iterable
 from textual import on
+from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
 from textual.widgets import Select, Switch, TabbedContent, TabPane
@@ -79,6 +80,14 @@ class OverViewLog(Vertical):
     #     Binding("H", "scroll_plot_left", "Scroll Left", show=True),
     #     Binding("L", "scroll_plot_right", "Scroll Right", show=True),
     # ]
+
+    active_event_types: reactive[list[str]] = reactive(["CREATE", "UPDATE", "DELETE"])
+    active_object_types: reactive[list[str]] = reactive(["board", "task", "column"])
+
+    def on_mount(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types, objects=self.active_object_types
+        )
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_overview_filters"):

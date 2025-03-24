@@ -4,6 +4,8 @@ from collections import Counter
 
 from textual.reactive import reactive
 
+from kanban_tui.classes.logevent import LogEvent
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -16,7 +18,7 @@ from textual_plotext import PlotextPlot
 from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
-from kanban_tui.database import get_ordered_tasks_db
+from kanban_tui.database import get_ordered_tasks_db, get_filtered_events_db
 from kanban_tui.utils import getrgb, get_time_range
 
 
@@ -298,8 +300,34 @@ class LogDateFilter(Vertical):
 
 
 class LogTable(Vertical):
+    app: "KanbanTui"
+    events: reactive[list[LogEvent]] = reactive([])
+
     def compose(self):
-        yield DataTable()
+        yield DataTable(cursor_type="row", zebra_stripes=True)
 
     def on_mount(self):
-        self.query_one(DataTable).add_columns("time", "event", "old", "new")
+        self.query_one(DataTable).add_columns(
+            "event_time",
+            "event_type",
+            "object_type",
+            "object_id",
+            "object_field",
+            "old",
+            "new",
+        )
+
+    def load_events(self, events: list, objects: list):
+        filter_dict = {"events": events, "objects": objects}
+        self.events = get_filtered_events_db(
+            filter=filter_dict, database=self.app.cfg.database_path
+        )
+
+    def watch_events(self):
+        self.query_one(DataTable).clear()
+
+        for event in self.events:
+            event_dict = event.__dict__
+            self.query_one(DataTable).add_row(
+                *list(event_dict.values())[1:], label=list(event_dict.values())[0]
+            )

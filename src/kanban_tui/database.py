@@ -1070,3 +1070,40 @@ def get_all_board_infos(
         except sqlite3.Error as e:
             print(e)
             return None
+
+
+def get_filtered_events_db(
+    database: Path = DB_FULL_PATH, filter: dict[str, list] | None = None
+) -> list[LogEvent] | None:
+    if not filter:
+        query_str = """
+        SELECT
+            *
+        FROM
+            audits;
+        """
+    else:
+        params = filter["events"] + filter["objects"]
+        events_placeholder = ",".join(["?"] * len(filter["events"]))
+        objects_placeholder = ",".join(["?"] * len(filter["objects"]))
+        query_str = f"""
+        SELECT
+            *
+        FROM
+            audits
+        WHERE
+            event_type in ({events_placeholder})
+            AND
+            object_type in ({objects_placeholder})
+            ;
+        """
+
+    with create_connection(database=database) as con:
+        con.row_factory = logevent_factory
+        try:
+            events = con.execute(query_str, params).fetchall()
+            return events
+        except sqlite3.Error as e:
+            print(e)
+            raise e
+            return None
