@@ -284,7 +284,7 @@ class ColumnSelector(ListView):
                 # Update state and Widgets
                 self.app.update_column_list()
                 await self.clear()
-                self.extend(
+                await self.extend(
                     [FirstListItem()]
                     + [ColumnListItem(column=column) for column in self.app.column_list]
                 )
@@ -333,7 +333,7 @@ class ColumnSelector(ListView):
                 )
                 self.app.update_column_list()
                 await self.clear()
-                self.extend(
+                await self.extend(
                     [FirstListItem()]
                     + [ColumnListItem(column=column) for column in self.app.column_list]
                 )
