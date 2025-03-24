@@ -15,7 +15,7 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 
 
-APP_SIZE = (120, 50)
+APP_SIZE = (120, 80)
 
 
 async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
@@ -281,7 +281,7 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         await pilot.press("ctrl+l")
         await pilot.pause()
 
-        # assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+e")
         assert pilot.app.query_exactly_one(AlwaysExpandedSwitch).has_focus_within
@@ -307,7 +307,7 @@ async def test_status_column_selector(test_app: KanbanTui):
         await pilot.press("ctrl+l")
         await pilot.pause()
 
-        # assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+s")
         assert pilot.app.query_exactly_one(StatusColumnSelector).has_focus_within

@@ -25,7 +25,7 @@ class TaskPlot(HorizontalScroll):
     can_focus = False
 
     def compose(self) -> Iterable[Widget]:
-        yield PlotextPlot()
+        yield PlotextPlot(id="plot_widget")
         self.border_title = "Task Amount"
         return super().compose()
 

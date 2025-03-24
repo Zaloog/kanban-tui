@@ -81,7 +81,7 @@ class MainView(Screen):
             case "tab_board":
                 if self.query_one(SettingsView).config_has_changed:
                     self.query_one(KanbanBoard).refresh(recompose=True)
-                    self.set_timer(delay=0.05, callback=self.app.action_focus_next)
+                    self.set_timer(delay=0.15, callback=self.app.action_focus_next)
                 self.query_one(SettingsView).config_has_changed = False
             case "tab_overview":
                 if self.query_one("#tabbed_content_overview").active == "tab_plot":
@@ -91,4 +91,4 @@ class MainView(Screen):
                     self.query_one("#select_logdate_filter").focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)
-                self.set_timer(delay=0.05, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.25, callback=self.app.action_focus_next)
