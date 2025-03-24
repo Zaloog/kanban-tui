@@ -85,6 +85,5 @@ class OverViewLog(Vertical):
             yield LogDateFilter(classes="overview-filter")
             yield LogEventTypeFilter(classes="overview-filter")
             yield LogObjectTypeFilter(classes="overview-filter")
-            # yield AmountPlotFilter(classes="setting-block")
         yield LogTable()
         return super().compose()

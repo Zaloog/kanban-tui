@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from textual.binding import Binding
 
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Select, Button
+from textual.widgets import DataTable, Label, Switch, Select, Button
 from textual_plotext import PlotextPlot
 from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
@@ -297,4 +297,9 @@ class LogDateFilter(Vertical):
         yield Select.from_values(["1M", "1W", "all"], id="select_logdate_filter")
 
 
-class LogTable(Vertical): ...
+class LogTable(Vertical):
+    def compose(self):
+        yield DataTable()
+
+    def on_mount(self):
+        self.query_one(DataTable).add_columns("time", "event", "old", "new")

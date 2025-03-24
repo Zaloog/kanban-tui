@@ -7,6 +7,7 @@ from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
+from kanban_tui.classes.logevent import LogEvent
 
 
 def adapt_datetime_iso(val: datetime.datetime) -> str:
@@ -42,6 +43,11 @@ def board_factory(cursor, row):
 def column_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return Column(**{k: v for k, v in zip(fields, row)})
+
+
+def logevent_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return LogEvent(**{k: v for k, v in zip(fields, row)})
 
 
 def board_info_factory(cursor, row):
