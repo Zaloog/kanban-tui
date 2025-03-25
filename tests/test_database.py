@@ -1,3 +1,5 @@
+import sqlite3
+
 import pytest
 
 from kanban_tui.database import (
@@ -5,6 +7,7 @@ from kanban_tui.database import (
     create_connection,
     task_factory,
     board_factory,
+    logevent_factory,
     board_info_factory,
     column_factory,
     create_new_board_db,
@@ -13,7 +16,7 @@ from kanban_tui.database import (
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.board import Board
-import sqlite3
+from kanban_tui.classes.logevent import LogEvent
 
 
 def test_init_new_db(test_db_full_path):
@@ -46,6 +49,16 @@ def test_board_factory(init_test_db, test_db_full_path):
         con.row_factory = board_factory
         row = con.execute("SELECT * from boards WHERE board_id = 1").fetchone()
         assert isinstance(row, Board)
+
+
+def test_logevent_factory(init_test_db, test_db_full_path):
+    with create_connection(database=test_db_full_path) as con:
+        con.row_factory = logevent_factory
+        row = con.execute("SELECT * from audits WHERE event_id = 1").fetchone()
+        assert isinstance(row, LogEvent)
+
+        assert row.object_type == "board"
+        assert row.event_type == "CREATE"
 
 
 def test_board_info_factory(init_test_db, test_db_full_path):

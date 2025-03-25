@@ -420,7 +420,7 @@ FilterOverlay {
     }
 }
 
-TabbedContent {
+#tabbed_content_boards {
     border:green;
 }
 
@@ -429,7 +429,6 @@ SettingsView{
     height:1fr;
 }
 DataBasePathInput{
-    border:$success;
     height:auto;
     width:1fr;
     Label{
@@ -456,7 +455,6 @@ AlwaysExpandedSwitch{
     height:auto;
 }
 WorkingHoursSelector{
-    border:$success;
     height:auto;
     width:1fr;
 }
@@ -479,7 +477,6 @@ WorkingHoursSelector Horizontal{
     }
 }
 DefaultTaskColorSelector{
-    border:$success;
     height:auto;
 
     Label{
@@ -529,7 +526,6 @@ StatusColumnSelector {
 
 }
 ColumnSelector{
-    border:$success;
     height:1fr;
     width:1fr;
     margin:0;
@@ -548,37 +544,36 @@ ModalUpdateColumnScreen {
         height:auto;
     }
 }
-OverView{
+OverViewPlot{
     height:1fr;
     align:center middle;
+
+    &>Horizontal {
+        height:auto;
+    }
 }
-OverView #horizontal_overview_filters > Vertical{
-    height:1fr;
-    border:tall $success;
-}
-OverView Label{
-    width:1fr;
-    text-align:center;
-}
-OverView CategoryPlotFilter {
+OverViewPlot CategoryPlotFilter {
     height:1fr;
     width:1fr;
     Switch {
         width:1fr;
     }
 }
-OverView Placeholder {
+OverViewPlot TaskPlot {
+    border:$success;
     height:1fr;
-    width:1fr;
-}
-OverView TaskPlot {
-    border:tall $success;
-    margin: 1 0 0 0;
-    padding:0 1;
-    height:3fr;
     width:1fr;
     PlotextPlot{
         # width:200;
+    }
+}
+OverViewLog {
+    &>Horizontal {
+        height:auto;
+    }
+    LogTable {
+        border:$success;
+        height:1fr;
     }
 }
 
@@ -592,19 +587,11 @@ Switch.-on > .switch--slider {
     }
 
 
-VerticalScroll {
+* {
     scrollbar-color: $warning;
     scrollbar-color-active: $success;
     scrollbar-color-hover: $success;
 }
-
-* {
-    transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
-}
-
-# *:focus {
-#     border:yellow;
-# }
 
 Rule{
     margin:0;
@@ -655,6 +642,32 @@ AddRule Button{
     }
 
 }
+.overview-filter {
+    border:$success;
+    height: auto;
+
+    & > Horizontal {
+        height: auto;
+    }
+    Button {
+        min-width: 1;
+        width: 1fr;
+    }
+    Label{
+        width:1fr;
+        text-align:center;
+    }
+
+
+    &:focus-within {
+        border:yellow;
+    }
+}
+
 .hidden {
     display:none;
+}
+
+#bla {
+    transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
 }

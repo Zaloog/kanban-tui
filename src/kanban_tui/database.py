@@ -7,6 +7,7 @@ from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
+from kanban_tui.classes.logevent import LogEvent
 
 
 def adapt_datetime_iso(val: datetime.datetime) -> str:
@@ -42,6 +43,11 @@ def board_factory(cursor, row):
 def column_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return Column(**{k: v for k, v in zip(fields, row)})
+
+
+def logevent_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return LogEvent(**{k: v for k, v in zip(fields, row)})
 
 
 def board_info_factory(cursor, row):
@@ -106,7 +112,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
     event_type TEXT NOT NULL,
     object_type TEXT NOT NULL,
     object_id INTEGER NOT NULL,
-    object_name TEXT NOT NULL,
     object_field TEXT,
     value_old TEXT,
     value_new TEXT
@@ -122,15 +127,13 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_timestamp,
             event_type,
             object_type,
-            object_id,
-            object_name
+            object_id
             )
         VALUES (
             datetime('now'),
             'CREATE',
             'board',
-            NEW.board_id,
-            NEW.name
+            NEW.board_id
         );
     END;
     """
@@ -144,15 +147,13 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_timestamp,
             event_type,
             object_type,
-            object_id,
-            object_name
+            object_id
             )
         VALUES (
             datetime('now'),
             'DELETE',
             'board',
-            OLD.board_id,
-            OLD.name
+            OLD.board_id
         );
     END;
     """
@@ -167,7 +168,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -177,7 +177,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'board',
             OLD.board_id,
-            OLD.name,
             'name',
             OLD.name,
             NEW.name
@@ -188,7 +187,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -198,7 +196,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'board',
             OLD.board_id,
-            OLD.name,
             'icon',
             OLD.icon,
             NEW.icon
@@ -209,7 +206,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -219,7 +215,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'board',
             OLD.board_id,
-            OLD.name,
             'reset_column',
             OLD.reset_column,
             NEW.reset_column
@@ -230,7 +225,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -240,7 +234,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'board',
             OLD.board_id,
-            OLD.name,
             'start_column',
             OLD.start_column,
             NEW.start_column
@@ -251,7 +244,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -261,7 +253,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'board',
             OLD.board_id,
-            OLD.name,
             'finish_column',
             OLD.finish_column,
             NEW.finish_column
@@ -278,15 +269,13 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_timestamp,
             event_type,
             object_type,
-            object_id,
-            object_name
+            object_id
             )
         VALUES (
             datetime('now'),
             'CREATE',
             'column',
-            NEW.column_id,
-            NEW.name
+            NEW.column_id
         );
     END;
     """
@@ -300,15 +289,13 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_timestamp,
             event_type,
             object_type,
-            object_id,
-            object_name
+            object_id
             )
         VALUES (
             datetime('now'),
             'DELETE',
             'column',
-            OLD.column_id,
-            OLD.name
+            OLD.column_id
         );
     END;
     """
@@ -323,7 +310,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -333,7 +319,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'column',
             OLD.column_id,
-            OLD.name,
             'name',
             OLD.name,
             NEW.name
@@ -351,15 +336,13 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_timestamp,
             event_type,
             object_type,
-            object_id,
-            object_name
+            object_id
             )
         VALUES (
             datetime('now'),
             'CREATE',
             'task',
-            NEW.task_id,
-            NEW.title
+            NEW.task_id
         );
     END;
     """
@@ -373,15 +356,13 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_timestamp,
             event_type,
             object_type,
-            object_id,
-            object_name
+            object_id
             )
         VALUES (
             datetime('now'),
             'DELETE',
             'task',
-            OLD.task_id,
-            OLD.title
+            OLD.task_id
         );
     END;
     """
@@ -396,7 +377,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -406,7 +386,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'task',
             OLD.task_id,
-            OLD.title,
             'title',
             OLD.title,
             NEW.title
@@ -417,7 +396,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -427,7 +405,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'task',
             OLD.task_id,
-            OLD.title,
             'description',
             OLD.description,
             NEW.description
@@ -438,7 +415,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -448,7 +424,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'task',
             OLD.task_id,
-            OLD.title,
             'due_date',
             OLD.due_date,
             NEW.due_date
@@ -459,7 +434,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -469,7 +443,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'task',
             OLD.task_id,
-            OLD.title,
             'start_date',
             OLD.start_date,
             NEW.start_date
@@ -480,7 +453,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -490,7 +462,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'task',
             OLD.task_id,
-            OLD.title,
             'finish_date',
             OLD.finish_date,
             NEW.finish_date
@@ -501,7 +472,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             event_type,
             object_type,
             object_id,
-            object_name,
             object_field,
             value_old,
             value_new
@@ -511,7 +481,6 @@ def init_new_db(database: Path = DB_FULL_PATH):
             'UPDATE',
             'task',
             OLD.task_id,
-            OLD.title,
             'column',
             OLD.column,
             NEW.column
@@ -1100,4 +1069,41 @@ def get_all_board_infos(
             return board_infos
         except sqlite3.Error as e:
             print(e)
+            return None
+
+
+def get_filtered_events_db(
+    database: Path = DB_FULL_PATH, filter: dict[str, list] | None = None
+) -> list[LogEvent] | None:
+    if not filter:
+        query_str = """
+        SELECT
+            *
+        FROM
+            audits;
+        """
+    else:
+        params = filter["events"] + filter["objects"]
+        events_placeholder = ",".join(["?"] * len(filter["events"]))
+        objects_placeholder = ",".join(["?"] * len(filter["objects"]))
+        query_str = f"""
+        SELECT
+            *
+        FROM
+            audits
+        WHERE
+            event_type in ({events_placeholder})
+            AND
+            object_type in ({objects_placeholder})
+            ;
+        """
+
+    with create_connection(database=database) as con:
+        con.row_factory = logevent_factory
+        try:
+            events = con.execute(query_str, params).fetchall()
+            return events
+        except sqlite3.Error as e:
+            print(e)
+            raise e
             return None

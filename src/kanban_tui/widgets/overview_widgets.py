@@ -2,19 +2,23 @@ import datetime
 from typing import Iterable, TYPE_CHECKING
 from collections import Counter
 
+from textual.reactive import reactive
+
+from kanban_tui.classes.logevent import LogEvent
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
+from rich.text import Text
 from textual.binding import Binding
-
 from textual.widget import Widget
-from textual.widgets import Label, Switch, Select
+from textual.widgets import DataTable, Label, Switch, Select, Button
 from textual_plotext import PlotextPlot
-from textual.containers import HorizontalScroll, Vertical
+from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
-from kanban_tui.database import get_ordered_tasks_db
+from kanban_tui.database import get_ordered_tasks_db, get_filtered_events_db
 from kanban_tui.utils import getrgb, get_time_range
 
 
@@ -23,7 +27,7 @@ class TaskPlot(HorizontalScroll):
     can_focus = False
 
     def compose(self) -> Iterable[Widget]:
-        yield PlotextPlot()
+        yield PlotextPlot(id="plot_widget")
         self.border_title = "Task Amount"
         return super().compose()
 
@@ -187,11 +191,10 @@ class TaskPlot(HorizontalScroll):
 class CategoryPlotFilter(Vertical):
     app: "KanbanTui"
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def compose(self) -> Iterable[Widget]:
-        yield Label("Show Category Detail")
+        yield Label(
+            Text.from_markup(":magnifying_glass_tilted_right: Select Category Detail")
+        )
         yield Switch(
             value=False,
             id="switch_plot_category_detail",
@@ -202,11 +205,10 @@ class CategoryPlotFilter(Vertical):
 class FrequencyPlotFilter(Vertical):
     app: "KanbanTui"
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select Detail Level")
+        yield Label(
+            Text.from_markup(":magnifying_glass_tilted_right: Select Detail Level")
+        )
         yield PlotOptionSelector(
             options=[
                 ("Day", "day"),
@@ -222,11 +224,8 @@ class FrequencyPlotFilter(Vertical):
 class AmountPlotFilter(Vertical):
     app: "KanbanTui"
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def compose(self) -> Iterable[Widget]:
-        yield Label("Select KPI")
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select KPI"))
         yield PlotOptionSelector(
             options=[
                 ("Creation Date", "creation_date"),
@@ -262,3 +261,82 @@ class PlotOptionSelector(Select):
             self.query_one(SelectOverlay).action_cursor_down()
         else:
             self.screen.focus_next()
+
+
+class LogFilterButton(Button):
+    active: reactive[bool] = reactive(True)
+
+    def watch_active(self):
+        self.variant = "success" if self.active else "error"
+
+    def on_button_pressed(self):
+        self.active = not self.active
+
+
+class LogEventTypeFilter(Vertical):
+    app: "KanbanTui"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Event"))
+        with Horizontal():
+            yield LogFilterButton("CREATE", variant="success")
+            yield LogFilterButton("UPDATE", variant="success")
+            yield LogFilterButton("DELETE", variant="success")
+
+
+class LogObjectTypeFilter(Vertical):
+    app: "KanbanTui"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Object"))
+        with Horizontal():
+            yield LogFilterButton("board", variant="success")
+            yield LogFilterButton("column", variant="success")
+            yield LogFilterButton("task", variant="success")
+
+
+class LogDateFilter(Vertical):
+    app: "KanbanTui"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Time"))
+        yield Select.from_values(
+            ["all", "1M", "1W"], id="select_logdate_filter", allow_blank=False
+        )
+
+
+class LogTable(Vertical):
+    app: "KanbanTui"
+    events: reactive[list[LogEvent]] = reactive([])
+
+    def compose(self):
+        yield DataTable(cursor_type="row", zebra_stripes=True, id="datatable_logs")
+
+    def on_mount(self):
+        self.border_title = "Audit Log"
+        self.query_one(DataTable).add_columns(
+            "event_time",
+            "event_type",
+            "object_type",
+            "object_id",
+            "object_field",
+            "old",
+            "new",
+        )
+
+    def load_events(self, events: list, objects: list):
+        filter_dict = {"events": events, "objects": objects}
+        self.events = get_filtered_events_db(
+            filter=filter_dict, database=self.app.cfg.database_path
+        )
+
+    def watch_events(self):
+        self.query_one(DataTable).clear()
+
+        for event in self.events:
+            event_dict = event.__dict__
+            self.query_one(DataTable).add_row(
+                *list(event_dict.values())[1:], label=list(event_dict.values())[0]
+            )
+
+        self.query_one(DataTable).move_cursor(row=len(self.events))

@@ -1,8 +1,9 @@
 from typing import Iterable
 from textual import on
+from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import Select, Switch
+from textual.widgets import Select, Switch, TabbedContent, TabPane, Button
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.overview_widgets import (
@@ -10,20 +11,44 @@ from kanban_tui.widgets.overview_widgets import (
     CategoryPlotFilter,
     AmountPlotFilter,
     FrequencyPlotFilter,
+    LogEventTypeFilter,
+    LogObjectTypeFilter,
+    LogDateFilter,
+    LogTable,
 )
 
 
-class OverView(Vertical):
+class OverView(Horizontal):
     BINDINGS = [
-        Binding("H", "scroll_plot_left", "Scroll Left", show=True),
-        Binding("L", "scroll_plot_right", "Scroll Right", show=True),
+        Binding("P", 'show_tab("tab_plot")', "Plot", show=True),
+        Binding("L", 'show_tab("tab_log")', "Log", show=True),
+    ]
+
+    def compose(self):
+        with TabbedContent(initial="tab_log", id="tabbed_content_overview"):
+            with TabPane("[yellow on black]P[/]lot", id="tab_plot"):
+                yield OverViewPlot()
+            with TabPane("[yellow on black]L[/]og", id="tab_log"):
+                yield OverViewLog()
+        return super().compose()
+
+    def action_show_tab(self, tab: str) -> None:
+        """Switch to a new tab."""
+        self.query_one("#tabbed_content_overview").active = tab
+        self.app.action_focus_next()
+
+
+class OverViewPlot(Vertical):
+    BINDINGS = [
+        Binding("J", "scroll_plot_left", "Scroll Left", show=True),
+        Binding("K", "scroll_plot_right", "Scroll Right", show=True),
     ]
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_overview_filters"):
-            yield CategoryPlotFilter()
-            yield AmountPlotFilter()
-            yield FrequencyPlotFilter()
+            yield CategoryPlotFilter(classes="overview-filter")
+            yield AmountPlotFilter(classes="overview-filter")
+            yield FrequencyPlotFilter(classes="overview-filter")
         yield TaskPlot()
         return super().compose()
 
@@ -48,3 +73,56 @@ class OverView(Vertical):
 
     def action_scroll_plot_left(self) -> None:
         return self.query_one(TaskPlot).action_scroll_left()
+
+
+class OverViewLog(Vertical):
+    BINDINGS = [
+        Binding("j", "table_down", "Scroll Down", show=True, priority=True),
+        Binding("k", "table_up", "Scroll UP", show=True, priority=True),
+    ]
+
+    active_event_types: reactive[list[str]] = reactive(["CREATE", "UPDATE", "DELETE"])
+    active_object_types: reactive[list[str]] = reactive(["board", "task", "column"])
+
+    def on_mount(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types, objects=self.active_object_types
+        )
+
+    def compose(self) -> Iterable[Widget]:
+        with Horizontal(id="horizontal_overview_filters"):
+            yield LogDateFilter(classes="overview-filter")
+            yield LogEventTypeFilter(classes="overview-filter")
+            yield LogObjectTypeFilter(classes="overview-filter")
+        yield LogTable()
+        return super().compose()
+
+    def on_button_pressed(self, event: Button.Pressed):
+        tmp_event_list = []
+        for button in self.query_one(LogEventTypeFilter).query(Button):
+            if button.active:
+                tmp_event_list.append(f"{button.label}")
+
+        tmp_object_list = []
+        for button in self.query_one(LogObjectTypeFilter).query(Button):
+            if button.active:
+                tmp_object_list.append(f"{button.label}")
+
+        self.active_event_types = tmp_event_list
+        self.active_object_types = tmp_object_list
+
+    def action_table_down(self):
+        self.query_one("#datatable_logs").action_cursor_down()
+
+    def action_table_up(self):
+        self.query_one("#datatable_logs").action_cursor_up()
+
+    def watch_active_event_types(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types, objects=self.active_object_types
+        )
+
+    def watch_active_object_types(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types, objects=self.active_object_types
+        )

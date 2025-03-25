@@ -13,7 +13,7 @@ from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
 
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
-from kanban_tui.views.overview_tab_view import OverView
+from kanban_tui.views.overview_tab_view import OverView, OverViewPlot  # , OverViewLog
 from kanban_tui.views.settings_tab_view import SettingsView
 
 
@@ -29,11 +29,11 @@ class MainView(Screen):
         yield Header()
         yield Footer()
         with TabbedContent(initial="tab_board", id="tabbed_content_boards"):
-            with TabPane("Kanban Board", id="tab_board"):
+            with TabPane("Kanban Board [yellow on black]^j[/]", id="tab_board"):
                 yield KanbanBoard()
-            with TabPane("Overview", id="tab_overview"):
+            with TabPane("Overview [yellow on black]^k[/]", id="tab_overview"):
                 yield OverView()
-            with TabPane("Settings", id="tab_settings"):
+            with TabPane("Settings [yellow on black]^l[/]", id="tab_settings"):
                 yield SettingsView()
         return super().compose()
 
@@ -81,11 +81,14 @@ class MainView(Screen):
             case "tab_board":
                 if self.query_one(SettingsView).config_has_changed:
                     self.query_one(KanbanBoard).refresh(recompose=True)
-                    self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+                    self.set_timer(delay=0.15, callback=self.app.action_focus_next)
                 self.query_one(SettingsView).config_has_changed = False
             case "tab_overview":
-                await self.query_one(OverView).update_plot_by_filters()
-                self.query_one("#switch_plot_category_detail").focus()
+                if self.query_one("#tabbed_content_overview").active == "tab_plot":
+                    await self.query_one(OverViewPlot).update_plot_by_filters()
+                    self.query_one("#switch_plot_category_detail").focus()
+                else:
+                    self.query_one("#select_logdate_filter").focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)
-                self.set_timer(delay=0.1, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.25, callback=self.app.action_focus_next)

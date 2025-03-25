@@ -70,6 +70,7 @@ class SettingsView(Vertical):
     @on(Input.Changed)
     @on(Switch.Changed)
     @on(Button.Pressed)
+    @on(Select.Changed)
     def config_changes(self):
         self.config_has_changed = True
 

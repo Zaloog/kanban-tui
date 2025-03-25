@@ -45,8 +45,8 @@ web = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "file"
-addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n 4 --dist=loadfile"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
 testpaths = ["tests"]
 
 [build-system]

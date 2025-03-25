@@ -151,6 +151,7 @@ async def test_column_delete_click(empty_app: KanbanTui):
         await pilot.press("d")
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         await pilot.click("#btn_continue_delete")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, MainView)
         assert len(pilot.app.column_list) == 3
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
@@ -181,6 +182,7 @@ async def test_column_creation(
 
         await pilot.press(*column_name)
         await pilot.click("#btn_continue_new_col")
+        await pilot.pause()
 
         assert pilot.app.visible_column_dict == visible_column_dict
 
@@ -220,6 +222,7 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
 
         # Cancel Modal View
         await pilot.click("#btn_cancel_new_col")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, MainView)
 
 
@@ -269,6 +272,7 @@ async def test_column_rename(test_app: KanbanTui):
 
         await pilot.press(*"New Name!")
         await pilot.click("#btn_continue_new_col")
+        await pilot.pause()
         assert pilot.app.focused.highlighted_child.column.name == "New Name!"
         assert pilot.app.column_list[0].name == "New Name!"
 

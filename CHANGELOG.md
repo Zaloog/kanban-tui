@@ -6,6 +6,8 @@
 - Added support for arbitrary column names, also supporting emoji codes
 - Added manual refresh binding, helpful when having multiple sessions open to sync between them
 - Added new audit table in db
+- Added new audit table log to OverView tab
+- Added shortcuts to tab headers
 - Fixed Bug, that allowed duplicate column names
 
 ## v0.6.4
