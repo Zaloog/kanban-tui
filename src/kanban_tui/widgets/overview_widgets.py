@@ -338,3 +338,5 @@ class LogTable(Vertical):
             self.query_one(DataTable).add_row(
                 *list(event_dict.values())[1:], label=list(event_dict.values())[0]
             )
+
+        self.query_one(DataTable).move_cursor(row=len(self.events))
