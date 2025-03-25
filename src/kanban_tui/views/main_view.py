@@ -29,11 +29,11 @@ class MainView(Screen):
         yield Header()
         yield Footer()
         with TabbedContent(initial="tab_board", id="tabbed_content_boards"):
-            with TabPane("Kanban Board", id="tab_board"):
+            with TabPane("Kanban Board [yellow on black]^j[/]", id="tab_board"):
                 yield KanbanBoard()
-            with TabPane("Overview", id="tab_overview"):
+            with TabPane("Overview [yellow on black]^k[/]", id="tab_overview"):
                 yield OverView()
-            with TabPane("Settings", id="tab_settings"):
+            with TabPane("Settings [yellow on black]^l[/]", id="tab_settings"):
                 yield SettingsView()
         return super().compose()
 
