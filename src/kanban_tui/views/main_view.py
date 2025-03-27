@@ -13,7 +13,12 @@ from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
 
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
-from kanban_tui.views.overview_tab_view import OverView, OverViewPlot  # , OverViewLog
+from kanban_tui.views.overview_tab_view import (
+    OverView,
+    OverViewLog,
+    OverViewPlot,
+    LogTable,
+)
 from kanban_tui.views.settings_tab_view import SettingsView
 
 
@@ -88,6 +93,12 @@ class MainView(Screen):
                     await self.query_one(OverViewPlot).update_plot_by_filters()
                     self.query_one("#switch_plot_category_detail").focus()
                 else:
+                    overview_log = self.query_one(OverViewLog)
+                    self.query_one(LogTable).load_events(
+                        objects=overview_log.active_object_types,
+                        events=overview_log.active_event_types,
+                    )
+
                     self.query_one("#select_logdate_filter").focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)
