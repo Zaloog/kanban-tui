@@ -97,6 +97,7 @@ class MainView(Screen):
                     self.query_one(LogTable).load_events(
                         objects=overview_log.active_object_types,
                         events=overview_log.active_event_types,
+                        time=overview_log.active_timestamp,
                     )
 
                     self.query_one("#select_logdate_filter").focus()

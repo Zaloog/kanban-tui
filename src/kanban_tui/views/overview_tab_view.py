@@ -83,10 +83,13 @@ class OverViewLog(Vertical):
 
     active_event_types: reactive[list[str]] = reactive(["CREATE", "UPDATE", "DELETE"])
     active_object_types: reactive[list[str]] = reactive(["board", "task", "column"])
+    active_timestamp: reactive[str] = reactive("1970-01-01 00:00:00")
 
     def on_mount(self):
         self.query_one(LogTable).load_events(
-            events=self.active_event_types, objects=self.active_object_types
+            events=self.active_event_types,
+            objects=self.active_object_types,
+            time=self.active_timestamp,
         )
 
     def compose(self) -> Iterable[Widget]:
@@ -111,6 +114,9 @@ class OverViewLog(Vertical):
         self.active_event_types = tmp_event_list
         self.active_object_types = tmp_object_list
 
+    def on_select_changed(self, event: Select.Changed):
+        self.active_timestamp = event.select.value
+
     def action_table_down(self):
         self.query_one("#datatable_logs").action_cursor_down()
 
@@ -119,10 +125,21 @@ class OverViewLog(Vertical):
 
     def watch_active_event_types(self):
         self.query_one(LogTable).load_events(
-            events=self.active_event_types, objects=self.active_object_types
+            events=self.active_event_types,
+            objects=self.active_object_types,
+            time=self.active_timestamp,
         )
 
     def watch_active_object_types(self):
         self.query_one(LogTable).load_events(
-            events=self.active_event_types, objects=self.active_object_types
+            events=self.active_event_types,
+            objects=self.active_object_types,
+            time=self.active_timestamp,
+        )
+
+    def watch_active_timestamp(self):
+        self.query_one(LogTable).load_events(
+            events=self.active_event_types,
+            objects=self.active_object_types,
+            time=self.active_timestamp,
         )

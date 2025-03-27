@@ -1083,7 +1083,7 @@ def get_filtered_events_db(
             audits;
         """
     else:
-        params = filter["events"] + filter["objects"]
+        params = filter["events"] + filter["objects"] + [filter["time"]]
         events_placeholder = ",".join(["?"] * len(filter["events"]))
         objects_placeholder = ",".join(["?"] * len(filter["objects"]))
         query_str = f"""
@@ -1095,6 +1095,8 @@ def get_filtered_events_db(
             event_type in ({events_placeholder})
             AND
             object_type in ({objects_placeholder})
+            AND
+            event_timestamp >= ?
             ;
         """
 

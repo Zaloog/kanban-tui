@@ -300,8 +300,30 @@ class LogDateFilter(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Time"))
-        yield Select.from_values(
-            ["all", "1M", "1W"], id="select_logdate_filter", allow_blank=False
+        yield Select(
+            options=[
+                ("all", datetime.datetime(1970, 1, 1)),
+                (
+                    "yesterday",
+                    (datetime.datetime.now() - datetime.timedelta(days=1)).replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    ),
+                ),
+                (
+                    "last week",
+                    (datetime.datetime.now() - datetime.timedelta(days=7)).replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    ),
+                ),
+                (
+                    "last month",
+                    (datetime.datetime.now() - datetime.timedelta(days=30)).replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    ),
+                ),
+            ],
+            id="select_logdate_filter",
+            allow_blank=False,
         )
 
 
@@ -324,8 +346,8 @@ class LogTable(Vertical):
             "new",
         )
 
-    def load_events(self, events: list, objects: list):
-        filter_dict = {"events": events, "objects": objects}
+    def load_events(self, events: list, objects: list, time: str):
+        filter_dict = {"events": events, "objects": objects, "time": time}
         self.events = get_filtered_events_db(
             filter=filter_dict, database=self.app.cfg.database_path
         )
