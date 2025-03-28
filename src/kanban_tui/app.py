@@ -66,8 +66,8 @@ class KanbanTui(App):
 
     async def action_refresh(self):
         self.update_board_list()
-        active_tab = self.query_one(TabbedContent).active_pane.id
-        await self.query_one(MainView).refresh_board(event=active_tab)
+        active_tab = self.screen.query_one(TabbedContent).active_pane.id
+        await self.screen.refresh_board(event=active_tab)
 
     def update_task_list(self):
         self.task_list = get_all_tasks_on_board_db(

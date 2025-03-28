@@ -13,10 +13,10 @@ async def test_overview_view_empty(empty_app: KanbanTui, test_db_full_path):
         await pilot.pause()
 
         assert isinstance(pilot.app.screen, MainView)
-        assert pilot.app.query_one("#plot_widget").styles.width.value == 1
+        assert pilot.app.screen.query_one("#plot_widget").styles.width.value == 1
 
         await pilot.press("L")
-        assert pilot.app.query_one("#datatable_logs").row_count == 5
+        assert pilot.app.screen.query_one("#datatable_logs").row_count == 5
 
         # assert pilot.app.screen, MainView)
 
@@ -28,10 +28,12 @@ async def test_overview_view(test_app: KanbanTui, test_db_full_path):
 
         assert isinstance(pilot.app.screen, MainView)
         await pilot.press("P")
-        assert pilot.app.query_one("#tabbed_content_overview").active == "tab_plot"
+        assert (
+            pilot.app.screen.query_one("#tabbed_content_overview").active == "tab_plot"
+        )
 
         await pilot.press("L")
-        assert pilot.app.query_one("#datatable_logs").row_count == 10
+        assert pilot.app.screen.query_one("#datatable_logs").row_count == 10
 
 
 async def test_overview_tab_switch(test_app: KanbanTui, test_db_full_path):
@@ -40,13 +42,19 @@ async def test_overview_tab_switch(test_app: KanbanTui, test_db_full_path):
         await pilot.pause()
 
         # initial is log
-        assert pilot.app.query_one("#tabbed_content_overview").active == "tab_log"
+        assert (
+            pilot.app.screen.query_one("#tabbed_content_overview").active == "tab_log"
+        )
         # switch to plot
         await pilot.press("P")
-        assert pilot.app.query_one("#tabbed_content_overview").active == "tab_plot"
+        assert (
+            pilot.app.screen.query_one("#tabbed_content_overview").active == "tab_plot"
+        )
         # switch back to log
         await pilot.press("L")
-        assert pilot.app.query_one("#tabbed_content_overview").active == "tab_log"
+        assert (
+            pilot.app.screen.query_one("#tabbed_content_overview").active == "tab_log"
+        )
 
 
 async def test_overview_plot_filter_values(test_app: KanbanTui, test_db_full_path):
@@ -55,9 +63,14 @@ async def test_overview_plot_filter_values(test_app: KanbanTui, test_db_full_pat
         await pilot.pause()
 
         await pilot.press("P")
-        assert not pilot.app.query_one("#switch_plot_category_detail").value
-        assert pilot.app.query_one("#select_plot_filter_amount").value == "start_date"
-        assert pilot.app.query_one("#select_plot_filter_frequency").value == "month"
+        assert not pilot.app.screen.query_one("#switch_plot_category_detail").value
+        assert (
+            pilot.app.screen.query_one("#select_plot_filter_amount").value
+            == "start_date"
+        )
+        assert (
+            pilot.app.screen.query_one("#select_plot_filter_frequency").value == "month"
+        )
 
 
 @pytest.mark.parametrize(
@@ -79,7 +92,11 @@ async def test_overview_log_filter_values(
         await pilot.pause()
 
         await pilot.press("L")
-        assert pilot.app.query_one("#datatable_logs").row_count == 10
+        assert pilot.app.screen.query_one("#datatable_logs").row_count == 10
 
-        await pilot.click(list(pilot.app.query(LogFilterButton).results())[button_no])
-        assert pilot.app.query_one("#datatable_logs").row_count == log_rows_visible
+        await pilot.click(
+            list(pilot.app.screen.query(LogFilterButton).results())[button_no]
+        )
+        assert (
+            pilot.app.screen.query_one("#datatable_logs").row_count == log_rows_visible
+        )

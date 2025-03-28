@@ -305,8 +305,10 @@ class ColumnSelector(ListView):
                     [FirstListItem()]
                     + [ColumnListItem(column=column) for column in self.app.column_list]
                 )
-                await self.app.query_one(StatusColumnSelector).recompose()
-                self.app.query_one(StatusColumnSelector).get_select_widget_values()
+                await self.app.screen.query_one(StatusColumnSelector).recompose()
+                self.app.screen.query_one(
+                    StatusColumnSelector
+                ).get_select_widget_values()
                 # Trigger Update on tab Switch
                 self.parent.parent.config_changes()
 

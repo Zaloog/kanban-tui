@@ -26,19 +26,21 @@ async def test_modal_board_creation_default(test_app: KanbanTui):
         await pilot.press("n")
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
         assert pilot.app.focused.id == "input_board_icon"
-        assert pilot.app.query_one("#input_board_name", Input).value == ""
-        assert pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert pilot.app.screen.query_one("#input_board_name", Input).value == ""
+        assert pilot.app.screen.query_one("#btn_continue_new_board", Button).disabled
 
         # Enter new Icon
         await pilot.press(*"bug")
-        assert pilot.app.query_one("#input_board_icon").value == "bug"
+        assert pilot.app.screen.query_one("#input_board_icon").value == "bug"
 
         # Enter new board name
         await pilot.click("#input_board_name")
         await pilot.press(*"Test Board")
 
-        assert pilot.app.query_one("#input_board_name").value == "Test Board"
-        assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert pilot.app.screen.query_one("#input_board_name").value == "Test Board"
+        assert not pilot.app.screen.query_one(
+            "#btn_continue_new_board", Button
+        ).disabled
 
         # save board
         await pilot.click("#btn_continue_new_board")
@@ -47,7 +49,7 @@ async def test_modal_board_creation_default(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, MainView)
 
         # new Board no tasks
-        assert len(list(pilot.app.query(TaskCard).results())) == 5
+        assert len(list(pilot.app.screen.query(TaskCard).results())) == 5
         assert len(pilot.app.board_list) == 2
 
 
@@ -63,39 +65,41 @@ async def test_modal_board_creation_custom(test_app: KanbanTui):
         await pilot.press("n")
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
         assert pilot.app.focused.id == "input_board_icon"
-        assert pilot.app.query_one("#input_board_name", Input).value == ""
-        assert pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert pilot.app.screen.query_one("#input_board_name", Input).value == ""
+        assert pilot.app.screen.query_one("#btn_continue_new_board", Button).disabled
 
         # Enter new Icon
         await pilot.press(*"bug")
-        assert pilot.app.query_one("#input_board_icon").value == "bug"
+        assert pilot.app.screen.query_one("#input_board_icon").value == "bug"
 
         # Enter new board name
         await pilot.click("#input_board_name")
         await pilot.press(*"Test Board")
 
-        assert pilot.app.query_one("#input_board_name").value == "Test Board"
-        assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert pilot.app.screen.query_one("#input_board_name").value == "Test Board"
+        assert not pilot.app.screen.query_one(
+            "#btn_continue_new_board", Button
+        ).disabled
 
         # Add Custom Columns
         # CustomList visible after switch press
-        assert pilot.app.query_one("#new_column_list").has_class("hidden")
+        assert pilot.app.screen.query_one("#new_column_list").has_class("hidden")
         await pilot.click("#switch_use_default_columns")
-        assert not pilot.app.query_one("#new_column_list").has_class("hidden")
+        assert not pilot.app.screen.query_one("#new_column_list").has_class("hidden")
 
         # Focus vscroll
         await pilot.press("tab")
         # Focus input
         await pilot.press("tab")
         await pilot.press(*"test_column")
-        assert len(pilot.app.query_one("#new_column_list").children) == 2
+        assert len(pilot.app.screen.query_one("#new_column_list").children) == 2
         # next column input
         await pilot.press("tab", "tab")
         await pilot.press(*"test_column2")
-        assert len(pilot.app.query_one("#new_column_list").children) == 3
+        assert len(pilot.app.screen.query_one("#new_column_list").children) == 3
         await pilot.press("shift+tab", "shift+tab", "delete")
         assert pilot.app.focused.value == ""
-        assert len(pilot.app.query_one("#new_column_list").children) == 2
+        assert len(pilot.app.screen.query_one("#new_column_list").children) == 2
 
         # save board
         await pilot.click("#btn_continue_new_board")
@@ -133,18 +137,19 @@ async def test_modal_board_icon_check(
         await pilot.press(*input_icon)
         await pilot.press("backspace")
         assert (
-            pilot.app.query_one("#input_board_icon", Input).value == input_icon.strip()
+            pilot.app.screen.query_one("#input_board_icon", Input).value
+            == input_icon.strip()
         )
         if input_icon in ["Vampire ", "books "]:
             assert (
-                pilot.app.query_one(
+                pilot.app.screen.query_one(
                     "#static_preview_icon", Static
                 ).visual.markup  # ._text[0]
                 == Emoji(expected_preview_result)._char
             )
         else:
             assert (
-                pilot.app.query_one("#static_preview_icon", Static).visual._text
+                pilot.app.screen.query_one("#static_preview_icon", Static).visual._text
                 == expected_preview_result
             )
 
@@ -179,24 +184,27 @@ async def test_modal_board_edit(test_app: KanbanTui):
         await pilot.press("e")
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
 
-        assert (
-            pilot.app.query_one(ModalNewBoardScreen).kanban_board.name == "Test_Board"
-        )
-        assert pilot.app.query_one(ModalNewBoardScreen).kanban_board.icon == ":bug:"
+        assert pilot.app.screen.kanban_board.name == "Test_Board"
+        assert pilot.app.screen.kanban_board.icon == ":bug:"
 
         assert (
-            pilot.app.query_exactly_one("#btn_continue_new_board", Button).label._text[
-                0
-            ]
+            pilot.app.screen.query_exactly_one(
+                "#btn_continue_new_board", Button
+            ).label._text
             == "Edit Board"
         )
         assert (
-            pilot.app.query_exactly_one("#label_header", Label)._content == "Edit Board"
+            pilot.app.screen.query_exactly_one("#label_header", Label)._content
+            == "Edit Board"
         )
 
-        assert pilot.app.query_one("#input_board_name", Input).value == "Test_Board"
-        assert pilot.app.query_one("#input_board_icon", Input).value == "bug"
-        assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert (
+            pilot.app.screen.query_one("#input_board_name", Input).value == "Test_Board"
+        )
+        assert pilot.app.screen.query_one("#input_board_icon", Input).value == "bug"
+        assert not pilot.app.screen.query_one(
+            "#btn_continue_new_board", Button
+        ).disabled
 
         await pilot.click("#btn_continue_new_board")
         assert len(pilot.app.board_list) == 1

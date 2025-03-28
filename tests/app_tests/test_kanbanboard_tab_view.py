@@ -29,17 +29,17 @@ async def test_kanbanboard_task_creation(empty_app: KanbanTui):
         await pilot.press("n")
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         assert pilot.app.focused.id == "input_title"
-        assert pilot.app.query_one("#input_title", Input).value == ""
+        assert pilot.app.screen.query_one("#input_title", Input).value == ""
 
         # Enter new task name
         await pilot.press(*"Test Task")
-        assert pilot.app.query_one("#input_title").value == "Test Task"
+        assert pilot.app.screen.query_one("#input_title").value == "Test Task"
 
         # save task
         await pilot.click("#btn_continue")
         assert isinstance(pilot.app.screen, MainView)
 
-        assert len(list(pilot.app.query(TaskCard).results())) == 1
+        assert len(list(pilot.app.screen.query(TaskCard).results())) == 1
 
 
 async def test_kanbanboard_board_view(empty_app: KanbanTui):
@@ -52,15 +52,17 @@ async def test_kanbanboard_board_view(empty_app: KanbanTui):
         await pilot.press("n")
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
         assert pilot.app.focused.id == "input_board_icon"
-        assert pilot.app.query_one("#input_board_name", Input).value == ""
-        assert pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert pilot.app.screen.query_one("#input_board_name", Input).value == ""
+        assert pilot.app.screen.query_one("#btn_continue_new_board", Button).disabled
 
         # Enter new board name
         await pilot.click("#input_board_name")
         await pilot.press(*"Test Board")
 
-        assert pilot.app.query_one("#input_board_name").value == "Test Board"
-        assert not pilot.app.query_one("#btn_continue_new_board", Button).disabled
+        assert pilot.app.screen.query_one("#input_board_name").value == "Test Board"
+        assert not pilot.app.screen.query_one(
+            "#btn_continue_new_board", Button
+        ).disabled
 
         # save board
         await pilot.click("#btn_continue_new_board")
@@ -68,7 +70,7 @@ async def test_kanbanboard_board_view(empty_app: KanbanTui):
         assert isinstance(pilot.app.screen, MainView)
 
         # new Board no tasks
-        assert len(list(pilot.app.query(TaskCard).results())) == 0
+        assert len(list(pilot.app.screen.query(TaskCard).results())) == 0
         assert len(list(pilot.app.board_list)) == 2
 
 
@@ -197,20 +199,20 @@ async def test_filter_empty_app(empty_app: KanbanTui):
         # 3 in ready, 1 in doing, 1 in done
         assert isinstance(pilot.app.focused, KanbanBoard)
 
-        assert "-hidden" in pilot.app.query_one(FilterOverlay).classes
-        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+        assert "-hidden" in pilot.app.screen.query_one(FilterOverlay).classes
+        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
 
         # Open Filter
         await pilot.press("f1")
         await pilot.wait_for_animation()
-        assert pilot.app.query_one(FilterOverlay).offset[0] == 0
+        assert pilot.app.screen.query_one(FilterOverlay).offset[0] == 0
         assert pilot.app.focused.id == "category_filter"
-        assert all(task.disabled for task in pilot.app.query(TaskCard))
+        assert all(task.disabled for task in pilot.app.screen.query(TaskCard))
 
         # Close Filter
         await pilot.press("f1")
         await pilot.wait_for_animation()
-        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
         assert isinstance(pilot.app.focused, KanbanBoard)
 
 
@@ -221,18 +223,18 @@ async def test_filter(test_app: KanbanTui):
         # 3 in ready, 1 in doing, 1 in done
         assert isinstance(pilot.app.focused, TaskCard)
 
-        assert "-hidden" in pilot.app.query_one(FilterOverlay).classes
-        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+        assert "-hidden" in pilot.app.screen.query_one(FilterOverlay).classes
+        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
 
         # Open Filter
         await pilot.press("f1")
         await pilot.wait_for_animation()
-        assert pilot.app.query_one(FilterOverlay).offset[0] == 0
+        assert pilot.app.screen.query_one(FilterOverlay).offset[0] == 0
         assert pilot.app.focused.id == "category_filter"
-        assert all(task.disabled for task in pilot.app.query(TaskCard))
+        assert all(task.disabled for task in pilot.app.screen.query(TaskCard))
 
         # Close Filter
         await pilot.press("f1")
         await pilot.wait_for_animation()
-        assert abs(pilot.app.query_one(FilterOverlay).offset[0]) > 0
+        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
         assert isinstance(pilot.app.focused, TaskCard)

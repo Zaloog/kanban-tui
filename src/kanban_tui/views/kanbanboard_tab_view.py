@@ -68,7 +68,7 @@ class KanbanBoard(Horizontal):
     # Active Board Change
     def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
         if refresh_needed:
-            self.app.query_one(
+            self.app.screen.query_one(
                 "#tabbed_content_boards"
             ).border_title = Text.from_markup(
                 f" [red]Active Board:[/] {self.app.active_board.full_name}"

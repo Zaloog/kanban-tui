@@ -45,14 +45,16 @@ async def test_task_expand_switch(test_app: KanbanTui):
         await pilot.press("ctrl+l")
 
         assert not pilot.app.cfg.tasks_always_expanded
-        assert not pilot.app.query_exactly_one("#switch_expand_tasks", Switch).value
-        assert not pilot.app.query_exactly_one(SettingsView).config_has_changed
+        assert not pilot.app.screen.query_exactly_one(
+            "#switch_expand_tasks", Switch
+        ).value
+        assert not pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
 
         # toggle Switch
         await pilot.click("#switch_expand_tasks")
-        assert pilot.app.query_exactly_one("#switch_expand_tasks", Switch).value
+        assert pilot.app.screen.query_exactly_one("#switch_expand_tasks", Switch).value
         assert pilot.app.cfg.tasks_always_expanded
-        assert pilot.app.query_exactly_one(SettingsView).config_has_changed
+        assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
 
 
 async def test_column_selector(test_app: KanbanTui):
@@ -61,7 +63,7 @@ async def test_column_selector(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -72,7 +74,7 @@ async def test_column_selector_navigation(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -91,7 +93,7 @@ async def test_column_visibility(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -118,7 +120,7 @@ async def test_column_delete_press(empty_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -140,7 +142,7 @@ async def test_column_delete_click(empty_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -173,11 +175,13 @@ async def test_column_creation(
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
-        await pilot.click(pilot.app.query(AddRule)[position].query_exactly_one(Button))
+        await pilot.click(
+            pilot.app.screen.query(AddRule)[position].query_exactly_one(Button)
+        )
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         await pilot.press(*column_name)
@@ -193,12 +197,12 @@ async def test_column_creation_cancel_press(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Click on First Position
-        await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
+        await pilot.click(pilot.app.screen.query(AddRule)[0].query_exactly_one(Button))
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
@@ -212,12 +216,12 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Click on First Position
-        await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
+        await pilot.click(pilot.app.screen.query(AddRule)[0].query_exactly_one(Button))
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
@@ -232,17 +236,17 @@ async def test_column_creation_column_name_present(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Click on First Position
-        await pilot.click(pilot.app.query(AddRule)[0].query_exactly_one(Button))
+        await pilot.click(pilot.app.screen.query(AddRule)[0].query_exactly_one(Button))
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
         await pilot.press(*"Ready")
-        assert pilot.app.query_exactly_one("#btn_continue_new_col").disabled
+        assert pilot.app.screen.query_exactly_one("#btn_continue_new_col").disabled
 
 
 async def test_column_rename(test_app: KanbanTui):
@@ -251,7 +255,7 @@ async def test_column_rename(test_app: KanbanTui):
         await pilot.pause()
         # focus selector
         # await pilot.press("shift+tab")
-        pilot.app.query_exactly_one(ColumnSelector).focus()
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
         await pilot.pause()
         assert isinstance(pilot.app.focused, ColumnSelector)
 
@@ -264,11 +268,11 @@ async def test_column_rename(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
         assert pilot.app.focused.placeholder == "Current column name: 'Ready'"
         assert pilot.app.focused.value == ""
-        assert pilot.app.query_exactly_one("#btn_continue_new_col").disabled
+        assert pilot.app.screen.query_exactly_one("#btn_continue_new_col").disabled
 
         await pilot.press("r")
         await pilot.press("backspace")
-        assert pilot.app.query_exactly_one("#btn_continue_new_col").disabled
+        assert pilot.app.screen.query_exactly_one("#btn_continue_new_col").disabled
 
         await pilot.press(*"New Name!")
         await pilot.click("#btn_continue_new_col")
@@ -277,7 +281,7 @@ async def test_column_rename(test_app: KanbanTui):
         assert pilot.app.column_list[0].name == "New Name!"
 
         await pilot.press("ctrl+j")
-        assert pilot.app.query_one("#column_1").title == "New Name!"
+        assert pilot.app.screen.query_one("#column_1").title == "New Name!"
 
 
 async def test_setting_shortcuts(test_app: KanbanTui):
@@ -285,25 +289,27 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         await pilot.press("ctrl+l")
         await pilot.pause()
 
-        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+        assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+e")
-        assert pilot.app.query_exactly_one(AlwaysExpandedSwitch).has_focus_within
+        assert pilot.app.screen.query_exactly_one(AlwaysExpandedSwitch).has_focus_within
 
         await pilot.press("ctrl+d")
-        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+        assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+c")
-        assert pilot.app.query_exactly_one(ColumnSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         await pilot.press("ctrl+n")
-        assert pilot.app.query_exactly_one(WorkingHoursSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(WorkingHoursSelector).has_focus_within
 
         await pilot.press("ctrl+g")
-        assert pilot.app.query_exactly_one(DefaultTaskColorSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(
+            DefaultTaskColorSelector
+        ).has_focus_within
 
         await pilot.press("ctrl+s")
-        assert pilot.app.query_exactly_one(StatusColumnSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
 
 
 async def test_status_column_selector(test_app: KanbanTui):
@@ -311,10 +317,10 @@ async def test_status_column_selector(test_app: KanbanTui):
         await pilot.press("ctrl+l")
         await pilot.pause()
 
-        assert pilot.app.query_exactly_one(DataBasePathInput).has_focus_within
+        assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+s")
-        assert pilot.app.query_exactly_one(StatusColumnSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
 
         assert str(pilot.app.focused.value) == "Select.BLANK"
 
@@ -325,7 +331,7 @@ async def test_status_column_selector(test_app: KanbanTui):
         assert pilot.app.focused.value == 1
         assert pilot.app.active_board.reset_column == 1
 
-        await pilot.click(pilot.app.query_one("#select_start"))
+        await pilot.click(pilot.app.screen.query_one("#select_start"))
         await pilot.press("R")
         await pilot.press("enter")
         assert pilot.app.active_board.reset_column is None

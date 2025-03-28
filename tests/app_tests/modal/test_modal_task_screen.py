@@ -18,16 +18,16 @@ async def test_task_creation(empty_app: KanbanTui):
 
         # check title has focus
         assert pilot.app.focused.id == "input_title"
-        assert pilot.app.query_one("#input_title", Input).value == ""
+        assert pilot.app.screen.query_one("#input_title", Input).value == ""
         # Enter new task name
         await pilot.press(*"Test Task")
-        assert pilot.app.query_one("#input_title").value == "Test Task"
+        assert pilot.app.screen.query_one("#input_title").value == "Test Task"
 
         # Enter new task description
         await pilot.press("tab")
         assert isinstance(pilot.app.focused, TextArea)
         await pilot.press(*"Test Description")
-        assert pilot.app.query_one(TextArea).text == "Test Description"
+        assert pilot.app.screen.query_one(TextArea).text == "Test Description"
 
         # Choose new task Category
         await pilot.press("tab")
@@ -72,10 +72,11 @@ async def test_task_edit_button(test_app: KanbanTui):
 
         # Check Task Stats
         assert (
-            pilot.app.query_exactly_one("#input_title", Input).value == "Task_ready_0"
+            pilot.app.screen.query_exactly_one("#input_title", Input).value
+            == "Task_ready_0"
         )
-        assert pilot.app.query_exactly_one(TextArea).text == "Hallo"
-        assert pilot.app.query_exactly_one(CategorySelector).value == "green"
+        assert pilot.app.screen.query_exactly_one(TextArea).text == "Hallo"
+        assert pilot.app.screen.query_exactly_one(CategorySelector).value == "green"
 
         # add 1 to title
         await pilot.press(*"Task_ready_01")
@@ -99,10 +100,11 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
 
         # Check Task Stats
         assert (
-            pilot.app.query_exactly_one("#input_title", Input).value == "Task_ready_0"
+            pilot.app.screen.query_exactly_one("#input_title", Input).value
+            == "Task_ready_0"
         )
-        assert pilot.app.query_exactly_one(TextArea).text == "Hallo"
-        assert pilot.app.query_exactly_one(CategorySelector).value == "green"
+        assert pilot.app.screen.query_exactly_one(TextArea).text == "Hallo"
+        assert pilot.app.screen.query_exactly_one(CategorySelector).value == "green"
 
         # add 1 to title
         await pilot.press(*"Task_ready_01")
