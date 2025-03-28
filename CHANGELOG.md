@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.7.1
+- Fix crashes due to new textual major version. `app.query` -> `app.screen.query`
+
 ## v0.7.0
 - Added better column management
 - Added improvements to the settings tab UI including shortcuts
