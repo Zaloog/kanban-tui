@@ -32,7 +32,7 @@ the config file and `user_data_dir` for the sqlite database.
 </details>
 
 </details>
-<details><summary>Customizeable Board</summary>
+<details><summary>Customizable Board</summary>
 
 kanban-tui comes with four default columns
 (`Ready`, `Doing`, `Done`, `Archive`) but can be customized to your needs.
@@ -56,7 +56,7 @@ When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or
 </details>
 
 <!-- </details>
-<details><summary>Database Infomation</summary>
+<details><summary>Database Information</summary>
 
 - Task attributes
     - Title
@@ -137,7 +137,7 @@ ktui clear
 
 ## Feedback and Issues
 Feel free to reach out and share your feedback, or open an [Issue],
-if something doesnt work as expected.
+if something doesn't work as expected.
 Also check the [Changelog] for new updates.
 
 
