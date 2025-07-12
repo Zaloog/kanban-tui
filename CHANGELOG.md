@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.7.2
+- Add fixed textual_datepicker to repo cause no longer maintained and not compatible with textual 3.X
+
 ## v0.7.1
 - Fix crashes due to new textual major version. `app.query` -> `app.screen.query`
 

@@ -142,3 +142,18 @@ async def test_task_delete(test_app: KanbanTui):
         await pilot.click("#btn_continue_delete")
         assert isinstance(pilot.app.screen, MainView)
         assert pilot.app.focused.id == "taskcard_5"
+
+
+async def test_task_due_date(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+
+        # open edit window
+        await pilot.press("e")
+        assert isinstance(pilot.app.screen, ModalTaskEditScreen)
+        # Cancel with escape
+        await pilot.click("#switch_due_date")
+        assert pilot.app.screen.query_one("#switch_due_date").value
+        await pilot.click("#dateselect_due_date")
