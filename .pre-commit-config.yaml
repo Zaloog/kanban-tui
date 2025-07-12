@@ -13,27 +13,20 @@ repos:
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
-  rev: v0.11.2
+  rev: v0.12.3
   hooks:
     # Run the linter.
     - id: ruff
     # Run the formatter.
     - id: ruff-format
 
-      #- repo: local
-      #  hooks:
-      #  - id: run tests
-      #    name: Run Tests
-      #    language: system
-      #    entry: pytest
-      #    pass_filenames: false
-      #    always_run: true
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0  # Use the sha / tag you want to point at
+    rev: v1.16.1  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
         additional_dependencies: [types-python-dateutil]
-    # args: ["--install-types","--non-interactive"]
+        exclude: src/kanban_tui/textual_datepicker/
+        # args: ["--exclude", "/kanban_tui/textual_datepicker/"]
       #additional_dependencies:
       #- "pydantic"

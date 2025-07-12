@@ -14,8 +14,8 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Input, TextArea, Button, Select, Label, Switch, Footer
 from textual.containers import Horizontal, Vertical
-from textual_datepicker import DateSelect
 
+from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
 from kanban_tui.database import create_new_task_db, update_task_entry_db
 from kanban_tui.widgets.modal_task_widgets import (
@@ -148,7 +148,7 @@ class ModalTaskEditScreen(ModalScreen):
             self.kanban_task.category if self.kanban_task.category else Select.BLANK
         )
         self.query_one("#label_create_date", Label).update(
-            f'Task created at: {self.kanban_task.creation_date.isoformat(sep=" ", timespec="seconds")}'
+            f"Task created at: {self.kanban_task.creation_date.isoformat(sep=' ', timespec='seconds')}"
         )
         if self.kanban_task.due_date:
             # toggle switch

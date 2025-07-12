@@ -11,8 +11,8 @@ from textual.reactive import reactive
 from textual.widgets import Button, Label, SelectionList
 from textual.widgets.selection_list import Selection
 from textual.containers import Vertical, Horizontal
-from textual_datepicker import DatePicker
 
+from kanban_tui.textual_datepicker import DatePicker
 from kanban_tui.widgets.date_select import CustomDateSelect
 from kanban_tui.classes.task import Task
 

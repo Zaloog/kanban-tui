@@ -1,8 +1,9 @@
 from pendulum import DateTime
 
 from textual.binding import Binding
-from textual_datepicker import DateSelect, DatePicker
-from textual_datepicker._date_select import DatePickerDialog
+
+from kanban_tui.textual_datepicker import DateSelect, DatePicker
+from kanban_tui.textual_datepicker._date_select import DatePickerDialog
 
 
 class CustomDatePickerDialog(DatePickerDialog):
