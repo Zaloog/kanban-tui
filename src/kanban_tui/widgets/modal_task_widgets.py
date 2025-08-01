@@ -50,7 +50,7 @@ class DetailInfos(Vertical):
             Label("[yellow]??[/] days left", id="label_days_left", classes="hidden"),
             CustomDateSelect(
                 placeholder="Select Due Date",
-                format="YYYY-MM-DD",
+                format="%Y-%m-%d",
                 picker_mount="#vertical_modal",
                 id="dateselect_due_date",
                 classes="hidden",

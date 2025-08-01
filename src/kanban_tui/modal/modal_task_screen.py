@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
-import pendulum
 from textual import on
 from textual.events import Mount
 from textual.widget import Widget
@@ -154,10 +153,7 @@ class ModalTaskEditScreen(ModalScreen):
             # toggle switch
             self.query_one(Switch).value = True
             # set date in widget
-            self.query_one(DateSelect).date = pendulum.instance(
-                # self.query_one(CustomDateSelect).date = pendulum.instance(
-                self.kanban_task.due_date
-            )
+            self.query_one(DateSelect).date = self.kanban_task.due_date
             self.query_one(DetailInfos).due_date = self.kanban_task.due_date.replace(
                 microsecond=0, tzinfo=None
             )

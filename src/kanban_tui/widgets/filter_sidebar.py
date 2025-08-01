@@ -131,7 +131,7 @@ class DateFilter(Vertical):
             yield Label("From")
             yield CustomDateSelect(
                 placeholder="please select",
-                format="YYYY-MM-DD",
+                format="%Y-%m-%d",
                 picker_mount="#overlay_filter",
                 id="dateselect_start",
             )
@@ -139,7 +139,7 @@ class DateFilter(Vertical):
             yield Label("To")
             yield CustomDateSelect(
                 placeholder="please select",
-                format="YYYY-MM-DD",
+                format="%Y-%m-%d",
                 picker_mount="#overlay_filter",
                 id="dateselect_end",
             )

@@ -1,6 +1,6 @@
 [project]
 name = "kanban-tui"
-version = "0.7.2"
+version = "0.7.3"
 description = "customizable task tui powered by textual"
 authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
@@ -11,7 +11,6 @@ dependencies = [
     "click>=8.1.7",
     "textual-plotext>=1.0.0",
     "textual>=2.1.0",
-    "pendulum>=3.1.0",
     "tzdata>=2025.2",
 ]
 readme = "README.md"
@@ -51,8 +50,8 @@ addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes 
 testpaths = ["tests"]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.8.4,<0.9.0"]
+build-backend = "uv_build"
 
 [tool.uv]
 dev-dependencies = [
@@ -65,8 +64,6 @@ dev-dependencies = [
     "freezegun>=1.5.1",
 ]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/kanban_tui"]
+[tool.uv.build-backend]
+module-name = "src/kanban_tui"
+namespace = true
