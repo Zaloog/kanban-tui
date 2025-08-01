@@ -76,7 +76,7 @@ class DateSelect(Widget, can_focus=True):
         self,
         picker_mount: str,
         date: datetime | None = None,
-        format: str = "YYYY-MM-DD",
+        format: str = "%Y-%m-%d",
         placeholder: str = "",
         name: str | None = None,
         id: str | None = None,

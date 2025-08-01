@@ -243,6 +243,9 @@ class DatePicker(Widget):
             self.day_container,
         )
 
+    def on_mount(self):
+        self.date = datetime.today().date()
+
     def watch_date(self, _old_date, _new_date) -> None:
         self._update_month_label()
         self._update_day_widgets()
