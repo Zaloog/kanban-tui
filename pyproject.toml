@@ -12,6 +12,7 @@ dependencies = [
     "textual-plotext>=1.0.0",
     "textual>=2.1.0",
     "tzdata>=2025.2",
+    "python-dateutil>=2.9.0.post0",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -49,9 +50,6 @@ asyncio_default_fixture_loop_scope = "function"
 addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
 testpaths = ["tests"]
 
-[build-system]
-requires = ["uv_build>=0.8.4,<0.9.0"]
-build-backend = "uv_build"
 
 [tool.uv]
 dev-dependencies = [
@@ -64,6 +62,6 @@ dev-dependencies = [
     "freezegun>=1.5.1",
 ]
 
-[tool.uv.build-backend]
-module-name = "src/kanban_tui"
-namespace = true
+[build-system]
+requires = ["uv_build>=0.8.4,<0.9.0"]
+build-backend = "uv_build"

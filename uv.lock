@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 
 [[package]]
@@ -470,6 +470,7 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "pydantic" },
+    { name = "python-dateutil" },
     { name = "pyyaml" },
     { name = "textual" },
     { name = "textual-plotext" },
@@ -496,6 +497,7 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.1.7" },
     { name = "pydantic", specifier = ">=2.9.2" },
+    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "textual", specifier = ">=2.1.0" },
     { name = "textual-plotext", specifier = ">=1.0.0" },
