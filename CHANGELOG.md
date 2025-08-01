@@ -2,6 +2,8 @@
 
 ## v0.7.3
 - Removed pendulum dependency and change to python native datetime
+- move to uv build backend
+
 ## v0.7.2
 - Add fixed textual_datepicker to repo cause no longer maintained and not compatible with textual 3.X
 

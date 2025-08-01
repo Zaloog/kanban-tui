@@ -465,7 +465,7 @@ wheels = [
 
 [[package]]
 name = "kanban-tui"
-version = "0.7.2"
+version = "0.7.3"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -1175,7 +1175,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "5.1.1"
+version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify", "plugins"] },
@@ -1184,9 +1184,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/19/7976efe4b6258e065f9ed9978b5d930a0e93b0de5b19197011a941df56bf/textual-5.1.1.tar.gz", hash = "sha256:8df8830155046660592c8926e18d43c712dfe4e8a1351a98b1138f9b64ec14dc", size = 1555479, upload-time = "2025-07-31T19:08:53.887Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/55/2f7ede2f7a2aa852f062019ab96204dd311dda9103f0b73980e8aeb4e7cc/textual-5.2.0.tar.gz", hash = "sha256:6d4a77fddde7aa659acc25c3e14ed27ff75e125c6730c6f57263cf91b60e0d50", size = 1556452, upload-time = "2025-08-01T18:45:33.262Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/db/30dfedb040305789403447a471d90945a8445a71e8ed29c4ba331847cf10/textual-5.1.1-py3-none-any.whl", hash = "sha256:34a25b16c6b4efe90247825b77834e620c0f96c899f442a946ce8f3e13c420ba", size = 700600, upload-time = "2025-07-31T19:08:51.683Z" },
+    { url = "https://files.pythonhosted.org/packages/41/10/81b3c0cac7d5c6b0b32f38b663fdae3773fb2843623c1e0ff7626dfef7c9/textual-5.2.0-py3-none-any.whl", hash = "sha256:5df1ef970a88ac9a266cbcace098f595f22706990f2506f6e545d9bb55983f1d", size = 701823, upload-time = "2025-08-01T18:45:31.17Z" },
 ]
 
 [[package]]
