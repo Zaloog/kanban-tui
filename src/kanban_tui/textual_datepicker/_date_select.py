@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import pendulum
+from datetime import datetime
 
 from textual.app import ComposeResult
 from textual.widget import Widget, events
@@ -70,13 +70,13 @@ class DateSelect(Widget, can_focus=True):
     # value = reactive("", layout=True, init=False)
 
     # Date of the month which shall be shown when opening the dialog
-    date: reactive[pendulum.DateTime | None] = reactive(None)
+    date: reactive[datetime | None] = reactive(None)
 
     def __init__(
         self,
         picker_mount: str,
-        date: pendulum.DateTime | None = None,
-        format: str = "YYYY-MM-DD",
+        date: datetime | None = None,
+        format: str = "%Y-%m-%d",
         placeholder: str = "",
         name: str | None = None,
         id: str | None = None,
@@ -94,7 +94,7 @@ class DateSelect(Widget, can_focus=True):
         self.dialog = None
 
     @property
-    def value(self) -> pendulum.DateTime:
+    def value(self) -> datetime:
         """Value of the current date."""
         return self.date
 
@@ -109,7 +109,7 @@ class DateSelect(Widget, can_focus=True):
         if not self.date:
             text = self.placeholder
         else:
-            text = self.date.format(self.format)
+            text = self.date.strftime(self.format)
 
         if len(text) > text_space:
             text = text[0:text_space]

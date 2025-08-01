@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import calendar
-import pendulum
+from datetime import datetime
 
 from textual.app import ComposeResult
 from textual.widget import Widget, RenderableType, events
@@ -42,20 +42,20 @@ class MonthHeader(Static):
     """
 
     # the date format to use for displaying the label
-    format = "MMMM\nYYYY"
+    format = "%b\n%Y"
 
     def __init__(
         self,
-        date: pendulum.DateTime,
+        date: datetime,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes)
-        self.renderable = date.format(self.format)
+        self.renderable = date.strftime(self.format)
 
-    def update(self, date: pendulum.DateTime) -> None:
-        super().update(date.format(self.format))
+    def update(self, date: datetime) -> None:
+        super().update(date.strftime(self.format))
 
     # def on_key(self, event: events.Key) -> None:
     #     if event.key == "enter":
@@ -206,13 +206,13 @@ class DatePicker(Widget):
     month_label = Static("", classes="month")
 
     # the displayed month (always the first of the month)
-    date = reactive(pendulum.today().start_of("month"))
+    date = reactive(datetime.today())
 
     # The index of the focused day as int (including empty leading days)
     focused: int | None
 
     # The selected date (on enter, click)
-    selected_date: pendulum.DateTime | None
+    selected_date: datetime | None
 
     # Container with all the selectable days
     day_container = None
@@ -243,6 +243,9 @@ class DatePicker(Widget):
             self.day_container,
         )
 
+    def on_mount(self):
+        self.date = datetime.today().date()
+
     def watch_date(self, _old_date, _new_date) -> None:
         self._update_month_label()
         self._update_day_widgets()
@@ -267,9 +270,7 @@ class DatePicker(Widget):
             self.day_container.children[7].focus()
 
     def on_day_label_selected(self, event: DayLabel.Selected) -> None:
-        self.selected_date = pendulum.datetime(
-            self.date.year, self.date.month, event.day
-        )
+        self.selected_date = datetime(self.date.year, self.date.month, event.day)
 
         self.post_message(self.Selected(self, self.selected_date))
 
@@ -306,9 +307,18 @@ class DatePicker(Widget):
         self._move_month(1)
 
     def _move_month(self, month_count: int) -> None:
-        self.date = pendulum.datetime(self.date.year, self.date.month, 1).add(
-            months=month_count
-        )
+        new_month = self.date.month + month_count
+        match new_month:
+            case 0:
+                updated_month = 12
+                updated_year = self.date.year - 1
+            case 13:
+                updated_month = 1
+                updated_year = self.date.year + 1
+            case _:
+                updated_month = new_month
+                updated_year = self.date.year
+        self.date = datetime(updated_year, updated_month, 1)
 
     def _handle_left(self) -> None:
         focused_day = self.focused_day
@@ -386,7 +396,7 @@ class DatePicker(Widget):
         self.day_container.children[self.focused - 7].focus()
 
     def _handle_home(self) -> None:
-        self.date = pendulum.today()
+        self.date = datetime.today()
         self.query_one("DayLabel.--today").focus()
 
     def _update_month_label(self) -> None:
@@ -442,7 +452,7 @@ class DatePicker(Widget):
         """Returns todays day, if today is in the current month (self.date).
         None otherwise."""
 
-        today = pendulum.today()
+        today = datetime.today()
         if today.year == self.date.year and today.month == self.date.month:
             return today.day
 
@@ -451,6 +461,6 @@ class DatePicker(Widget):
     class Selected(Message):
         """A date was selected."""
 
-        def __init__(self, sender: DatePicker, date: pendulum.DateTime) -> None:
+        def __init__(self, sender: DatePicker, date: datetime) -> None:
             self.date = date
             super().__init__()
