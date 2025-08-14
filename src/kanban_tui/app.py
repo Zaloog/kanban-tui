@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from textual.app import App
-from textual.theme import Theme
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import TabbedContent
@@ -51,7 +50,6 @@ class KanbanTui(App):
 
     def on_mount(self) -> None:
         self.theme = self.cfg.theme
-        self.theme_changed_signal.subscribe(self, self._on_theme_changed)
         self.update_board_list()
         self.push_screen("MainView")
         # self.set_interval(
@@ -66,8 +64,8 @@ class KanbanTui(App):
         self.update_task_list()
         self.update_column_list()
 
-    def _on_theme_changed(self, new_theme: Theme) -> None:
-        self.cfg.set_theme(new_theme.name)
+    def watch_theme(self, theme: str):
+        self.cfg.set_theme(theme)
 
     async def action_refresh(self):
         self.update_board_list()
