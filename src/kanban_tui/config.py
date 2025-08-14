@@ -14,6 +14,7 @@ class KanbanTuiConfig(BaseModel):
     tasks_always_expanded: bool = False
     no_category_task_color: str = "#004578"
     active_board: int = 1
+    theme: str = "dracula"
     category_color_dict: dict[str | None, str] = {}
     work_hour_dict: dict[str, str] = {
         "start_hour": "00",
@@ -24,6 +25,7 @@ class KanbanTuiConfig(BaseModel):
 
     def model_post_init(self, __context: Any) -> None:
         self.config = self.load()
+        self.theme = self.config["kanban.settings"]["theme"]
         self.tasks_always_expanded = self.config["kanban.settings"][
             "tasks_always_expanded"
         ]
@@ -60,6 +62,11 @@ class KanbanTuiConfig(BaseModel):
         self.config["kanban.settings"]["work_hours"].update(self.work_hour_dict)
         self.save()
 
+    def set_theme(self, new_theme: str) -> None:
+        self.theme = new_theme
+        self.config["kanban.settings"]["theme"] = new_theme
+        self.save()
+
     def load(self) -> dict[str, Any]:
         with open(self.config_path, "r") as yaml_file:
             return yaml.safe_load(yaml_file)
@@ -86,6 +93,7 @@ def init_new_config(
         "tasks_always_expanded": False,
         "active_board": 1,
         "no_category_task_color": "#004578",
+        "theme": "dracula",
         "work_hours": {
             "start_hour": "00",
             "start_min": "00",
