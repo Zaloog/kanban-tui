@@ -57,3 +57,17 @@ def test_init_new_config(
         "end_hour": "00",
         "end_min": "00",
     }
+
+
+def test_default_theme_is_loaded(test_app_config: KanbanTuiConfig) -> None:
+    assert test_app_config.theme == "dracula"
+
+
+def test_theme_update_is_saved(
+    test_app_config: KanbanTuiConfig, test_config_full_path: Path
+) -> None:
+    test_app_config.set_theme("monokai")
+    assert test_app_config.theme == "monokai"
+
+    updated_config = KanbanTuiConfig(config_path=test_config_full_path)
+    assert updated_config.theme == "monokai"

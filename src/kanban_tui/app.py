@@ -32,7 +32,7 @@ class KanbanTui(App):
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
-    active_board: Board = None
+    active_board: Board | None = None
 
     def __init__(
         self,
@@ -49,7 +49,7 @@ class KanbanTui(App):
         super().__init__()
 
     def on_mount(self) -> None:
-        self.theme = "dracula"
+        self.theme = self.cfg.theme
         self.update_board_list()
         self.push_screen("MainView")
         # self.set_interval(
@@ -63,6 +63,9 @@ class KanbanTui(App):
         # is set, also updates tasks
         self.update_task_list()
         self.update_column_list()
+
+    def watch_theme(self, theme: str):
+        self.cfg.set_theme(theme)
 
     async def action_refresh(self):
         self.update_board_list()
