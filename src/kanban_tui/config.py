@@ -25,7 +25,7 @@ class KanbanTuiConfig(BaseModel):
 
     def model_post_init(self, __context: Any) -> None:
         self.config = self.load()
-        self.theme = self.config["kanban.settings"]["theme"]
+        self.theme = self.config["kanban.settings"].get("theme", "dracula")
         self.tasks_always_expanded = self.config["kanban.settings"][
             "tasks_always_expanded"
         ]
