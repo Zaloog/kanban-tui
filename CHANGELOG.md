@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.8.1
+- Fix Config initialization for mac port which uses pydantic v1.X
+
 ## v0.8.0
 - Add theme to config value to make it persistant after closing the app
 

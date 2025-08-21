@@ -52,9 +52,6 @@ class KanbanTui(App):
         self.theme = self.cfg.theme
         self.update_board_list()
         self.push_screen("MainView")
-        # self.set_interval(
-        #     interval=5,
-        #     callback=self.action_refresh)
 
     def update_board_list(self):
         self.board_list = get_all_boards_db(database=self.app.cfg.database_path)

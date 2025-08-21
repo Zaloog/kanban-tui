@@ -2,7 +2,7 @@ from typing import Any
 import yaml
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, __version__
 
 from kanban_tui.constants import CONFIG_FULL_PATH, DB_FULL_PATH
 
@@ -23,20 +23,40 @@ class KanbanTuiConfig(BaseModel):
         "end_min": "00",
     }
 
-    def model_post_init(self, __context: Any) -> None:
-        self.config = self.load()
-        self.theme = self.config["kanban.settings"].get("theme", "dracula")
-        self.tasks_always_expanded = self.config["kanban.settings"][
-            "tasks_always_expanded"
-        ]
-        self.no_category_task_color = self.config["kanban.settings"][
-            "no_category_task_color"
-        ]
-        self.active_board = self.config["kanban.settings"]["active_board"]
-        self.category_color_dict = self.config["category.colors"]
-        # self.column_dict = self.config["column.visibility"]
-        self.work_hour_dict = self.config["kanban.settings"]["work_hours"]
-        self.database_path = Path(self.config["database"]["database_path"])
+    if __version__.startswith("1"):
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.config = self.load()
+            self.theme = self.config["kanban.settings"].get("theme", "dracula")
+            self.tasks_always_expanded = self.config["kanban.settings"][
+                "tasks_always_expanded"
+            ]
+            self.no_category_task_color = self.config["kanban.settings"][
+                "no_category_task_color"
+            ]
+            self.active_board = self.config["kanban.settings"]["active_board"]
+            self.category_color_dict = self.config["category.colors"]
+
+            self.work_hour_dict = self.config["kanban.settings"]["work_hours"]
+            self.database_path = Path(self.config["database"]["database_path"])
+
+    else:
+
+        def model_post_init(self, __context: Any) -> None:
+            self.config = self.load()
+            self.theme = self.config["kanban.settings"].get("theme", "dracula")
+            self.tasks_always_expanded = self.config["kanban.settings"][
+                "tasks_always_expanded"
+            ]
+            self.no_category_task_color = self.config["kanban.settings"][
+                "no_category_task_color"
+            ]
+            self.active_board = self.config["kanban.settings"]["active_board"]
+            self.category_color_dict = self.config["category.colors"]
+
+            self.work_hour_dict = self.config["kanban.settings"]["work_hours"]
+            self.database_path = Path(self.config["database"]["database_path"])
 
     def set_active_board(self, new_active_board: int) -> None:
         self.active_board = new_active_board

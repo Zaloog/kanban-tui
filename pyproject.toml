@@ -1,18 +1,18 @@
 [project]
 name = "kanban-tui"
-version = "0.8.0"
+version = "0.8.1"
 description = "customizable task tui powered by textual"
 authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
 dependencies = [
     "pyyaml>=6.0.2",
-    "pydantic>=2.9.2",
     "click>=8.1.7",
     "textual-plotext>=1.0.0",
     "textual>=2.1.0",
     "tzdata>=2025.2",
     "python-dateutil>=2.9.0.post0",
+    "pydantic>=2.11.7",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
