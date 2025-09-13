@@ -72,14 +72,14 @@ class ModalNewBoardScreen(ModalScreen):
                 f"Board created at: {datetime.now().replace(microsecond=0)}",
                 id="label_create_date",
             )
-            # For later
+            
             # initializing columns on new board
             if not self.kanban_board:
                 with Horizontal(id="horizontal_custom_columns"):
                     yield Label("Use default Columns", id="label_new_column_switch")
                     yield Switch(value=True, id="switch_use_default_columns")
 
-            yield CustomColumnList()
+            yield CustomColumnList(id="new_column_list", classes="hidden")
 
             with Horizontal(id="horizontal_buttons_delete"):
                 yield Button(
@@ -91,12 +91,12 @@ class ModalNewBoardScreen(ModalScreen):
                 yield Button("Cancel", id="btn_cancel_new_board", variant="error")
             return super().compose()
 
-    def on_switch_changed(self):
-        if self.query_one(Switch).value:
+    def on_switch_changed(self, event:Switch.Changed):
+        if event.value:
             self.query_one(CustomColumnList).add_class("hidden")
         else:
             self.query_one(CustomColumnList).remove_class("hidden")
-            self.due_date = None
+            # self.due_date = None
 
     @on(Button.Pressed, "#btn_continue_new_board")
     def confirm_new_board(self):

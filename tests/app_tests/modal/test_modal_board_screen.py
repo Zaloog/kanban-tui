@@ -194,7 +194,7 @@ async def test_modal_board_edit(test_app: KanbanTui):
             == "Edit Board"
         )
         assert (
-            pilot.app.screen.query_exactly_one("#label_header", Label)._content
+            pilot.app.screen.query_exactly_one("#label_header", Label).content
             == "Edit Board"
         )
 
