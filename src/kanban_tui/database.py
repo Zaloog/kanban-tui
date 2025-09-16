@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 from typing import Literal
+from contextlib import contextmanager
 import datetime
 
 from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
@@ -26,8 +27,11 @@ def convert_datetime(val: bytes) -> datetime.datetime:
 sqlite3.register_converter("datetime", convert_datetime)
 
 
+@contextmanager
 def create_connection(database: Path = DB_FULL_PATH) -> sqlite3.Connection:
-    return sqlite3.connect(database=database, detect_types=sqlite3.PARSE_DECLTYPES)
+    con = sqlite3.connect(database=database, detect_types=sqlite3.PARSE_DECLTYPES)
+    yield con
+    con.close()
 
 
 def task_factory(cursor, row):

@@ -50,6 +50,7 @@ class ModalNewBoardScreen(ModalScreen):
         self.query_exactly_one("#input_board_icon", Input).border_title = "Icon"
         self.query_exactly_one("#input_board_name", Input).border_title = "Board Name"
         self.query_exactly_one("#static_preview_icon", Static).border_title = "Preview"
+        self.query_one(CustomColumnList).display = False
         # return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
@@ -93,9 +94,9 @@ class ModalNewBoardScreen(ModalScreen):
 
     def on_switch_changed(self, event: Switch.Changed):
         if event.value:
-            self.query_one(CustomColumnList).add_class("hidden")
+            self.query_one(CustomColumnList).display = False
         else:
-            self.query_one(CustomColumnList).remove_class("hidden")
+            self.query_one(CustomColumnList).display = True
             # self.due_date = None
 
     @on(Button.Pressed, "#btn_continue_new_board")
@@ -184,9 +185,6 @@ class ModalBoardOverviewScreen(ModalScreen):
         Binding("d", "delete_board", "Delete Board", show=True, priority=True),
         Binding("c", "copy_board", "Copy Board", show=True, priority=True),
     ]
-
-    def _on_mount(self, event: Mount) -> None:
-        return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():
