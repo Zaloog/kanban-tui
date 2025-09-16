@@ -24,7 +24,6 @@ from textual.widgets import (
     ListItem,
 )
 from textual.containers import Horizontal, Vertical
-from textual.widgets._select import BLANK
 from rich.text import Text
 
 from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
@@ -490,9 +489,9 @@ class StatusColumnSelector(Vertical):
     @on(Select.Changed)
     def update_status_columns(self, event: Select.Changed):
         update_status_update_columns_db(
-            new_status=None if event.value == BLANK else event.value,
+            # new_status=None if event.value == BLANK else event.value,
             # Bug
-            # new_status=event.select.selection,
+            new_status=event.select.selection,
             column_prefix=event.select.id.split("_")[-1],
             board_id=self.app.active_board.board_id,
             database=self.app.cfg.database_path,
@@ -500,8 +499,8 @@ class StatusColumnSelector(Vertical):
 
         self.app.update_board_list()
 
-        if event.value == BLANK:
-            # if event.select.selection is None:
+        self.notify(f"{event.select.selection}")
+        if not event.select.selection:
             return
 
         # If column is already selected, clear the old column

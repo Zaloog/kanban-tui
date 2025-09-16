@@ -83,12 +83,12 @@ async def test_modal_board_creation_custom(test_app: KanbanTui):
 
         # Add Custom Columns
         # CustomList visible after switch press
-        assert pilot.app.screen.query_one("#new_column_list").has_class("hidden")
+        assert not pilot.app.screen.query_one("#new_column_list").display
         await pilot.click("#switch_use_default_columns")
-        assert not pilot.app.screen.query_one("#new_column_list").has_class("hidden")
+        assert pilot.app.screen.query_one("#new_column_list").display
 
         # Focus vscroll
-        await pilot.press("tab")
+        # await pilot.press("tab")
         # Focus input
         await pilot.press("tab")
         await pilot.press(*"test_column")
@@ -97,6 +97,7 @@ async def test_modal_board_creation_custom(test_app: KanbanTui):
         await pilot.press("tab", "tab")
         await pilot.press(*"test_column2")
         assert len(pilot.app.screen.query_one("#new_column_list").children) == 3
+        # delete last column input
         await pilot.press("shift+tab", "shift+tab", "delete")
         assert pilot.app.focused.value == ""
         assert len(pilot.app.screen.query_one("#new_column_list").children) == 2

@@ -64,10 +64,9 @@ class ModalTaskEditScreen(ModalScreen):
             self.update_description_background,
         )
         if self.kanban_task:
+            self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#label_header", Label).update("Edit Task")
-            self.read_values_from_task()
-        # return super()._on_mount(event)
 
     @on(Button.Pressed, "#btn_continue")
     def action_update_task(self):
