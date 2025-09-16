@@ -111,7 +111,7 @@ class NewColumnItem(Horizontal):
         if self.column_name:
             self.query_one(Button).disabled = False
         else:
-            self.query_exactly_one(Button).disabled = True
+            self.query_one(Button).disabled = True
 
     def on_button_pressed(self):
         self.remove()

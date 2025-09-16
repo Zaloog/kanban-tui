@@ -33,7 +33,7 @@ class ModalNewBoardScreen(ModalScreen):
         self.kanban_board = board
         super().__init__()
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self, event: Mount) -> None:
         # Change Names Based on Editing/ Creating a Board
         if self.kanban_board:
             self.query_exactly_one(
@@ -50,7 +50,7 @@ class ModalNewBoardScreen(ModalScreen):
         self.query_exactly_one("#input_board_icon", Input).border_title = "Icon"
         self.query_exactly_one("#input_board_name", Input).border_title = "Board Name"
         self.query_exactly_one("#static_preview_icon", Static).border_title = "Preview"
-        return super()._on_mount(event)
+        # return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():
@@ -72,7 +72,7 @@ class ModalNewBoardScreen(ModalScreen):
                 f"Board created at: {datetime.now().replace(microsecond=0)}",
                 id="label_create_date",
             )
-            
+
             # initializing columns on new board
             if not self.kanban_board:
                 with Horizontal(id="horizontal_custom_columns"):
@@ -91,7 +91,7 @@ class ModalNewBoardScreen(ModalScreen):
                 yield Button("Cancel", id="btn_cancel_new_board", variant="error")
             return super().compose()
 
-    def on_switch_changed(self, event:Switch.Changed):
+    def on_switch_changed(self, event: Switch.Changed):
         if event.value:
             self.query_one(CustomColumnList).add_class("hidden")
         else:
