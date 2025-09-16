@@ -83,10 +83,10 @@ class BoardListItem(ListItem):
 
 class CustomColumnList(VerticalScroll):
     app: "KanbanTui"
+    can_focus = False
 
-    def __init__(self) -> None:
-        children = [NewColumnItem()]
-        super().__init__(*children, id="new_column_list", classes="hidden")
+    def on_mount(self):
+        self.mount(NewColumnItem())
 
     @on(Input.Changed)
     def add_new_empty_column(self, event: Input.Changed):
@@ -98,7 +98,7 @@ class CustomColumnList(VerticalScroll):
 
 
 class NewColumnItem(Horizontal):
-    column_name: reactive[str] = ""
+    column_name: reactive[str] = reactive("", init=False)
 
     def compose(self) -> Iterable[Widget]:
         yield Input(placeholder="Enter New Column Name")
@@ -106,10 +106,12 @@ class NewColumnItem(Horizontal):
 
     def on_input_changed(self, event: Input.Changed):
         self.column_name = event.input.value
+
+    def watch_column_name(self):
         if self.column_name:
-            self.query_exactly_one(Button).disabled = False
+            self.query_one(Button).disabled = False
         else:
-            self.query_exactly_one(Button).disabled = True
+            self.query_one(Button).disabled = True
 
     def on_button_pressed(self):
         self.remove()

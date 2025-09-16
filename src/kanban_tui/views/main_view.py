@@ -51,6 +51,7 @@ class MainView(Screen):
         ).border_title = Text.from_markup(
             f" [red]Active Board:[/] {self.app.active_board.full_name}"
         )
+        self.app.action_focus_next()
         return super()._on_mount(event)
 
     def action_show_tab(self, tab: str) -> None:

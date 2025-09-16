@@ -33,7 +33,7 @@ class ModalNewBoardScreen(ModalScreen):
         self.kanban_board = board
         super().__init__()
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self, event: Mount) -> None:
         # Change Names Based on Editing/ Creating a Board
         if self.kanban_board:
             self.query_exactly_one(
@@ -50,7 +50,8 @@ class ModalNewBoardScreen(ModalScreen):
         self.query_exactly_one("#input_board_icon", Input).border_title = "Icon"
         self.query_exactly_one("#input_board_name", Input).border_title = "Board Name"
         self.query_exactly_one("#static_preview_icon", Static).border_title = "Preview"
-        return super()._on_mount(event)
+        self.query_one(CustomColumnList).display = False
+        # return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():
@@ -72,14 +73,14 @@ class ModalNewBoardScreen(ModalScreen):
                 f"Board created at: {datetime.now().replace(microsecond=0)}",
                 id="label_create_date",
             )
-            # For later
+
             # initializing columns on new board
             if not self.kanban_board:
                 with Horizontal(id="horizontal_custom_columns"):
                     yield Label("Use default Columns", id="label_new_column_switch")
                     yield Switch(value=True, id="switch_use_default_columns")
 
-            yield CustomColumnList()
+            yield CustomColumnList(id="new_column_list", classes="hidden")
 
             with Horizontal(id="horizontal_buttons_delete"):
                 yield Button(
@@ -91,12 +92,12 @@ class ModalNewBoardScreen(ModalScreen):
                 yield Button("Cancel", id="btn_cancel_new_board", variant="error")
             return super().compose()
 
-    def on_switch_changed(self):
-        if self.query_one(Switch).value:
-            self.query_one(CustomColumnList).add_class("hidden")
+    def on_switch_changed(self, event: Switch.Changed):
+        if event.value:
+            self.query_one(CustomColumnList).display = False
         else:
-            self.query_one(CustomColumnList).remove_class("hidden")
-            self.due_date = None
+            self.query_one(CustomColumnList).display = True
+            # self.due_date = None
 
     @on(Button.Pressed, "#btn_continue_new_board")
     def confirm_new_board(self):
@@ -184,9 +185,6 @@ class ModalBoardOverviewScreen(ModalScreen):
         Binding("d", "delete_board", "Delete Board", show=True, priority=True),
         Binding("c", "copy_board", "Copy Board", show=True, priority=True),
     ]
-
-    def _on_mount(self, event: Mount) -> None:
-        return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():

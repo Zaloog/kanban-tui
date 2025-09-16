@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Generator
+from contextlib import contextmanager
 import datetime
 
 from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
@@ -26,8 +27,13 @@ def convert_datetime(val: bytes) -> datetime.datetime:
 sqlite3.register_converter("datetime", convert_datetime)
 
 
-def create_connection(database: Path = DB_FULL_PATH) -> sqlite3.Connection:
-    return sqlite3.connect(database=database, detect_types=sqlite3.PARSE_DECLTYPES)
+@contextmanager
+def create_connection(
+    database: Path = DB_FULL_PATH,
+) -> Generator[sqlite3.Connection, None, None]:
+    con = sqlite3.connect(database=database, detect_types=sqlite3.PARSE_DECLTYPES)
+    yield con
+    con.close()
 
 
 def task_factory(cursor, row):
@@ -689,8 +695,10 @@ def get_all_tasks_on_board_db(
         con.row_factory = task_factory
         try:
             tasks = con.execute(query_str, board_id_dict).fetchall()
+            con.commit()
             return tasks
         except sqlite3.Error as e:
+            con.rollback()
             print(e)
             raise e
             return None
@@ -713,9 +721,11 @@ def get_all_columns_on_board_db(
         con.row_factory = column_factory
         try:
             columns = con.execute(query_str, board_id_dict).fetchall()
+            con.commit()
             return columns
         except sqlite3.Error as e:
             print(e)
+            con.rollback()
             raise e
             return None
 
@@ -739,6 +749,7 @@ def update_status_update_columns_db(
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str, update_dict)
+            con.commit()
             return 0
         except sqlite3.Error as e:
             con.rollback()
@@ -769,8 +780,10 @@ def get_all_boards_db(
         con.row_factory = board_factory
         try:
             boards = con.execute(query_str).fetchall()
+            con.commit()
             return boards
         except sqlite3.Error as e:
+            con.rollback()
             print(e)
             return None
 
@@ -796,6 +809,7 @@ def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str, new_start_date_dict)
+            con.commit()
             return 0
         except sqlite3.Error as e:
             con.rollback()
@@ -978,8 +992,11 @@ def get_ordered_tasks_db(
         con.row_factory = sqlite3.Row
         try:
             tasks = con.execute(query_str).fetchall()
+            con.commit()
             return [dict(task) for task in tasks]
         except sqlite3.Error as e:
+            con.rollback()
+            return [dict(task) for task in tasks]
             print(e)
             return None
 
@@ -1066,8 +1083,10 @@ def get_all_board_infos(
         con.row_factory = board_info_factory
         try:
             board_infos = con.execute(query_str).fetchall()
+            con.commit()
             return board_infos
         except sqlite3.Error as e:
+            con.rollback()
             print(e)
             return None
 
@@ -1104,8 +1123,10 @@ def get_filtered_events_db(
         con.row_factory = logevent_factory
         try:
             events = con.execute(query_str, params).fetchall()
+            con.commit()
             return events
         except sqlite3.Error as e:
+            con.rollback()
             print(e)
             raise e
             return None

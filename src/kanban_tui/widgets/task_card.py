@@ -94,8 +94,8 @@ class TaskCard(Vertical):
 
         yield Label(self.task_.title, classes="label-title")
         yield Rule(classes="rules-taskinfo-separator")
-        yield Label(renderable=self.get_creation_date_str(), classes="label-infos")
-        yield Label(renderable=self.get_due_date_str(), classes="label-infos")
+        yield Label(self.get_creation_date_str(), classes="label-infos")
+        yield Label(self.get_due_date_str(), classes="label-infos")
         yield Rule(classes="rules-taskinfo-separator")
         self.description = Markdown(
             markdown=self.task_.description,

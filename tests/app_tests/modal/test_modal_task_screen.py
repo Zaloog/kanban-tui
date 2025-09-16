@@ -81,6 +81,8 @@ async def test_task_edit_button(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one(CategorySelector).value == "green"
 
         # add 1 to title
+        # focus the input first to select the text
+        pilot.app.screen.query_one("#input_title", Input).select_all()
         await pilot.press(*"Task_ready_01")
         await pilot.click("#btn_continue")
 
@@ -109,6 +111,8 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one(CategorySelector).value == "green"
 
         # add 1 to title
+        # Focus Input first
+        pilot.app.screen.query_one("#input_title", Input).select_all()
         await pilot.press(*"Task_ready_01")
         await pilot.press("ctrl+j")
 
