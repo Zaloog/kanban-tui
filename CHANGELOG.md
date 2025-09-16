@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.8.2
+- Fix Bugs and make `kanban-tui` compatible with `textual` 6.X
+
 ## v0.8.1
 - Fix Config initialization for mac port which uses pydantic v1.X
 
