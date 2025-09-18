@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from kanban_tui.config import KanbanTuiConfig, init_new_config
+from kanban_tui.config import KanbanTuiConfig, Settings, init_new_config
 
 
 def test_KanbanTuiConfig(
@@ -71,3 +71,28 @@ def test_theme_update_is_saved(
 
     updated_config = KanbanTuiConfig(config_path=test_config_full_path)
     assert updated_config.theme == "monokai"
+
+
+def test_default_config(test_config: Settings, test_db_full_path) -> None:
+    # test_config.set_db_path(test_config_path.as_posix())
+    settings_dict = test_config.model_dump(serialize_as_any=True)
+    default_settings = {
+        "theme": "dracula",
+        "task": {
+            "always_expanded": False,
+            "default_color": "#004578",
+        },
+        "backend": {
+            "mode": "sqlite",
+            "sqlite_settings": {
+                "database_path": test_db_full_path.as_posix(),
+                "active_board_id": 1,
+            },
+            "jira_settings": {
+                "user": "",
+                "api_token": "",
+                "url": "",
+            },
+        },
+    }
+    assert settings_dict == default_settings

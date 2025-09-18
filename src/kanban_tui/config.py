@@ -1,10 +1,18 @@
-from typing import Any
-import yaml
+import os
+from contextvars import ContextVar
+from typing import Any, Literal, Type
 from pathlib import Path
 
-from pydantic import BaseModel, __version__
+import yaml
+import tomli_w
+from pydantic import BaseModel, __version__, Field
+from pydantic_settings import (
+    BaseSettings,
+    TomlConfigSettingsSource,
+    PydanticBaseSettingsSource,
+)
 
-from kanban_tui.constants import CONFIG_FULL_PATH, DB_FULL_PATH
+from kanban_tui.constants import CONFIG_FILE, CONFIG_FULL_PATH, DB_FULL_PATH
 
 
 class KanbanTuiConfig(BaseModel):
@@ -127,3 +135,112 @@ def init_new_config(
         yaml_file.write(dump)
 
     return "Config Created"
+
+
+class TaskSettings(BaseModel):
+    default_color: str = Field(default="#004578")
+    always_expanded: bool = Field(default=False)
+
+
+class JiraBackendSettings(BaseModel):
+    user: str = Field(default="")
+    api_token: str = Field(default="")
+    url: str = Field(default="")
+
+
+class SqliteBackendSettings(BaseModel):
+    database_path: str = Field(default=DB_FULL_PATH.as_posix())
+    active_board_id: int = Field(default=1)
+
+
+class BackendSettings(BaseModel):
+    mode: Literal["sqlite", "jira"] = Field(default="sqlite")
+    sqlite_settings: SqliteBackendSettings = Field(
+        default_factory=SqliteBackendSettings
+    )
+    jira_settings: JiraBackendSettings = Field(default_factory=JiraBackendSettings)
+
+
+class Settings(BaseSettings):
+    # database_path: Path = DB_FULL_PATH
+    theme: str = Field(default="dracula")
+    task: TaskSettings = Field(default_factory=TaskSettings)
+    backend: BackendSettings = Field(default_factory=BackendSettings)
+
+    def set_theme(self, new_theme: str):
+        self.theme = self.theme = new_theme
+        self.save()
+
+    def set_tasks_always_expanded(self, new_value: bool) -> None:
+        self.task.always_expanded = new_value
+        self.save()
+
+    def set_default_task_color(self, new_color: str) -> None:
+        self.task.default_color = new_color
+        self.save()
+
+    def set_backend(self, new_backend: Literal["sqlite", "jira"]) -> None:
+        self.backend.mode = new_backend
+        self.save()
+
+    def set_db_path(self, new_db_path: str):
+        self.backend.sqlite_settings.database_path = new_db_path
+        self.save()
+
+    def set_active_board(self, new_active_board_id: int) -> None:
+        self.backend.sqlite_settings.active_board_id = new_active_board_id
+        self.save()
+
+    # TODO
+    # def add_category(self, category: str, color: str) -> None:
+    #     self.category_color_dict[category] = color
+    #     self.save()
+
+    def save(self, path: Path = CONFIG_FILE):
+        with open(path, "w") as toml_file:
+            dumb = tomli_w.dumps(self.model_dump())
+            toml_file.write(dumb)
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: Type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")
+        if config_from_env:
+            conf_file = Path(config_from_env).resolve()
+        else:
+            conf_file = CONFIG_FILE
+
+        default_sources = (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )
+
+        if conf_file.exists():
+            return (
+                init_settings,
+                TomlConfigSettingsSource(settings_cls, conf_file),
+                env_settings,
+                dotenv_settings,
+                file_secret_settings,
+            )
+        return default_sources
+
+
+def init_config(config_path: Path = CONFIG_FILE, database: Path = DB_FULL_PATH) -> str:
+    if config_path.exists():
+        return "Config Exists"
+
+    config = Settings()
+    config.set_db_path(database.as_posix())
+    config.save(config_path)
+
+
+SETTINGS: ContextVar[Settings] = ContextVar("settings")

@@ -1,28 +1,45 @@
+import os
+from pathlib import Path
+
 import pytest
 
 from kanban_tui.constants import CONFIG_NAME, DB_NAME
-from kanban_tui.config import init_new_config, KanbanTuiConfig
+from kanban_tui.config import Settings, init_new_config, init_config, KanbanTuiConfig
 from kanban_tui.database import init_new_db, create_new_task_db, create_new_board_db
 from kanban_tui.app import KanbanTui
 
 
 # Paths
 @pytest.fixture
-def test_file_location(tmp_path):
+def test_file_location(tmp_path) -> Path:
     return tmp_path
 
 
 @pytest.fixture
-def test_config_full_path(test_file_location):
+def test_config_full_path(test_file_location) -> Path:
     return test_file_location / CONFIG_NAME
 
 
 @pytest.fixture
-def test_db_full_path(test_file_location):
+def test_config_path(test_file_location) -> Path:
+    return test_file_location / "config.toml"
+
+
+@pytest.fixture
+def test_db_full_path(test_file_location) -> Path:
     return test_file_location / DB_NAME
 
 
 # Init Config and DB
+@pytest.fixture
+def test_config(test_config_path: Path, test_db_full_path: Path) -> Settings:
+    os.environ["KANBAN_TUI_CONFIG_FILE"] = test_config_path.as_posix()
+    init_config(config_path=test_config_path, database=test_db_full_path)
+
+    cfg = Settings()
+    return cfg
+
+
 @pytest.fixture
 def test_app_config(test_config_full_path, test_db_full_path) -> KanbanTuiConfig:
     init_new_config(config_path=test_config_full_path, database=test_db_full_path)

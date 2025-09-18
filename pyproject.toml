@@ -13,6 +13,9 @@ dependencies = [
     "tzdata>=2025.2",
     "python-dateutil>=2.9.0.post0",
     "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "tomli-w>=1.2.0",
+    "xdg-base-dirs>=6.0.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -47,7 +50,7 @@ web = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
+# addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
 testpaths = ["tests"]
 
 
