@@ -137,6 +137,11 @@ def init_new_config(
     return "Config Created"
 
 
+class BoardSettings(BaseModel):
+    theme: str = Field(default="dracula")
+    columns_in_view: int = Field(default=3)
+
+
 class TaskSettings(BaseModel):
     default_color: str = Field(default="#004578")
     always_expanded: bool = Field(default=False)
@@ -163,12 +168,16 @@ class BackendSettings(BaseModel):
 
 class Settings(BaseSettings):
     # database_path: Path = DB_FULL_PATH
-    theme: str = Field(default="dracula")
+    board: BoardSettings = Field(default_factory=BoardSettings)
     task: TaskSettings = Field(default_factory=TaskSettings)
     backend: BackendSettings = Field(default_factory=BackendSettings)
 
+    def set_columns_in_view(self, new_columns_in_view: int):
+        self.board.columns_in_view = new_columns_in_view
+        self.save()
+
     def set_theme(self, new_theme: str):
-        self.theme = new_theme
+        self.board.theme = new_theme
         self.save()
 
     def set_tasks_always_expanded(self, new_value: bool) -> None:
@@ -216,8 +225,6 @@ class Settings(BaseSettings):
         config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")
         if config_from_env:
             conf_file = Path(config_from_env).resolve()
-            print("from env")
-            print(conf_file)
         else:
             conf_file = CONFIG_FILE
 

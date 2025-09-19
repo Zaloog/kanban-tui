@@ -79,7 +79,7 @@ def test_read_sample_theme_from_env() -> None:
         Path(__file__).parent / "sample-configs/new_theme.toml"
     ).as_posix()
     config = Settings()
-    assert config.theme == "test_theme"
+    assert config.board.theme == "test_theme"
 
 
 def test_read_sample_jira_backend_from_env() -> None:
@@ -105,10 +105,10 @@ def test_read_sample_sqlite_backend_from_env() -> None:
 
 def test_config_theme_update(test_config: Settings, test_config_path: Path) -> None:
     test_config.set_theme("monokai")
-    assert test_config.theme == "monokai"
+    assert test_config.board.theme == "monokai"
 
     updated_config = Settings()
-    assert updated_config.theme == "monokai"
+    assert updated_config.board.theme == "monokai"
 
 
 def test_config_creation(
@@ -127,7 +127,10 @@ def test_config_creation(
 def test_default_config(test_config: Settings, test_db_full_path) -> None:
     settings_dict = test_config.model_dump(serialize_as_any=True)
     default_settings = {
-        "theme": "dracula",
+        "board": {
+            "theme": "dracula",
+            "columns_in_view": 3,
+        },
         "task": {
             "always_expanded": False,
             "default_color": "#004578",
