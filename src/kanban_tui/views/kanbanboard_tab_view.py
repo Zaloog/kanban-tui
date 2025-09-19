@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 from rich.text import Text
 from textual import on
 from textual.binding import Binding
-from textual.events import Mount
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.containers import Horizontal
@@ -35,12 +34,13 @@ class KanbanBoard(Horizontal):
         Binding("h, left", "navigation('left')", "Left", show=False),
         Binding("l, right", "navigation('right')", "Right", show=False),
         Binding("B", "show_boards", "Show Boards", show=True, priority=True),
+        Binding("enter", "confirm_move", "Confirm Move", show=True, priority=True),
     ]
     selected_task: reactive[Task | None] = reactive(None)
+    target_column: reactive[int | None] = reactive(None, bindings=True)
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         self.watch(self.app, "task_list", self.get_first_card)
-        return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         for column in self.app.column_list:
@@ -155,6 +155,62 @@ class KanbanBoard(Horizontal):
     @on(TaskCard.Focused)
     def get_current_card_position(self, event: TaskCard.Focused):
         self.selected_task = event.taskcard.task_
+
+    @on(TaskCard.Target)
+    def color_target_column(self, event: TaskCard.Target):
+        if self.target_column is None:
+            self.target_column = event.taskcard.task_.column
+
+        match event.column_id_change:
+            case -1:
+                new_column_id = self.app.get_possible_previous_column_id(
+                    self.target_column
+                )
+            case 1:
+                new_column_id = self.app.get_possible_next_column_id(self.target_column)
+
+        self.query_one(f"#column_{self.target_column}", Column).remove_class(
+            "highlighted"
+        )
+        self.target_column = new_column_id
+
+        if not self.target_column == event.taskcard.task_.column:
+            self.query_one(f"#column_{self.target_column}", Column).add_class(
+                "highlighted"
+            )
+        else:
+            self.target_column = None
+
+    # TODO
+    def watch_target_column(self, old_column: int, new_column_int: int):
+        if old_column is not None:
+            self.query_one(f"#column_{old_column}", Column).remove_class("highlighted")
+
+    async def action_confirm_move(self):
+        self.notify(f"confirm move to {self.target_column}")
+        self.app.app_focus = False
+
+        await self.query_one(
+            f"#column_{self.selected_task.column}", Column
+        ).remove_task(self.selected_task)
+
+        self.selected_task.column = self.target_column
+        update_task_db(task=self.selected_task, database=self.app.cfg.database_path)
+
+        self.query_one(f"#column_{self.target_column}", Column).place_task(
+            self.selected_task
+        )
+        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+
+        self.app.update_task_list()
+        self.target_column = None
+        self.app.app_focus = True
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "confirm_move":
+            if self.target_column is None:
+                return False
+        return True
 
     @on(TaskCard.Moved)
     async def move_card_to_other_column(self, event: TaskCard.Moved):

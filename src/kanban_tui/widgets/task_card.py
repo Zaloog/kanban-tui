@@ -54,6 +54,16 @@ class TaskCard(Vertical):
         def control(self) -> TaskCard:
             return self.taskcard
 
+    class Target(Message):
+        def __init__(self, taskcard: TaskCard, column_id_change: int) -> None:
+            self.taskcard = taskcard
+            self.column_id_change = column_id_change
+            super().__init__()
+
+        @property
+        def control(self) -> TaskCard:
+            return self.taskcard
+
     class Moved(Message):
         def __init__(self, taskcard: TaskCard, new_column: str) -> None:
             self.taskcard = taskcard
@@ -135,6 +145,12 @@ class TaskCard(Vertical):
 
     def action_move_task(self, direction: Literal["left", "right"]):
         column_id_list = list(self.app.visible_column_dict.keys())
+        match direction:
+            case "left":
+                self.post_message(self.Target(self, -1))
+            case "right":
+                self.post_message(self.Target(self, 1))
+        return
         match direction:
             case "left":
                 # check if at left border

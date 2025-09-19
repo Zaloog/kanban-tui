@@ -84,6 +84,18 @@ class KanbanTui(App):
             if board.board_id == self.cfg.active_board:
                 return board
 
+    def get_possible_next_column_id(self, current_id: int) -> int:
+        column_id_list = list(self.app.visible_column_dict.keys())
+        if column_id_list[-1] == current_id:
+            return current_id
+        return column_id_list[column_id_list.index(current_id) + 1]
+
+    def get_possible_previous_column_id(self, current_id: int) -> int:
+        column_id_list = list(self.app.visible_column_dict.keys())
+        if column_id_list[0] == current_id:
+            return current_id
+        return column_id_list[column_id_list.index(current_id) - 1]
+
     @property
     def visible_column_dict(self) -> dict[int, str]:
         return {col.column_id: col.name for col in self.column_list if col.visible}

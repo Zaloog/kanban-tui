@@ -1,7 +1,6 @@
 from typing import Iterable
 
 from rich.text import Text
-from textual.events import Mount
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Label
@@ -26,11 +25,10 @@ class Column(Vertical):
         yield VerticalScroll(id=f"vscroll_{self.id}")
         return super().compose()
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False
         for task in self.task_list:
             self.place_task(task=task)
-        return super()._on_mount(event)
 
     def watch_task_amount(self) -> None:
         if self.task_amount == 0:
