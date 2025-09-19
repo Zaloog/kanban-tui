@@ -168,7 +168,7 @@ class Settings(BaseSettings):
     backend: BackendSettings = Field(default_factory=BackendSettings)
 
     def set_theme(self, new_theme: str):
-        self.theme = self.theme = new_theme
+        self.theme = new_theme
         self.save()
 
     def set_tasks_always_expanded(self, new_value: bool) -> None:
@@ -197,6 +197,9 @@ class Settings(BaseSettings):
     #     self.save()
 
     def save(self, path: Path = CONFIG_FILE):
+        config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")
+        if config_from_env:
+            path = Path(config_from_env).resolve()
         with open(path, "w") as toml_file:
             dumb = tomli_w.dumps(self.model_dump())
             toml_file.write(dumb)
@@ -213,6 +216,8 @@ class Settings(BaseSettings):
         config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")
         if config_from_env:
             conf_file = Path(config_from_env).resolve()
+            print("from env")
+            print(conf_file)
         else:
             conf_file = CONFIG_FILE
 

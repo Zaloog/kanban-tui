@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from xdg_base_dirs import xdg_config_home
+from xdg_base_dirs import xdg_config_home, xdg_data_home
 from platformdirs import user_config_path, user_data_path, user_runtime_path
 
 
@@ -38,3 +38,8 @@ def _create_kanban_tui_dirs(root: Path) -> Path:
 
 CONFIG_DIR = _create_kanban_tui_dirs(xdg_config_home())
 CONFIG_FILE = CONFIG_DIR / "config.toml"
+DEMO_CONFIG_FILE = CONFIG_DIR / "demo_config.toml"
+
+DATA_DIR = _create_kanban_tui_dirs(xdg_data_home())
+DATABASE_FILE = DATA_DIR / "kanban_tui.db"
+DEMO_DATABASE_FILE = DATA_DIR / "demo_kanban_tui.db"

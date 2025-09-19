@@ -41,6 +41,7 @@ Changelog = "https://github.com/Zaloog/kanban-tui/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ktui = "kanban_tui.__main__:cli"
+kanban-tui = "kanban_tui.__main__:cli"
 
 [project.optional-dependencies]
 web = [
@@ -50,7 +51,7 @@ web = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-# addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
+addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
 testpaths = ["tests"]
 
 

@@ -1,0 +1,6 @@
+[backend]
+mode = "sqlite"
+
+[backend.sqlite_settings]
+database_path = "/home/kanban_tui.db"
+active_board_id = 2
