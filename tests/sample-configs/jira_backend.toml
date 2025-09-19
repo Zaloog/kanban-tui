@@ -1,0 +1,7 @@
+[backend]
+mode = "jira"
+
+[backend.jira_settings]
+url = "www.test-url.com"
+user = "Zaloog"
+api_token = "1337"

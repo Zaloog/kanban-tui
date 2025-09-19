@@ -13,6 +13,9 @@ dependencies = [
     "tzdata>=2025.2",
     "python-dateutil>=2.9.0.post0",
     "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "tomli-w>=1.2.0",
+    "xdg-base-dirs>=6.0.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -38,6 +41,7 @@ Changelog = "https://github.com/Zaloog/kanban-tui/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ktui = "kanban_tui.__main__:cli"
+kanban-tui = "kanban_tui.__main__:cli"
 
 [project.optional-dependencies]
 web = [

@@ -499,7 +499,6 @@ class StatusColumnSelector(Vertical):
 
         self.app.update_board_list()
 
-        self.notify(f"{event.select.selection}")
         if not event.select.selection:
             return
 
