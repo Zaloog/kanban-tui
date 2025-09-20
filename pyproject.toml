@@ -55,8 +55,8 @@ addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes 
 testpaths = ["tests"]
 
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pre-commit>=3.8.0",
     "pytest>=8.3.3",
     "pytest-cov>=5.0.0",
