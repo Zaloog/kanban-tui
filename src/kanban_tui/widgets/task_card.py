@@ -31,9 +31,7 @@ class TaskCard(Vertical):
     mouse_down: reactive[bool] = reactive(False)
 
     BINDINGS = [
-        Binding(
-            "H", "move_task('left')", description="👈", show=True, key_display="shift-h"
-        ),
+        Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
         Binding("e", "edit_task", description="Edit", show=True),
         Binding("d", "delete_task", description="Delete", show=True),
         Binding(
@@ -41,7 +39,7 @@ class TaskCard(Vertical):
             "move_task('right')",
             description="👉",
             show=True,
-            key_display="shift-l",
+            key_display="L",
         ),
     ]
 
@@ -55,9 +53,11 @@ class TaskCard(Vertical):
             return self.taskcard
 
     class Target(Message):
-        def __init__(self, taskcard: TaskCard, column_id_change: int) -> None:
+        def __init__(
+            self, taskcard: TaskCard, direction: Literal["left", "right"]
+        ) -> None:
             self.taskcard = taskcard
-            self.column_id_change = column_id_change
+            self.direction = direction
             super().__init__()
 
         @property
@@ -144,13 +144,9 @@ class TaskCard(Vertical):
                 self.query(".label-infos").add_class("hidden")
 
     def action_move_task(self, direction: Literal["left", "right"]):
-        column_id_list = list(self.app.visible_column_dict.keys())
-        match direction:
-            case "left":
-                self.post_message(self.Target(self, -1))
-            case "right":
-                self.post_message(self.Target(self, 1))
+        self.post_message(self.Target(self, direction))
         return
+        column_id_list = list(self.app.visible_column_dict.keys())
         match direction:
             case "left":
                 # check if at left border

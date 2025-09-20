@@ -1,4 +1,6 @@
+from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Literal
+
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -37,7 +39,7 @@ class KanbanBoard(Horizontal):
         Binding("enter", "confirm_move", "Confirm Move", show=True, priority=True),
     ]
     selected_task: reactive[Task | None] = reactive(None)
-    target_column: reactive[int | None] = reactive(None, bindings=True)
+    target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
 
     def on_mount(self) -> None:
         self.watch(self.app, "task_list", self.get_first_card)
@@ -158,33 +160,38 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Target)
     def color_target_column(self, event: TaskCard.Target):
-        if self.target_column is None:
-            self.target_column = event.taskcard.task_.column
-
-        match event.column_id_change:
-            case -1:
+        current_column_id = self.target_column or event.taskcard.task_.column
+        match event.direction:
+            case "left":
                 new_column_id = self.app.get_possible_previous_column_id(
-                    self.target_column
+                    current_column_id
                 )
-            case 1:
-                new_column_id = self.app.get_possible_next_column_id(self.target_column)
-
-        self.query_one(f"#column_{self.target_column}", Column).remove_class(
-            "highlighted"
-        )
-        self.target_column = new_column_id
-
-        if not self.target_column == event.taskcard.task_.column:
-            self.query_one(f"#column_{self.target_column}", Column).add_class(
-                "highlighted"
-            )
-        else:
+            case "right":
+                new_column_id = self.app.get_possible_next_column_id(current_column_id)
+        if new_column_id == event.taskcard.task_.column:
             self.target_column = None
+        else:
+            self.target_column = new_column_id
+            self.start_target_column_timer()
 
-    # TODO
-    def watch_target_column(self, old_column: int, new_column_int: int):
+    def start_target_column_timer(self):
+        def reset_target_column():
+            self.target_column = None
+            self.timer = None
+
+        if not self._timers:
+            self.timer = self.set_timer(delay=1.2, callback=reset_target_column)
+        else:
+            self.timer.reset()
+
+    def watch_target_column(self, old_column: int, new_column: int):
         if old_column is not None:
             self.query_one(f"#column_{old_column}", Column).remove_class("highlighted")
+
+        if new_column is not None:
+            self.query_one(f"#column_{new_column}", Column).add_class("highlighted")
+        else:
+            self.timer.reset()
 
     async def action_confirm_move(self):
         self.app.app_focus = False
