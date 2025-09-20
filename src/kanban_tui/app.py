@@ -83,6 +83,7 @@ class KanbanTui(App):
         for board in self.board_list:
             if board.board_id == self.cfg.active_board:
                 return board
+        raise Exception("No active Board Found")
 
     def get_possible_next_column_id(self, current_id: int) -> int:
         column_id_list = list(self.visible_column_dict.keys())

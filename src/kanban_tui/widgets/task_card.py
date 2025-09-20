@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 from textual import on  # , events
 
 # from textual.geometry import Offset
+
 from rich.text import Text
 from textual.reactive import reactive
 from textual.binding import Binding
@@ -18,7 +19,7 @@ from textual.message import Message
 
 
 from kanban_tui.classes.task import Task
-from kanban_tui.utils import get_status_enum
+from kanban_tui.utils import get_column_status_dict
 from kanban_tui.modal.modal_task_screen import (
     ModalTaskEditScreen,
     ModalConfirmScreen,
@@ -65,7 +66,7 @@ class TaskCard(Vertical):
             return self.taskcard
 
     class Moved(Message):
-        def __init__(self, taskcard: TaskCard, new_column: str) -> None:
+        def __init__(self, taskcard: TaskCard, new_column: int) -> None:
             self.taskcard = taskcard
             self.new_column = new_column
             super().__init__()
@@ -144,8 +145,8 @@ class TaskCard(Vertical):
                 self.query(".label-infos").add_class("hidden")
 
     def action_move_task(self, direction: Literal["left", "right"]):
-        self.post_message(self.Target(self, direction))
-        return
+        # self.post_message(self.Target(self, direction))
+        # return
         column_id_list = list(self.app.visible_column_dict.keys())
         match direction:
             case "left":
@@ -165,13 +166,13 @@ class TaskCard(Vertical):
                 ]
 
         # TODO Update Status based on defined reset/start/done column
-        update_column_enum = get_status_enum(
+        update_column_dict = get_column_status_dict(
             reset=self.app.active_board.reset_column,
             start=self.app.active_board.start_column,
             finish=self.app.active_board.finish_column,
         )
         self.task_.update_task_status(
-            new_column=new_column_id, update_column_enum=update_column_enum
+            new_column=new_column_id, update_column_dict=update_column_dict
         )
         self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 

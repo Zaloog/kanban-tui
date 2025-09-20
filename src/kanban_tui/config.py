@@ -173,11 +173,11 @@ class Settings(BaseSettings):
     task: TaskSettings = Field(default_factory=TaskSettings)
     backend: BackendSettings = Field(default_factory=BackendSettings)
 
-    def set_columns_in_view(self, new_columns_in_view: int):
+    def set_columns_in_view(self, new_columns_in_view: int) -> None:
         self.board.columns_in_view = new_columns_in_view
         self.save()
 
-    def set_theme(self, new_theme: str):
+    def set_theme(self, new_theme: str) -> None:
         self.board.theme = new_theme
         self.save()
 
@@ -189,7 +189,7 @@ class Settings(BaseSettings):
         self.task.default_color = new_color
         self.save()
 
-    def set_task_movement_mode(self, new_mode: str) -> None:
+    def set_task_movement_mode(self, new_mode: Literal["jump", "adjacent"]) -> None:
         self.task.movement_mode = new_mode
         self.save()
 
@@ -197,7 +197,7 @@ class Settings(BaseSettings):
         self.backend.mode = new_backend
         self.save()
 
-    def set_db_path(self, new_db_path: str):
+    def set_db_path(self, new_db_path: str) -> None:
         self.backend.sqlite_settings.database_path = new_db_path
         self.save()
 
@@ -258,6 +258,7 @@ def init_config(config_path: Path = CONFIG_FILE, database: Path = DB_FULL_PATH) 
     config = Settings()
     config.set_db_path(database.as_posix())
     config.save(config_path)
+    return "Config Created"
 
 
 SETTINGS: ContextVar[Settings] = ContextVar("settings")

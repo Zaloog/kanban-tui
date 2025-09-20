@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class Board(BaseModel):
     board_id: int
     name: str
-    icon: str | None = None
+    icon: str = ""
     creation_date: datetime = datetime.now().replace(microsecond=0)
     reset_column: int | None = None
     start_column: int | None = None
