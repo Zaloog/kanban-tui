@@ -1,5 +1,7 @@
 from typing import Iterable, TYPE_CHECKING
 
+from textual.reactive import reactive
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -11,6 +13,7 @@ from textual.screen import Screen
 from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
 
+from kanban_tui.classes.board import Board
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.views.overview_tab_view import (
     OverView,
@@ -23,6 +26,8 @@ from kanban_tui.views.settings_tab_view import SettingsView
 
 class MainView(Screen):
     app: "KanbanTui"
+    active_board: reactive[Board | None] = reactive(None)
+
     BINDINGS = [
         Binding("ctrl+j", 'show_tab("tab_board")', "Board", priority=True),
         Binding("ctrl+k", 'show_tab("tab_overview")', "Overview", priority=True),

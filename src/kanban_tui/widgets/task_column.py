@@ -29,6 +29,7 @@ class Column(Vertical):
         self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False
         for task in self.task_list:
             self.place_task(task=task)
+        self.border_title = "move task here"
 
     def watch_task_amount(self) -> None:
         if self.task_amount == 0:

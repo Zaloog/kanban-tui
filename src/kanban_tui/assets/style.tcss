@@ -16,7 +16,7 @@ Underline .underline--bar {
 Column{
   height:1fr;
   width:1fr;
-  border-top:thick $background;
+  border-top:thick transparent;
     }
 Column > Label {
         width: 1fr;

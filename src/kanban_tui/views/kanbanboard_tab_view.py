@@ -187,7 +187,6 @@ class KanbanBoard(Horizontal):
             self.query_one(f"#column_{old_column}", Column).remove_class("highlighted")
 
     async def action_confirm_move(self):
-        self.notify(f"confirm move to {self.target_column}")
         self.app.app_focus = False
 
         await self.query_one(
