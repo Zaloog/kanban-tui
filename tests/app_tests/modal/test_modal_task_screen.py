@@ -9,7 +9,7 @@ from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.modal_task_widgets import CategorySelector
 from kanban_tui.modal.modal_color_pick import TitleInput
 
-APP_SIZE = (120, 80)
+APP_SIZE = (150, 50)
 
 
 async def test_task_creation(empty_app: KanbanTui):

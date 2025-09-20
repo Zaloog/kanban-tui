@@ -4,7 +4,7 @@ from kanban_tui.app import KanbanTui
 from kanban_tui.views.main_view import MainView
 from kanban_tui.widgets.overview_widgets import LogFilterButton
 
-APP_SIZE = (120, 80)
+APP_SIZE = (150, 50)
 
 
 async def test_overview_view_empty(empty_app: KanbanTui, test_db_full_path):

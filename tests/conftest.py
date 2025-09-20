@@ -5,7 +5,11 @@ import pytest
 
 from kanban_tui.constants import CONFIG_NAME, DB_NAME
 from kanban_tui.config import Settings, init_new_config, init_config, KanbanTuiConfig
-from kanban_tui.database import init_new_db, create_new_task_db, create_new_board_db
+from kanban_tui.backends.sqlite.database import (
+    init_new_db,
+    create_new_task_db,
+    create_new_board_db,
+)
 from kanban_tui.app import KanbanTui
 
 

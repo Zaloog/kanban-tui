@@ -2,7 +2,7 @@ import sqlite3
 
 import pytest
 
-from kanban_tui.database import (
+from kanban_tui.backends.sqlite.database import (
     init_new_db,
     create_connection,
     task_factory,

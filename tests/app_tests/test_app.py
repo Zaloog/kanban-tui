@@ -2,9 +2,9 @@ from pathlib import Path
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.views.main_view import MainView
-from kanban_tui.database import delete_task_db
+from kanban_tui.backends.sqlite.database import delete_task_db
 
-APP_SIZE = (120, 80)
+APP_SIZE = (150, 50)
 
 
 async def test_empty_app(
