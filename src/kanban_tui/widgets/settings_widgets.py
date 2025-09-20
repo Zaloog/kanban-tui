@@ -30,7 +30,7 @@ from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
-from kanban_tui.database import (
+from kanban_tui.backends.sqlite.database import (
     update_column_name_db,
     update_column_visibility_db,
     delete_column_db,

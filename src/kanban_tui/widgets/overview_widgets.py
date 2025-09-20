@@ -18,7 +18,10 @@ from textual_plotext import PlotextPlot
 from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
-from kanban_tui.database import get_ordered_tasks_db, get_filtered_events_db
+from kanban_tui.backends.sqlite.database import (
+    get_ordered_tasks_db,
+    get_filtered_events_db,
+)
 from kanban_tui.utils import getrgb, get_time_range
 
 

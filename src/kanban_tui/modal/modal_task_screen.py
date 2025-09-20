@@ -16,7 +16,7 @@ from textual.containers import Horizontal, Vertical
 
 from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
-from kanban_tui.database import create_new_task_db, update_task_entry_db
+from kanban_tui.backends.sqlite.database import create_new_task_db, update_task_entry_db
 from kanban_tui.widgets.modal_task_widgets import (
     CreationDateInfo,
     CategorySelector,

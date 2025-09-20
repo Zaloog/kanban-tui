@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-from textual import on  # , events
+from textual import on
 
 # from textual.geometry import Offset
 

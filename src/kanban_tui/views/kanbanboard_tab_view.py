@@ -18,7 +18,7 @@ from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.database import update_task_db, delete_task_db
+from kanban_tui.backends.sqlite.database import update_task_db, delete_task_db
 
 from kanban_tui.classes.task import Task
 

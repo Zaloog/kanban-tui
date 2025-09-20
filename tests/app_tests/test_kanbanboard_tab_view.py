@@ -12,7 +12,7 @@ from kanban_tui.modal.modal_board_screen import (
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
 
-APP_SIZE = (120, 80)
+APP_SIZE = (150, 50)
 
 
 async def test_empty_kanbanboard(empty_app: KanbanTui):

@@ -9,10 +9,10 @@ from kanban_tui.modal.modal_board_screen import (
 )
 
 from kanban_tui.widgets.task_card import TaskCard
-from kanban_tui.database import create_new_board_db
+from kanban_tui.backends.sqlite.database import create_new_board_db
 from rich.emoji import Emoji
 
-APP_SIZE = (120, 80)
+APP_SIZE = (150, 50)
 
 
 async def test_modal_board_creation_default(test_app: KanbanTui):

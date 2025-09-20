@@ -13,7 +13,7 @@ from textual.widgets import ListView, ListItem, Label, Rule, Button, Input
 from textual.containers import Horizontal, VerticalScroll
 
 from kanban_tui.classes.board import Board
-from kanban_tui.database import get_all_board_infos
+from kanban_tui.backends.sqlite.database import get_all_board_infos
 from kanban_tui.utils import get_days_left_till_due
 
 
