@@ -7,7 +7,11 @@ from datetime import datetime, timedelta
 from dateutil.rrule import rrule, MONTHLY, WEEKLY, DAILY
 from functools import lru_cache
 
-from kanban_tui.database import create_new_task_db, init_new_db, create_new_board_db
+from kanban_tui.backends.sqlite.database import (
+    create_new_task_db,
+    init_new_db,
+    create_new_board_db,
+)
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 
 

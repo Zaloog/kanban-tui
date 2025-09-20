@@ -17,7 +17,7 @@ from textual.containers import Horizontal, Vertical
 from kanban_tui.classes.board import Board
 from kanban_tui.widgets.modal_board_widgets import BoardList, CustomColumnList
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
-from kanban_tui.database import (
+from kanban_tui.backends.sqlite.database import (
     update_board_entry_db,
     get_all_columns_on_board_db,
     create_new_board_db,

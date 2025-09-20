@@ -7,7 +7,7 @@ from textual.widgets import TabbedContent
 
 from kanban_tui.views.main_view import MainView
 from kanban_tui.config import KanbanTuiConfig, init_new_config
-from kanban_tui.database import (
+from kanban_tui.backends.sqlite.database import (
     init_new_db,
     get_all_boards_db,
     get_all_tasks_on_board_db,
