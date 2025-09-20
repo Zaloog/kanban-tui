@@ -11,7 +11,7 @@ from textual.binding import Binding
 from textual.events import Mount
 from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
-from textual.widgets import Input, Button, Static, Label, Footer, Switch
+from textual.widgets import Input, Button, ListView, Static, Label, Footer, Switch
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
@@ -105,9 +105,9 @@ class ModalNewBoardScreen(ModalScreen):
             self.kanban_board.name = self.query_exactly_one(
                 "#input_board_name", Input
             ).value
-            self.kanban_board.icon = (
-                f":{self.query_exactly_one('#input_board_icon', Input).value}:"
-            )
+            current_icon = self.query_exactly_one("#input_board_icon", Input).value
+            self.kanban_board.icon = f":{current_icon}:" if current_icon else ""
+
             update_board_entry_db(
                 board_id=self.kanban_board.board_id,
                 name=self.kanban_board.name,
@@ -251,8 +251,8 @@ class ModalBoardOverviewScreen(ModalScreen):
             self.app.update_board_list()
             self.refresh(recompose=True)
 
-    @on(BoardList.Selected)
-    def activate_board(self, event: BoardList.Selected):
+    @on(ListView.Selected, "#board_list")
+    def activate_board(self, event: ListView.Selected):
         active_board_id = self.app.board_list[event.list_view.index].board_id
         self.app.cfg.set_active_board(new_active_board=active_board_id)
         self.app.update_board_list()

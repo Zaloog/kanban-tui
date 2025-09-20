@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-from typing import Literal, Generator
+from typing import Any, Literal, Generator, Sequence
 from contextlib import contextmanager
 import datetime
 
@@ -707,7 +707,7 @@ def get_all_tasks_on_board_db(
 def get_all_columns_on_board_db(
     board_id: int,
     database: Path = DB_FULL_PATH,
-) -> list[Column] | None:
+) -> list[Column]:
     board_id_dict = {"board_id": board_id}
 
     query_str = """
@@ -724,10 +724,8 @@ def get_all_columns_on_board_db(
             con.commit()
             return columns
         except sqlite3.Error as e:
-            print(e)
             con.rollback()
-            raise e
-            return None
+            raise Exception(e)
 
 
 def update_status_update_columns_db(
@@ -1066,7 +1064,7 @@ def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
 
 def get_all_board_infos(
     database: Path = DB_FULL_PATH,
-) -> list[dict] | None:
+) -> list[dict]:
     query_str = """
     SELECT
     b.board_id AS board_id,
@@ -1087,13 +1085,12 @@ def get_all_board_infos(
             return board_infos
         except sqlite3.Error as e:
             con.rollback()
-            print(e)
-            return None
+            raise Exception(e)
 
 
 def get_filtered_events_db(
-    database: Path = DB_FULL_PATH, filter: dict[str, list] | None = None
-) -> list[LogEvent] | None:
+    database: Path = DB_FULL_PATH, filter: dict[str, Sequence[Any]] | None = None
+) -> list[LogEvent]:
     if not filter:
         query_str = """
         SELECT
@@ -1102,7 +1099,7 @@ def get_filtered_events_db(
             audits;
         """
     else:
-        params = filter["events"] + filter["objects"] + [filter["time"]]
+        params = *filter["events"], *filter["objects"], filter["time"]
         events_placeholder = ",".join(["?"] * len(filter["events"]))
         objects_placeholder = ",".join(["?"] * len(filter["objects"]))
         query_str = f"""
@@ -1127,6 +1124,4 @@ def get_filtered_events_db(
             return events
         except sqlite3.Error as e:
             con.rollback()
-            print(e)
-            raise e
-            return None
+            raise Exception(e)

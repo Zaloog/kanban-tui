@@ -1,9 +1,5 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from kanban_tui.utils import StatusEnum
-
 from datetime import datetime, timedelta
+
 from pydantic import BaseModel, Field
 
 
@@ -64,7 +60,9 @@ class Task(BaseModel):
         self.finish_date = datetime.now().replace(microsecond=0)
         self.update_time_worked_on()
 
-    def update_task_status(self, new_column: int, update_column_enum: "StatusEnum"):
+    def update_task_status(
+        self, new_column: int, update_column_dict: dict[str, int | None]
+    ):
         """Update Dates on Task Move
 
         Args:
@@ -72,12 +70,13 @@ class Task(BaseModel):
         """
         match new_column:
             # Move to Ready
-            case update_column_enum.RESET.value:
+            case new_column if new_column == update_column_dict["reset"]:
                 self.reset_task()
             # Move to 'Doing'
-            case update_column_enum.START.value:
+            case new_column if new_column == update_column_dict["start"]:
                 self.start_task()
             # Move to 'Done'
-            case update_column_enum.FINISH.value:
-                if self.column == update_column_enum.START.value:
+            case new_column if new_column == update_column_dict["finish"]:
+                # only can finish properly if start column was previous column
+                if self.column == update_column_dict["start"]:
                     self.finish_task()

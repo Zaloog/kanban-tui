@@ -28,10 +28,10 @@ class DatePickerDialog(Widget):
     """
 
     # The DatePicker mounted in this dialog.
-    date_picker = None
+    date_picker: None | DatePicker = None
 
     # A target where to send the message for a selected date
-    target = None
+    target: None | DateSelect = None
 
     def compose(self) -> ComposeResult:
         self.date_picker = DatePicker()
@@ -49,7 +49,7 @@ class DatePickerDialog(Widget):
             self.target.focus()
 
 
-class DateSelect(Widget, can_focus=True):
+class DateSelect(Widget):
     """A select widget which opens the DatePicker and displays the selected date."""
 
     DEFAULT_CSS = """
@@ -70,6 +70,7 @@ class DateSelect(Widget, can_focus=True):
     # value = reactive("", layout=True, init=False)
 
     # Date of the month which shall be shown when opening the dialog
+    can_focus = True
     date: reactive[datetime | None] = reactive(None)
 
     def __init__(
@@ -91,7 +92,7 @@ class DateSelect(Widget, can_focus=True):
             self.date = date
 
         # DatePickerDialog widget
-        self.dialog = None
+        self.dialog: None | DatePickerDialog = None
 
     @property
     def value(self) -> datetime:
@@ -139,6 +140,7 @@ class DateSelect(Widget, can_focus=True):
 
     def _show_date_picker(self) -> None:
         mnt_widget = self.app.screen.query_one(self.picker_mount)
+        assert isinstance(self.dialog, DatePickerDialog)
         self.dialog.display = True
 
         # calculate offset of DateSelect and apply it to DatePickerDialog
@@ -150,6 +152,7 @@ class DateSelect(Widget, can_focus=True):
 
         if self.date is not None:
             if self.date is not None:
+                assert isinstance(self.dialog.date_picker, DatePicker)
                 self.dialog.date_picker.date = self.date
             for day in self.dialog.query("DayLabel.--day"):
                 if day.day == self.date.day:

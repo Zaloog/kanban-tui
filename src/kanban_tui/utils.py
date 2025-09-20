@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import Literal, Any
-from enum import Enum
 
 import re
 from pathlib import Path
@@ -12,8 +11,10 @@ from kanban_tui.database import create_new_task_db, init_new_db, create_new_boar
 from kanban_tui.config import KanbanTuiConfig, init_new_config
 
 
-def get_status_enum(reset: int | None, start: int | None, finish: int | None) -> Enum:
-    return Enum("StatusEnum", [("RESET", reset), ("START", start), ("FINISH", finish)])
+def get_column_status_dict(
+    reset: int | None, start: int | None, finish: int | None
+) -> dict[str, int | None]:
+    return {"reset": reset, "start": start, "finish": finish}
 
 
 @lru_cache

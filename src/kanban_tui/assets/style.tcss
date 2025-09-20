@@ -10,9 +10,13 @@ Underline .underline--bar {
     color: $success;
 }
 
+.highlighted {
+  border-top:thick yellow;
+}
 Column{
-        height:1fr;
-        width:1fr;
+  height:1fr;
+  width:1fr;
+  border-top:thick transparent;
     }
 Column > Label {
         width: 1fr;

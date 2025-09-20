@@ -134,6 +134,7 @@ def test_default_config(test_config: Settings, test_db_full_path) -> None:
         "task": {
             "always_expanded": False,
             "default_color": "#004578",
+            "movement_mode": "adjacent",
         },
         "backend": {
             "mode": "sqlite",

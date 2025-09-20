@@ -32,7 +32,7 @@ class KanbanTui(App):
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
-    active_board: Board | None = None
+    active_board: reactive[Board | None] = reactive(None)
 
     def __init__(
         self,
@@ -51,7 +51,7 @@ class KanbanTui(App):
     def on_mount(self) -> None:
         self.theme = self.cfg.theme
         self.update_board_list()
-        self.push_screen("MainView")
+        self.push_screen(MainView().data_bind(KanbanTui.active_board))
 
     def update_board_list(self):
         self.board_list = get_all_boards_db(database=self.app.cfg.database_path)
@@ -76,13 +76,26 @@ class KanbanTui(App):
 
     def update_column_list(self):
         self.column_list = get_all_columns_on_board_db(
-            database=self.app.cfg.database_path, board_id=self.active_board.board_id
+            database=self.cfg.database_path, board_id=self.active_board.board_id
         )
 
     def get_active_board(self) -> Board:
         for board in self.board_list:
             if board.board_id == self.cfg.active_board:
                 return board
+        raise Exception("No active Board Found")
+
+    def get_possible_next_column_id(self, current_id: int) -> int:
+        column_id_list = list(self.visible_column_dict.keys())
+        if column_id_list[-1] == current_id:
+            return current_id
+        return column_id_list[column_id_list.index(current_id) + 1]
+
+    def get_possible_previous_column_id(self, current_id: int) -> int:
+        column_id_list = list(self.visible_column_dict.keys())
+        if column_id_list[0] == current_id:
+            return current_id
+        return column_id_list[column_id_list.index(current_id) - 1]
 
     @property
     def visible_column_dict(self) -> dict[int, str]:

@@ -14,7 +14,7 @@ from textual.message import Message
 # from textual import log
 
 
-class MonthControl(Button, can_focus=True):
+class MonthControl(Button):
     DEFAULT_CSS = """
     MonthControl {
         height: 1;
@@ -25,7 +25,7 @@ class MonthControl(Button, can_focus=True):
         border: none;
     }
     """
-    pass
+    can_focus = True
 
 
 class MonthHeader(Static):
@@ -81,7 +81,7 @@ class WeekdayLabel(Static):
 class DayLabel(Widget):
     def __init__(
         self,
-        label: str,
+        label: int,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -108,7 +108,7 @@ class DayLabel(Widget):
 
         return output
 
-    def update(self, label: str) -> None:
+    def update(self, label: int) -> None:
         if int(label) == 0:
             if self.has_focus:
                 self.post_message(self.FocusLost(self, int(self.label)))
@@ -215,7 +215,7 @@ class DatePicker(Widget):
     selected_date: datetime | None
 
     # Container with all the selectable days
-    day_container = None
+    day_container: DayContainer | None = None
 
     # A target widget where to send the message for a selected date
     target: Widget | None = None
@@ -257,6 +257,7 @@ class DatePicker(Widget):
             self._next_month()
 
     def on_day_label_focused(self, event: DayLabel.Focused) -> None:
+        assert isinstance(self.day_container, DayContainer)
         self.focused = self.day_container.children.index(event.sender)
 
     def on_day_label_focus_lost(self, event: DayLabel.FocusLost) -> None:
@@ -264,6 +265,7 @@ class DatePicker(Widget):
         If it was at the end of a month, set it to end of the 4th row, there
         is always a focusable day. Otherwise to the first on the 2nd row.
         """
+        assert isinstance(self.day_container, DayContainer)
         if event.day >= 28:
             self.day_container.children[27].focus()
         else:
@@ -321,6 +323,9 @@ class DatePicker(Widget):
         self.date = datetime(updated_year, updated_month, 1)
 
     def _handle_left(self) -> None:
+        assert isinstance(self.focused, int)
+        assert isinstance(self.day_container, DayContainer)
+
         focused_day = self.focused_day
         if focused_day is None:
             return
@@ -338,6 +343,9 @@ class DatePicker(Widget):
             self.day_container.children[self.focused - 1].focus()
 
     def _handle_right(self) -> None:
+        assert isinstance(self.focused, int)
+        assert isinstance(self.day_container, DayContainer)
+
         focused_day = self.focused_day
         if focused_day is None:
             return
@@ -359,6 +367,9 @@ class DatePicker(Widget):
             self.day_container.children[self.focused + 1].focus()
 
     def _handle_down(self) -> None:
+        assert isinstance(self.focused, int)
+        assert isinstance(self.day_container, DayContainer)
+
         focused_day = self.focused_day
         if focused_day is None:
             return
@@ -381,6 +392,9 @@ class DatePicker(Widget):
         self.day_container.children[self.focused + 7].focus()
 
     def _handle_up(self) -> None:
+        assert isinstance(self.focused, int)
+        assert isinstance(self.day_container, DayContainer)
+
         focused_day = self.focused_day
         if focused_day is None:
             return
@@ -407,7 +421,7 @@ class DatePicker(Widget):
             return
         month_label.update(date=self.date)
 
-    def _build_weekday_widgets(self) -> [WeekdayLabel]:
+    def _build_weekday_widgets(self) -> list[WeekdayLabel]:
         widgets = []
         weekdays = calendar.weekheader(2).split(" ")
         for day in weekdays:
@@ -415,12 +429,14 @@ class DatePicker(Widget):
 
         return widgets
 
-    def _build_day_widgets(self) -> [DayLabel]:
+    def _build_day_widgets(self) -> list[DayLabel]:
         day_widgets = []
         today_day = self._today_in_month()
 
-        days = calendar.monthcalendar(year=self.date.year, month=self.date.month)
-        days = [day for week in days for day in week]
+        calendar_days = calendar.monthcalendar(
+            year=self.date.year, month=self.date.month
+        )
+        days = [day for week in calendar_days for day in week]
 
         for idx in range(42):
             # 42: 6 rows with 7 days
@@ -438,8 +454,10 @@ class DatePicker(Widget):
     def _update_day_widgets(self) -> None:
         today_day = self._today_in_month()
 
-        days = calendar.monthcalendar(year=self.date.year, month=self.date.month)
-        days = [day for week in days for day in week]
+        calendar_days = calendar.monthcalendar(
+            year=self.date.year, month=self.date.month
+        )
+        days = [day for week in calendar_days for day in week]
 
         for idx, day_label in enumerate(self.query("DayContainer DayLabel")):
             if idx < len(days):

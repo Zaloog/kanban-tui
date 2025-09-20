@@ -346,7 +346,7 @@ class LogTable(Vertical):
             "new",
         )
 
-    def load_events(self, events: list, objects: list, time: str):
+    def load_events(self, events: list[str], objects: list[str], time: str):
         filter_dict = {"events": events, "objects": objects, "time": time}
         self.events = get_filtered_events_db(
             filter=filter_dict, database=self.app.cfg.database_path

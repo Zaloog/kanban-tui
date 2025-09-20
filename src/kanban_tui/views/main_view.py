@@ -1,17 +1,19 @@
 from typing import Iterable, TYPE_CHECKING
 
+from textual.reactive import reactive
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from rich.text import Text
 from textual import on
-from textual.events import Mount
 from textual.widget import Widget
 from textual.widgets import TabbedContent, TabPane, Header, Footer
 from textual.screen import Screen
 from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
 
+from kanban_tui.classes.board import Board
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.views.overview_tab_view import (
     OverView,
@@ -24,6 +26,8 @@ from kanban_tui.views.settings_tab_view import SettingsView
 
 class MainView(Screen):
     app: "KanbanTui"
+    active_board: reactive[Board | None] = reactive(None)
+
     BINDINGS = [
         Binding("ctrl+j", 'show_tab("tab_board")', "Board", priority=True),
         Binding("ctrl+k", 'show_tab("tab_overview")', "Overview", priority=True),
@@ -42,21 +46,23 @@ class MainView(Screen):
                 yield SettingsView()
         return super().compose()
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         self.query_one(ContentTabs).can_focus = False
         if self.app.demo_mode:
             self.show_demo_notification()
-        self.app.screen.query_one(
-            "#tabbed_content_boards"
-        ).border_title = Text.from_markup(
+
+        self.update_board_title_in_border()
+        self.app.action_focus_next()
+
+    def update_board_title_in_border(self):
+        border_title = Text.from_markup(
             f" [red]Active Board:[/] {self.app.active_board.full_name}"
         )
-        self.app.action_focus_next()
-        return super()._on_mount(event)
+        self.query_one(TabbedContent).border_title = border_title
 
     def action_show_tab(self, tab: str) -> None:
         """Switch to a new tab."""
-        self.get_child_by_type(TabbedContent).active = tab
+        self.query_one(TabbedContent).active = tab
         self.app.action_focus_next()
 
     def show_demo_notification(self):
