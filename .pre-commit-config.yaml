@@ -25,8 +25,8 @@ repos:
     rev: v1.18.1  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
-        additional_dependencies: [types-python-dateutil]
+        additional_dependencies: [types-python-dateutil, types-PyYaml]
         # exclude: src/kanban_tui/textual_datepicker
         args: ["--exclude", "src/kanban_tui/textual_datepicker/", "--ignore-missing-imports"]
-      #additional_dependencies:
-      #- "pydantic"
+      # additional_dependencies:
+      # - "pydantic"
