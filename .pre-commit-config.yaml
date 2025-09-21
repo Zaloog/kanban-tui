@@ -27,6 +27,6 @@ repos:
     -   id: mypy
         additional_dependencies: [types-python-dateutil, types-PyYaml]
         # exclude: src/kanban_tui/textual_datepicker
-        args: ["--exclude", "src/kanban_tui/textual_datepicker/", "--ignore-missing-imports"]
+        # args: ["--exclude", "src/kanban_tui/textual_datepicker/", "--ignore-missing-imports"]
       # additional_dependencies:
       # - "pydantic"

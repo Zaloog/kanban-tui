@@ -4,10 +4,10 @@ from rich.console import Console
 from kanban_tui.app import KanbanTui
 from kanban_tui.utils import create_demo_tasks
 from kanban_tui.constants import (
+    CONFIG_FILE,
+    DATABASE_FILE,
     TEMP_CONFIG_FULL_PATH,
     TEMP_DB_FULL_PATH,
-    DB_FULL_PATH,
-    CONFIG_FULL_PATH,
 )
 
 
@@ -55,7 +55,8 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
     else:
         if not TEMP_DB_FULL_PATH.exists():
             create_demo_tasks(
-                config_path=TEMP_CONFIG_FULL_PATH, database_path=TEMP_DB_FULL_PATH
+                config_path=TEMP_CONFIG_FULL_PATH.as_posix(),
+                database_path=TEMP_DB_FULL_PATH.as_posix(),
             )
 
     if web:
@@ -75,8 +76,8 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
         server.serve()
     else:
         app = KanbanTui(
-            config_path=TEMP_CONFIG_FULL_PATH,
-            database_path=TEMP_DB_FULL_PATH,
+            config_path=TEMP_CONFIG_FULL_PATH.as_posix(),
+            database_path=DATABASE_FILE.as_posix(),
             demo_mode=True,
         )
         app.run()
@@ -99,9 +100,12 @@ def delete_config_and_database(confirm: bool):
     Deletes DB and Config
     """
     if confirm:
-        CONFIG_FULL_PATH.unlink(missing_ok=True)
-        DB_FULL_PATH.unlink(missing_ok=True)
-        Console().print("Config and DB deleted [green]successfully[/]")
+        CONFIG_FILE.unlink(missing_ok=True)
+        DATABASE_FILE.unlink(missing_ok=True)
+        Console().print(f"Config under {CONFIG_FILE}  deleted [green]successfully[/]")
+        Console().print(
+            f"Database under {DATABASE_FILE}  deleted [green]successfully[/]"
+        )
 
 
 if __name__ == "__main__":

@@ -6,7 +6,13 @@ from textual.reactive import reactive
 from textual.widgets import TabbedContent
 
 from kanban_tui.views.main_view import MainView
-from kanban_tui.config import KanbanTuiConfig, init_new_config
+from kanban_tui.config import (
+    KanbanTuiConfig,
+    init_new_config,
+    init_config,
+    SETTINGS,
+    Settings,
+)
 from kanban_tui.backends.sqlite.database import (
     init_new_db,
     get_all_boards_db,
@@ -17,7 +23,7 @@ from kanban_tui.backends.sqlite.database import (
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
-from kanban_tui.constants import DB_FULL_PATH, CONFIG_FULL_PATH
+from kanban_tui.constants import DATABASE_FILE, CONFIG_FULL_PATH
 
 
 class KanbanTui(App):
@@ -36,25 +42,30 @@ class KanbanTui(App):
 
     def __init__(
         self,
-        config_path: Path = CONFIG_FULL_PATH,
-        database_path: Path = DB_FULL_PATH,
+        config_path: str = CONFIG_FULL_PATH.as_posix(),
+        database_path: str = DATABASE_FILE.as_posix(),
         demo_mode: bool = False,
     ) -> None:
+        SETTINGS.set(Settings())
         init_new_config(config_path=config_path, database=database_path)
+        init_config()
         self.cfg = KanbanTuiConfig(config_path=config_path, database_path=database_path)
+        self.config = SETTINGS.get()
         self.demo_mode = demo_mode
 
-        init_new_db(database=self.cfg.database_path)
-        init_first_board(database=self.cfg.database_path)
+        init_new_db(database=self.config.backend.sqlite_settings.database_path)
+        init_first_board(database=self.config.backend.sqlite_settings.database_path)
         super().__init__()
 
     def on_mount(self) -> None:
-        self.theme = self.cfg.theme
+        self.theme = self.config.board.theme
         self.update_board_list()
         self.push_screen(MainView().data_bind(KanbanTui.active_board))
 
     def update_board_list(self):
-        self.board_list = get_all_boards_db(database=self.app.cfg.database_path)
+        self.board_list = get_all_boards_db(
+            database=self.config.backend.sqlite_settings.database_path
+        )
         self.active_board = self.get_active_board()
         # After boards got updated and active board
         # is set, also updates tasks
@@ -62,7 +73,7 @@ class KanbanTui(App):
         self.update_column_list()
 
     def watch_theme(self, theme: str):
-        self.cfg.set_theme(theme)
+        self.config.set_theme(theme)
 
     async def action_refresh(self):
         self.update_board_list()
@@ -71,17 +82,19 @@ class KanbanTui(App):
 
     def update_task_list(self):
         self.task_list = get_all_tasks_on_board_db(
-            database=self.app.cfg.database_path, board_id=self.active_board.board_id
+            database=self.config.backend.sqlite_settings.database_path,
+            board_id=self.active_board.board_id,
         )
 
     def update_column_list(self):
         self.column_list = get_all_columns_on_board_db(
-            database=self.cfg.database_path, board_id=self.active_board.board_id
+            database=self.config.backend.sqlite_settings.database_path,
+            board_id=self.active_board.board_id,
         )
 
     def get_active_board(self) -> Board:
         for board in self.board_list:
-            if board.board_id == self.cfg.active_board:
+            if board.board_id == self.config.backend.sqlite_settings.active_board_id:
                 return board
         raise Exception("No active Board Found")
 

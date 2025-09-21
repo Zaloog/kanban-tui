@@ -100,8 +100,6 @@ class TaskCard(Vertical):
         self.styles.background = self.app.cfg.category_color_dict.get(
             self.task_.category, self.app.cfg.no_category_task_color
         )
-        self.border_title = self.task_.title
-        self.border_subtitle = self.get_due_date_str() if self.task_.days_left else ""
 
         yield Label(self.task_.title, classes="label-title")
         yield Rule(classes="rules-taskinfo-separator")
@@ -132,17 +130,22 @@ class TaskCard(Vertical):
         self.expanded = False
 
     def watch_expanded(self):
-        if self.expanded:
-            self.query_one(".label-title").add_class("hidden")
-            self.query(".label-infos").remove_class("hidden")
-            self.query_one(Markdown).remove_class("hidden")
-            self.query_one(".rules-taskinfo-separator").remove_class("hidden")
-        else:
-            self.query_one(".label-title").remove_class("hidden")
-            if not self.app.cfg.tasks_always_expanded:
-                self.query_one(Markdown).add_class("hidden")
-                self.query_one(".rules-taskinfo-separator").add_class("hidden")
-                self.query(".label-infos").add_class("hidden")
+        self.query_one(".label-title", Label).visible = not self.expanded
+        for label in self.query(".label-infos").results():
+            label.display = self.app.config.task.always_expanded or self.expanded
+        self.query_one(Markdown).display = (
+            self.app.config.task.always_expanded or self.expanded
+        )
+        self.query_one(".rules-taskinfo-separator", Rule).display = (
+            self.app.config.task.always_expanded or self.expanded
+        )
+
+        self.border_title = self.task_.title if self.expanded else None
+        self.border_subtitle = (
+            (self.get_due_date_str() if self.task_.days_left else "")
+            if self.expanded
+            else None
+        )
 
     def action_move_task(self, direction: Literal["left", "right"]):
         # self.post_message(self.Target(self, direction))

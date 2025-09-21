@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Literal, Any
 
 import re
-from pathlib import Path
 from datetime import datetime, timedelta
 from dateutil.rrule import rrule, MONTHLY, WEEKLY, DAILY
 from functools import lru_cache
@@ -376,7 +375,7 @@ def calculate_work_on_time(
     return workon_time
 
 
-def create_demo_tasks(database_path: Path, config_path: Path):
+def create_demo_tasks(database_path: str, config_path: str):
     init_new_config(config_path=config_path, database=database_path)
 
     cfg = KanbanTuiConfig(config_path=config_path)

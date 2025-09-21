@@ -12,12 +12,17 @@ from pydantic_settings import (
     PydanticBaseSettingsSource,
 )
 
-from kanban_tui.constants import CONFIG_FILE, CONFIG_FULL_PATH, DB_FULL_PATH
+from kanban_tui.constants import (
+    CONFIG_FILE,
+    CONFIG_FULL_PATH,
+    DATABASE_FILE,
+    DB_FULL_PATH,
+)
 
 
 class KanbanTuiConfig(BaseModel):
-    config_path: Path = CONFIG_FULL_PATH
-    database_path: Path = DB_FULL_PATH
+    config_path: str = CONFIG_FULL_PATH.as_posix()
+    database_path: str = DATABASE_FILE.as_posix()
     config: dict[str, Any] = {}
     tasks_always_expanded: bool = False
     no_category_task_color: str = "#004578"
@@ -64,7 +69,7 @@ class KanbanTuiConfig(BaseModel):
             self.category_color_dict = self.config["category.colors"]
 
             self.work_hour_dict = self.config["kanban.settings"]["work_hours"]
-            self.database_path = Path(self.config["database"]["database_path"])
+            self.database_path = self.config["database"]["database_path"]
 
     def set_active_board(self, new_active_board: int) -> None:
         self.active_board = new_active_board
@@ -96,7 +101,7 @@ class KanbanTuiConfig(BaseModel):
         self.save()
 
     def load(self) -> dict[str, Any]:
-        with open(self.config_path, "r") as yaml_file:
+        with open(Path(self.config_path), "r") as yaml_file:
             return yaml.safe_load(yaml_file)
 
     def save(self) -> None:
@@ -106,16 +111,17 @@ class KanbanTuiConfig(BaseModel):
 
 
 def init_new_config(
-    config_path: Path = CONFIG_FULL_PATH, database: Path = DB_FULL_PATH
+    config_path: str = CONFIG_FULL_PATH.as_posix(),
+    database: str = DB_FULL_PATH.as_posix(),
 ) -> str:
-    if config_path.exists():
+    if Path(config_path).exists():
         return "Config Exists"
 
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.touch()
+    Path(config_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(config_path).touch()
 
     config: dict[str, dict[str, Any]] = {}
-    config["database"] = {"database_path": database.as_posix()}
+    config["database"] = {"database_path": database}
     config["category.colors"] = {}
     config["kanban.settings"] = {
         "tasks_always_expanded": False,
@@ -155,7 +161,7 @@ class JiraBackendSettings(BaseModel):
 
 
 class SqliteBackendSettings(BaseModel):
-    database_path: str = Field(default=DB_FULL_PATH.as_posix())
+    database_path: str = Field(default=DATABASE_FILE.as_posix())
     active_board_id: int = Field(default=1)
 
 
@@ -168,7 +174,6 @@ class BackendSettings(BaseModel):
 
 
 class Settings(BaseSettings):
-    # database_path: Path = DB_FULL_PATH
     board: BoardSettings = Field(default_factory=BoardSettings)
     task: TaskSettings = Field(default_factory=TaskSettings)
     backend: BackendSettings = Field(default_factory=BackendSettings)
@@ -196,6 +201,15 @@ class Settings(BaseSettings):
     def set_backend(self, new_backend: Literal["sqlite", "jira"]) -> None:
         self.backend.mode = new_backend
         self.save()
+
+    # def set_no_category_task_color(self, new_color: str) -> None:
+    #     self.no_category_task_color = new_color
+    #     self.config["kanban.settings"]["no_category_task_color"] = new_color
+    #     self.save()
+    #
+    # def add_category(self, category: str, color: str) -> None:
+    #     self.category_color_dict[category] = color
+    #     self.save()
 
     def set_db_path(self, new_db_path: str) -> None:
         self.backend.sqlite_settings.database_path = new_db_path
@@ -251,7 +265,7 @@ class Settings(BaseSettings):
         return default_sources
 
 
-def init_config(config_path: Path = CONFIG_FILE, database: Path = DB_FULL_PATH) -> str:
+def init_config(config_path: Path = CONFIG_FILE, database: Path = DATABASE_FILE) -> str:
     if config_path.exists():
         return "Config Exists"
 

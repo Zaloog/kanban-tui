@@ -92,8 +92,8 @@ class ModalTaskEditScreen(ModalScreen):
                 else None,
                 category=category,
                 due_date=due_date,
-                board_id=self.app.cfg.active_board,
-                database=self.app.cfg.database_path,
+                board_id=self.app.config.backend.sqlite_settings.active_board_id,
+                database=self.app.config.backend.sqlite_settings.database_path,
             )
 
             self.app.update_task_list()
@@ -117,7 +117,7 @@ class ModalTaskEditScreen(ModalScreen):
                 due_date=self.kanban_task.due_date,
                 description=self.kanban_task.description,
                 category=self.kanban_task.category,
-                database=self.app.cfg.database_path,
+                database=self.app.config.backend.sqlite_settings.database_path,
             )
 
             self.dismiss(result=self.kanban_task)
