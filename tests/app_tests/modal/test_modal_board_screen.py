@@ -159,10 +159,14 @@ async def test_modal_board_creation_list_check(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         create_new_board_db(
-            name="Test Board 1", icon="Vampire", database=pilot.app.cfg.database_path
+            name="Test Board 1",
+            icon="Vampire",
+            database=pilot.app.config.backend.sqlite_settings.database_path,
         )
         create_new_board_db(
-            name="Test Board 2", icon="Vampire", database=pilot.app.cfg.database_path
+            name="Test Board 2",
+            icon="Vampire",
+            database=pilot.app.config.backend.sqlite_settings.database_path,
         )
 
         pilot.app.update_board_list()
@@ -185,6 +189,7 @@ async def test_modal_board_edit(test_app: KanbanTui):
         await pilot.press("e")
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
 
+        assert pilot.app.screen.kanban_board is not None
         assert pilot.app.screen.kanban_board.name == "Test_Board"
         assert pilot.app.screen.kanban_board.icon == ":bug:"
 
@@ -227,10 +232,14 @@ async def test_modal_board_delete_board(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         create_new_board_db(
-            name="Test Board 1", icon="Vampire", database=pilot.app.cfg.database_path
+            name="Test Board 1",
+            icon="Vampire",
+            database=pilot.app.config.backend.sqlite_settings.database_path,
         )
         create_new_board_db(
-            name="Test Board 2", icon="Vampire", database=pilot.app.cfg.database_path
+            name="Test Board 2",
+            icon="Vampire",
+            database=pilot.app.config.backend.sqlite_settings.database_path,
         )
 
         pilot.app.update_board_list()
@@ -248,10 +257,14 @@ async def test_modal_board_activate_board(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         create_new_board_db(
-            name="Test Board 1", icon="Vampire", database=pilot.app.cfg.database_path
+            name="Test Board 1",
+            icon="Vampire",
+            database=pilot.app.config.backend.sqlite_settings.database_path,
         )
         create_new_board_db(
-            name="Test Board 2", icon="Vampire", database=pilot.app.cfg.database_path
+            name="Test Board 2",
+            icon="Vampire",
+            database=pilot.app.config.backend.sqlite_settings.database_path,
         )
 
         pilot.app.update_board_list()

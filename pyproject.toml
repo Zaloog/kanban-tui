@@ -6,7 +6,6 @@ authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
 dependencies = [
-    "pyyaml>=6.0.2",
     "click>=8.1.7",
     "textual-plotext>=1.0.0",
     "textual>=2.1.0",
@@ -64,6 +63,8 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "textual-dev>=1.6.1",
     "freezegun>=1.5.1",
+    "ruff>=0.13.1",
+    "mypy>=1.18.2",
 ]
 
 

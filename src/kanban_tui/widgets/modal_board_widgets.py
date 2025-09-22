@@ -28,7 +28,9 @@ class BoardList(ListView):
     def __init__(self, boards: list[Board]) -> None:
         self.info_dict = {
             board["board_id"]: board
-            for board in get_all_board_infos(database=self.app.cfg.database_path)
+            for board in get_all_board_infos(
+                database=self.app.config.backend.sqlite_settings.database_path
+            )
         }
         children = [
             BoardListItem(board=board, info_dict=self.info_dict[board.board_id])
@@ -37,7 +39,10 @@ class BoardList(ListView):
 
         # get index of active board to set as active index
         for board_index, board in enumerate(self.app.board_list):
-            if board.board_id == self.app.cfg.active_board:
+            if (
+                board.board_id
+                == self.app.config.backend.sqlite_settings.active_board_id
+            ):
                 initial_index = board_index
 
         super().__init__(*children, initial_index=initial_index, id="board_list")
@@ -58,7 +63,10 @@ class BoardListItem(ListItem):
         super().__init__(id=f"listitem_board_{self.board.board_id}")
 
     def compose(self) -> Iterable[Widget]:
-        if self.board.board_id == self.app.cfg.active_board:
+        if (
+            self.board.board_id
+            == self.app.config.backend.sqlite_settings.active_board_id
+        ):
             self.styles.background = "green"
         with Horizontal():
             yield Label(Text.from_markup(self.board.full_name))

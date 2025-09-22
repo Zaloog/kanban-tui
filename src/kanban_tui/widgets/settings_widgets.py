@@ -58,7 +58,9 @@ class DataBasePathInput(Horizontal):
         return super().compose()
 
     def get_database_path_config_value(self):
-        self.query_one(Input).value = self.app.cfg.database_path.as_posix()
+        self.query_one(
+            Input
+        ).value = self.app.config.backend.sqlite_settings.database_path
 
 
 class WorkingHoursSelector(Vertical):
@@ -111,10 +113,10 @@ class AlwaysExpandedSwitch(Vertical):
         return super().compose()
 
     def on_switch_changed(self, event: Switch.Changed):
-        self.app.cfg.set_tasks_always_expanded(new_value=event.value)
+        self.app.config.set_task_always_expanded(new_value=event.value)
 
     def get_tasks_always_expanded_config_value(self):
-        self.query_one(Switch).value = self.app.cfg.tasks_always_expanded
+        self.query_one(Switch).value = self.app.config.task.always_expanded
 
 
 class DefaultTaskColorSelector(Vertical):
@@ -138,8 +140,8 @@ class DefaultTaskColorSelector(Vertical):
         return super().compose()
 
     def get_no_category_task_color_config_value(self):
-        self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
-        self.query_one(TitleInput).background = self.app.cfg.no_category_task_color
+        self.query_one(TitleInput).value = self.app.config.task.default_color
+        self.query_one(TitleInput).background = self.app.config.task.default_color
 
     @on(DataTable.CellHighlighted)
     def change_input_str_on_color_pick(self, event: DataTable.CellHighlighted):
@@ -151,7 +153,7 @@ class DefaultTaskColorSelector(Vertical):
     def update_input_color(self, event: Input.Changed):
         try:
             self.query_one(TitleInput).background = event.input.value
-            self.app.cfg.set_no_category_task_color(new_color=event.input.value)
+            self.app.config.set_task_default_color(new_color=event.input.value)
             event.input.styles.border = "tall", "green"
             event.input.border_subtitle = None
             event.input.border_title = None
@@ -160,12 +162,12 @@ class DefaultTaskColorSelector(Vertical):
             event.input.styles.border = "tall", "red"
             event.input.border_subtitle = "invalid color value"
             event.input.border_title = (
-                f"last valid: {self.app.cfg.no_category_task_color}"
+                f"last valid: {self.app.config.task.default_color}"
             )
 
     @on(DescendantBlur)
     def reset_color(self):
-        self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
+        self.query_one(TitleInput).value = self.app.config.task.default_color
 
 
 # Widget to Add new columns and change column visibility
@@ -294,7 +296,7 @@ class ColumnSelector(ListView):
                 update_column_name_db(
                     column_id=column.column_id,
                     new_column_name=new_column_name,
-                    database=self.app.cfg.database_path,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
 
                 # Update state and Widgets
@@ -340,14 +342,14 @@ class ColumnSelector(ListView):
                 update_column_positions_db(
                     board_id=self.app.active_board.board_id,
                     new_position=event.addrule.position,
-                    database=self.app.cfg.database_path,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
                 create_new_column_db(
                     board_id=self.app.active_board.board_id,
                     position=event.addrule.position + 1,
                     name=column_name,
                     visible=True,
-                    database=self.app.cfg.database_path,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
                 self.app.update_column_list()
                 await self.clear()
@@ -396,7 +398,8 @@ class ColumnSelector(ListView):
                 column_name = event.column_list_item.column.name
 
                 delete_column_db(
-                    column_id=column_id, database=self.app.cfg.database_path
+                    column_id=column_id,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
                 self.app.update_column_list()
                 if event.column_list_item.column.visible:
@@ -435,7 +438,7 @@ class ColumnSelector(ListView):
         update_column_visibility_db(
             column_id=column_id,
             visible=event.value,
-            database=self.app.cfg.database_path,
+            database=self.app.config.backend.sqlite_settings.database_path,
         )
 
         self.app.update_column_list()
@@ -494,7 +497,7 @@ class StatusColumnSelector(Vertical):
             new_status=event.select.selection,
             column_prefix=event.select.id.split("_")[-1],
             board_id=self.app.active_board.board_id,
-            database=self.app.cfg.database_path,
+            database=self.app.config.backend.sqlite_settings.database_path,
         )
 
         self.app.update_board_list()
