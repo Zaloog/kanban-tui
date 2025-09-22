@@ -58,11 +58,12 @@ class ModalTaskEditScreen(ModalScreen):
         return super().compose()
 
     def on_mount(self, event: Mount) -> None:
-        self.watch(
-            self.detail_infos.query_one(CategorySelector),
-            "value",
-            self.update_description_background,
-        )
+        # TODO
+        # self.watch(
+        #     self.detail_infos.query_one(CategorySelector),
+        #     "value",
+        #     self.update_description_background,
+        # )
         if self.kanban_task:
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
@@ -130,9 +131,10 @@ class ModalTaskEditScreen(ModalScreen):
         if category != CategorySelector.NEW:
             self.query_one(
                 TextArea
-            ).styles.background = self.app.cfg.category_color_dict.get(
-                category, self.app.cfg.no_category_task_color
-            )
+            ).styles.background = self.app.config.task.default_color
+            # ).styles.background = self.app.cfg.category_color_dict.get(
+            #     category, self.app.cfg.no_category_task_color
+            # )
             self.query_one(TextArea).styles.background = self.query_one(
                 TextArea
             ).styles.background.darken(0.2)

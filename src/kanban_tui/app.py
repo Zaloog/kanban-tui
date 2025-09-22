@@ -7,8 +7,6 @@ from textual.widgets import TabbedContent
 
 from kanban_tui.views.main_view import MainView
 from kanban_tui.config import (
-    KanbanTuiConfig,
-    init_new_config,
     init_config,
     SETTINGS,
     Settings,
@@ -23,7 +21,6 @@ from kanban_tui.backends.sqlite.database import (
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
-from kanban_tui.constants import DATABASE_FILE, CONFIG_FULL_PATH
 
 
 class KanbanTui(App):
@@ -34,7 +31,6 @@ class KanbanTui(App):
 
     SCREENS = {"MainView": MainView}
 
-    cfg: KanbanTuiConfig
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
@@ -42,14 +38,14 @@ class KanbanTui(App):
 
     def __init__(
         self,
-        config_path: str = CONFIG_FULL_PATH.as_posix(),
-        database_path: str = DATABASE_FILE.as_posix(),
+        config_path: str,
+        database_path: str,
         demo_mode: bool = False,
     ) -> None:
         SETTINGS.set(Settings())
-        init_new_config(config_path=config_path, database=database_path)
-        init_config()
-        self.cfg = KanbanTuiConfig(config_path=config_path, database_path=database_path)
+        # init_new_config(config_path=config_path, database=database_path)
+        init_config(config_path=config_path, database=database_path)
+        # self.cfg = KanbanTuiConfig(config_path=config_path, database_path=database_path)
         self.config = SETTINGS.get()
         self.demo_mode = demo_mode
 

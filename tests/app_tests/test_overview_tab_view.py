@@ -7,7 +7,7 @@ from kanban_tui.widgets.overview_widgets import LogFilterButton
 APP_SIZE = (150, 50)
 
 
-async def test_overview_view_empty(empty_app: KanbanTui, test_db_full_path):
+async def test_overview_view_empty(empty_app: KanbanTui, test_database_path):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+k")
         await pilot.pause()
@@ -21,7 +21,7 @@ async def test_overview_view_empty(empty_app: KanbanTui, test_db_full_path):
         # assert pilot.app.screen, MainView)
 
 
-async def test_overview_view(test_app: KanbanTui, test_db_full_path):
+async def test_overview_view(test_app: KanbanTui, test_database_path):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+k")
         await pilot.pause()
@@ -36,7 +36,7 @@ async def test_overview_view(test_app: KanbanTui, test_db_full_path):
         assert pilot.app.screen.query_one("#datatable_logs").row_count == 10
 
 
-async def test_overview_tab_switch(test_app: KanbanTui, test_db_full_path):
+async def test_overview_tab_switch(test_app: KanbanTui, test_database_path):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+k")
         await pilot.pause()
@@ -57,7 +57,7 @@ async def test_overview_tab_switch(test_app: KanbanTui, test_db_full_path):
         )
 
 
-async def test_overview_plot_filter_values(test_app: KanbanTui, test_db_full_path):
+async def test_overview_plot_filter_values(test_app: KanbanTui, test_database_path):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+k")
         await pilot.pause()
@@ -85,7 +85,7 @@ async def test_overview_plot_filter_values(test_app: KanbanTui, test_db_full_pat
     ],
 )
 async def test_overview_log_filter_values(
-    test_app: KanbanTui, test_db_full_path, button_no, log_rows_visible
+    test_app: KanbanTui, test_database_path, button_no, log_rows_visible
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+k")

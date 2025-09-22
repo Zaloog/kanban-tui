@@ -5,9 +5,9 @@ from kanban_tui.app import KanbanTui
 from kanban_tui.utils import create_demo_tasks
 from kanban_tui.constants import (
     CONFIG_FILE,
+    DEMO_CONFIG_FILE,
     DATABASE_FILE,
-    TEMP_CONFIG_FULL_PATH,
-    TEMP_DB_FULL_PATH,
+    DEMO_DATABASE_FILE,
 )
 
 
@@ -33,7 +33,10 @@ def cli(ctx, web: bool):
         server.serve()
     else:
         if ctx.invoked_subcommand is None:
-            app = KanbanTui()
+            app = KanbanTui(
+                config_path=CONFIG_FILE.as_posix(),
+                database_path=DATABASE_FILE.as_posix(),
+            )
             app.run()
         else:
             pass
@@ -50,13 +53,13 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
     Starts a Demo App with temporary DB and Config
     """
     if clean:
-        TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
-        TEMP_DB_FULL_PATH.unlink(missing_ok=True)
+        DEMO_CONFIG_FILE.unlink(missing_ok=True)
+        DEMO_DATABASE_FILE.unlink(missing_ok=True)
     else:
-        if not TEMP_DB_FULL_PATH.exists():
+        if not DEMO_DATABASE_FILE.exists():
             create_demo_tasks(
-                config_path=TEMP_CONFIG_FULL_PATH.as_posix(),
-                database_path=TEMP_DB_FULL_PATH.as_posix(),
+                config_path=DEMO_CONFIG_FILE.as_posix(),
+                database_path=DEMO_DATABASE_FILE.as_posix(),
             )
 
     if web:
@@ -76,15 +79,15 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
         server.serve()
     else:
         app = KanbanTui(
-            config_path=TEMP_CONFIG_FULL_PATH.as_posix(),
-            database_path=DATABASE_FILE.as_posix(),
+            config_path=DEMO_CONFIG_FILE.as_posix(),
+            database_path=DEMO_DATABASE_FILE.as_posix(),
             demo_mode=True,
         )
         app.run()
 
     if not keep:
-        TEMP_CONFIG_FULL_PATH.unlink(missing_ok=True)
-        TEMP_DB_FULL_PATH.unlink(missing_ok=True)
+        DEMO_CONFIG_FILE.unlink(missing_ok=True)
+        DEMO_DATABASE_FILE.unlink(missing_ok=True)
 
 
 @cli.command("clear")

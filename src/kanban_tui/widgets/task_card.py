@@ -97,10 +97,6 @@ class TaskCard(Vertical):
         super().__init__(id=f"taskcard_{self.task_.task_id}")
 
     def compose(self) -> ComposeResult:
-        self.styles.background = self.app.cfg.category_color_dict.get(
-            self.task_.category, self.app.cfg.no_category_task_color
-        )
-
         yield Label(self.task_.title, classes="label-title")
         yield Rule(classes="rules-taskinfo-separator")
         yield Label(self.get_creation_date_str(), classes="label-infos")
@@ -109,9 +105,16 @@ class TaskCard(Vertical):
         self.description = Markdown(
             markdown=self.task_.description,
         )
-        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
         yield self.description
         return super().compose()
+
+    def on_mount(self):
+        # TODO
+        # self.styles.background = self.app.cfg.category_color_dict.get(
+        #     self.task_.category, self.app.cfg.no_category_task_color
+        # )
+        self.styles.background = self.app.config.task.default_color
+        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
 
     # Remove those, cause it messes with tab selection
     # @on(Enter)

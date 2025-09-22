@@ -8,36 +8,34 @@ APP_SIZE = (150, 50)
 
 
 async def test_empty_app(
-    empty_app: KanbanTui, test_config_full_path: Path, test_db_full_path: Path
+    empty_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 0
         assert isinstance(pilot.app.screen, MainView)
 
-        assert test_db_full_path.exists()
-        assert test_config_full_path.exists()
+        assert Path(test_database_path).exists()
+        assert Path(test_config_path).exists()
 
 
-async def test_app(
-    test_app: KanbanTui, test_config_full_path: Path, test_db_full_path: Path
-):
+async def test_app(test_app: KanbanTui, test_config_path: str, test_database_path: str):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 5
         assert isinstance(pilot.app.screen, MainView)
-        assert all(
-            cfg_val == val
-            for cfg_val, val in zip(
-                sorted(pilot.app.cfg.category_color_dict.keys()),
-                sorted(["red", "green", "blue"]),
-            )
-        )
+        # assert all(
+        #     cfg_val == val
+        #     for cfg_val, val in zip(
+        #         sorted(pilot.app.cfg.category_color_dict.keys()),
+        #         sorted(["red", "green", "blue"]),
+        #     )
+        # )
 
-        assert test_db_full_path.exists()
-        assert test_config_full_path.exists()
+        assert Path(test_database_path).exists()
+        assert Path(test_config_path).exists()
 
 
 async def test_app_properties(
-    test_app: KanbanTui, test_config_full_path: Path, test_db_full_path: Path
+    test_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 5
@@ -49,13 +47,13 @@ async def test_app_properties(
 
 
 async def test_app_refresh(
-    test_app: KanbanTui, test_config_full_path: Path, test_db_full_path: Path
+    test_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 5
         assert isinstance(pilot.app.screen, MainView)
 
-        delete_task_db(task_id=1, database=test_db_full_path)
+        delete_task_db(task_id=1, database=test_database_path)
         assert len(pilot.app.task_list) == 5
 
         # refresh app

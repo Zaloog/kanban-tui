@@ -18,7 +18,7 @@ from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 APP_SIZE = (150, 50)
 
 
-async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
+async def test_settings_view_empty(empty_app: KanbanTui, test_database_path):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
@@ -26,10 +26,10 @@ async def test_settings_view_empty(empty_app: KanbanTui, test_db_full_path):
         assert isinstance(pilot.app.screen, MainView)
         await pilot.click("#input_database_path")
         assert isinstance(pilot.app.focused, Input)
-        assert pilot.app.focused.value == test_db_full_path.as_posix()
+        assert pilot.app.focused.value == test_database_path
 
 
-async def test_settings_view(test_app: KanbanTui, test_db_full_path):
+async def test_settings_view(test_app: KanbanTui, test_database_path):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
@@ -37,14 +37,14 @@ async def test_settings_view(test_app: KanbanTui, test_db_full_path):
         assert isinstance(pilot.app.screen, MainView)
         await pilot.click("#input_database_path")
         assert isinstance(pilot.app.focused, Input)
-        assert pilot.app.focused.value == test_db_full_path.as_posix()
+        assert pilot.app.focused.value == test_database_path
 
 
 async def test_task_expand_switch(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
 
-        assert not pilot.app.cfg.tasks_always_expanded
+        assert not pilot.app.config.task.always_expanded
         assert not pilot.app.screen.query_exactly_one(
             "#switch_expand_tasks", Switch
         ).value
@@ -53,7 +53,7 @@ async def test_task_expand_switch(test_app: KanbanTui):
         # toggle Switch
         await pilot.click("#switch_expand_tasks")
         assert pilot.app.screen.query_exactly_one("#switch_expand_tasks", Switch).value
-        assert pilot.app.cfg.tasks_always_expanded
+        assert pilot.app.config.task.always_expanded
         assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
 
 

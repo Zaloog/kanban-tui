@@ -140,8 +140,8 @@ class DefaultTaskColorSelector(Vertical):
         return super().compose()
 
     def get_no_category_task_color_config_value(self):
-        self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
-        self.query_one(TitleInput).background = self.app.cfg.no_category_task_color
+        self.query_one(TitleInput).value = self.app.config.task.default_color
+        self.query_one(TitleInput).background = self.app.config.task.default_color
 
     @on(DataTable.CellHighlighted)
     def change_input_str_on_color_pick(self, event: DataTable.CellHighlighted):
@@ -153,7 +153,7 @@ class DefaultTaskColorSelector(Vertical):
     def update_input_color(self, event: Input.Changed):
         try:
             self.query_one(TitleInput).background = event.input.value
-            self.app.cfg.set_no_category_task_color(new_color=event.input.value)
+            self.app.config.set_task_default_color(new_color=event.input.value)
             event.input.styles.border = "tall", "green"
             event.input.border_subtitle = None
             event.input.border_title = None
@@ -162,12 +162,12 @@ class DefaultTaskColorSelector(Vertical):
             event.input.styles.border = "tall", "red"
             event.input.border_subtitle = "invalid color value"
             event.input.border_title = (
-                f"last valid: {self.app.cfg.no_category_task_color}"
+                f"last valid: {self.app.config.task.default_color}"
             )
 
     @on(DescendantBlur)
     def reset_color(self):
-        self.query_one(TitleInput).value = self.app.cfg.no_category_task_color
+        self.query_one(TitleInput).value = self.app.config.task.default_color
 
 
 # Widget to Add new columns and change column visibility
@@ -349,7 +349,7 @@ class ColumnSelector(ListView):
                     position=event.addrule.position + 1,
                     name=column_name,
                     visible=True,
-                    database=self.app.config.sqlite_settings.database_path,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
                 self.app.update_column_list()
                 await self.clear()
