@@ -34,8 +34,11 @@ class DetailInfos(Vertical):
     def compose(self) -> Iterable[Widget]:
         with Horizontal(id="horizontal_category"):
             yield Label("Category:")
+            # TODO
             # yield CategorySelector()
-            yield Select.from_values(["placeholder"])
+            placeholder = Select.from_values(["placeholder"])
+            placeholder.prompt = "In Work"
+            yield placeholder
         with Horizontal(id="horizontal_due_date"):
             yield Label("has a due Date:")
             with self.prevent(Switch.Changed):
