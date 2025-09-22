@@ -41,6 +41,7 @@ jobs:
         run: uv run mypy .
 
   tests:
+    needs: lint  # << This ensures tests only run if lint passes
     strategy:
       matrix:
         python-version:
