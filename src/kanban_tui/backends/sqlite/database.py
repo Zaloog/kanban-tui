@@ -699,7 +699,6 @@ def get_all_tasks_on_board_db(
             return tasks
         except sqlite3.Error as e:
             con.rollback()
-            print(e)
             raise e
             return None
 
@@ -751,8 +750,7 @@ def update_status_update_columns_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def init_first_board(database: str = DATABASE_FILE.as_posix()) -> None:
@@ -811,8 +809,7 @@ def update_task_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> int 
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def update_column_visibility_db(
@@ -841,8 +838,7 @@ def update_column_visibility_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def update_column_positions_db(
@@ -868,8 +864,7 @@ def update_column_positions_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def update_column_name_db(
@@ -894,8 +889,7 @@ def update_column_name_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 # After Editing
@@ -933,8 +927,7 @@ def update_task_entry_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def delete_column_db(
@@ -952,8 +945,7 @@ def delete_column_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> int | str:
@@ -969,8 +961,7 @@ def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> in
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 # For Plotting
@@ -996,9 +987,7 @@ def get_ordered_tasks_db(
             return [dict(task) for task in tasks]
         except sqlite3.Error as e:
             con.rollback()
-            return [dict(task) for task in tasks]
-            print(e)
-            return None
+            raise e
 
 
 # Boards Stuff
@@ -1031,8 +1020,7 @@ def update_board_entry_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def delete_board_db(
@@ -1062,8 +1050,7 @@ def delete_board_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def get_all_board_infos(
