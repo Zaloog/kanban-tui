@@ -45,7 +45,8 @@ class TaskPlot(HorizontalScroll):
         plt = self.query_one(PlotextPlot).plt
 
         ordered_tasks = get_ordered_tasks_db(
-            order_by=select_amount, database=self.app.cfg.database_path
+            order_by=select_amount,
+            database=self.app.config.backend.sqlite_settings.database_path,
         )
         if not ordered_tasks:
             self.query_one(PlotextPlot).styles.width = "1fr"
@@ -82,8 +83,6 @@ class TaskPlot(HorizontalScroll):
         if switch_categories:
             category_value_dict = {}
 
-            # for category in list(self.app.cfg.category_color_dict.keys()) + [None]:
-            # Still shows
             for category in set(task.category for task in self.app.task_list):
                 category_value_dict[category] = plot_values.copy()
 
@@ -352,7 +351,8 @@ class LogTable(Vertical):
     def load_events(self, events: list[str], objects: list[str], time: str):
         filter_dict = {"events": events, "objects": objects, "time": time}
         self.events = get_filtered_events_db(
-            filter=filter_dict, database=self.app.cfg.database_path
+            filter=filter_dict,
+            database=self.app.config.backend.sqlite_settings.database_path,
         )
 
     def watch_events(self):

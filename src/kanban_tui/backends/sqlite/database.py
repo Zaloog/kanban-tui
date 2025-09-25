@@ -4,7 +4,7 @@ from typing import Any, Literal, Generator, Sequence
 from contextlib import contextmanager
 import datetime
 
-from kanban_tui.constants import DB_FULL_PATH, DEFAULT_COLUMN_DICT
+from kanban_tui.constants import DATABASE_FILE, DEFAULT_COLUMN_DICT
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
@@ -29,9 +29,9 @@ sqlite3.register_converter("datetime", convert_datetime)
 
 @contextmanager
 def create_connection(
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> Generator[sqlite3.Connection, None, None]:
-    con = sqlite3.connect(database=database, detect_types=sqlite3.PARSE_DECLTYPES)
+    con = sqlite3.connect(database=Path(database), detect_types=sqlite3.PARSE_DECLTYPES)
     yield con
     con.close()
 
@@ -61,8 +61,8 @@ def board_info_factory(cursor, row):
     return {k: v for k, v in zip(fields, row)}
 
 
-def init_new_db(database: Path = DB_FULL_PATH):
-    if database.exists():
+def init_new_db(database: str = DATABASE_FILE.as_posix()):
+    if Path(database).exists():
         return
 
     task_table_creation_str = """
@@ -535,7 +535,7 @@ def create_new_board_db(
     name: str,
     icon: str | None = None,
     column_dict: dict[str, bool] = DEFAULT_COLUMN_DICT,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
     board_dict = {
         "name": name,
@@ -602,7 +602,7 @@ def create_new_task_db(
     finish_date: datetime.datetime | None = None,
     due_date: datetime.datetime | None = None,
     time_worked_on: int = 0,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
     task_dict = {
         "title": title,
@@ -650,7 +650,7 @@ def create_new_column_db(
     position: int,
     board_id: int,
     visible: bool = True,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ):
     transaction_str_cols = """
     INSERT INTO columns
@@ -681,7 +681,7 @@ def create_new_column_db(
 
 def get_all_tasks_on_board_db(
     board_id: int,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> list[Task] | None:
     board_id_dict = {"board_id": board_id}
 
@@ -706,7 +706,7 @@ def get_all_tasks_on_board_db(
 
 def get_all_columns_on_board_db(
     board_id: int,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> list[Column]:
     board_id_dict = {"board_id": board_id}
 
@@ -732,7 +732,7 @@ def update_status_update_columns_db(
     column_prefix: Literal["reset", "start", "finish"],
     new_status: int | None,
     board_id: int,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> int | str:
     update_dict = {"board_id": board_id, "new_status": new_status}
 
@@ -755,7 +755,7 @@ def update_status_update_columns_db(
             return e.sqlite_errorname
 
 
-def init_first_board(database: Path = DB_FULL_PATH) -> None:
+def init_first_board(database: str = DATABASE_FILE.as_posix()) -> None:
     # Check if Boards exist
     if not get_all_boards_db(database=database):
         create_new_board_db(
@@ -767,7 +767,7 @@ def init_first_board(database: Path = DB_FULL_PATH) -> None:
 
 
 def get_all_boards_db(
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> list[Board] | None:
     query_str = """
     SELECT *
@@ -782,12 +782,12 @@ def get_all_boards_db(
             return boards
         except sqlite3.Error as e:
             con.rollback()
-            print(e)
+            raise (e)
             return None
 
 
 # After column Movement
-def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
+def update_task_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> int | str:
     new_start_date_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
@@ -818,7 +818,7 @@ def update_task_db(task: Task, database: Path = DB_FULL_PATH) -> int | str:
 def update_column_visibility_db(
     column_id: int,
     visible: bool,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
     update_column_dict = {
         "column_id": column_id,
@@ -846,7 +846,7 @@ def update_column_visibility_db(
 
 
 def update_column_positions_db(
-    board_id: int, new_position: int, database: Path = DB_FULL_PATH
+    board_id: int, new_position: int, database: str = DATABASE_FILE.as_posix()
 ) -> str | int:
     update_column_position_dict = {"board_id": board_id, "new_position": new_position}
 
@@ -873,7 +873,7 @@ def update_column_positions_db(
 
 
 def update_column_name_db(
-    column_id: int, new_column_name: str, database: Path = DB_FULL_PATH
+    column_id: int, new_column_name: str, database: str = DATABASE_FILE.as_posix()
 ) -> str | int:
     update_column_name_dict = {"column_id": column_id, "new_name": new_column_name}
 
@@ -905,7 +905,7 @@ def update_task_entry_db(
     category: str | None = None,
     description: str | None = None,
     due_date: datetime.datetime | None = None,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
     update_task_dict = {
         "task_id": task_id,
@@ -937,7 +937,9 @@ def update_task_entry_db(
             return e.sqlite_errorname
 
 
-def delete_column_db(column_id: int, database: Path = DB_FULL_PATH) -> int | str:
+def delete_column_db(
+    column_id: int, database: str = DATABASE_FILE.as_posix()
+) -> int | str:
     delete_str = """
     DELETE FROM columns
     WHERE column_id = ?
@@ -954,7 +956,7 @@ def delete_column_db(column_id: int, database: Path = DB_FULL_PATH) -> int | str
             return e.sqlite_errorname
 
 
-def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
+def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> int | str:
     delete_str = """
     DELETE FROM tasks
     WHERE task_id = ?
@@ -974,7 +976,7 @@ def delete_task_db(task_id: int, database: Path = DB_FULL_PATH) -> int | str:
 # For Plotting
 def get_ordered_tasks_db(
     order_by: str,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> list[dict] | None:
     query_str = f"""
     SELECT
@@ -1005,7 +1007,7 @@ def update_board_entry_db(
     board_id: int,
     name: str,
     icon: str | None = None,
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
     update_board_dict = {
         "board_id": board_id,
@@ -1033,7 +1035,9 @@ def update_board_entry_db(
             return e.sqlite_errorname
 
 
-def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
+def delete_board_db(
+    board_id: int, database: str = DATABASE_FILE.as_posix()
+) -> int | str:
     delete_board_str = """
     DELETE FROM boards
     WHERE board_id = ?
@@ -1063,7 +1067,7 @@ def delete_board_db(board_id: int, database: Path = DB_FULL_PATH) -> int | str:
 
 
 def get_all_board_infos(
-    database: Path = DB_FULL_PATH,
+    database: str = DATABASE_FILE.as_posix(),
 ) -> list[dict]:
     query_str = """
     SELECT
@@ -1089,7 +1093,8 @@ def get_all_board_infos(
 
 
 def get_filtered_events_db(
-    database: Path = DB_FULL_PATH, filter: dict[str, Sequence[Any]] | None = None
+    database: str = DATABASE_FILE.as_posix(),
+    filter: dict[str, Sequence[Any]] | None = None,
 ) -> list[LogEvent]:
     if not filter:
         query_str = """

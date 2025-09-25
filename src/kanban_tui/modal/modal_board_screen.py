@@ -112,7 +112,7 @@ class ModalNewBoardScreen(ModalScreen):
                 board_id=self.kanban_board.board_id,
                 name=self.kanban_board.name,
                 icon=self.kanban_board.icon,
-                database=self.app.cfg.database_path,
+                database=self.app.config.backend.sqlite_settings.database_path,
             )
         else:
             new_board_name = self.query_exactly_one("#input_board_name", Input).value
@@ -124,7 +124,7 @@ class ModalNewBoardScreen(ModalScreen):
                 create_new_board_db(
                     name=new_board_name,
                     icon=new_board_icon,
-                    database=self.app.cfg.database_path,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
             else:
                 custom_columns = self.query_exactly_one(CustomColumnList).children
@@ -136,7 +136,7 @@ class ModalNewBoardScreen(ModalScreen):
                         for col in custom_columns
                         if col.column_name
                     },
-                    database=self.app.cfg.database_path,
+                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
 
             self.app.update_board_list()
@@ -213,13 +213,14 @@ class ModalBoardOverviewScreen(ModalScreen):
     def action_copy_board(self) -> None:
         highlighted_board = self.query_one(BoardList).highlighted_child.board
         highlighted_board_cols = get_all_columns_on_board_db(
-            board_id=highlighted_board.board_id, database=self.app.cfg.database_path
+            board_id=highlighted_board.board_id,
+            database=self.app.config.backend.sqlite_settings.database_path,
         )
         create_new_board_db(
             name=f"{highlighted_board.name}_copy",
             icon=highlighted_board.icon,
             column_dict={col.name: col.visible for col in highlighted_board_cols},
-            database=self.app.cfg.database_path,
+            database=self.app.config.backend.sqlite_settings.database_path,
         )
 
         self.app.update_board_list()
@@ -227,7 +228,10 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_delete_board(self) -> None:
         highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
-        if highlighted_board.board_id == self.app.cfg.active_board:
+        if (
+            highlighted_board.board_id
+            == self.app.config.backend.sqlite_settings.active_board_id
+        ):
             self.notify(
                 title="Can not delete the active board",
                 severity="error",
@@ -246,7 +250,8 @@ class ModalBoardOverviewScreen(ModalScreen):
         highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
         if delete_yn:
             delete_board_db(
-                board_id=highlighted_board.board_id, database=self.app.cfg.database_path
+                board_id=highlighted_board.board_id,
+                database=self.app.config.backend.sqlite_settings.database_path,
             )
             self.app.update_board_list()
             self.refresh(recompose=True)
@@ -254,7 +259,7 @@ class ModalBoardOverviewScreen(ModalScreen):
     @on(ListView.Selected, "#board_list")
     def activate_board(self, event: ListView.Selected):
         active_board_id = self.app.board_list[event.list_view.index].board_id
-        self.app.cfg.set_active_board(new_active_board=active_board_id)
+        self.app.config.set_active_board(new_active_board_id=active_board_id)
         self.app.update_board_list()
         self.dismiss(True)
 
