@@ -47,12 +47,6 @@ web = [
     "textual-serve>=1.1.1",
 ]
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
-addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
-testpaths = ["tests"]
-
 
 [dependency-groups]
 dev = [
@@ -65,9 +59,24 @@ dev = [
     "freezegun>=1.5.1",
     "ruff>=0.13.1",
     "mypy>=1.18.2",
+    "types-python-dateutil>=2.9.0.20250822",
 ]
 
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--cov src/kanban_tui --cov-report term-missing --verbose --color=yes -n auto --dist=worksteal"
+testpaths = ["tests"]
+
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = [
+    "tests"
+    ]

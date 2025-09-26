@@ -1,3 +1,4 @@
+.PHONY: all
 MAKE               := make --no-print-directory
 RUN 			   := uv run
 
@@ -41,6 +42,10 @@ major:
 .PHONY: test
 test:
 	$(RUN) pytest $(ARGS)
+
+check:
+	$(RUN) ruff check . $(ARGS)
+	$(RUN) mypy . $(ARGS)
 
 #.PHONY: seed
 #seed:
