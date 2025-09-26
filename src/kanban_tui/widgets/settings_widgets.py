@@ -250,9 +250,7 @@ class ColumnSelector(ListView):
         children = [FirstListItem()] + [
             ColumnListItem(column=column) for column in self.app.column_list
         ]
-        super().__init__(
-            *children, id="column_list", initial_index=None, *args, **kwargs
-        )
+        super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
     # rename Column
     def action_rename_column(self):

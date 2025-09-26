@@ -79,7 +79,7 @@ async def test_column_selector_navigation(test_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready Item
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         assert pilot.app.focused.highlighted_child.id == "listitem_column_1"
 
@@ -98,7 +98,7 @@ async def test_column_visibility(test_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready ColumnItem
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         assert pilot.app.focused.highlighted_child.id == "listitem_column_1"
 
@@ -125,7 +125,7 @@ async def test_column_delete_press(empty_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready Item
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         # Delete Column
         await pilot.press("d")
@@ -147,7 +147,7 @@ async def test_column_delete_click(empty_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready Item
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         # Delete Column
         await pilot.press("d")
@@ -260,7 +260,7 @@ async def test_column_rename(test_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Navigate to First ColumnListItem
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert pilot.app.focused.highlighted_child.column.name == "Ready"
 
         # Rename
