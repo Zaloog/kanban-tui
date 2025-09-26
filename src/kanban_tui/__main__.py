@@ -1,3 +1,5 @@
+import os
+
 import click
 from rich.console import Console
 
@@ -52,6 +54,7 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
     """
     Starts a Demo App with temporary DB and Config
     """
+    os.environ["KANBAN_TUI_CONFIG_FILE"] = DEMO_CONFIG_FILE.as_posix()
     if clean:
         DEMO_CONFIG_FILE.unlink(missing_ok=True)
         DEMO_DATABASE_FILE.unlink(missing_ok=True)

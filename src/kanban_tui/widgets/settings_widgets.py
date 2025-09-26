@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 from textual import on
 from textual.message import Message
-from textual.events import Mount, DescendantBlur
+from textual.events import DescendantBlur
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
@@ -63,70 +63,70 @@ class DataBasePathInput(Horizontal):
         ).value = self.app.config.backend.sqlite_settings.database_path
 
 
-class WorkingHoursSelector(Vertical):
-    app: "KanbanTui"
-
-    def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.work_hours [yellow on black]^n[/]"
-
-        yield Label("Working Hours (coming soon)")
-        with Horizontal():
-            # yield HourMinute(hour_value=self.app.cfg.work_hour_dict['start_hour'], min_value=self.app.cfg.work_hour_dict['start_min'], id="hour_minute_start")
-            yield HourMinute(id="hour_minute_start")
-            yield Label("to")
-            # yield HourMinute(hour_value=self.app.cfg.work_hour_dict['end_hour'], min_value=self.app.cfg.work_hour_dict['end_min'], id="hour_minute_end")
-            yield HourMinute(id="hour_minute_end")
-        return super().compose()
-
-
-class HourMinute(Horizontal):
-    def __init__(
-        self, hour_value: str = "00", min_value: str = "00", id: str | None = None
-    ) -> None:
-        self.hour_value = hour_value
-        self.min_value = min_value
-        super().__init__(id=id)
-
-    def compose(self) -> Iterable[Widget]:
-        with self.prevent(Input.Changed):
-            yield Input(value=self.hour_value, placeholder="HH")
-            # yield Input(placeholder="HH")
-            yield Label(":")
-            yield Input(value=self.min_value, placeholder="MM")
-            # yield Input(placeholder="MM")
-        return super().compose()
-
-
-class AlwaysExpandedSwitch(Vertical):
+class TaskMovementSelector(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = (
-            "kanban.settings.tasks_always_expanded [yellow on black]^e[/]"
-        )
-        with self.prevent(Switch.Changed):
-            self.get_tasks_always_expanded_config_value()
+        self.border_title = "task.movement_mode [yellow on black]^n[/]"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Task movement_mode")
+        with self.prevent(Select.Changed):
+            yield Select.from_values(
+                ["adjacent", "jump"],
+                value=self.app.config.task.movement_mode,
+                id="select_movement_mode",
+                allow_blank=False,
+            )
+
+    def on_select_changed(self, event: Select.Changed):
+        self.app.config.set_task_movement_mode(new_mode=event.value)
+
+
+class BoardColumnsInView(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "board.columns_in_view [yellow on black]^n[/]"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Columns in view")
+        with self.prevent(Select.Changed):
+            yield Select.from_values(
+                [i + 1 for i in range(len(self.app.column_list))],
+                value=self.app.config.board.columns_in_view,
+                id="select_columns_in_view",
+                allow_blank=False,
+            )
+
+    def on_select_changed(self, event: Select.Changed):
+        self.app.config.set_columns_in_view(event.select.value)
+
+
+class TaskAlwaysExpandedSwitch(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "task.always_expanded [yellow on black]^e[/]"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Always Expand Tasks")
-        yield Switch(id="switch_expand_tasks")
+        yield Switch(
+            value=self.app.config.task.always_expanded, id="switch_expand_tasks"
+        )
         return super().compose()
 
     def on_switch_changed(self, event: Switch.Changed):
         self.app.config.set_task_always_expanded(new_value=event.value)
 
-    def get_tasks_always_expanded_config_value(self):
-        self.query_one(Switch).value = self.app.config.task.always_expanded
-
 
 class DefaultTaskColorSelector(Vertical):
     app: "KanbanTui"
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         with self.prevent(Input.Changed):
             self.get_no_category_task_color_config_value()
         self.border_title = "kanban.settings.default_task_color [yellow on black]^g[/]"
-        return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Default Task Color")
@@ -212,14 +212,11 @@ class ColumnListItem(ListItem):
         self.column = column
         super().__init__(id=f"listitem_column_{self.column.column_id}")
 
-    def on_mount(self):
-        with self.prevent(Switch.Changed):
-            self.get_column_visibility_default_value()
-
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
             yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
             yield Switch(
+                value=self.column.visible,
                 id=f"switch_col_vis_{self.column.column_id}",
             )
             yield Button(
@@ -228,11 +225,6 @@ class ColumnListItem(ListItem):
                 variant="error",
             )
         yield AddRule(column=self.column)
-
-        return super().compose()
-
-    def get_column_visibility_default_value(self):
-        self.query_one(Switch).value = self.column.visible
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id:
@@ -270,18 +262,15 @@ class ColumnSelector(ListView):
     ]
     amount_visible: reactive[int] = reactive(0)
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         self.border_title = "column.visibility [yellow on black]^c[/]"
         self.amount_visible = len(self.app.visible_column_dict)
-        return super()._on_mount(event)
 
     def __init__(self, *args, **kwargs) -> None:
         children = [FirstListItem()] + [
             ColumnListItem(column=column) for column in self.app.column_list
         ]
-        super().__init__(
-            *children, id="column_list", initial_index=None, *args, **kwargs
-        )
+        super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
     # rename Column
     def action_rename_column(self):
@@ -429,12 +418,15 @@ class ColumnSelector(ListView):
         if isinstance(event.list_view.highlighted_child, FirstListItem):
             self.action_addrule_press()
         else:
-            event.list_view.highlighted_child.query_one(Switch).toggle()
+            if event.list_view.highlighted_child:
+                event.list_view.highlighted_child.query_one(Switch).toggle()
 
     @on(Switch.Changed)
     def update_visibility(self, event: Switch.Changed):
+        if event.switch.id is None:
+            return
         self.amount_visible += 1 if event.value else -1
-        column_id = event.switch.id.split("_")[-1]
+        column_id = int(event.switch.id.split("_")[-1])
         update_column_visibility_db(
             column_id=column_id,
             visible=event.value,
@@ -487,14 +479,13 @@ class StatusColumnSelector(Vertical):
                 prompt="No finish column",
                 id="select_finish",
             )
-        return super().compose()
 
     @on(Select.Changed)
     def update_status_columns(self, event: Select.Changed):
+        if event.select.id is None:
+            return
         update_status_update_columns_db(
-            # new_status=None if event.value == BLANK else event.value,
-            # Bug
-            new_status=event.select.selection,
+            new_status=event.select.selection,  # type: ignore
             column_prefix=event.select.id.split("_")[-1],
             board_id=self.app.active_board.board_id,
             database=self.app.config.backend.sqlite_settings.database_path,
@@ -507,6 +498,8 @@ class StatusColumnSelector(Vertical):
 
         # If column is already selected, clear the old column
         for other_select in self.query(Select).exclude(f"#{event.select.id}"):
+            if other_select.id is None:
+                continue
             if event.value == other_select.value:
                 other_select.clear()
                 self.notify(

@@ -6,10 +6,10 @@ from kanban_tui.widgets.settings_widgets import (
     ColumnSelector,
     AddRule,
     DataBasePathInput,
-    AlwaysExpandedSwitch,
+    TaskAlwaysExpandedSwitch,
     DefaultTaskColorSelector,
     StatusColumnSelector,
-    WorkingHoursSelector,
+    TaskMovementSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
@@ -79,7 +79,7 @@ async def test_column_selector_navigation(test_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready Item
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         assert pilot.app.focused.highlighted_child.id == "listitem_column_1"
 
@@ -98,7 +98,7 @@ async def test_column_visibility(test_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready ColumnItem
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         assert pilot.app.focused.highlighted_child.id == "listitem_column_1"
 
@@ -125,7 +125,7 @@ async def test_column_delete_press(empty_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready Item
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         # Delete Column
         await pilot.press("d")
@@ -147,7 +147,7 @@ async def test_column_delete_click(empty_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Go to Ready Item
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert isinstance(pilot.app.focused, ColumnSelector)
         # Delete Column
         await pilot.press("d")
@@ -260,7 +260,7 @@ async def test_column_rename(test_app: KanbanTui):
         assert isinstance(pilot.app.focused, ColumnSelector)
 
         # Navigate to First ColumnListItem
-        await pilot.press(*"jj")
+        await pilot.press("j")
         assert pilot.app.focused.highlighted_child.column.name == "Ready"
 
         # Rename
@@ -292,7 +292,9 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+e")
-        assert pilot.app.screen.query_exactly_one(AlwaysExpandedSwitch).has_focus_within
+        assert pilot.app.screen.query_exactly_one(
+            TaskAlwaysExpandedSwitch
+        ).has_focus_within
 
         await pilot.press("ctrl+d")
         assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
@@ -301,7 +303,7 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         await pilot.press("ctrl+n")
-        assert pilot.app.screen.query_exactly_one(WorkingHoursSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(TaskMovementSelector).has_focus_within
 
         await pilot.press("ctrl+g")
         assert pilot.app.screen.query_exactly_one(

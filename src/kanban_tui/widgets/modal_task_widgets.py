@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from textual.reactive import reactive
-from textual.events import Mount
 from textual.widget import Widget
 from textual.binding import Binding
 from textual.widgets import TextArea, Select, Label, Switch
@@ -22,9 +21,10 @@ class DescriptionInfos(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield TextArea()
+
+    def on_mount(self):
         self.border = "$success"
         self.border_title = "Task Description"
-        return super().compose()
 
 
 class DetailInfos(Vertical):
@@ -49,7 +49,7 @@ class DetailInfos(Vertical):
         self.border_title = "Additional Infos"
         return super().compose()
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         self.query_one("#vertical_due_date_choice").mount(
             Label("[yellow]??[/] days left", id="label_days_left", classes="hidden"),
             CustomDateSelect(
@@ -60,7 +60,6 @@ class DetailInfos(Vertical):
                 classes="hidden",
             ),
         )
-        return super()._on_mount(event)
 
     def on_switch_changed(self):
         if self.query_one(Switch).value:

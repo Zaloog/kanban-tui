@@ -15,7 +15,10 @@ from textual.widgets import Input, Button, ListView, Static, Label, Footer, Swit
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.classes.board import Board
-from kanban_tui.widgets.modal_board_widgets import BoardList, CustomColumnList
+from kanban_tui.widgets.modal_board_widgets import (
+    BoardList,
+    CustomColumnList,
+)
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.backends.sqlite.database import (
     update_board_entry_db,
@@ -90,7 +93,6 @@ class ModalNewBoardScreen(ModalScreen):
                     disabled=True,
                 )
                 yield Button("Cancel", id="btn_cancel_new_board", variant="error")
-            return super().compose()
 
     def on_switch_changed(self, event: Switch.Changed):
         if event.value:
@@ -148,6 +150,8 @@ class ModalNewBoardScreen(ModalScreen):
 
     @on(Input.Changed, "#input_board_name")
     def check_if_board_name_valid(self, event: Input.Changed):
+        if event.validation_result is None:
+            return
         self.query_exactly_one(
             "#btn_continue_new_board", Button
         ).disabled = not event.validation_result.is_valid
@@ -197,21 +201,22 @@ class ModalBoardOverviewScreen(ModalScreen):
             )
 
             yield Footer(show_command_palette=False)
-        return super().compose()
 
     @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
         self.app.push_screen(ModalNewBoardScreen(), callback=self.update_board_listview)
 
     def action_edit_board(self) -> None:
-        highlighted_board = self.query_one(BoardList).highlighted_child.board
+        highlighted = self.query_exactly_one(BoardList).highlighted_child
+        highlighted_board = highlighted.board
         self.app.push_screen(
             ModalNewBoardScreen(board=highlighted_board),
             callback=self.update_board_listview,
         )
 
     def action_copy_board(self) -> None:
-        highlighted_board = self.query_one(BoardList).highlighted_child.board
+        highlighted = self.query_exactly_one(BoardList).highlighted_child
+        highlighted_board = highlighted.board
         highlighted_board_cols = get_all_columns_on_board_db(
             board_id=highlighted_board.board_id,
             database=self.app.config.backend.sqlite_settings.database_path,
@@ -227,7 +232,9 @@ class ModalBoardOverviewScreen(ModalScreen):
         self.update_board_listview()
 
     def action_delete_board(self) -> None:
-        highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
+        highlighted = self.query_exactly_one(BoardList).highlighted_child
+
+        highlighted_board = highlighted.board
         if (
             highlighted_board.board_id
             == self.app.config.backend.sqlite_settings.active_board_id
@@ -247,7 +254,11 @@ class ModalBoardOverviewScreen(ModalScreen):
         )
 
     def from_modal_delete_board(self, delete_yn: bool) -> None:
-        highlighted_board = self.query_exactly_one(BoardList).highlighted_child.board
+        highlighted = self.query_exactly_one(BoardList).highlighted_child
+
+        if highlighted is None:
+            return
+        highlighted_board = highlighted.board
         if delete_yn:
             delete_board_db(
                 board_id=highlighted_board.board_id,

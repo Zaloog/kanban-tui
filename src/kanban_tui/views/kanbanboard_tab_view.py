@@ -11,7 +11,7 @@ from textual import on
 from textual.binding import Binding
 from textual.widget import Widget
 from textual.reactive import reactive
-from textual.containers import Horizontal
+from textual.containers import HorizontalScroll
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
@@ -23,7 +23,7 @@ from kanban_tui.backends.sqlite.database import update_task_db, delete_task_db
 from kanban_tui.classes.task import Task
 
 
-class KanbanBoard(Horizontal):
+class KanbanBoard(HorizontalScroll):
     app: "KanbanTui"
 
     BINDINGS = [
@@ -57,8 +57,6 @@ class KanbanBoard(Horizontal):
                 )
         # yield FilterOverlay()
 
-        return super().compose()
-
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
@@ -78,10 +76,10 @@ class KanbanBoard(Horizontal):
             self.refresh(recompose=True)
             self.set_timer(delay=0.1, callback=self.app.action_focus_next)
 
-    def place_new_task(self, task: Task):
-        self.query(Column)[0].place_task(task=task)
+    async def place_new_task(self, task: Task):
+        await self.query(Column)[0].place_task(task=task)
         self.selected_task = task
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
     # Movement
     def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
@@ -206,10 +204,10 @@ class KanbanBoard(Horizontal):
             database=self.app.config.backend.sqlite_settings.database_path,
         )
 
-        self.query_one(f"#column_{self.target_column}", Column).place_task(
+        await self.query_one(f"#column_{self.target_column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
         self.app.update_task_list()
         self.target_column = None
@@ -236,11 +234,12 @@ class KanbanBoard(Horizontal):
             database=self.app.config.backend.sqlite_settings.database_path,
         )
 
-        self.query_one(f"#column_{event.new_column}", Column).place_task(
+        await self.query_one(f"#column_{event.new_column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
+        self.app.app_focus = True
         self.app.update_task_list()
 
     @on(TaskCard.Delete)

@@ -43,9 +43,7 @@ class KanbanTui(App):
         demo_mode: bool = False,
     ) -> None:
         SETTINGS.set(Settings())
-        # init_new_config(config_path=config_path, database=database_path)
         init_config(config_path=config_path, database=database_path)
-        # self.cfg = KanbanTuiConfig(config_path=config_path, database_path=database_path)
         self.config = SETTINGS.get()
         self.demo_mode = demo_mode
 
