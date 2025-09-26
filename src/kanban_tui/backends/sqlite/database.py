@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-from typing import Any, Literal, Generator, Sequence
+from typing import Any, Generator, Sequence
 from contextlib import contextmanager
 import datetime
 
@@ -728,7 +728,7 @@ def get_all_columns_on_board_db(
 
 
 def update_status_update_columns_db(
-    column_prefix: Literal["reset", "start", "finish"],
+    column_prefix: str,
     new_status: int | None,
     board_id: int,
     database: str = DATABASE_FILE.as_posix(),

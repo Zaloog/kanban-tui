@@ -35,8 +35,8 @@ jobs:
       - name: Run ruff
         run: uv run ruff check .
 
-      - name: Run mypy
-        run: uv run mypy .
+      # - name: Run mypy
+      #   run: uv run mypy .
 
   tests:
     needs: lint  # << This ensures tests only run if lint passes

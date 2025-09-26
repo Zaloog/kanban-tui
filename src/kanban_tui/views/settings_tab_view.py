@@ -65,7 +65,6 @@ class SettingsView(Vertical):
                 yield DefaultTaskColorSelector(classes="setting-block")
                 yield StatusColumnSelector(classes="setting-block")
             yield ColumnSelector(classes="setting-block")
-        return super().compose()
 
     @on(Input.Changed)
     @on(Switch.Changed)

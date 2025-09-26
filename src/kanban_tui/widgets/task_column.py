@@ -23,7 +23,6 @@ class Column(Vertical):
     def compose(self) -> Iterable[Widget]:
         yield Label(Text.from_markup(self.title), id=f"label_{self.id}")
         yield VerticalScroll(id=f"vscroll_{self.id}")
-        return super().compose()
 
     def on_mount(self) -> None:
         self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False

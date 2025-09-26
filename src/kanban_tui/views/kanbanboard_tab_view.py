@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Literal
 
+from kanban_tui.classes.board import Board
+
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -57,8 +59,6 @@ class KanbanBoard(Horizontal):
                 )
         # yield FilterOverlay()
 
-        return super().compose()
-
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
@@ -69,6 +69,7 @@ class KanbanBoard(Horizontal):
 
     # Active Board Change
     def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
+        assert isinstance(self.app.active_board, Board)
         if refresh_needed:
             self.app.screen.query_one(
                 "#tabbed_content_boards"
@@ -81,10 +82,11 @@ class KanbanBoard(Horizontal):
     def place_new_task(self, task: Task):
         self.query(Column)[0].place_task(task=task)
         self.selected_task = task
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
     # Movement
     def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
+        assert isinstance(self.selected_task, TaskCard)
         if not self.app.task_list:
             return
 
@@ -224,6 +226,7 @@ class KanbanBoard(Horizontal):
     @on(TaskCard.Moved)
     async def move_card_to_other_column(self, event: TaskCard.Moved):
         # remove focus and give focus back to same task in new column
+        assert isinstance(self.selected_task, TaskCard)
         self.app.app_focus = False
 
         await self.query_one(
@@ -239,7 +242,7 @@ class KanbanBoard(Horizontal):
         self.query_one(f"#column_{event.new_column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
         self.app.update_task_list()
 

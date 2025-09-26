@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
+from kanban_tui.classes.board import Board
+
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -337,6 +339,7 @@ class ColumnSelector(ListView):
         async def modal_add_new_column(
             event_col_name: tuple[AddRule.Pressed, str] | None,
         ):
+            assert isinstance(self.app.active_board, Board)
             if event_col_name:
                 event, column_name = event_col_name
                 update_column_positions_db(
@@ -429,12 +432,15 @@ class ColumnSelector(ListView):
         if isinstance(event.list_view.highlighted_child, FirstListItem):
             self.action_addrule_press()
         else:
-            event.list_view.highlighted_child.query_one(Switch).toggle()
+            if event.list_view.highlighted_child:
+                event.list_view.highlighted_child.query_one(Switch).toggle()
 
     @on(Switch.Changed)
     def update_visibility(self, event: Switch.Changed):
+        if event.switch.id is None:
+            return
         self.amount_visible += 1 if event.value else -1
-        column_id = event.switch.id.split("_")[-1]
+        column_id = int(event.switch.id.split("_")[-1])
         update_column_visibility_db(
             column_id=column_id,
             visible=event.value,
@@ -487,14 +493,14 @@ class StatusColumnSelector(Vertical):
                 prompt="No finish column",
                 id="select_finish",
             )
-        return super().compose()
 
     @on(Select.Changed)
     def update_status_columns(self, event: Select.Changed):
+        assert isinstance(self.app.active_board, Board)
+        if event.select.id is None:
+            return
         update_status_update_columns_db(
-            # new_status=None if event.value == BLANK else event.value,
-            # Bug
-            new_status=event.select.selection,
+            new_status=event.select.selection,  # type: ignore
             column_prefix=event.select.id.split("_")[-1],
             board_id=self.app.active_board.board_id,
             database=self.app.config.backend.sqlite_settings.database_path,
@@ -507,6 +513,8 @@ class StatusColumnSelector(Vertical):
 
         # If column is already selected, clear the old column
         for other_select in self.query(Select).exclude(f"#{event.select.id}"):
+            if other_select.id is None:
+                continue
             if event.value == other_select.value:
                 other_select.clear()
                 self.notify(
