@@ -204,7 +204,7 @@ class KanbanBoard(Horizontal):
             database=self.app.config.backend.sqlite_settings.database_path,
         )
 
-        self.query_one(f"#column_{self.target_column}", Column).place_task(
+        await self.query_one(f"#column_{self.target_column}", Column).place_task(
             self.selected_task
         )
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()

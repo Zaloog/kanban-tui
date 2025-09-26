@@ -192,14 +192,11 @@ class ColumnListItem(ListItem):
         self.column = column
         super().__init__(id=f"listitem_column_{self.column.column_id}")
 
-    def on_mount(self):
-        with self.prevent(Switch.Changed):
-            self.get_column_visibility_default_value()
-
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
             yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
             yield Switch(
+                value=self.column.visible,
                 id=f"switch_col_vis_{self.column.column_id}",
             )
             yield Button(
@@ -208,11 +205,6 @@ class ColumnListItem(ListItem):
                 variant="error",
             )
         yield AddRule(column=self.column)
-
-        return super().compose()
-
-    def get_column_visibility_default_value(self):
-        self.query_one(Switch).value = self.column.visible
 
     def on_button_pressed(self, event: Button.Pressed):
         if event.button.id:
