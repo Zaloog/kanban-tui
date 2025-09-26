@@ -430,11 +430,17 @@ FilterOverlay {
 }
 
 SettingsView{
-    content-align:center middle;
-    height:1fr;
+  content-align:center middle;
+  height:1fr;
+  #horizontal_expand_movement{
+    height: auto;
+  }
+  #horizontal_color_column_selector{
+    height:2fr;
+  }
 }
 DataBasePathInput{
-    height:auto;
+    height: auto;
     width:1fr;
     Label{
         padding:1 0 0 0 ;
@@ -444,42 +450,23 @@ DataBasePathInput{
     }
 
 }
-AlwaysExpandedSwitch{
-    height:auto;
+TaskAlwaysExpandedSwitch{
+  height:auto;
+  width:1fr;
+  Label{
     width:1fr;
-    Label{
-        width:1fr;
-        text-align:center;
-        padding:0 0 1 0 ;
-    }
-    Switch {
-        width:1fr;
-    }
+    padding: 1 0 0 1;
+  }
+  Switch {
+      width:1fr;
+  }
 }
-#horizontal_expand_work_hours{
-    height:auto;
-}
-WorkingHoursSelector{
-    height:auto;
+TaskMovementSelector{
+  height:auto;
+  Label {
     width:1fr;
-}
-WorkingHoursSelector Label{
-    width:1fr;
-    text-align:center;
-    padding:0 0 1 0 ;
-}
-WorkingHoursSelector Horizontal{
-    align:center middle;
-    height:auto;
-    Label{
-        width:auto;
-        text-align:center;
-        padding:1 0 0 0 ;
-    }
-    Input {
-        height:auto;
-        width:auto;
-    }
+    padding: 1 0 0 1;
+  }
 }
 DefaultTaskColorSelector{
     height:auto;
@@ -518,9 +505,6 @@ DefaultTaskColorSelector{
         }
     }
 
-}
-#horizontal_color_column_selector{
-    height:1fr;
 }
 StatusColumnSelector {
     height:1fr;
@@ -640,11 +624,11 @@ AddRule Button{
 
 # Classes
 .setting-block {
-    border:$success;
+  border:$success;
 
-    &:focus-within {
-        border:yellow;
-    }
+  &:focus-within {
+    border:yellow;
+  }
 
 }
 .overview-filter {

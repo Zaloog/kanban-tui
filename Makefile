@@ -39,7 +39,6 @@ major:
 
 
 # -- Testing ---
-.PHONY: test
 test:
 	$(RUN) pytest $(ARGS)
 

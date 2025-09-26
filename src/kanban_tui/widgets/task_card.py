@@ -30,6 +30,7 @@ class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
     mouse_down: reactive[bool] = reactive(False)
+    task_: reactive[Task | None] = reactive(None, bindings=True, always_update=True)
 
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
@@ -89,12 +90,12 @@ class TaskCard(Vertical):
         task: Task,
         row: int,
     ) -> None:
-        self.task_ = task
         self.row = row
 
         self.can_focus = True
         self.can_focus_children = False
-        super().__init__(id=f"taskcard_{self.task_.task_id}")
+        super().__init__(id=f"taskcard_{task.task_id}")
+        self.task_ = task
 
     def compose(self) -> ComposeResult:
         yield Label(self.task_.title, classes="label-title")
@@ -150,37 +151,49 @@ class TaskCard(Vertical):
             else None
         )
 
-    def action_move_task(self, direction: Literal["left", "right"]):
-        # self.post_message(self.Target(self, direction))
-        # return
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         column_id_list = list(self.app.visible_column_dict.keys())
-        match direction:
-            case "left":
-                # check if at left border
+        if action == "move_task":
+            if parameters == ("left",):
                 if column_id_list[0] == self.task_.column:
-                    return
-                new_column_id = column_id_list[
-                    column_id_list.index(self.task_.column) - 1
-                ]
-
-            case "right":
-                # check if at right border
+                    return False
+            else:
                 if column_id_list[-1] == self.task_.column:
-                    return
-                new_column_id = column_id_list[
-                    column_id_list.index(self.task_.column) + 1
-                ]
+                    return False
+        return True
 
-        # TODO Update Status based on defined reset/start/done column
-        update_column_dict = get_column_status_dict(
-            reset=self.app.active_board.reset_column,
-            start=self.app.active_board.start_column,
-            finish=self.app.active_board.finish_column,
-        )
-        self.task_.update_task_status(
-            new_column=new_column_id, update_column_dict=update_column_dict
-        )
-        self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
+    def action_move_task(self, direction: Literal["left", "right"]):
+        if self.app.config.task.movement_mode == "jump":
+            self.post_message(self.Target(self, direction))
+        else:
+            column_id_list = list(self.app.visible_column_dict.keys())
+            match direction:
+                case "left":
+                    # check if at left border
+                    if column_id_list[0] == self.task_.column:
+                        return
+                    new_column_id = column_id_list[
+                        column_id_list.index(self.task_.column) - 1
+                    ]
+
+                case "right":
+                    # check if at right border
+                    if column_id_list[-1] == self.task_.column:
+                        return
+                    new_column_id = column_id_list[
+                        column_id_list.index(self.task_.column) + 1
+                    ]
+
+            # TODO Update Status based on defined reset/start/done column
+            update_column_dict = get_column_status_dict(
+                reset=self.app.active_board.reset_column,
+                start=self.app.active_board.start_column,
+                finish=self.app.active_board.finish_column,
+            )
+            self.task_.update_task_status(
+                new_column=new_column_id, update_column_dict=update_column_dict
+            )
+            self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
     def get_due_date_str(self) -> str:
         match self.task_.days_left:

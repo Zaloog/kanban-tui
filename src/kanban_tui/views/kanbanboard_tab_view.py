@@ -86,7 +86,6 @@ class KanbanBoard(Horizontal):
 
     # Movement
     def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
-        assert isinstance(self.selected_task, TaskCard)
         if not self.app.task_list:
             return
 
@@ -226,7 +225,6 @@ class KanbanBoard(Horizontal):
     @on(TaskCard.Moved)
     async def move_card_to_other_column(self, event: TaskCard.Moved):
         # remove focus and give focus back to same task in new column
-        assert isinstance(self.selected_task, TaskCard)
         self.app.app_focus = False
 
         await self.query_one(

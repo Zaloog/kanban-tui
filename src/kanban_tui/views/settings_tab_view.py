@@ -8,10 +8,10 @@ from textual.widgets import Input, Switch, Button, Select
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.settings_widgets import (
-    AlwaysExpandedSwitch,
+    TaskAlwaysExpandedSwitch,
     DefaultTaskColorSelector,
     DataBasePathInput,
-    WorkingHoursSelector,
+    TaskMovementSelector,
     ColumnSelector,
     StatusColumnSelector,
 )
@@ -30,7 +30,7 @@ class SettingsView(Vertical):
         ),
         Binding(
             key="ctrl+n",
-            action="quick_focus_setting('hours')",
+            action="quick_focus_setting('movement_mode')",
             show=False,
             priority=True,
         ),
@@ -57,9 +57,9 @@ class SettingsView(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput(classes="setting-block")
-        with Horizontal(id="horizontal_expand_work_hours"):
-            yield AlwaysExpandedSwitch(classes="setting-block")
-            yield WorkingHoursSelector(classes="setting-block")
+        with Horizontal(id="horizontal_expand_movement"):
+            yield TaskAlwaysExpandedSwitch(classes="setting-block")
+            yield TaskMovementSelector(classes="setting-block")
         with Horizontal(id="horizontal_color_column_selector"):
             with Vertical(id="vertical_column_status"):
                 yield DefaultTaskColorSelector(classes="setting-block")
@@ -75,15 +75,17 @@ class SettingsView(Vertical):
 
     def action_quick_focus_setting(
         self,
-        block: Literal["db", "expand", "hours", "defaultcolor", "columns", "status"],
+        block: Literal[
+            "db", "expand", "movement_mode", "defaultcolor", "columns", "status"
+        ],
     ):
         match block:
             case "db":
                 self.query_one(DataBasePathInput).query_one(Input).focus()
             case "expand":
-                self.query_one(AlwaysExpandedSwitch).query_one(Switch).focus()
-            case "hours":
-                self.query_one(WorkingHoursSelector).query_one(Input).focus()
+                self.query_one(TaskAlwaysExpandedSwitch).query_one(Switch).focus()
+            case "movement_mode":
+                self.query_one(TaskMovementSelector).query_one(Select).focus()
             case "defaultcolor":
                 self.query_one(DefaultTaskColorSelector).query_one(Input).focus()
             case "columns":

@@ -274,11 +274,10 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     @on(ListView.Selected, "#board_list")
     def activate_board(self, event: ListView.Selected):
-        if event.list_view.index:
-            active_board_id = self.app.board_list[event.list_view.index].board_id
-            self.app.config.set_active_board(new_active_board_id=active_board_id)
-            self.app.update_board_list()
-            self.dismiss(True)
+        active_board_id = self.app.board_list[event.list_view.index].board_id
+        self.app.config.set_active_board(new_active_board_id=active_board_id)
+        self.app.update_board_list()
+        self.dismiss(True)
 
     def update_board_listview(self, result: None = None):
         self.refresh(recompose=True)

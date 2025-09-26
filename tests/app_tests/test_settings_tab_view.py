@@ -6,10 +6,10 @@ from kanban_tui.widgets.settings_widgets import (
     ColumnSelector,
     AddRule,
     DataBasePathInput,
-    AlwaysExpandedSwitch,
+    TaskAlwaysExpandedSwitch,
     DefaultTaskColorSelector,
     StatusColumnSelector,
-    WorkingHoursSelector,
+    TaskMovementSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
@@ -292,7 +292,9 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
         await pilot.press("ctrl+e")
-        assert pilot.app.screen.query_exactly_one(AlwaysExpandedSwitch).has_focus_within
+        assert pilot.app.screen.query_exactly_one(
+            TaskAlwaysExpandedSwitch
+        ).has_focus_within
 
         await pilot.press("ctrl+d")
         assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
@@ -301,7 +303,7 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         await pilot.press("ctrl+n")
-        assert pilot.app.screen.query_exactly_one(WorkingHoursSelector).has_focus_within
+        assert pilot.app.screen.query_exactly_one(TaskMovementSelector).has_focus_within
 
         await pilot.press("ctrl+g")
         assert pilot.app.screen.query_exactly_one(

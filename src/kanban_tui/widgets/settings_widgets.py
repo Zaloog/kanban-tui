@@ -65,47 +65,32 @@ class DataBasePathInput(Horizontal):
         ).value = self.app.config.backend.sqlite_settings.database_path
 
 
-class WorkingHoursSelector(Vertical):
-    app: "KanbanTui"
-
-    def compose(self) -> Iterable[Widget]:
-        self.border_title = "kanban.settings.work_hours [yellow on black]^n[/]"
-
-        yield Label("Working Hours (coming soon)")
-        with Horizontal():
-            # yield HourMinute(hour_value=self.app.cfg.work_hour_dict['start_hour'], min_value=self.app.cfg.work_hour_dict['start_min'], id="hour_minute_start")
-            yield HourMinute(id="hour_minute_start")
-            yield Label("to")
-            # yield HourMinute(hour_value=self.app.cfg.work_hour_dict['end_hour'], min_value=self.app.cfg.work_hour_dict['end_min'], id="hour_minute_end")
-            yield HourMinute(id="hour_minute_end")
-        return super().compose()
-
-
-class HourMinute(Horizontal):
-    def __init__(
-        self, hour_value: str = "00", min_value: str = "00", id: str | None = None
-    ) -> None:
-        self.hour_value = hour_value
-        self.min_value = min_value
-        super().__init__(id=id)
-
-    def compose(self) -> Iterable[Widget]:
-        with self.prevent(Input.Changed):
-            yield Input(value=self.hour_value, placeholder="HH")
-            # yield Input(placeholder="HH")
-            yield Label(":")
-            yield Input(value=self.min_value, placeholder="MM")
-            # yield Input(placeholder="MM")
-        return super().compose()
-
-
-class AlwaysExpandedSwitch(Vertical):
+class TaskMovementSelector(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = (
-            "kanban.settings.tasks_always_expanded [yellow on black]^e[/]"
+        self.border_title = "task.movement_mode [yellow on black]^n[/]"
+        with self.prevent(Select.Changed):
+            self.get_task_movement_mode_config_value()
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Task movement_mode")
+        yield Select.from_values(
+            ["adjacent", "jump"], id="select_movement_mode", allow_blank=False
         )
+
+    def on_select_changed(self, event: Select.Changed):
+        self.app.config.set_task_movement_mode(new_mode=event.value)
+
+    def get_task_movement_mode_config_value(self):
+        self.query_one(Select).value = self.app.config.task.movement_mode
+
+
+class TaskAlwaysExpandedSwitch(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "task.always_expanded [yellow on black]^e[/]"
         with self.prevent(Switch.Changed):
             self.get_tasks_always_expanded_config_value()
 
