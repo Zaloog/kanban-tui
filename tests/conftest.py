@@ -92,7 +92,7 @@ def init_test_db(test_database_path: str, test_config: Settings):
 
 @pytest.fixture
 def empty_app(test_config_path, test_database_path, test_config):
-    return KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
 
 
 @pytest.fixture
@@ -113,4 +113,4 @@ def test_app(test_config_path, test_database_path, init_test_db, test_config: Se
     #     color="#FF0000",
     # )
 
-    return KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
