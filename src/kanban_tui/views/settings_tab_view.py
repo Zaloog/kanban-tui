@@ -8,6 +8,7 @@ from textual.widgets import Input, Switch, Button, Select
 from textual.containers import Vertical, Horizontal
 
 from kanban_tui.widgets.settings_widgets import (
+    BoardColumnsInView,
     TaskAlwaysExpandedSwitch,
     DefaultTaskColorSelector,
     DataBasePathInput,
@@ -60,6 +61,7 @@ class SettingsView(Vertical):
         with Horizontal(id="horizontal_expand_movement"):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
             yield TaskMovementSelector(classes="setting-block")
+            yield BoardColumnsInView(classes="setting-block")
         with Horizontal(id="horizontal_color_column_selector"):
             with Vertical(id="vertical_column_status"):
                 yield DefaultTaskColorSelector(classes="setting-block")

@@ -11,7 +11,7 @@ from textual import on
 from textual.binding import Binding
 from textual.widget import Widget
 from textual.reactive import reactive
-from textual.containers import Horizontal
+from textual.containers import HorizontalScroll
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
@@ -23,7 +23,7 @@ from kanban_tui.backends.sqlite.database import update_task_db, delete_task_db
 from kanban_tui.classes.task import Task
 
 
-class KanbanBoard(Horizontal):
+class KanbanBoard(HorizontalScroll):
     app: "KanbanTui"
 
     BINDINGS = [
@@ -239,6 +239,7 @@ class KanbanBoard(Horizontal):
         )
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
+        self.app.app_focus = True
         self.app.update_task_list()
 
     @on(TaskCard.Delete)

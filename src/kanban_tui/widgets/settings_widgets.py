@@ -83,6 +83,26 @@ class TaskMovementSelector(Horizontal):
         self.app.config.set_task_movement_mode(new_mode=event.value)
 
 
+class BoardColumnsInView(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "board.columns_in_view [yellow on black]^n[/]"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Columns in view")
+        with self.prevent(Select.Changed):
+            yield Select.from_values(
+                [i + 1 for i in range(len(self.app.column_list))],
+                value=self.app.config.board.columns_in_view,
+                id="select_columns_in_view",
+                allow_blank=False,
+            )
+
+    def on_select_changed(self, event: Select.Changed):
+        self.app.config.set_columns_in_view(event.select.value)
+
+
 class TaskAlwaysExpandedSwitch(Horizontal):
     app: "KanbanTui"
 

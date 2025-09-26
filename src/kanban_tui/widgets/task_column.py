@@ -19,6 +19,7 @@ class Column(Vertical):
         super().__init__(id=f"column_{id_num}")
         self.task_list = tasklist
         self.can_focus: bool = False
+        self.styles.width = f"{1 / self.app.config.board.columns_in_view * 100:.2f}%"
 
     def compose(self) -> Iterable[Widget]:
         yield Label(Text.from_markup(self.title), id=f"label_{self.id}")
