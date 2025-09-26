@@ -11,7 +11,7 @@ Underline .underline--bar {
 }
 
 .highlighted {
-  border-top:thick yellow;
+  border-top:thick $success;
 }
 KanbanBoard{
   width: 1fr;
