@@ -17,7 +17,6 @@ from textual.containers import Horizontal, Vertical
 from kanban_tui.classes.board import Board
 from kanban_tui.widgets.modal_board_widgets import (
     BoardList,
-    BoardListItem,
     CustomColumnList,
 )
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
@@ -209,7 +208,6 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_edit_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
-        assert isinstance(highlighted, BoardListItem)
         highlighted_board = highlighted.board
         self.app.push_screen(
             ModalNewBoardScreen(board=highlighted_board),
@@ -218,7 +216,6 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_copy_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
-        assert isinstance(highlighted, BoardListItem)
         highlighted_board = highlighted.board
         highlighted_board_cols = get_all_columns_on_board_db(
             board_id=highlighted_board.board_id,
@@ -236,7 +233,6 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def action_delete_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
-        assert isinstance(highlighted, BoardListItem)
 
         highlighted_board = highlighted.board
         if (
@@ -259,7 +255,6 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     def from_modal_delete_board(self, delete_yn: bool) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
-        assert isinstance(highlighted, BoardListItem)
 
         if highlighted is None:
             return

@@ -1,15 +1,13 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
-from kanban_tui.classes.board import Board
-
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from textual import on
 from textual.message import Message
-from textual.events import Mount, DescendantBlur
+from textual.events import DescendantBlur
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.widget import Widget
@@ -70,20 +68,19 @@ class TaskMovementSelector(Horizontal):
 
     def on_mount(self):
         self.border_title = "task.movement_mode [yellow on black]^n[/]"
-        with self.prevent(Select.Changed):
-            self.get_task_movement_mode_config_value()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Task movement_mode")
-        yield Select.from_values(
-            ["adjacent", "jump"], id="select_movement_mode", allow_blank=False
-        )
+        with self.prevent(Select.Changed):
+            yield Select.from_values(
+                ["adjacent", "jump"],
+                value=self.app.config.task.movement_mode,
+                id="select_movement_mode",
+                allow_blank=False,
+            )
 
     def on_select_changed(self, event: Select.Changed):
         self.app.config.set_task_movement_mode(new_mode=event.value)
-
-    def get_task_movement_mode_config_value(self):
-        self.query_one(Select).value = self.app.config.task.movement_mode
 
 
 class TaskAlwaysExpandedSwitch(Horizontal):
@@ -91,29 +88,25 @@ class TaskAlwaysExpandedSwitch(Horizontal):
 
     def on_mount(self):
         self.border_title = "task.always_expanded [yellow on black]^e[/]"
-        with self.prevent(Switch.Changed):
-            self.get_tasks_always_expanded_config_value()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Always Expand Tasks")
-        yield Switch(id="switch_expand_tasks")
+        yield Switch(
+            value=self.app.config.task.always_expanded, id="switch_expand_tasks"
+        )
         return super().compose()
 
     def on_switch_changed(self, event: Switch.Changed):
         self.app.config.set_task_always_expanded(new_value=event.value)
 
-    def get_tasks_always_expanded_config_value(self):
-        self.query_one(Switch).value = self.app.config.task.always_expanded
-
 
 class DefaultTaskColorSelector(Vertical):
     app: "KanbanTui"
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         with self.prevent(Input.Changed):
             self.get_no_category_task_color_config_value()
         self.border_title = "kanban.settings.default_task_color [yellow on black]^g[/]"
-        return super()._on_mount(event)
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Default Task Color")
@@ -257,10 +250,9 @@ class ColumnSelector(ListView):
     ]
     amount_visible: reactive[int] = reactive(0)
 
-    def _on_mount(self, event: Mount) -> None:
+    def on_mount(self) -> None:
         self.border_title = "column.visibility [yellow on black]^c[/]"
         self.amount_visible = len(self.app.visible_column_dict)
-        return super()._on_mount(event)
 
     def __init__(self, *args, **kwargs) -> None:
         children = [FirstListItem()] + [
@@ -324,7 +316,6 @@ class ColumnSelector(ListView):
         async def modal_add_new_column(
             event_col_name: tuple[AddRule.Pressed, str] | None,
         ):
-            assert isinstance(self.app.active_board, Board)
             if event_col_name:
                 event, column_name = event_col_name
                 update_column_positions_db(
@@ -481,7 +472,6 @@ class StatusColumnSelector(Vertical):
 
     @on(Select.Changed)
     def update_status_columns(self, event: Select.Changed):
-        assert isinstance(self.app.active_board, Board)
         if event.select.id is None:
             return
         update_status_update_columns_db(

@@ -24,10 +24,10 @@ class Column(Vertical):
         yield Label(Text.from_markup(self.title), id=f"label_{self.id}")
         yield VerticalScroll(id=f"vscroll_{self.id}")
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False
         for task in self.task_list:
-            self.place_task(task=task)
+            await self.place_task(task=task)
         self.border_title = "move task here"
 
     def watch_task_amount(self) -> None:
@@ -42,13 +42,13 @@ class Column(Vertical):
                 Text.from_markup(f"{self.title} ({self.task_amount} Tasks)")
             )
 
-    def place_task(self, task: Task) -> None:
+    async def place_task(self, task: Task) -> None:
         card = TaskCard(
             task=task,
             row=self.task_amount,
         )
         self.task_amount += 1
-        self.query_one(VerticalScroll).mount(card)
+        await self.query_one(VerticalScroll).mount(card)
 
     async def remove_task(self, task: Task) -> None:
         self.task_amount -= 1

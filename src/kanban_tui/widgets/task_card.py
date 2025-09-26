@@ -30,7 +30,9 @@ class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False)
     mouse_down: reactive[bool] = reactive(False)
-    task_: reactive[Task | None] = reactive(None, bindings=True, always_update=True)
+    task_: reactive[Task | None] = reactive(
+        None, bindings=True, recompose=True, init=False
+    )
 
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
@@ -107,15 +109,20 @@ class TaskCard(Vertical):
             markdown=self.task_.description,
         )
         yield self.description
-        return super().compose()
+
+        self.styles.background = self.app.config.task.default_color
+        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
 
     def on_mount(self):
+        ...
         # TODO
         # self.styles.background = self.app.cfg.category_color_dict.get(
         #     self.task_.category, self.app.cfg.no_category_task_color
         # )
-        self.styles.background = self.app.config.task.default_color
-        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
+        # self.refresh_bindings()
+
+    # def watch_task_(self):
+    #     self.refresh_bindings()
 
     # Remove those, cause it messes with tab selection
     # @on(Enter)
@@ -156,10 +163,10 @@ class TaskCard(Vertical):
         if action == "move_task":
             if parameters == ("left",):
                 if column_id_list[0] == self.task_.column:
-                    return False
+                    return self.app.config.task.movement_mode == "jump"
             else:
                 if column_id_list[-1] == self.task_.column:
-                    return False
+                    return self.app.config.task.movement_mode == "jump"
         return True
 
     def action_move_task(self, direction: Literal["left", "right"]):

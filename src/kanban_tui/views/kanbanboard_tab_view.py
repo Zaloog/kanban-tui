@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Literal
 
-from kanban_tui.classes.board import Board
-
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -69,7 +67,6 @@ class KanbanBoard(Horizontal):
 
     # Active Board Change
     def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
-        assert isinstance(self.app.active_board, Board)
         if refresh_needed:
             self.app.screen.query_one(
                 "#tabbed_content_boards"
@@ -79,8 +76,8 @@ class KanbanBoard(Horizontal):
             self.refresh(recompose=True)
             self.set_timer(delay=0.1, callback=self.app.action_focus_next)
 
-    def place_new_task(self, task: Task):
-        self.query(Column)[0].place_task(task=task)
+    async def place_new_task(self, task: Task):
+        await self.query(Column)[0].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
@@ -210,7 +207,7 @@ class KanbanBoard(Horizontal):
         self.query_one(f"#column_{self.target_column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
         self.app.update_task_list()
         self.target_column = None
@@ -237,7 +234,7 @@ class KanbanBoard(Horizontal):
             database=self.app.config.backend.sqlite_settings.database_path,
         )
 
-        self.query_one(f"#column_{event.new_column}", Column).place_task(
+        await self.query_one(f"#column_{event.new_column}", Column).place_task(
             self.selected_task
         )
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
