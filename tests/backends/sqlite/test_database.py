@@ -20,7 +20,7 @@ from kanban_tui.classes.board import Board
 from kanban_tui.classes.logevent import LogEvent
 
 
-def test_init_new_db(test_database_path):
+async def test_init_new_db(test_database_path):
     init_new_db(database=test_database_path)
 
     assert Path(test_database_path).exists()
@@ -28,7 +28,12 @@ def test_init_new_db(test_database_path):
 
     with pytest.raises(sqlite3.OperationalError):
         with create_connection(database=test_database_path) as con:
-            con.execute("CREATE TABLE tasks(test_id );")
+            try:
+                con.execute("CREATE TABLE tasks(test_id );")
+            except Exception as e:
+                con.rollback()
+                con.close()
+                raise e
 
 
 def test_task_factory(init_test_db, test_database_path):
