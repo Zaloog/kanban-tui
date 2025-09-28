@@ -1,7 +1,8 @@
 import pytest
 from kanban_tui.app import KanbanTui
-from textual.widgets import Input, Switch, Button
+from textual.widgets import Input, Select, Switch, Button
 from kanban_tui.views.main_view import MainView, SettingsView
+from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.widgets.settings_widgets import (
     ColumnSelector,
     AddRule,
@@ -55,6 +56,55 @@ async def test_task_expand_switch(test_app: KanbanTui):
         assert pilot.app.screen.query_exactly_one("#switch_expand_tasks", Switch).value
         assert pilot.app.config.task.always_expanded
         assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+
+
+async def test_task_movement_mode(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        assert pilot.app.config.task.movement_mode == "adjacent"
+        assert (
+            pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
+            == "adjacent"
+        )
+
+        # change Value
+        await pilot.click("#select_movement_mode")
+        await pilot.press("down")
+        await pilot.press("enter")
+        assert pilot.app.config.task.movement_mode == "jump"
+        assert (
+            pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
+            == "jump"
+        )
+        assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+
+
+async def test_board_columns_in_view(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        assert not pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
+        assert pilot.app.config.board.columns_in_view == 3
+        assert (
+            pilot.app.screen.query_exactly_one("#select_columns_in_view", Select).value
+            == 3
+        )
+
+        # change Value to 2 columns
+        await pilot.click("#select_columns_in_view")
+        await pilot.press("up")
+        await pilot.press("enter")
+        assert pilot.app.config.board.columns_in_view == 2
+        assert (
+            pilot.app.screen.query_exactly_one("#select_columns_in_view", Select).value
+            == 2
+        )
+        assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+
+        # check columns in view
+        await pilot.press("ctrl+j")
+        assert pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
 
 
 async def test_column_selector(test_app: KanbanTui):
