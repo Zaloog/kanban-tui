@@ -256,15 +256,14 @@ class KanbanBoard(HorizontalScroll):
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
-        # BUG Fix Focus
-        # if not self.app.task_list:
         if not self.app.visible_task_list:
             self.can_focus = True
             self.focus()
-            self.notify(
-                title="Welcome to Kanban Tui",
-                message="Looks like you are new, press [blue]n[/] to create your first Card",
-            )
+            if not self.app.task_list:
+                self.notify(
+                    title="Welcome to Kanban Tui",
+                    message="Looks like you are new, press [blue]n[/] to create your first Card",
+                )
         else:
             self.can_focus = False
 
