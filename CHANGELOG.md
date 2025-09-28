@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.9.0 (unreleased)
+### Added
+- Added new config values `movement_mode` to change task movement modes
+    - `adjacent` (default, same as before)
+    - `jump` shows the column to jump to and can confirm move with enter
+- Added new config value `columns_in_view` to change the amount of visible columns on board
+which makes the board is now horizontally scrollable
+
+### Fixed
+- Fixed focus bug if no visible tasks are on board (due to column visibility change)
+
+### Changed
+- Changed kanban-tui config to a `.toml` config file instead of `.yaml`
+- XDG dirs are now under `~/.local/share/kanban_tui` for data and `~/.config/kanban_tui` for configs
+
 ## v0.8.2
 - Fix Bugs and make `kanban-tui` compatible with `textual` 6.X
 
