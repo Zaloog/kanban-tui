@@ -377,14 +377,14 @@ async def test_status_column_selector(test_app: KanbanTui):
         assert str(pilot.app.focused.value) == "Select.BLANK"
 
         await pilot.click(pilot.app.focused)
-        await pilot.press("R")
+        await pilot.press(*"jj")
         await pilot.press("enter")
 
         assert pilot.app.focused.value == 1
         assert pilot.app.active_board.reset_column == 1
 
         await pilot.click(pilot.app.screen.query_one("#select_start"))
-        await pilot.press("R")
+        await pilot.press(*"jj")
         await pilot.press("enter")
         assert pilot.app.active_board.reset_column is None
         assert pilot.app.active_board.start_column == 1

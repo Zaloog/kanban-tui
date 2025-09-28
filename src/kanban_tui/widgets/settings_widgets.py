@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
+from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -72,7 +73,7 @@ class TaskMovementSelector(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label("Task movement_mode")
         with self.prevent(Select.Changed):
-            yield Select.from_values(
+            yield VimSelect.from_values(
                 ["adjacent", "jump"],
                 value=self.app.config.task.movement_mode,
                 id="select_movement_mode",
@@ -92,7 +93,7 @@ class BoardColumnsInView(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label("Columns in view")
         with self.prevent(Select.Changed):
-            yield Select.from_values(
+            yield VimSelect.from_values(
                 [i + 1 for i in range(len(self.app.column_list))],
                 value=self.app.config.board.columns_in_view,
                 id="select_columns_in_view",
@@ -448,7 +449,7 @@ class StatusColumnSelector(Vertical):
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
             yield Label("Reset")
-            yield Select(
+            yield VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
@@ -459,7 +460,7 @@ class StatusColumnSelector(Vertical):
             )
         with Horizontal():
             yield Label("Start")
-            yield Select(
+            yield VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
@@ -470,7 +471,7 @@ class StatusColumnSelector(Vertical):
             )
         with Horizontal():
             yield Label("Finish")
-            yield Select(
+            yield VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list

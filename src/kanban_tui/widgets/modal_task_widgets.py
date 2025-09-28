@@ -105,14 +105,33 @@ class NewCategorySelection:
 NEW = NewCategorySelection()
 
 
-class CategorySelector(Select):
-    app: "KanbanTui"
-    # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
+class VimSelect(Select):
     BINDINGS = [
         Binding("enter,space,l", "show_overlay", "Show Overlay", show=False),
         Binding("up,k", "cursor_up", "Cursor Up", show=False),
         Binding("down,j", "cursor_down", "Cursor Down", show=False),
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_to_search = False
+
+    def action_cursor_up(self):
+        if self.expanded:
+            self.query_one(SelectOverlay).action_cursor_up()
+        else:
+            self.screen.focus_previous()
+
+    def action_cursor_down(self):
+        if self.expanded:
+            self.query_one(SelectOverlay).action_cursor_down()
+        else:
+            self.screen.focus_next()
+
+
+class CategorySelector(VimSelect):
+    app: "KanbanTui"
+    # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
     NEW = NEW
 
     def __init__(self):
@@ -147,18 +166,6 @@ class CategorySelector(Select):
         ]
         options.insert(0, ("Add a new Category", self.NEW))
         return options
-
-    def action_cursor_up(self):
-        if self.expanded:
-            self.query_one(SelectOverlay).action_cursor_up()
-        else:
-            self.screen.focus_previous()
-
-    def action_cursor_down(self):
-        if self.expanded:
-            self.query_one(SelectOverlay).action_cursor_down()
-        else:
-            self.screen.focus_next()
 
 
 class CreationDateInfo(Horizontal):
