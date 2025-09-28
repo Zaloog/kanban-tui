@@ -107,3 +107,9 @@ class KanbanTui(App):
     @property
     def visible_column_dict(self) -> dict[int, str]:
         return {col.column_id: col.name for col in self.column_list if col.visible}
+
+    @property
+    def visible_task_list(self) -> list[Task]:
+        return [
+            task for task in self.task_list if task.column in self.visible_column_dict
+        ]

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from kanban_tui.app import KanbanTui
+from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.views.main_view import MainView
 from kanban_tui.backends.sqlite.database import delete_task_db
 
@@ -22,16 +23,32 @@ async def test_app(test_app: KanbanTui, test_config_path: str, test_database_pat
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 5
         assert isinstance(pilot.app.screen, MainView)
-        # assert all(
-        #     cfg_val == val
-        #     for cfg_val, val in zip(
-        #         sorted(pilot.app.cfg.category_color_dict.keys()),
-        #         sorted(["red", "green", "blue"]),
-        #     )
-        # )
 
         assert Path(test_database_path).exists()
         assert Path(test_config_path).exists()
+
+
+async def test_app_no_visible_tasks(
+    test_app: KanbanTui, test_config_path: str, test_database_path: str
+):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert len(pilot.app.task_list) == 5
+
+        # delete only task in doing column
+        await pilot.press("l")
+        await pilot.press("d")
+        await pilot.click("#btn_continue_delete")
+
+        # Only make doing col visible
+        await pilot.press("ctrl+l")
+        await pilot.press("ctrl+c")
+        await pilot.press("j")
+        await pilot.press("space")
+        await pilot.press(*"jj")
+        await pilot.press("space")
+        await pilot.press("ctrl+j")
+
+        assert isinstance(pilot.app.focused, KanbanBoard)
 
 
 async def test_app_properties(

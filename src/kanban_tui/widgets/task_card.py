@@ -135,6 +135,7 @@ class TaskCard(Vertical):
 
     def on_focus(self) -> None:
         self.expanded = True
+        self.scroll_visible()
         self.post_message(self.Focused(taskcard=self))
 
     def on_blur(self) -> None:

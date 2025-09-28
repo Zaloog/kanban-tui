@@ -36,6 +36,12 @@ class SettingsView(Vertical):
             priority=True,
         ),
         Binding(
+            key="ctrl+b",
+            action="quick_focus_setting('columns_in_view')",
+            show=False,
+            priority=True,
+        ),
+        Binding(
             key="ctrl+g",
             action="quick_focus_setting('defaultcolor')",
             show=False,
@@ -78,7 +84,13 @@ class SettingsView(Vertical):
     def action_quick_focus_setting(
         self,
         block: Literal[
-            "db", "expand", "movement_mode", "defaultcolor", "columns", "status"
+            "db",
+            "expand",
+            "movement_mode",
+            "defaultcolor",
+            "columns",
+            "status",
+            "columns_in_view",
         ],
     ):
         match block:
@@ -86,6 +98,8 @@ class SettingsView(Vertical):
                 self.query_one(DataBasePathInput).query_one(Input).focus()
             case "expand":
                 self.query_one(TaskAlwaysExpandedSwitch).query_one(Switch).focus()
+            case "columns_in_view":
+                self.query_one(BoardColumnsInView).query_one(Select).focus()
             case "movement_mode":
                 self.query_one(TaskMovementSelector).query_one(Select).focus()
             case "defaultcolor":

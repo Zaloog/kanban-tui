@@ -41,9 +41,6 @@ class KanbanBoard(HorizontalScroll):
     selected_task: reactive[Task | None] = reactive(None)
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
 
-    def on_mount(self) -> None:
-        self.watch(self.app, "task_list", self.get_first_card)
-
     def compose(self) -> Iterable[Widget]:
         for column in self.app.column_list:
             if column.visible:
@@ -55,6 +52,7 @@ class KanbanBoard(HorizontalScroll):
                 yield Column(
                     title=column.name, tasklist=column_tasks, id_num=column.column_id
                 )
+        self.get_first_card()
         # yield FilterOverlay()
 
     def action_new_task(self) -> None:
@@ -158,6 +156,7 @@ class KanbanBoard(HorizontalScroll):
 
     @on(TaskCard.Target)
     def color_target_column(self, event: TaskCard.Target):
+        self.scroll_visible()
         current_column_id = self.target_column or event.taskcard.task_.column
         match event.direction:
             case "left":
@@ -192,6 +191,7 @@ class KanbanBoard(HorizontalScroll):
             self.timer.reset()
 
     async def action_confirm_move(self):
+        # BUG Fix for None Column
         self.app.app_focus = False
 
         await self.query_one(
@@ -256,7 +256,9 @@ class KanbanBoard(HorizontalScroll):
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
-        if not self.app.task_list:
+        # BUG Fix Focus
+        # if not self.app.task_list:
+        if not self.app.visible_task_list:
             self.can_focus = True
             self.focus()
             self.notify(
