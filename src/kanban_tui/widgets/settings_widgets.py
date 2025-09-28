@@ -87,7 +87,7 @@ class BoardColumnsInView(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = "board.columns_in_view [yellow on black]^n[/]"
+        self.border_title = "board.columns_in_view [yellow on black]^b[/]"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Columns in view")
