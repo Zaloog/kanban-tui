@@ -43,32 +43,29 @@ class DetailInfos(Vertical):
             yield Label("has a due Date:")
             with self.prevent(Switch.Changed):
                 yield Switch(value=False, id="switch_due_date", animate=False)
-        yield Vertical(id="vertical_due_date_choice")
-
-        self.border = "$success"
-        self.border_title = "Additional Infos"
-        return super().compose()
-
-    def on_mount(self) -> None:
-        self.query_one("#vertical_due_date_choice").mount(
-            Label("[yellow]??[/] days left", id="label_days_left", classes="hidden"),
-            CustomDateSelect(
+        with Vertical(id="vertical_due_date_choice"):
+            self.due_date_label = Label("[yellow]??[/] days left", id="label_days_left")
+            self.due_date_label.display = False
+            yield self.due_date_label
+            self.due_date_select = CustomDateSelect(
                 placeholder="Select Due Date",
                 format="%Y-%m-%d",
                 picker_mount="#vertical_modal",
                 id="dateselect_due_date",
-                classes="hidden",
-            ),
-        )
+            )
+            self.due_date_select.display = False
+            yield self.due_date_select
 
-    def on_switch_changed(self):
-        if self.query_one(Switch).value:
-            self.query_one(CustomDateSelect).remove_class("hidden")
-            self.query_one("#label_days_left").remove_class("hidden")
-        else:
-            self.query_one("#label_days_left").add_class("hidden")
-            self.query_one(CustomDateSelect).add_class("hidden").date = None
+        self.border = "$success"
+        self.border_title = "Additional Infos"
+
+    def on_switch_changed(self, event: Switch.Changed):
+        self.due_date_label.display = event.value
+        self.due_date_select.display = event.value
+
+        if not event.value:
             self.due_date = None
+            self.due_date_select.date = self.due_date
 
     def on_date_picker_selected(self):
         self.due_date = self.query_one(CustomDateSelect).date.replace(

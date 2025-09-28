@@ -194,11 +194,17 @@ class KanbanBoard(HorizontalScroll):
         # BUG Fix for None Column
         self.app.app_focus = False
 
+        # If you confirm, just before the target column timer
+        # resets, it can happen, that self.target column is None
+        # here, which will raise an exception, because the column
+        # field in the database has a NOT NULL constraint
+
         await self.query_one(
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)
 
         self.selected_task.column = self.target_column
+
         update_task_db(
             task=self.selected_task,
             database=self.app.config.backend.sqlite_settings.database_path,
