@@ -115,4 +115,4 @@ class MainView(Screen):
                     self.query_one("#select_logdate_filter", Select).focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)
-                self.set_timer(delay=0.25, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.15, callback=self.app.action_focus_next)

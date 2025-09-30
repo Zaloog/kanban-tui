@@ -11,7 +11,8 @@ Underline .underline--bar {
 }
 
 .highlighted {
-  border-top:thick $success;
+  border-top:thick $warning;
+  border-title-align: center;
 }
 KanbanBoard{
   width: 1fr;
