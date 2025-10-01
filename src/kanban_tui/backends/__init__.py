@@ -1,9 +1,5 @@
-class Backend:
-    def get_boards(self):
-        raise NotImplementedError("This is required")
+from __future__ import annotations
+from kanban_tui.backends.sqlite.backend import SqliteBackend
 
-    def get_columns(self):
-        raise NotImplementedError("This is required")
 
-    def get_tasks(self):
-        raise NotImplementedError("This is required")
+__all__ = ["SqliteBackend"]

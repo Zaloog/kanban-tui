@@ -11,11 +11,9 @@ from kanban_tui.config import (
     SETTINGS,
     Settings,
 )
+from kanban_tui.backends import SqliteBackend
 from kanban_tui.backends.sqlite.database import (
     init_new_db,
-    get_all_boards_db,
-    get_all_tasks_on_board_db,
-    get_all_columns_on_board_db,
     init_first_board,
 )
 from kanban_tui.classes.task import Task
@@ -45,11 +43,21 @@ class KanbanTui(App):
         SETTINGS.set(Settings())
         init_config(config_path=config_path, database=database_path)
         self.config = SETTINGS.get()
+        self.backend = self.get_backend()
         self.demo_mode = demo_mode
 
         init_new_db(database=self.config.backend.sqlite_settings.database_path)
         init_first_board(database=self.config.backend.sqlite_settings.database_path)
         super().__init__()
+
+    def get_backend(self):
+        match self.config.backend.mode:
+            case "sqlite":
+                return SqliteBackend(self.config.backend.sqlite_settings)
+            case "jira":
+                raise NotImplementedError("Jira Backend is not supported yet")
+            case _:
+                raise NotImplementedError("Only sqlite Backend is supported for now")
 
     def on_mount(self) -> None:
         self.theme = self.config.board.theme
@@ -57,14 +65,12 @@ class KanbanTui(App):
         self.push_screen(MainView().data_bind(KanbanTui.active_board))
 
     def update_board_list(self):
-        self.board_list = get_all_boards_db(
-            database=self.config.backend.sqlite_settings.database_path
-        )
-        self.active_board = self.get_active_board()
+        self.board_list = self.backend.get_boards()
+        self.active_board = self.backend.active_board
         # After boards got updated and active board
         # is set, also updates tasks
-        self.update_task_list()
         self.update_column_list()
+        self.update_task_list()
 
     def watch_theme(self, theme: str):
         self.config.set_theme(theme)
@@ -75,22 +81,10 @@ class KanbanTui(App):
         await self.screen.refresh_board(event=active_tab)
 
     def update_task_list(self):
-        self.task_list = get_all_tasks_on_board_db(
-            database=self.config.backend.sqlite_settings.database_path,
-            board_id=self.active_board.board_id,
-        )
+        self.task_list = self.backend.get_tasks()
 
     def update_column_list(self):
-        self.column_list = get_all_columns_on_board_db(
-            database=self.config.backend.sqlite_settings.database_path,
-            board_id=self.active_board.board_id,
-        )
-
-    def get_active_board(self) -> Board:
-        for board in self.board_list:
-            if board.board_id == self.config.backend.sqlite_settings.active_board_id:
-                return board
-        raise Exception("No active Board Found")
+        self.column_list = self.backend.get_columns()
 
     def get_possible_next_column_id(self, current_id: int) -> int:
         column_id_list = list(self.visible_column_dict.keys())

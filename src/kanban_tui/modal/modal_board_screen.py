@@ -22,7 +22,6 @@ from kanban_tui.widgets.modal_board_widgets import (
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.backends.sqlite.database import (
     update_board_entry_db,
-    get_all_columns_on_board_db,
     create_new_board_db,
     delete_board_db,
 )
@@ -217,10 +216,10 @@ class ModalBoardOverviewScreen(ModalScreen):
     def action_copy_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
         highlighted_board = highlighted.board
-        highlighted_board_cols = get_all_columns_on_board_db(
-            board_id=highlighted_board.board_id,
-            database=self.app.config.backend.sqlite_settings.database_path,
+        highlighted_board_cols = self.app.backend.get_columns(
+            board_id=highlighted_board.board_id
         )
+
         create_new_board_db(
             name=f"{highlighted_board.name}_copy",
             icon=highlighted_board.icon,

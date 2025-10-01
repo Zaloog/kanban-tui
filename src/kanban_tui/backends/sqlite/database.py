@@ -682,7 +682,7 @@ def create_new_column_db(
 def get_all_tasks_on_board_db(
     board_id: int,
     database: str = DATABASE_FILE.as_posix(),
-) -> list[Task] | None:
+) -> list[Task]:
     board_id_dict = {"board_id": board_id}
 
     query_str = """
@@ -700,7 +700,6 @@ def get_all_tasks_on_board_db(
         except sqlite3.Error as e:
             con.rollback()
             raise e
-            return None
 
 
 def get_all_columns_on_board_db(
@@ -766,7 +765,7 @@ def init_first_board(database: str = DATABASE_FILE.as_posix()) -> None:
 
 def get_all_boards_db(
     database: str = DATABASE_FILE.as_posix(),
-) -> list[Board] | None:
+) -> list[Board]:
     query_str = """
     SELECT *
     FROM boards;
@@ -781,7 +780,6 @@ def get_all_boards_db(
         except sqlite3.Error as e:
             con.rollback()
             raise (e)
-            return None
 
 
 # After column Movement
