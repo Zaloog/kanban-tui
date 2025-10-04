@@ -29,7 +29,7 @@ from kanban_tui.modal.modal_task_screen import (
 
 class TaskCard(Vertical):
     app: "KanbanTui"
-    expanded: reactive[bool] = reactive(False)
+    expanded: reactive[bool] = reactive(False, bindings=True)
     mouse_down: reactive[bool] = reactive(False)
     task_: reactive[Task | None] = reactive(
         None, bindings=True, recompose=True, init=False
@@ -153,13 +153,6 @@ class TaskCard(Vertical):
             self.app.config.task.always_expanded or self.expanded
         )
 
-        # self.border_title = self.task_.title if self.expanded else None
-        # self.border_subtitle = (
-        #     (self.get_due_date_str() if self.task_.days_left else "")
-        #     if self.expanded
-        #     else None
-        # )
-
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         column_id_list = list(self.app.visible_column_dict.keys())
         if action == "move_task":
@@ -174,35 +167,29 @@ class TaskCard(Vertical):
     def action_move_task(self, direction: Literal["left", "right"]):
         if self.app.config.task.movement_mode == MovementModes.JUMP:
             self.post_message(self.Target(self, direction))
-        else:
-            column_id_list = list(self.app.visible_column_dict.keys())
-            match direction:
-                case "left":
-                    # check if at left border
-                    if column_id_list[0] == self.task_.column:
-                        return
-                    new_column_id = column_id_list[
-                        column_id_list.index(self.task_.column) - 1
-                    ]
+            return
+        current_column_id = self.task_.column
+        match direction:
+            case "left":
+                new_column_id = self.app.get_possible_previous_column_id(
+                    current_column_id
+                )
+            case "right":
+                new_column_id = self.app.get_possible_next_column_id(current_column_id)
 
-                case "right":
-                    # check if at right border
-                    if column_id_list[-1] == self.task_.column:
-                        return
-                    new_column_id = column_id_list[
-                        column_id_list.index(self.task_.column) + 1
-                    ]
+        # TODO Update Status based on defined reset/start/done column
+        self.update_task_status_on_move(new_column_id)
+        self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
-            # TODO Update Status based on defined reset/start/done column
-            update_column_dict = get_column_status_dict(
-                reset=self.app.active_board.reset_column,
-                start=self.app.active_board.start_column,
-                finish=self.app.active_board.finish_column,
-            )
-            self.task_.update_task_status(
-                new_column=new_column_id, update_column_dict=update_column_dict
-            )
-            self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
+    def update_task_status_on_move(self, new_column_id: int):
+        update_column_dict = get_column_status_dict(
+            reset=self.app.active_board.reset_column,
+            start=self.app.active_board.start_column,
+            finish=self.app.active_board.finish_column,
+        )
+        self.task_.update_task_status(
+            new_column=new_column_id, update_column_dict=update_column_dict
+        )
 
     def get_due_date_str(self) -> str:
         match self.task_.days_left:
@@ -250,8 +237,8 @@ class TaskCard(Vertical):
             callback=self.from_modal_delete_task,
         )
 
-    def from_modal_delete_task(self, delete_yn: bool) -> None:
-        if delete_yn:
+    def from_modal_delete_task(self, should_be_deleted: bool) -> None:
+        if should_be_deleted:
             self.post_message(self.Delete(taskcard=self))
 
     # Move Task with Mouse
@@ -263,8 +250,8 @@ class TaskCard(Vertical):
     #     lab.styles.layer = 'above'
     #     self.mouse_down = True
     #     self.click_pos = event.screen_offset
-    #     # self.mount(lab)
-    #
+    #     self.mount(lab)
+
     # def on_mouse_move(self, event: events.MouseMove):
     #     if not self.mouse_down:
     #         return
