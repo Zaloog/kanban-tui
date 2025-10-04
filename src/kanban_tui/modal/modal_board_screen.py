@@ -20,9 +20,6 @@ from kanban_tui.widgets.modal_board_widgets import (
     CustomColumnList,
 )
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
-from kanban_tui.backends.sqlite.database import (
-    update_board_entry_db,
-)
 
 
 class ModalNewBoardScreen(ModalScreen):
@@ -107,11 +104,10 @@ class ModalNewBoardScreen(ModalScreen):
             current_icon = self.query_exactly_one("#input_board_icon", Input).value
             self.kanban_board.icon = f":{current_icon}:" if current_icon else ""
 
-            update_board_entry_db(
+            self.app.backend.update_board(
                 board_id=self.kanban_board.board_id,
                 name=self.kanban_board.name,
                 icon=self.kanban_board.icon,
-                database=self.app.config.backend.sqlite_settings.database_path,
             )
             self.dismiss(result=None)
         else:

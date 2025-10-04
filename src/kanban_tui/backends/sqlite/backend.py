@@ -10,6 +10,7 @@ from kanban_tui.backends.sqlite.database import (
     get_all_boards_db,
     get_all_tasks_on_board_db,
     get_all_columns_on_board_db,
+    update_board_entry_db,
 )
 
 
@@ -46,6 +47,14 @@ class SqliteBackend(Backend):
 
     def delete_board(self, board_id: int):
         delete_board_db(board_id=board_id, database=self.database_path)
+
+    def update_board(self, board_id: int, name: str, icon: str):
+        update_board_entry_db(
+            board_id=board_id,
+            name=name,
+            icon=icon,
+            database=self.database_path,
+        )
 
     @property
     def active_board(self) -> Board:
