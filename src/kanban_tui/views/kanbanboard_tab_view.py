@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from rich.text import Text
 from textual import on
+from textual.events import MouseDown, MouseMove, MouseUp
 from textual.binding import Binding
 from textual.widget import Widget
 from textual.reactive import reactive
@@ -40,6 +41,7 @@ class KanbanBoard(HorizontalScroll):
     ]
     selected_task: reactive[Task | None] = reactive(None)
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
+    mouse_down: reactive[bool] = reactive(False)
 
     def compose(self) -> Iterable[Widget]:
         for column in self.app.column_list:
@@ -263,6 +265,38 @@ class KanbanBoard(HorizontalScroll):
             database=self.app.config.backend.sqlite_settings.database_path,
         )
         self.app.update_task_list()
+
+    @on(MouseDown)
+    def lift_pseudo_task(self, event: MouseDown):
+        for taskcard in self.query(TaskCard):
+            if taskcard.region.contains_point(event.screen_offset):
+                self.mouse_down = True
+
+    @on(MouseUp)
+    async def drop_pseudo_task(self, event: MouseUp):
+        if all((self.mouse_down, (self.target_column is not None))):
+            self.mouse_down = False
+            await self.action_confirm_move()
+
+    @on(MouseMove)
+    def move_pseudo_task(self, event: MouseMove):
+        if not self.mouse_down:
+            return
+        for column in self.query(Column):
+            if column.region.contains_point(event.screen_offset):
+                is_same_column = self.selected_task.column == int(
+                    column.id.split("_")[-1]
+                )
+                if is_same_column:
+                    self.target_column = None
+                    if self._timers:
+                        self.timer.reset()
+                else:
+                    self.target_column = int(column.id.split("_")[-1])
+                    self.start_target_column_timer()
+
+    def watch_mouse_down(self):
+        self.notify(f"mouse down: {self.mouse_down}")
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks

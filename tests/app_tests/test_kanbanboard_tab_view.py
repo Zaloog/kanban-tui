@@ -1,6 +1,7 @@
 import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button
+from kanban_tui.config import MovementModes
 from kanban_tui.views.main_view import MainView
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
@@ -11,6 +12,7 @@ from kanban_tui.modal.modal_board_screen import (
 
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
+from kanban_tui.widgets.task_column import Column
 
 APP_SIZE = (150, 50)
 
@@ -193,7 +195,6 @@ async def test_kanbanboard_card_movement_adjacent(test_app: KanbanTui):
 
 
 async def test_kanbanboard_card_movement_jump(test_app: KanbanTui):
-    # test_app.config.task.movement_mode = "jump"
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
@@ -203,7 +204,7 @@ async def test_kanbanboard_card_movement_jump(test_app: KanbanTui):
         assert pilot.app.focused.row == 0
 
         # change movement mode
-        pilot.app.config.task.movement_mode = "jump"
+        pilot.app.config.task.movement_mode = MovementModes.JUMP
         # try move card right twice
         # ready -> done
         await pilot.press("L")
@@ -214,6 +215,30 @@ async def test_kanbanboard_card_movement_jump(test_app: KanbanTui):
         await pilot.press("enter")
         assert pilot.app.screen.query_one(KanbanBoard).target_column is None
 
+        assert pilot.app.focused.task_.title == "Task_ready_0"
+        assert pilot.app.focused.task_.column == 3
+        assert pilot.app.focused.row == 1
+
+
+async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+        await pilot.mouse_down(pilot.app.focused)
+        await pilot.mouse_up(pilot.app.screen.query_one(Column))
+        assert pilot.app.focused.task_.title == "Task_ready_0"
+        assert pilot.app.focused.task_.column == 1
+        assert pilot.app.focused.row == 0
+
+
+async def test_kanbanboard_card_movement_mouse_different_column(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+        await pilot.mouse_down(pilot.app.focused)
+        await pilot.mouse_up(pilot.app.screen.query(Column).last())
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 3
         assert pilot.app.focused.row == 1
