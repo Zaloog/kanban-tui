@@ -50,7 +50,7 @@ class KanbanBoard(HorizontalScroll):
                     if task.column == column.column_id
                 ]
                 yield Column(
-                    title=column.name, tasklist=column_tasks, id_num=column.column_id
+                    title=column.name, task_list=column_tasks, id_num=column.column_id
                 )
         self.get_first_card()
         # yield FilterOverlay()

@@ -1,14 +1,15 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
+from kanban_tui.config import MovementModes
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
-
-from textual import on
 
 # from textual.geometry import Offset
 
 from rich.text import Text
+from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.events import Click
@@ -164,14 +165,14 @@ class TaskCard(Vertical):
         if action == "move_task":
             if parameters == ("left",):
                 if column_id_list[0] == self.task_.column:
-                    return self.app.config.task.movement_mode == "jump"
+                    return self.app.config.task.movement_mode == MovementModes.JUMP
             else:
                 if column_id_list[-1] == self.task_.column:
-                    return self.app.config.task.movement_mode == "jump"
+                    return self.app.config.task.movement_mode == MovementModes.JUMP
         return True
 
     def action_move_task(self, direction: Literal["left", "right"]):
-        if self.app.config.task.movement_mode == "jump":
+        if self.app.config.task.movement_mode == MovementModes.JUMP:
             self.post_message(self.Target(self, direction))
         else:
             column_id_list = list(self.app.visible_column_dict.keys())
