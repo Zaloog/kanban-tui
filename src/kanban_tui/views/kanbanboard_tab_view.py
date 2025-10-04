@@ -295,9 +295,6 @@ class KanbanBoard(HorizontalScroll):
                     self.target_column = int(column.id.split("_")[-1])
                     self.start_target_column_timer()
 
-    def watch_mouse_down(self):
-        self.notify(f"mouse down: {self.mouse_down}")
-
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
         if not self.app.visible_task_list:
