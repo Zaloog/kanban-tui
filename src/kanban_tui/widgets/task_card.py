@@ -143,7 +143,7 @@ class TaskCard(Vertical):
         self.expanded = False
 
     def watch_expanded(self):
-        self.query_one(".label-title", Label).visible = not self.expanded
+        # self.query_one(".label-title", Label).visible = not self.expanded
         for label in self.query(".label-infos").results():
             label.display = self.app.config.task.always_expanded or self.expanded
         self.query_one(Markdown).display = (
@@ -153,12 +153,12 @@ class TaskCard(Vertical):
             self.app.config.task.always_expanded or self.expanded
         )
 
-        self.border_title = self.task_.title if self.expanded else None
-        self.border_subtitle = (
-            (self.get_due_date_str() if self.task_.days_left else "")
-            if self.expanded
-            else None
-        )
+        # self.border_title = self.task_.title if self.expanded else None
+        # self.border_subtitle = (
+        #     (self.get_due_date_str() if self.task_.days_left else "")
+        #     if self.expanded
+        #     else None
+        # )
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         column_id_list = list(self.app.visible_column_dict.keys())

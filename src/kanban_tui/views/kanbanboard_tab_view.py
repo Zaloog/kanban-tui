@@ -167,7 +167,11 @@ class KanbanBoard(HorizontalScroll):
                 new_column_id = self.app.get_possible_next_column_id(current_column_id)
         if new_column_id == event.taskcard.task_.column:
             self.target_column = None
+            self.query_one(f"#column_{event.taskcard.task_.column}").scroll_visible(
+                animate=False
+            )
         else:
+            self.query_one(f"#column_{new_column_id}").scroll_visible(animate=False)
             self.target_column = new_column_id
             self.start_target_column_timer()
 

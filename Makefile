@@ -47,4 +47,4 @@ check:
 	$(RUN) mypy . $(ARGS)
 
 dev:
-	$(RUN) textual run -c kanban-tui --dev
+	$(RUN) textual run -c kanban-tui demo --dev
