@@ -16,17 +16,17 @@ from kanban_tui.app import KanbanTui
 # Paths
 @pytest.fixture
 def test_file_location(tmp_path) -> Path:
-    return tmp_path
+    yield tmp_path
 
 
 @pytest.fixture
 def test_config_path(test_file_location: Path) -> str:
-    return (test_file_location / CONFIG_NAME).as_posix()
+    yield (test_file_location / CONFIG_NAME).as_posix()
 
 
 @pytest.fixture
 def test_database_path(test_file_location: Path) -> str:
-    return (test_file_location / DATABASE_NAME).as_posix()
+    yield (test_file_location / DATABASE_NAME).as_posix()
 
 
 # Init Config and DB
@@ -36,7 +36,7 @@ def test_config(test_config_path: str, test_database_path: str) -> Settings:
     init_config(config_path=test_config_path, database=test_database_path)
 
     cfg = Settings()
-    return cfg
+    yield cfg
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def init_test_db(test_database_path: str, test_config: Settings):
 
 @pytest.fixture
 def empty_app(test_config_path, test_database_path, test_config):
-    return KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
 
 
 @pytest.fixture
@@ -113,4 +113,4 @@ def test_app(test_config_path, test_database_path, init_test_db, test_config: Se
     #     color="#FF0000",
     # )
 
-    return KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    yield KanbanTui(config_path=test_config_path, database_path=test_database_path)

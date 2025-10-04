@@ -10,6 +10,7 @@ from textual import on
 from textual.events import Mount
 from textual.widget import Widget
 from textual.binding import Binding
+from textual.validation import Length
 from textual.screen import ModalScreen
 from textual.widgets import Input, TextArea, Button, Select, Label, Switch, Footer
 from textual.containers import Horizontal, Vertical
@@ -42,7 +43,13 @@ class ModalTaskEditScreen(ModalScreen):
     def compose(self) -> Iterable[Widget]:
         with Vertical(id="vertical_modal"):
             yield Label("Create New Task", id="label_header")
-            yield Input(placeholder="enter a Task Title", id="input_title")
+            yield Input(
+                placeholder="enter a Task Title",
+                id="input_title",
+                valid_empty=False,
+                validate_on=["changed"],
+                validators=Length(minimum=1, failure_description="Enter a valid title"),
+            )
             yield CreationDateInfo()
             with Horizontal(id="horizontal_dates"):
                 yield StartDateInfo()
@@ -52,7 +59,9 @@ class ModalTaskEditScreen(ModalScreen):
                 self.detail_infos = DetailInfos(id="detail_infos")
                 yield self.detail_infos
             with Horizontal(id="horizontal_buttons"):
-                yield Button("Create Task", id="btn_continue", variant="success")
+                yield Button(
+                    "Create Task", id="btn_continue", variant="success", disabled=True
+                )
                 yield Button("Cancel", id="btn_cancel", variant="error")
             yield Footer()
         return super().compose()
@@ -67,11 +76,21 @@ class ModalTaskEditScreen(ModalScreen):
         if self.kanban_task:
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
+            self.query_one("#btn_continue", Button).disabled = False
             self.query_one("#label_header", Label).update("Edit Task")
+
+    @on(Input.Changed, "#input_title")
+    def disable_continue_button(self, event: Input.Changed):
+        self.query_one(
+            "#btn_continue", Button
+        ).disabled = not event.validation_result.is_valid
+        # if event.validation_result:
 
     @on(Button.Pressed, "#btn_continue")
     def action_update_task(self):
         title = self.query_one("#input_title", Input).value
+        if not title:
+            return
         description = self.query_one(TextArea).text
         category = (
             None if self.query_one(Select).is_blank() else self.query_one(Select).value

@@ -1,3 +1,4 @@
+.PHONY: all
 MAKE               := make --no-print-directory
 RUN 			   := uv run
 
@@ -38,10 +39,12 @@ major:
 
 
 # -- Testing ---
-.PHONY: test
 test:
 	$(RUN) pytest $(ARGS)
 
-#.PHONY: seed
-#seed:
-#	$(run) python tools/seed.py
+check:
+	$(RUN) ruff check . $(ARGS)
+	$(RUN) mypy . $(ARGS)
+
+dev:
+	$(RUN) textual run -c kanban-tui demo --dev

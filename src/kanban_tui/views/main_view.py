@@ -5,10 +5,11 @@ from textual.reactive import reactive
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+
 from rich.text import Text
 from textual import on
 from textual.widget import Widget
-from textual.widgets import TabbedContent, TabPane, Header, Footer
+from textual.widgets import Select, Switch, TabbedContent, TabPane, Header, Footer
 from textual.screen import Screen
 from textual.binding import Binding
 from textual.widgets.tabbed_content import ContentTabs
@@ -44,7 +45,6 @@ class MainView(Screen):
                 yield OverView()
             with TabPane("Settings [yellow on black]^l[/]", id="tab_settings"):
                 yield SettingsView()
-        return super().compose()
 
     def on_mount(self) -> None:
         self.query_one(ContentTabs).can_focus = False
@@ -98,9 +98,12 @@ class MainView(Screen):
                     self.set_timer(delay=0.15, callback=self.app.action_focus_next)
                 self.query_one(SettingsView).config_has_changed = False
             case "tab_overview":
-                if self.query_one("#tabbed_content_overview").active == "tab_plot":
+                if (
+                    self.query_one("#tabbed_content_overview", TabbedContent).active
+                    == "tab_plot"
+                ):
                     await self.query_one(OverViewPlot).update_plot_by_filters()
-                    self.query_one("#switch_plot_category_detail").focus()
+                    self.query_one("#switch_plot_category_detail", Switch).focus()
                 else:
                     overview_log = self.query_one(OverViewLog)
                     self.query_one(LogTable).load_events(
@@ -109,7 +112,7 @@ class MainView(Screen):
                         time=overview_log.active_timestamp,
                     )
 
-                    self.query_one("#select_logdate_filter").focus()
+                    self.query_one("#select_logdate_filter", Select).focus()
             case "tab_settings":
                 self.query_one(SettingsView).refresh(recompose=True)
-                self.set_timer(delay=0.25, callback=self.app.action_focus_next)
+                self.set_timer(delay=0.15, callback=self.app.action_focus_next)
