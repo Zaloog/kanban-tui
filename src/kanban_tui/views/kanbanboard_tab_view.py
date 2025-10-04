@@ -275,8 +275,8 @@ class KanbanBoard(HorizontalScroll):
     @on(MouseUp)
     async def drop_pseudo_task(self, event: MouseUp):
         if all((self.mouse_down, (self.target_column is not None))):
-            self.mouse_down = False
             await self.action_confirm_move()
+        self.mouse_down = False
 
     @on(MouseMove)
     def move_pseudo_task(self, event: MouseMove):

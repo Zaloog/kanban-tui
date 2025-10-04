@@ -226,7 +226,9 @@ async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
         # 3 in ready, 1 in doing, 1 in done
         assert isinstance(pilot.app.focused, TaskCard)
         await pilot.mouse_down(pilot.app.focused)
+        assert pilot.app.screen.query_one(KanbanBoard).mouse_down
         await pilot.mouse_up(pilot.app.screen.query_one(Column))
+        assert not pilot.app.screen.query_one(KanbanBoard).mouse_down
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
@@ -238,7 +240,9 @@ async def test_kanbanboard_card_movement_mouse_different_column(test_app: Kanban
         # 3 in ready, 1 in doing, 1 in done
         assert isinstance(pilot.app.focused, TaskCard)
         await pilot.mouse_down(pilot.app.focused)
+        assert pilot.app.screen.query_one(KanbanBoard).mouse_down
         await pilot.mouse_up(pilot.app.screen.query(Column).last())
+        assert not pilot.app.screen.query_one(KanbanBoard).mouse_down
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 3
         assert pilot.app.focused.row == 1
