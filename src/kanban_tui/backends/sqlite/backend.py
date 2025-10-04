@@ -5,6 +5,8 @@ from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
 from kanban_tui.config import SqliteBackendSettings
 from kanban_tui.backends.sqlite.database import (
+    create_new_board_db,
+    delete_board_db,
     get_all_boards_db,
     get_all_tasks_on_board_db,
     get_all_columns_on_board_db,
@@ -26,11 +28,24 @@ class SqliteBackend(Backend):
             board_id=board_id,
         )
 
-    def get_tasks(self) -> list[Task]:
+    def get_tasks_on_active_board(self) -> list[Task]:
         return get_all_tasks_on_board_db(
             database=self.database_path,
             board_id=self.active_board.board_id,
         )
+
+    def create_new_board(
+        self, icon: str | None, name: str, column_dict: dict[str, bool] | None = None
+    ):
+        create_new_board_db(
+            icon=icon,
+            name=name,
+            column_dict=column_dict,
+            database=self.database_path,
+        )
+
+    def delete_board(self, board_id: int):
+        delete_board_db(board_id=board_id, database=self.database_path)
 
     @property
     def active_board(self) -> Board:

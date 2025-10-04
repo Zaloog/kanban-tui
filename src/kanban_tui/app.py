@@ -66,10 +66,18 @@ class KanbanTui(App):
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
+
+    def watch_board_list(self):
         self.active_board = self.backend.active_board
-        # After boards got updated and active board
-        # is set, also updates tasks and columns
-        self.update_column_list()
+
+    def watch_active_board(self):
+        if self.active_board:
+            self.app.config.set_active_board(
+                new_active_board_id=self.active_board.board_id
+            )
+            self.update_column_list()
+
+    def watch_column_list(self):
         self.update_task_list()
 
     def watch_theme(self, theme: str):
@@ -77,11 +85,13 @@ class KanbanTui(App):
 
     async def action_refresh(self):
         self.update_board_list()
+        self.watch_active_board()
+        self.watch_column_list()
         active_tab = self.screen.query_one(TabbedContent).active_pane.id
         await self.screen.refresh_board(event=active_tab)
 
     def update_task_list(self):
-        self.task_list = self.backend.get_tasks()
+        self.task_list = self.backend.get_tasks_on_active_board()
 
     def update_column_list(self):
         self.column_list = self.backend.get_columns()

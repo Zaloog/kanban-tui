@@ -534,9 +534,11 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
 def create_new_board_db(
     name: str,
     icon: str | None = None,
-    column_dict: dict[str, bool] = DEFAULT_COLUMN_DICT,
+    column_dict: dict[str, bool] | None = None,
     database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
+    if column_dict is None:
+        column_dict = DEFAULT_COLUMN_DICT
     board_dict = {
         "name": name,
         "icon": icon,

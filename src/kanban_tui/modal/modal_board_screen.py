@@ -22,8 +22,6 @@ from kanban_tui.widgets.modal_board_widgets import (
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.backends.sqlite.database import (
     update_board_entry_db,
-    create_new_board_db,
-    delete_board_db,
 )
 
 
@@ -115,6 +113,7 @@ class ModalNewBoardScreen(ModalScreen):
                 icon=self.kanban_board.icon,
                 database=self.app.config.backend.sqlite_settings.database_path,
             )
+            self.dismiss(result=None)
         else:
             new_board_name = self.query_exactly_one("#input_board_name", Input).value
             new_board_icon = self.query_exactly_one("#input_board_icon", Input).value
@@ -122,26 +121,20 @@ class ModalNewBoardScreen(ModalScreen):
                 new_board_icon = f":{new_board_icon}:"
 
             if self.query_exactly_one("#switch_use_default_columns").value:
-                create_new_board_db(
-                    name=new_board_name,
-                    icon=new_board_icon,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
+                custom_columns_dict = None
             else:
-                custom_columns = self.query_exactly_one(CustomColumnList).children
-                create_new_board_db(
-                    name=new_board_name,
-                    icon=new_board_icon,
-                    column_dict={
-                        col.column_name: True
-                        for col in custom_columns
-                        if col.column_name
-                    },
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
+                custom_columns_dict = self.query_exactly_one(
+                    CustomColumnList
+                ).column_dict
+
+            self.app.backend.create_new_board(
+                icon=new_board_icon,
+                name=new_board_name,
+                column_dict=custom_columns_dict,
+            )
 
             self.app.update_board_list()
-        self.dismiss(result=None)
+            self.dismiss(result=len(self.app.task_list))
 
     @on(Button.Pressed, "#btn_cancel_new_board")
     def cancel_new_board(self):
@@ -192,7 +185,7 @@ class ModalBoardOverviewScreen(ModalScreen):
     def compose(self) -> Iterable[Widget]:
         with Vertical():
             yield Label("Your Boards", id="label_header")
-            yield BoardList(boards=self.app.board_list)
+            yield BoardList()
             yield Button(
                 "New Board",
                 id="btn_create_board",
@@ -213,22 +206,21 @@ class ModalBoardOverviewScreen(ModalScreen):
             callback=self.update_board_listview,
         )
 
-    def action_copy_board(self) -> None:
+    async def action_copy_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
         highlighted_board = highlighted.board
         highlighted_board_cols = self.app.backend.get_columns(
             board_id=highlighted_board.board_id
         )
 
-        create_new_board_db(
+        self.app.backend.create_new_board(
             name=f"{highlighted_board.name}_copy",
             icon=highlighted_board.icon,
             column_dict={col.name: col.visible for col in highlighted_board_cols},
-            database=self.app.config.backend.sqlite_settings.database_path,
         )
 
         self.app.update_board_list()
-        self.update_board_listview()
+        await self.update_board_listview(len(self.app.board_list))
 
     def action_delete_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
@@ -252,29 +244,24 @@ class ModalBoardOverviewScreen(ModalScreen):
             callback=self.from_modal_delete_board,
         )
 
-    def from_modal_delete_board(self, delete_yn: bool) -> None:
+    async def from_modal_delete_board(self, delete_yn: bool) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
 
         if highlighted is None:
             return
         highlighted_board = highlighted.board
         if delete_yn:
-            delete_board_db(
+            self.app.backend.delete_board(
                 board_id=highlighted_board.board_id,
-                database=self.app.config.backend.sqlite_settings.database_path,
             )
             self.app.update_board_list()
-            self.refresh(recompose=True)
+            await self.update_board_listview()
 
     @on(ListView.Selected, "#board_list")
     def activate_board(self, event: ListView.Selected):
-        active_board_id = self.app.board_list[event.list_view.index].board_id
-        self.app.config.set_active_board(new_active_board_id=active_board_id)
-        self.app.update_board_list()
+        self.app.active_board = self.app.board_list[event.list_view.index]
         self.dismiss(True)
 
-    def update_board_listview(self, result: None = None):
-        self.refresh(recompose=True)
-
-    # def action_close_boards(self):
-    #     self.dismiss(True)
+    async def update_board_listview(self, item_to_hightlight: int | None = None):
+        current_index = item_to_hightlight or self.query_one(ListView).index
+        await self.query_one(BoardList).populate_widget(current_index)
