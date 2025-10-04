@@ -102,6 +102,7 @@ class CustomColumnList(VerticalScroll):
 
     def on_mount(self):
         self.mount(NewColumnItem())
+        self.display = False
 
     @on(Input.Changed)
     def add_new_empty_column(self, event: Input.Changed):

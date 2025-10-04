@@ -47,8 +47,7 @@ class ModalNewBoardScreen(ModalScreen):
         self.query_exactly_one("#input_board_icon", Input).border_title = "Icon"
         self.query_exactly_one("#input_board_name", Input).border_title = "Board Name"
         self.query_exactly_one("#static_preview_icon", Static).border_title = "Preview"
-        self.query_one(CustomColumnList).display = False
-        # return super()._on_mount(event)
+        # self.query_one(CustomColumnList).display = False
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():
