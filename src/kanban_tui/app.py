@@ -68,7 +68,7 @@ class KanbanTui(App):
         self.board_list = self.backend.get_boards()
         self.active_board = self.backend.active_board
         # After boards got updated and active board
-        # is set, also updates tasks
+        # is set, also updates tasks and columns
         self.update_column_list()
         self.update_task_list()
 

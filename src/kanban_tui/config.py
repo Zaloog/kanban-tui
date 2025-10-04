@@ -1,7 +1,8 @@
 import os
 from contextvars import ContextVar
-from typing import Literal, Type
+from typing import Type
 from pathlib import Path
+from enum import StrEnum
 
 import tomli_w
 from pydantic import BaseModel, Field
@@ -17,6 +18,17 @@ from kanban_tui.constants import (
 )
 
 
+class Backends(StrEnum):
+    SQLITE = "sqlite"
+    JIRA = "jira"
+    CUSTOM = "custom"
+
+
+class MovementModes(StrEnum):
+    ADJACENT = "adjacent"
+    JUMP = "jump"
+
+
 class BoardSettings(BaseModel):
     theme: str = Field(default="dracula")
     columns_in_view: int = Field(default=3)
@@ -25,7 +37,7 @@ class BoardSettings(BaseModel):
 class TaskSettings(BaseModel):
     default_color: str = Field(default="#004578")
     always_expanded: bool = Field(default=False)
-    movement_mode: Literal["jump", "adjacent"] = Field(default="adjacent")
+    movement_mode: MovementModes = Field(default=MovementModes.ADJACENT)
 
 
 class JiraBackendSettings(BaseModel):
@@ -40,7 +52,7 @@ class SqliteBackendSettings(BaseModel):
 
 
 class BackendSettings(BaseModel):
-    mode: Literal["sqlite", "jira"] = Field(default="sqlite")
+    mode: Backends = Field(default=Backends.SQLITE)
     sqlite_settings: SqliteBackendSettings = Field(
         default_factory=SqliteBackendSettings
     )
@@ -68,19 +80,15 @@ class Settings(BaseSettings):
         self.task.default_color = new_color
         self.save()
 
-    def set_task_movement_mode(self, new_mode: Literal["jump", "adjacent"]) -> None:
+    def set_task_movement_mode(self, new_mode: MovementModes) -> None:
         self.task.movement_mode = new_mode
         self.save()
 
-    def set_backend(self, new_backend: Literal["sqlite", "jira"]) -> None:
+    def set_backend(self, new_backend: Backends) -> None:
         self.backend.mode = new_backend
         self.save()
 
-    # def set_no_category_task_color(self, new_color: str) -> None:
-    #     self.no_category_task_color = new_color
-    #     self.config["kanban.settings"]["no_category_task_color"] = new_color
-    #     self.save()
-    #
+    # TODO
     # def add_category(self, category: str, color: str) -> None:
     #     self.category_color_dict[category] = color
     #     self.save()
@@ -92,11 +100,6 @@ class Settings(BaseSettings):
     def set_active_board(self, new_active_board_id: int) -> None:
         self.backend.sqlite_settings.active_board_id = new_active_board_id
         self.save()
-
-    # TODO
-    # def add_category(self, category: str, color: str) -> None:
-    #     self.category_color_dict[category] = color
-    #     self.save()
 
     def save(self, path: str = CONFIG_FILE.as_posix()):
         config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")

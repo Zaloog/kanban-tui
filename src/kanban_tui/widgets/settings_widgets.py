@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
+from kanban_tui.config import MovementModes
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 if TYPE_CHECKING:
@@ -17,8 +18,6 @@ from textual.widgets import (
     Select,
     Switch,
     Input,
-    Collapsible,
-    DataTable,
     Rule,
     Button,
     ListView,
@@ -27,7 +26,7 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical
 from rich.text import Text
 
-from kanban_tui.modal.modal_color_pick import ColorTable, TitleInput
+from kanban_tui.modal.modal_color_pick import TitleInput
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
@@ -46,22 +45,16 @@ class DataBasePathInput(Horizontal):
 
     def on_mount(self):
         self.border_title = "database.database_path [yellow on black]^d[/]"
-        with self.prevent(Input.Changed):
-            self.get_database_path_config_value()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Database File")
         with self.prevent(Input.Changed):
             yield Input(
+                value=self.app.config.backend.sqlite_settings.database_path,
                 select_on_focus=False,
                 id="input_database_path",
             )
         return super().compose()
-
-    def get_database_path_config_value(self):
-        self.query_one(
-            Input
-        ).value = self.app.config.backend.sqlite_settings.database_path
 
 
 class TaskMovementSelector(Horizontal):
@@ -74,13 +67,14 @@ class TaskMovementSelector(Horizontal):
         yield Label("Task movement_mode")
         with self.prevent(Select.Changed):
             yield VimSelect.from_values(
-                ["adjacent", "jump"],
+                MovementModes,
                 value=self.app.config.task.movement_mode,
                 id="select_movement_mode",
                 allow_blank=False,
             )
 
-    def on_select_changed(self, event: Select.Changed):
+    @on(Select.Changed)
+    def update_config(self, event: Select.Changed):
         self.app.config.set_task_movement_mode(new_mode=event.value)
 
 
@@ -100,7 +94,8 @@ class BoardColumnsInView(Horizontal):
                 allow_blank=False,
             )
 
-    def on_select_changed(self, event: Select.Changed):
+    @on(Select.Changed)
+    def update_config(self, event: Select.Changed):
         self.app.config.set_columns_in_view(event.select.value)
 
 
@@ -117,38 +112,24 @@ class TaskAlwaysExpandedSwitch(Horizontal):
         )
         return super().compose()
 
-    def on_switch_changed(self, event: Switch.Changed):
+    @on(Switch.Changed)
+    def update_config(self, event: Switch.Changed):
         self.app.config.set_task_always_expanded(new_value=event.value)
 
 
-class DefaultTaskColorSelector(Vertical):
+class DefaultTaskColorSelector(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self) -> None:
-        with self.prevent(Input.Changed):
-            self.get_no_category_task_color_config_value()
-        self.border_title = "kanban.settings.default_task_color [yellow on black]^g[/]"
+        self.query_one(TitleInput).background = self.app.config.task.default_color
+        self.border_title = "task.default_color [yellow on black]^g[/]"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Default Task Color")
-        with Horizontal():
-            with self.prevent(Input.Changed):
-                yield TitleInput(id="task_color_preview")
-            with Collapsible(title="Pick Color"):
-                with self.prevent(DataTable.CellHighlighted):
-                    yield ColorTable()
-
-        return super().compose()
-
-    def get_no_category_task_color_config_value(self):
-        self.query_one(TitleInput).value = self.app.config.task.default_color
-        self.query_one(TitleInput).background = self.app.config.task.default_color
-
-    @on(DataTable.CellHighlighted)
-    def change_input_str_on_color_pick(self, event: DataTable.CellHighlighted):
-        self.query_one(TitleInput).value = event.data_table.get_cell_at(
-            event.coordinate
-        ).color_value
+        with self.prevent(Input.Changed):  # prevent config change on init
+            yield TitleInput(
+                value=self.app.config.task.default_color, id="task_color_preview"
+            )
 
     @on(Input.Changed)
     def update_input_color(self, event: Input.Changed):
@@ -193,7 +174,8 @@ class AddRule(Rule):
         yield Button("+")
         return super().compose()
 
-    def on_button_pressed(self):
+    @on(Button.Pressed)
+    def send_message_to_add_column(self):
         self.post_message(self.Pressed(self))
 
 
@@ -227,7 +209,8 @@ class ColumnListItem(ListItem):
             )
         yield AddRule(column=self.column)
 
-    def on_button_pressed(self, event: Button.Pressed):
+    @on(Button.Pressed)
+    def trigger_column_delete(self, event: Button.Pressed):
         if event.button.id:
             self.post_message(self.Deleted(self))
 
@@ -350,12 +333,6 @@ class ColumnSelector(ListView):
                 self.index = event.addrule.position + 1
                 self.amount_visible += 1
 
-                # self.notify(
-                #     title="Columns Updated",
-                #     message=f"Column [blue]{column_name}[/] created",
-                #     timeout=2,
-                # )
-
         self.app.push_screen(
             ModalUpdateColumnScreen(event=event), callback=modal_add_new_column
         )
@@ -372,12 +349,7 @@ class ColumnSelector(ListView):
             len([task for task in self.app.task_list if task.column == column_name])
             != 0
         ):
-            self.notify(
-                title="Column not empty",
-                message=f"Remove all tasks in column [blue]{column_name}[/] before deletion",
-                timeout=1,
-                severity="error",
-            )
+            self.send_error_notify(column_name)
             return
 
         async def modal_delete_column(
@@ -409,6 +381,14 @@ class ColumnSelector(ListView):
         self.app.push_screen(
             ModalConfirmScreen(text=f"Delete Column [blue]{column_name}[/]"),
             callback=lambda x: modal_delete_column(event=event, delete_yn=x),
+        )
+
+    def send_error_notify(self, column_name: str):
+        self.notify(
+            title="Column not empty",
+            message=f"Remove all tasks in column [blue]{column_name}[/] before deletion",
+            timeout=1,
+            severity="error",
         )
 
     def watch_amount_visible(self):

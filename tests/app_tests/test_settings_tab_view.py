@@ -1,6 +1,7 @@
 import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Select, Switch, Button
+from kanban_tui.config import MovementModes
 from kanban_tui.views.main_view import MainView, SettingsView
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.widgets.settings_widgets import (
@@ -62,20 +63,20 @@ async def test_task_movement_mode(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
 
-        assert pilot.app.config.task.movement_mode == "adjacent"
+        assert pilot.app.config.task.movement_mode == MovementModes.ADJACENT
         assert (
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
-            == "adjacent"
+            == MovementModes.ADJACENT
         )
 
         # change Value
         await pilot.click("#select_movement_mode")
         await pilot.press("down")
         await pilot.press("enter")
-        assert pilot.app.config.task.movement_mode == "jump"
+        assert pilot.app.config.task.movement_mode == MovementModes.JUMP
         assert (
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
-            == "jump"
+            == MovementModes.JUMP
         )
         assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
 
