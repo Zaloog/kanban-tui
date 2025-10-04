@@ -64,14 +64,14 @@ class SettingsView(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput(classes="setting-block")
-        with Horizontal(id="horizontal_expand_movement"):
+        with Horizontal(classes="setting-horizontal"):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
             yield TaskMovementSelector(classes="setting-block")
+        with Horizontal(classes="setting-horizontal"):
+            yield DefaultTaskColorSelector(classes="setting-block")
             yield BoardColumnsInView(classes="setting-block")
-        with Horizontal(id="horizontal_color_column_selector"):
-            with Vertical(id="vertical_column_status"):
-                yield DefaultTaskColorSelector(classes="setting-block")
-                yield StatusColumnSelector(classes="setting-block")
+        with Horizontal(classes="setting-horizontal"):
+            yield StatusColumnSelector(classes="setting-block")
             yield ColumnSelector(classes="setting-block")
 
     @on(Input.Changed)

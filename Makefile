@@ -46,6 +46,5 @@ check:
 	$(RUN) ruff check . $(ARGS)
 	$(RUN) mypy . $(ARGS)
 
-#.PHONY: seed
-#seed:
-#	$(run) python tools/seed.py
+dev:
+	$(RUN) textual run -c kanban-tui --dev

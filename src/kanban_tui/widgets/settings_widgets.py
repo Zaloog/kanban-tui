@@ -427,7 +427,7 @@ class StatusColumnSelector(Vertical):
             self.get_select_widget_values()
 
     def compose(self) -> Iterable[Widget]:
-        with Horizontal():
+        with Horizontal(classes="setting-horizontal"):
             yield Label("Reset")
             yield VimSelect(
                 [
@@ -438,7 +438,7 @@ class StatusColumnSelector(Vertical):
                 prompt="No reset column",
                 id="select_reset",
             )
-        with Horizontal():
+        with Horizontal(classes="setting-horizontal"):
             yield Label("Start")
             yield VimSelect(
                 [
@@ -449,7 +449,7 @@ class StatusColumnSelector(Vertical):
                 prompt="No start column",
                 id="select_start",
             )
-        with Horizontal():
+        with Horizontal(classes="setting-horizontal"):
             yield Label("Finish")
             yield VimSelect(
                 [

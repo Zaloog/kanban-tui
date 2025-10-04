@@ -485,7 +485,6 @@ DefaultTaskColorSelector{
 
   Label{
       width: 1fr;
-      text-align: center;
       padding:1 0 0 1;
   }
   TitleInput{
@@ -495,7 +494,7 @@ DefaultTaskColorSelector{
   }
 }
 StatusColumnSelector {
-    height:1fr;
+    height: auto;
     Label {
         width:1fr;
         padding: 1 0 0 1;
@@ -503,7 +502,8 @@ StatusColumnSelector {
 
 }
 ColumnSelector{
-    height:1fr;
+    height: auto;
+    max-height: 16;
     width:1fr;
     margin:0;
 }
@@ -611,6 +611,9 @@ AddRule Button{
 }
 
 # Classes
+.setting-horizontal{
+  height: auto;
+}
 .setting-block {
   border:$success;
 
