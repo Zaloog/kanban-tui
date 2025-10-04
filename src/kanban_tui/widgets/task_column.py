@@ -23,10 +23,9 @@ class Column(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield Label(Text.from_markup(self.title), id=f"label_{self.id}")
-        yield VerticalScroll(id=f"vscroll_{self.id}")
+        yield VerticalScroll(id=f"vscroll_{self.id}", can_focus=False)
 
     async def on_mount(self) -> None:
-        self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False
         for task in self.task_list:
             await self.place_task(task=task)
         self.border_title = "move task here"
