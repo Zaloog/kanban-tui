@@ -64,6 +64,7 @@ class SqliteBackend(Backend):
     def update_task_status(self, new_task: Task):
         update_task_status_db(
             task=new_task,
+            database=self.database_path,
         )
 
     def delete_task(self, task_id: int):
