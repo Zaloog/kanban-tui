@@ -19,8 +19,6 @@ from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.backends.sqlite.database import delete_task_db
-
 from kanban_tui.classes.task import Task
 
 
@@ -235,27 +233,23 @@ class KanbanBoard(HorizontalScroll):
         await self.query_one(
             f"#column_{event.taskcard.task_.column}", Column
         ).remove_task(task=event.taskcard.task_)
-        # TODO
-        delete_task_db(
-            task_id=event.taskcard.task_.task_id,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
+        self.app.backend.delete_task(task_id=event.taskcard.task_.task_id)
         self.app.update_task_list()
 
     @on(MouseDown)
-    def lift_pseudo_task(self, event: MouseDown):
+    def lift_task(self, event: MouseDown):
         for taskcard in self.query(TaskCard):
             if taskcard.region.contains_point(event.screen_offset):
                 self.mouse_down = True
 
     @on(MouseUp)
-    async def drop_pseudo_task(self, event: MouseUp):
+    async def drop_task(self, event: MouseUp):
         if all((self.mouse_down, (self.target_column is not None))):
             await self.action_confirm_move()
         self.mouse_down = False
 
     @on(MouseMove)
-    def move_pseudo_task(self, event: MouseMove):
+    def move_task(self, event: MouseMove):
         if not self.mouse_down:
             return
         for column in self.query(Column):

@@ -7,6 +7,7 @@ from kanban_tui.config import SqliteBackendSettings
 from kanban_tui.backends.sqlite.database import (
     create_new_board_db,
     delete_board_db,
+    delete_task_db,
     get_all_boards_db,
     get_all_tasks_on_board_db,
     get_all_columns_on_board_db,
@@ -63,6 +64,12 @@ class SqliteBackend(Backend):
     def update_task_status(self, new_task: Task):
         update_task_status_db(
             task=new_task,
+        )
+
+    def delete_task(self, task_id: int):
+        delete_task_db(
+            task_id=task_id,
+            database=self.database_path,
         )
 
     @property
