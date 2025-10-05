@@ -1,10 +1,8 @@
 from typing import Iterable, TYPE_CHECKING
 from datetime import datetime
 
-
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
-
 
 from textual import on
 from textual.events import Mount
@@ -17,7 +15,6 @@ from textual.containers import Horizontal, Vertical
 
 from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
-from kanban_tui.backends.sqlite.database import create_new_task_db, update_task_entry_db
 from kanban_tui.widgets.modal_task_widgets import (
     CreationDateInfo,
     CategorySelector,
@@ -103,17 +100,12 @@ class ModalTaskEditScreen(ModalScreen):
 
         if not self.kanban_task:
             # create new task
-            create_new_task_db(
+            self.app.backend.create_new_task(
                 title=title,
                 description=description,
-                column=list(self.app.visible_column_dict.keys())[0],
-                start_date=datetime.now()
-                if (list(self.app.visible_column_dict.keys())[0] == "Doing")
-                else None,
+                column=next(self.app.visible_column_dict),
                 category=category,
                 due_date=due_date,
-                board_id=self.app.config.backend.sqlite_settings.active_board_id,
-                database=self.app.config.backend.sqlite_settings.database_path,
             )
 
             self.app.update_task_list()
@@ -131,13 +123,12 @@ class ModalTaskEditScreen(ModalScreen):
             self.kanban_task.description = description
             self.kanban_task.category = category
 
-            update_task_entry_db(
+            self.app.backend.update_task_entry(
                 task_id=self.kanban_task.task_id,
                 title=self.kanban_task.title,
-                due_date=self.kanban_task.due_date,
                 description=self.kanban_task.description,
                 category=self.kanban_task.category,
-                database=self.app.config.backend.sqlite_settings.database_path,
+                due_date=self.kanban_task.due_date,
             )
 
             self.dismiss(result=self.kanban_task)

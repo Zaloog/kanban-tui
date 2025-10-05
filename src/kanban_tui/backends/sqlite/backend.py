@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from datetime import datetime
+
 from kanban_tui.backends.base import Backend
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
@@ -6,12 +8,14 @@ from kanban_tui.classes.task import Task
 from kanban_tui.config import SqliteBackendSettings
 from kanban_tui.backends.sqlite.database import (
     create_new_board_db,
+    create_new_task_db,
     delete_board_db,
     delete_task_db,
     get_all_boards_db,
     get_all_tasks_on_board_db,
     get_all_columns_on_board_db,
     update_board_entry_db,
+    update_task_entry_db,
     update_task_status_db,
 )
 
@@ -61,9 +65,44 @@ class SqliteBackend(Backend):
         )
 
     # Task Management
+    def create_new_task(
+        self,
+        title: str,
+        description: str,
+        column: int,
+        category: str,
+        due_date: datetime,
+    ):
+        create_new_task_db(
+            title=title,
+            description=description,
+            column=column,
+            category=category,
+            due_date=due_date,
+            board_id=self.settings.active_board_id,
+            database=self.database_path,
+        )
+
     def update_task_status(self, new_task: Task):
         update_task_status_db(
             task=new_task,
+            database=self.database_path,
+        )
+
+    def update_task_entry(
+        self,
+        task_id: int,
+        title: str,
+        description: str,
+        category: str,
+        due_date: datetime,
+    ):
+        update_task_entry_db(
+            task_id=task_id,
+            title=title,
+            description=description,
+            category=category,
+            due_date=due_date,
             database=self.database_path,
         )
 
