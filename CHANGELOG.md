@@ -7,7 +7,8 @@
     - `jump` shows the column to jump to and can confirm move with enter
 - Added new config value `columns_in_view` to change the amount of visible columns on board
 which makes the board is now horizontally scrollable
-- Added vim bindings to Select Navigation
+- Added vim bindings to all Select Navigation
+- Added Task Card Movement via Mouse Drag n Drop
 
 ### Fixed
 - Fixed focus bug if no visible tasks are on board (due to column visibility change)
