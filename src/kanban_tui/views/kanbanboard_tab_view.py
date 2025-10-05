@@ -278,7 +278,7 @@ class KanbanBoard(HorizontalScroll):
         else:
             self.can_focus = False
 
-    # Filter Stuff, to be implemented
+    # TODO Filter Stuff, to be implemented
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)
         # open filter
