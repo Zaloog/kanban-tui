@@ -19,7 +19,7 @@ from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.backends.sqlite.database import update_task_db, delete_task_db
+from kanban_tui.backends.sqlite.database import delete_task_db
 
 from kanban_tui.classes.task import Task
 
@@ -196,7 +196,8 @@ class KanbanBoard(HorizontalScroll):
         else:
             self.timer.reset()
 
-    async def action_confirm_move(self):
+    @on(TaskCard.Moved)
+    async def action_confirm_move(self, event: TaskCard.Moved | None = None):
         # BUG Fix for None Column
         self.app.app_focus = False
 
@@ -209,14 +210,12 @@ class KanbanBoard(HorizontalScroll):
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)
 
-        self.selected_task.column = self.target_column
+        # Handles both movement modes
+        self.selected_task.column = event.new_column if event else self.target_column
 
-        update_task_db(
-            task=self.selected_task,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
+        self.app.backend.update_task_status(new_task=self.selected_task)
 
-        await self.query_one(f"#column_{self.target_column}", Column).place_task(
+        await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
             self.selected_task
         )
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
@@ -231,35 +230,12 @@ class KanbanBoard(HorizontalScroll):
                 return False
         return True
 
-    @on(TaskCard.Moved)
-    async def move_card_to_other_column(self, event: TaskCard.Moved):
-        # remove focus and give focus back to same task in new column
-        self.app.app_focus = False
-
-        await self.query_one(
-            f"#column_{self.selected_task.column}", Column
-        ).remove_task(self.selected_task)
-
-        self.selected_task.column = event.new_column
-        update_task_db(
-            task=self.selected_task,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
-
-        await self.query_one(f"#column_{event.new_column}", Column).place_task(
-            self.selected_task
-        )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
-
-        self.app.app_focus = True
-        self.app.update_task_list()
-
     @on(TaskCard.Delete)
     async def delete_task(self, event: TaskCard.Delete):
-        # TODO L
         await self.query_one(
             f"#column_{event.taskcard.task_.column}", Column
         ).remove_task(task=event.taskcard.task_)
+        # TODO
         delete_task_db(
             task_id=event.taskcard.task_.task_id,
             database=self.app.config.backend.sqlite_settings.database_path,

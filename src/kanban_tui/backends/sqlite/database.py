@@ -785,7 +785,9 @@ def get_all_boards_db(
 
 
 # After column Movement
-def update_task_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> int | str:
+def update_task_status_db(
+    task: Task, database: str = DATABASE_FILE.as_posix()
+) -> int | str:
     new_start_date_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
