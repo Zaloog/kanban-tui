@@ -103,7 +103,7 @@ class ModalTaskEditScreen(ModalScreen):
             self.app.backend.create_new_task(
                 title=title,
                 description=description,
-                column=next(self.app.visible_column_dict),
+                column=next(iter(self.app.visible_column_dict)),
                 category=category,
                 due_date=due_date,
             )
