@@ -99,7 +99,6 @@ class TaskCard(Vertical):
         self.task_ = task
 
     def compose(self) -> ComposeResult:
-        self.notify("refresh")
         yield Label(self.task_.title, classes="label-title")
         yield Rule(classes="rules-taskinfo-separator")
         yield Label(self.get_creation_date_str(), classes="label-infos")
@@ -176,7 +175,6 @@ class TaskCard(Vertical):
             case "right":
                 new_column_id = self.app.get_possible_next_column_id(current_column_id)
 
-        # TODO Update Status based on defined reset/start/done column
         self.update_task_status_on_move(new_column_id)
         self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 

@@ -33,9 +33,9 @@ class ModalTaskEditScreen(ModalScreen):
         Binding("ctrl+j", "update_task", "Save/Edit Task", priority=True),
     ]
 
-    def __init__(self, task: Task | None = None) -> None:
+    def __init__(self, task: Task | None = None, *args, **kwargs) -> None:
         self.kanban_task = task
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical(id="vertical_modal"):
