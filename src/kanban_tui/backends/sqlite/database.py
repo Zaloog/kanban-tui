@@ -605,7 +605,7 @@ def create_new_task_db(
     due_date: datetime.datetime | None = None,
     time_worked_on: int = 0,
     database: str = DATABASE_FILE.as_posix(),
-) -> str | int:
+) -> Task:
     task_dict = {
         "title": title,
         "column": column,
@@ -633,18 +633,19 @@ def create_new_task_db(
         :due_date,
         :time_worked_on,
         :board_id
-        );"""
+        )
+        RETURNING *
+        ;"""
 
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
-            con.execute(transaction_str, task_dict)
+            new_task = con.execute(transaction_str, task_dict).fetchone()
             con.commit()
-            return 0
+            return new_task
         except sqlite3.Error as e:
             con.rollback()
             raise e
-            return e.sqlite_errorname
 
 
 def create_new_column_db(
@@ -678,7 +679,6 @@ def create_new_column_db(
         except sqlite3.Error as e:
             con.rollback()
             raise e
-            return e.sqlite_errorname
 
 
 def get_all_tasks_on_board_db(
@@ -902,7 +902,7 @@ def update_task_entry_db(
     description: str | None = None,
     due_date: datetime.datetime | None = None,
     database: str = DATABASE_FILE.as_posix(),
-) -> str | int:
+) -> Task:
     update_task_dict = {
         "task_id": task_id,
         "title": title,
@@ -918,15 +918,16 @@ def update_task_entry_db(
         category = :category,
         description = :description,
         due_date = :due_date
-    WHERE task_id = :task_id;
+    WHERE task_id = :task_id
+    RETURNING *;
     """
 
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
-            con.execute(transaction_str, update_task_dict)
+            (updated_task,) = con.execute(transaction_str, update_task_dict)
             con.commit()
-            return 0
+            return updated_task
         except sqlite3.Error as e:
             con.rollback()
             raise e

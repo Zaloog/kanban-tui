@@ -100,7 +100,7 @@ class ModalTaskEditScreen(ModalScreen):
 
         if not self.kanban_task:
             # create new task
-            self.app.backend.create_new_task(
+            new_task = self.app.backend.create_new_task(
                 title=title,
                 description=description,
                 column=next(iter(self.app.visible_column_dict)),
@@ -109,29 +109,25 @@ class ModalTaskEditScreen(ModalScreen):
             )
 
             self.app.update_task_list()
-            self.dismiss(result=self.app.task_list[-1])
+            self.dismiss(result=new_task)
 
         else:
             self.kanban_task.title = title
-            if due_date is not None:
-                self.kanban_task.due_date = datetime.fromisoformat(due_date)
-                self.kanban_task.days_left = self.kanban_task.get_days_left_till_due()
-            else:
-                self.kanban_task.due_date = None
-                self.kanban_task.days_left = self.kanban_task.get_days_left_till_due()
+            self.kanban_task.due_date = (
+                datetime.fromisoformat(due_date) if due_date else None
+            )
 
             self.kanban_task.description = description
             self.kanban_task.category = category
 
-            self.app.backend.update_task_entry(
+            updated_task = self.app.backend.update_task_entry(
                 task_id=self.kanban_task.task_id,
                 title=self.kanban_task.title,
                 description=self.kanban_task.description,
                 category=self.kanban_task.category,
                 due_date=self.kanban_task.due_date,
             )
-
-            self.dismiss(result=self.kanban_task)
+            self.dismiss(result=updated_task)
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):

@@ -72,8 +72,8 @@ class SqliteBackend(Backend):
         column: int,
         category: str,
         due_date: datetime,
-    ):
-        create_new_task_db(
+    ) -> Task:
+        return create_new_task_db(
             title=title,
             description=description,
             column=column,
@@ -96,8 +96,8 @@ class SqliteBackend(Backend):
         description: str,
         category: str,
         due_date: datetime,
-    ):
-        update_task_entry_db(
+    ) -> Task:
+        return update_task_entry_db(
             task_id=task_id,
             title=title,
             description=description,

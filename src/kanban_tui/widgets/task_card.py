@@ -31,9 +31,7 @@ class TaskCard(Vertical):
     app: "KanbanTui"
     expanded: reactive[bool] = reactive(False, bindings=True)
     mouse_down: reactive[bool] = reactive(False)
-    task_: reactive[Task | None] = reactive(
-        None, bindings=True, recompose=True, init=False
-    )
+    task_: reactive[Task | None] = reactive(None, bindings=True, init=False)
 
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
@@ -101,6 +99,7 @@ class TaskCard(Vertical):
         self.task_ = task
 
     def compose(self) -> ComposeResult:
+        self.notify("refresh")
         yield Label(self.task_.title, classes="label-title")
         yield Rule(classes="rules-taskinfo-separator")
         yield Label(self.get_creation_date_str(), classes="label-infos")
