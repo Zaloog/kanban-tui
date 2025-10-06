@@ -581,6 +581,9 @@ DatePicker DayLabel:focus {
     background:$success;
     color:auto;
 }
+DatePicker MonthControl {
+  border: none;
+}
 
 ColumnListItem{
     height:4;

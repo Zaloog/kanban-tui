@@ -64,7 +64,10 @@ class CustomDateSelect(DateSelect):
         super().__init__(picker_mount, date, format, placeholder, name, id, classes)
         self.dialog = CustomDatePickerDialog()
         self.dialog.target = self
-        self.app.screen.query_one(self.picker_mount).mount(self.dialog)
+        # self.app.screen.query_one(self.picker_mount).mount(self.dialog)
+
+    async def on_mount(self):
+        await self.app.screen.query_one(self.picker_mount).mount(self.dialog)
 
     def action_show_overlay(self):
         if self.dialog.display:
