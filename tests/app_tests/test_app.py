@@ -4,7 +4,6 @@ from kanban_tui.app import KanbanTui
 from kanban_tui.backends.sqlite.backend import SqliteBackend
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
 from kanban_tui.views.main_view import MainView
-from kanban_tui.backends.sqlite.database import delete_task_db
 
 APP_SIZE = (150, 50)
 
@@ -88,7 +87,7 @@ async def test_app_refresh(
         assert len(pilot.app.task_list) == 5
         assert isinstance(pilot.app.screen, MainView)
 
-        delete_task_db(task_id=1, database=test_database_path)
+        pilot.app.backend.delete_task(task_id=1)
         assert len(pilot.app.task_list) == 5
 
         # refresh app

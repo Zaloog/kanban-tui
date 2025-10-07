@@ -971,7 +971,7 @@ def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> in
 def get_ordered_tasks_db(
     order_by: str,
     database: str = DATABASE_FILE.as_posix(),
-) -> list[dict] | None:
+) -> list[dict]:
     query_str = f"""
     SELECT
         {order_by} as date,
@@ -1056,7 +1056,7 @@ def delete_board_db(
             raise e
 
 
-def get_all_board_infos(
+def get_board_info_dict(
     database: str = DATABASE_FILE.as_posix(),
 ) -> list[dict]:
     query_str = """

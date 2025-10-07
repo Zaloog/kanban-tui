@@ -13,7 +13,6 @@ from textual.widgets import ListView, ListItem, Label, Rule, Button, Input
 from textual.containers import Horizontal, VerticalScroll
 
 from kanban_tui.classes.board import Board
-from kanban_tui.backends.sqlite.database import get_all_board_infos
 from kanban_tui.utils import get_days_left_till_due
 
 
@@ -44,10 +43,7 @@ class BoardList(ListView):
 
     def get_board_list_items(self) -> list[BoardListItem]:
         info_dict = {
-            board["board_id"]: board
-            for board in get_all_board_infos(
-                database=self.app.config.backend.sqlite_settings.database_path
-            )
+            board["board_id"]: board for board in self.app.backend.get_board_infos()
         }
         return [
             BoardListItem(board=board, info_dict=info_dict[board.board_id])

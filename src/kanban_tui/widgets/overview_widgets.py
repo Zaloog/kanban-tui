@@ -4,25 +4,20 @@ from collections import Counter
 
 from textual.reactive import reactive
 
-from kanban_tui.classes.logevent import LogEvent
-
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
-
 
 from rich.text import Text
 from textual.binding import Binding
 from textual.widget import Widget
-from textual.widgets import DataTable, Label, Switch, Select, Button
+from textual.widgets import DataTable, Label, Switch, Button
 from textual_plotext import PlotextPlot
 from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
 
-from kanban_tui.backends.sqlite.database import (
-    get_ordered_tasks_db,
-    get_filtered_events_db,
-)
 from kanban_tui.utils import getrgb, get_time_range
+from kanban_tui.classes.logevent import LogEvent
+from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 
 class TaskPlot(HorizontalScroll):
@@ -44,9 +39,8 @@ class TaskPlot(HorizontalScroll):
         await self.recompose()
         plt = self.query_one(PlotextPlot).plt
 
-        ordered_tasks = get_ordered_tasks_db(
+        ordered_tasks = self.app.backend.get_ordered_tasks(
             order_by=select_amount,
-            database=self.app.config.backend.sqlite_settings.database_path,
         )
         if not ordered_tasks:
             self.query_one(PlotextPlot).styles.width = "1fr"
@@ -97,7 +91,7 @@ class TaskPlot(HorizontalScroll):
 
             # plot
             plt.stacked_bar(
-                plot_values.keys(),
+                list(plot_values.keys()),
                 [
                     category_values.values()
                     for _category, category_values in category_value_dict.items()
@@ -110,9 +104,11 @@ class TaskPlot(HorizontalScroll):
                 ],
                 color=[
                     getrgb(
-                        self.app.cfg.category_color_dict.get(
-                            category, self.app.cfg.no_category_task_color
-                        )
+                        self.app.config.task.default_color
+                        # TODO Add back category functionality
+                        # self.app.cfg.category_color_dict.get(
+                        #     category, self.app.cfg.no_category_task_color
+                        # )
                     )
                     for category, category_values in category_value_dict.items()
                     if sum(category_values.values()) > 0
@@ -240,7 +236,7 @@ class AmountPlotFilter(Vertical):
         return super().compose()
 
 
-class PlotOptionSelector(Select):
+class PlotOptionSelector(VimSelect):
     app: "KanbanTui"
     # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
     BINDINGS = [
@@ -302,7 +298,7 @@ class LogDateFilter(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         yield Label(Text.from_markup(":magnifying_glass_tilted_right: Select Time"))
-        yield Select(
+        yield VimSelect(
             options=[
                 ("all", datetime.datetime(1970, 1, 1)),
                 (
@@ -350,9 +346,8 @@ class LogTable(Vertical):
 
     def load_events(self, events: list[str], objects: list[str], time: str):
         filter_dict = {"events": events, "objects": objects, "time": time}
-        self.events = get_filtered_events_db(
+        self.events = self.app.backend.get_filtered_events(
             filter=filter_dict,
-            database=self.app.config.backend.sqlite_settings.database_path,
         )
 
     def watch_events(self):

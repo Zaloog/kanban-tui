@@ -5,6 +5,7 @@ from kanban_tui.backends.base import Backend
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
+from kanban_tui.classes.logevent import LogEvent
 from kanban_tui.config import SqliteBackendSettings
 from kanban_tui.backends.sqlite.database import (
     create_new_board_db,
@@ -17,6 +18,9 @@ from kanban_tui.backends.sqlite.database import (
     update_board_entry_db,
     update_task_entry_db,
     update_task_status_db,
+    get_board_info_dict,
+    get_ordered_tasks_db,
+    get_filtered_events_db,
 )
 
 
@@ -44,11 +48,14 @@ class SqliteBackend(Backend):
 
     # Board Management
     def create_new_board(
-        self, icon: str | None, name: str, column_dict: dict[str, bool] | None = None
+        self,
+        name: str,
+        icon: str | None = None,
+        column_dict: dict[str, bool] | None = None,
     ):
         create_new_board_db(
-            icon=icon,
             name=name,
+            icon=icon,
             column_dict=column_dict,
             database=self.database_path,
         )
@@ -63,6 +70,9 @@ class SqliteBackend(Backend):
             icon=icon,
             database=self.database_path,
         )
+
+    def get_board_infos(self):
+        return get_board_info_dict(database=self.database_path)
 
     # Task Management
     def create_new_task(
@@ -109,6 +119,22 @@ class SqliteBackend(Backend):
     def delete_task(self, task_id: int):
         delete_task_db(
             task_id=task_id,
+            database=self.database_path,
+        )
+
+    # Plotting
+    def get_ordered_tasks(
+        self,
+        order_by: str,
+    ) -> list[dict]:
+        return get_ordered_tasks_db(
+            order_by=order_by,
+            database=self.database_path,
+        )
+
+    def get_filtered_events(self, filter: dict) -> list[LogEvent]:
+        return get_filtered_events_db(
+            filter=filter,
             database=self.database_path,
         )
 
