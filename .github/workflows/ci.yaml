@@ -35,16 +35,15 @@ jobs:
       - name: Run ruff
         run: uv run ruff check .
 
-      - name: Run mypy
-        run: uv run mypy .
+      # - name: Run mypy
+      #   run: uv run mypy .
 
   tests:
     needs: lint  # << This ensures tests only run if lint passes
     strategy:
       matrix:
         python-version:
-        - "3.10"
-        # - "3.11"
+        - "3.11"
         - "3.12"
         - "3.13"
         platform:

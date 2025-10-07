@@ -55,7 +55,7 @@ class MonthHeader(Static):
         self.renderable = date.strftime(self.format)
 
     def update(self, date: datetime) -> None:
-        super().update(date.strftime(self.format))
+        super().update(content=date.strftime(self.format))
 
     # def on_key(self, event: events.Key) -> None:
     #     if event.key == "enter":

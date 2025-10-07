@@ -12,48 +12,48 @@ from kanban_tui.classes.task import Task
 
 class Column(Vertical):
     task_amount: reactive[int] = reactive(0)
-    task_list: reactive[list[Task]] = reactive([])
+    task_list: list[Task]
 
-    def __init__(self, title: str, id_num: int, tasklist: list[Task] = []) -> None:
+    def __init__(self, title: str, id_num: int, task_list: list[Task] = []) -> None:
         self.title = title
+        self.task_list = task_list
         super().__init__(id=f"column_{id_num}")
-        self.task_list = tasklist
         self.can_focus: bool = False
+        self.styles.width = f"{1 / self.app.config.board.columns_in_view * 100:.2f}%"
 
     def compose(self) -> Iterable[Widget]:
         yield Label(Text.from_markup(self.title), id=f"label_{self.id}")
-        yield VerticalScroll(id=f"vscroll_{self.id}")
-        return super().compose()
+        yield VerticalScroll(id=f"vscroll_{self.id}", can_focus=False)
 
-    def on_mount(self) -> None:
-        self.query_one(f"#vscroll_{self.id}", VerticalScroll).can_focus = False
+    async def on_mount(self) -> None:
         for task in self.task_list:
-            self.place_task(task=task)
+            await self.place_task(task=task)
         self.border_title = "move task here"
 
     def watch_task_amount(self) -> None:
-        if self.task_amount == 0:
-            self.get_child_by_type(Label).update(Text.from_markup(self.title))
-        elif self.task_amount == 1:
-            self.get_child_by_type(Label).update(
-                Text.from_markup(f"{self.title} (1 Task)")
-            )
-        else:
-            self.get_child_by_type(Label).update(
-                Text.from_markup(f"{self.title} ({self.task_amount} Tasks)")
-            )
+        column_label = self.get_child_by_type(Label)
+        match self.task_amount:
+            case 0:
+                column_label.update(Text.from_markup(self.title))
+            case 1:
+                column_label.update(Text.from_markup(f"{self.title} (1 Task)"))
+            case _:
+                column_label.update(
+                    Text.from_markup(f"{self.title} ({self.task_amount} Tasks)")
+                )
 
-    def place_task(self, task: Task) -> None:
+    async def place_task(self, task: Task) -> None:
         card = TaskCard(
             task=task,
             row=self.task_amount,
         )
+        await self.query_one(VerticalScroll).mount(card)
         self.task_amount += 1
-        self.query_one(VerticalScroll).mount(card)
 
     async def remove_task(self, task: Task) -> None:
-        self.task_amount -= 1
         await self.query_one(f"#taskcard_{task.task_id}", TaskCard).remove()
+        self.task_amount -= 1
 
-        for idx, task_card in enumerate(self.query(TaskCard)):
-            task_card.row = idx
+        # Update row attribute of other TaskCards
+        for row_position, task_card in enumerate(self.query(TaskCard)):
+            task_card.row = row_position

@@ -13,7 +13,6 @@ from textual.widgets import ListView, ListItem, Label, Rule, Button, Input
 from textual.containers import Horizontal, VerticalScroll
 
 from kanban_tui.classes.board import Board
-from kanban_tui.backends.sqlite.database import get_all_board_infos
 from kanban_tui.utils import get_days_left_till_due
 
 
@@ -25,27 +24,31 @@ class BoardList(ListView):
         Binding(key="k", action="cursor_up", show=False),
     ]
 
-    def __init__(self, boards: list[Board]) -> None:
-        self.info_dict = {
-            board["board_id"]: board
-            for board in get_all_board_infos(
-                database=self.app.config.backend.sqlite_settings.database_path
-            )
-        }
-        children = [
-            BoardListItem(board=board, info_dict=self.info_dict[board.board_id])
-            for board in boards
-        ]
+    def __init__(self) -> None:
+        board_listitems = self.get_board_list_items()
+        initial_index = self.get_initial_index()
+        super().__init__(*board_listitems, initial_index=initial_index, id="board_list")
 
-        # get index of active board to set as active index
+    async def populate_widget(self, index: int | None = None):
+        await self.clear()
+        board_listitems = self.get_board_list_items()
+        await self.extend(board_listitems)
+        self.index = index
+
+    def get_initial_index(self) -> int | None:
         for board_index, board in enumerate(self.app.board_list):
-            if (
-                board.board_id
-                == self.app.config.backend.sqlite_settings.active_board_id
-            ):
-                initial_index = board_index
+            if board.board_id == self.app.active_board.board_id:
+                return board_index
+        return None
 
-        super().__init__(*children, initial_index=initial_index, id="board_list")
+    def get_board_list_items(self) -> list[BoardListItem]:
+        info_dict = {
+            board["board_id"]: board for board in self.app.backend.get_board_infos()
+        }
+        return [
+            BoardListItem(board=board, info_dict=info_dict[board.board_id])
+            for board in self.app.board_list
+        ]
 
     def on_mount(self):
         self.focus()
@@ -95,6 +98,7 @@ class CustomColumnList(VerticalScroll):
 
     def on_mount(self):
         self.mount(NewColumnItem())
+        self.display = False
 
     @on(Input.Changed)
     def add_new_empty_column(self, event: Input.Changed):
@@ -103,6 +107,12 @@ class CustomColumnList(VerticalScroll):
             self.scroll_down(animate=False)
         if (not event.input.value) & (not self.children[-1].column_name):
             self.remove_children(self.children[-1:])
+
+    @property
+    def column_dict(self):
+        return {
+            column.column_name: True for column in self.children if column.column_name
+        }
 
 
 class NewColumnItem(Horizontal):

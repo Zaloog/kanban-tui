@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-from typing import Any, Literal, Generator, Sequence
+from typing import Any, Generator, Sequence
 from contextlib import contextmanager
 import datetime
 
@@ -534,9 +534,11 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
 def create_new_board_db(
     name: str,
     icon: str | None = None,
-    column_dict: dict[str, bool] = DEFAULT_COLUMN_DICT,
+    column_dict: dict[str, bool] | None = None,
     database: str = DATABASE_FILE.as_posix(),
 ) -> str | int:
+    if column_dict is None:
+        column_dict = DEFAULT_COLUMN_DICT
     board_dict = {
         "name": name,
         "icon": icon,
@@ -603,7 +605,7 @@ def create_new_task_db(
     due_date: datetime.datetime | None = None,
     time_worked_on: int = 0,
     database: str = DATABASE_FILE.as_posix(),
-) -> str | int:
+) -> Task:
     task_dict = {
         "title": title,
         "column": column,
@@ -631,18 +633,19 @@ def create_new_task_db(
         :due_date,
         :time_worked_on,
         :board_id
-        );"""
+        )
+        RETURNING *
+        ;"""
 
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
-            con.execute(transaction_str, task_dict)
+            new_task = con.execute(transaction_str, task_dict).fetchone()
             con.commit()
-            return 0
+            return new_task
         except sqlite3.Error as e:
             con.rollback()
             raise e
-            return e.sqlite_errorname
 
 
 def create_new_column_db(
@@ -676,13 +679,12 @@ def create_new_column_db(
         except sqlite3.Error as e:
             con.rollback()
             raise e
-            return e.sqlite_errorname
 
 
 def get_all_tasks_on_board_db(
     board_id: int,
     database: str = DATABASE_FILE.as_posix(),
-) -> list[Task] | None:
+) -> list[Task]:
     board_id_dict = {"board_id": board_id}
 
     query_str = """
@@ -699,9 +701,7 @@ def get_all_tasks_on_board_db(
             return tasks
         except sqlite3.Error as e:
             con.rollback()
-            print(e)
             raise e
-            return None
 
 
 def get_all_columns_on_board_db(
@@ -729,7 +729,7 @@ def get_all_columns_on_board_db(
 
 
 def update_status_update_columns_db(
-    column_prefix: Literal["reset", "start", "finish"],
+    column_prefix: str,
     new_status: int | None,
     board_id: int,
     database: str = DATABASE_FILE.as_posix(),
@@ -751,8 +751,7 @@ def update_status_update_columns_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def init_first_board(database: str = DATABASE_FILE.as_posix()) -> None:
@@ -768,7 +767,7 @@ def init_first_board(database: str = DATABASE_FILE.as_posix()) -> None:
 
 def get_all_boards_db(
     database: str = DATABASE_FILE.as_posix(),
-) -> list[Board] | None:
+) -> list[Board]:
     query_str = """
     SELECT *
     FROM boards;
@@ -783,11 +782,12 @@ def get_all_boards_db(
         except sqlite3.Error as e:
             con.rollback()
             raise (e)
-            return None
 
 
 # After column Movement
-def update_task_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> int | str:
+def update_task_status_db(
+    task: Task, database: str = DATABASE_FILE.as_posix()
+) -> int | str:
     new_start_date_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
@@ -811,8 +811,7 @@ def update_task_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> int 
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def update_column_visibility_db(
@@ -841,8 +840,7 @@ def update_column_visibility_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def update_column_positions_db(
@@ -868,8 +866,7 @@ def update_column_positions_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def update_column_name_db(
@@ -894,8 +891,7 @@ def update_column_name_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 # After Editing
@@ -906,7 +902,7 @@ def update_task_entry_db(
     description: str | None = None,
     due_date: datetime.datetime | None = None,
     database: str = DATABASE_FILE.as_posix(),
-) -> str | int:
+) -> Task:
     update_task_dict = {
         "task_id": task_id,
         "title": title,
@@ -922,19 +918,19 @@ def update_task_entry_db(
         category = :category,
         description = :description,
         due_date = :due_date
-    WHERE task_id = :task_id;
+    WHERE task_id = :task_id
+    RETURNING *;
     """
 
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
-            con.execute(transaction_str, update_task_dict)
+            (updated_task,) = con.execute(transaction_str, update_task_dict)
             con.commit()
-            return 0
+            return updated_task
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def delete_column_db(
@@ -952,8 +948,7 @@ def delete_column_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> int | str:
@@ -969,15 +964,14 @@ def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> in
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 # For Plotting
 def get_ordered_tasks_db(
     order_by: str,
     database: str = DATABASE_FILE.as_posix(),
-) -> list[dict] | None:
+) -> list[dict]:
     query_str = f"""
     SELECT
         {order_by} as date,
@@ -996,9 +990,7 @@ def get_ordered_tasks_db(
             return [dict(task) for task in tasks]
         except sqlite3.Error as e:
             con.rollback()
-            return [dict(task) for task in tasks]
-            print(e)
-            return None
+            raise e
 
 
 # Boards Stuff
@@ -1031,8 +1023,7 @@ def update_board_entry_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
 def delete_board_db(
@@ -1062,11 +1053,10 @@ def delete_board_db(
             return 0
         except sqlite3.Error as e:
             con.rollback()
-            print(e.sqlite_errorname)
-            return e.sqlite_errorname
+            raise e
 
 
-def get_all_board_infos(
+def get_board_info_dict(
     database: str = DATABASE_FILE.as_posix(),
 ) -> list[dict]:
     query_str = """

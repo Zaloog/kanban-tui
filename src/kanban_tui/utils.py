@@ -413,7 +413,7 @@ def create_demo_tasks(database_path: str, config_path: str):
         description="First Task",
         # category="green",
         column=1,
-        due_date=datetime.now(),
+        due_date=datetime.now().replace(microsecond=0),
         board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
@@ -422,7 +422,7 @@ def create_demo_tasks(database_path: str, config_path: str):
         description="Second Task",
         # category="blue",
         column=1,
-        due_date=datetime.now() + timedelta(days=1),
+        due_date=datetime.now().replace(microsecond=0) + timedelta(days=1),
         board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
@@ -431,7 +431,7 @@ def create_demo_tasks(database_path: str, config_path: str):
         description="Third Task",
         category=None,
         column=1,
-        due_date=datetime.now() + timedelta(days=3),
+        due_date=datetime.now().replace(microsecond=0) + timedelta(days=3),
         board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )

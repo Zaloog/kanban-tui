@@ -1,14 +1,15 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
+from kanban_tui.config import MovementModes
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
-
-from textual import on
 
 # from textual.geometry import Offset
 
 from rich.text import Text
+from textual import on
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.events import Click
@@ -28,8 +29,9 @@ from kanban_tui.modal.modal_task_screen import (
 
 class TaskCard(Vertical):
     app: "KanbanTui"
-    expanded: reactive[bool] = reactive(False)
+    expanded: reactive[bool] = reactive(False, bindings=True)
     mouse_down: reactive[bool] = reactive(False)
+    task_: reactive[Task | None] = reactive(None, bindings=True, init=False)
 
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
@@ -89,12 +91,12 @@ class TaskCard(Vertical):
         task: Task,
         row: int,
     ) -> None:
-        self.task_ = task
         self.row = row
 
         self.can_focus = True
         self.can_focus_children = False
-        super().__init__(id=f"taskcard_{self.task_.task_id}")
+        super().__init__(id=f"taskcard_{task.task_id}")
+        self.task_ = task
 
     def compose(self) -> ComposeResult:
         yield Label(self.task_.title, classes="label-title")
@@ -106,15 +108,20 @@ class TaskCard(Vertical):
             markdown=self.task_.description,
         )
         yield self.description
-        return super().compose()
+
+        self.styles.background = self.app.config.task.default_color
+        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
 
     def on_mount(self):
+        ...
         # TODO
         # self.styles.background = self.app.cfg.category_color_dict.get(
         #     self.task_.category, self.app.cfg.no_category_task_color
         # )
-        self.styles.background = self.app.config.task.default_color
-        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
+        # self.refresh_bindings()
+
+    # def watch_task_(self):
+    #     self.refresh_bindings()
 
     # Remove those, cause it messes with tab selection
     # @on(Enter)
@@ -127,13 +134,14 @@ class TaskCard(Vertical):
 
     def on_focus(self) -> None:
         self.expanded = True
+        self.scroll_visible()
         self.post_message(self.Focused(taskcard=self))
 
     def on_blur(self) -> None:
         self.expanded = False
 
     def watch_expanded(self):
-        self.query_one(".label-title", Label).visible = not self.expanded
+        # self.query_one(".label-title", Label).visible = not self.expanded
         for label in self.query(".label-infos").results():
             label.display = self.app.config.task.always_expanded or self.expanded
         self.query_one(Markdown).display = (
@@ -143,35 +151,34 @@ class TaskCard(Vertical):
             self.app.config.task.always_expanded or self.expanded
         )
 
-        self.border_title = self.task_.title if self.expanded else None
-        self.border_subtitle = (
-            (self.get_due_date_str() if self.task_.days_left else "")
-            if self.expanded
-            else None
-        )
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        column_id_list = list(self.app.visible_column_dict.keys())
+        if action == "move_task":
+            if parameters == ("left",):
+                if column_id_list[0] == self.task_.column:
+                    return self.app.config.task.movement_mode == MovementModes.JUMP
+            else:
+                if column_id_list[-1] == self.task_.column:
+                    return self.app.config.task.movement_mode == MovementModes.JUMP
+        return True
 
     def action_move_task(self, direction: Literal["left", "right"]):
-        # self.post_message(self.Target(self, direction))
-        # return
-        column_id_list = list(self.app.visible_column_dict.keys())
+        if self.app.config.task.movement_mode == MovementModes.JUMP:
+            self.post_message(self.Target(self, direction))
+            return
+        current_column_id = self.task_.column
         match direction:
             case "left":
-                # check if at left border
-                if column_id_list[0] == self.task_.column:
-                    return
-                new_column_id = column_id_list[
-                    column_id_list.index(self.task_.column) - 1
-                ]
-
+                new_column_id = self.app.get_possible_previous_column_id(
+                    current_column_id
+                )
             case "right":
-                # check if at right border
-                if column_id_list[-1] == self.task_.column:
-                    return
-                new_column_id = column_id_list[
-                    column_id_list.index(self.task_.column) + 1
-                ]
+                new_column_id = self.app.get_possible_next_column_id(current_column_id)
 
-        # TODO Update Status based on defined reset/start/done column
+        self.update_task_status_on_move(new_column_id)
+        self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
+
+    def update_task_status_on_move(self, new_column_id: int):
         update_column_dict = get_column_status_dict(
             reset=self.app.active_board.reset_column,
             start=self.app.active_board.start_column,
@@ -180,7 +187,6 @@ class TaskCard(Vertical):
         self.task_.update_task_status(
             new_column=new_column_id, update_column_dict=update_column_dict
         )
-        self.post_message(self.Moved(taskcard=self, new_column=new_column_id))
 
     def get_due_date_str(self) -> str:
         match self.task_.days_left:
@@ -228,45 +234,6 @@ class TaskCard(Vertical):
             callback=self.from_modal_delete_task,
         )
 
-    def from_modal_delete_task(self, delete_yn: bool) -> None:
-        if delete_yn:
+    def from_modal_delete_task(self, should_be_deleted: bool) -> None:
+        if should_be_deleted:
             self.post_message(self.Delete(taskcard=self))
-
-    # Move Task with Mouse
-
-    # def on_mouse_down(self, event: events.MouseDown):
-    #     self.notify('Mouse Down')
-    #     lab = Label('TEST', id='pos')
-    #     lab.offset = event.offset
-    #     lab.styles.layer = 'above'
-    #     self.mouse_down = True
-    #     self.click_pos = event.screen_offset
-    #     # self.mount(lab)
-    #
-    # def on_mouse_move(self, event: events.MouseMove):
-    #     if not self.mouse_down:
-    #         return
-    #     x_pos_delta = (event.screen_offset.x - self.click_pos.x)
-    #     if x_pos_delta < -3:
-    #         self.styles.border_right = 'tall', 'red'
-    #         return
-    #     if x_pos_delta > 3:
-    #         self.styles.border_left = 'tall', 'red'
-    #         return
-    #
-    #     if x_pos_delta > 0:
-    #         self.offset = Offset(self.offset.x + 1, self.offset.y)
-    #         # self.click_pos = event.screen_offset
-    #     elif x_pos_delta < 0:
-    #         self.offset = Offset(self.offset.x - 1 , self.offset.y)
-    #         # self.click_pos = event.screen_offset
-    #
-    #
-    #     self.log.error(x_pos_delta)
-    #     self.log.error(f'eventoffset {event.offset}')
-    #     self.log.error(f'eventscreenoffset {event.screen_offset}')
-    #
-    # def on_mouse_up(self, event: events.MouseUp):
-    #     self.mouse_down = False
-    #     self.notify('Mouse Up')
-    #     # self.query_exactly_one('#pos', Label).remove()

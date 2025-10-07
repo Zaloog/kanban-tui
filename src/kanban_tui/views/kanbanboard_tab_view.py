@@ -8,22 +8,21 @@ if TYPE_CHECKING:
 
 from rich.text import Text
 from textual import on
+from textual.events import MouseDown, MouseMove, MouseUp
 from textual.binding import Binding
 from textual.widget import Widget
 from textual.reactive import reactive
-from textual.containers import Horizontal
+from textual.containers import HorizontalScroll
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.widgets.filter_sidebar import FilterOverlay
-from kanban_tui.backends.sqlite.database import update_task_db, delete_task_db
-
 from kanban_tui.classes.task import Task
 
 
-class KanbanBoard(Horizontal):
+class KanbanBoard(HorizontalScroll):
     app: "KanbanTui"
 
     BINDINGS = [
@@ -40,9 +39,7 @@ class KanbanBoard(Horizontal):
     ]
     selected_task: reactive[Task | None] = reactive(None)
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
-
-    def on_mount(self) -> None:
-        self.watch(self.app, "task_list", self.get_first_card)
+    mouse_down: reactive[bool] = reactive(False)
 
     def compose(self) -> Iterable[Widget]:
         for column in self.app.column_list:
@@ -53,11 +50,10 @@ class KanbanBoard(Horizontal):
                     if task.column == column.column_id
                 ]
                 yield Column(
-                    title=column.name, tasklist=column_tasks, id_num=column.column_id
+                    title=column.name, task_list=column_tasks, id_num=column.column_id
                 )
+        self.get_first_card()
         # yield FilterOverlay()
-
-        return super().compose()
 
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
@@ -78,10 +74,10 @@ class KanbanBoard(Horizontal):
             self.refresh(recompose=True)
             self.set_timer(delay=0.1, callback=self.app.action_focus_next)
 
-    def place_new_task(self, task: Task):
-        self.query(Column)[0].place_task(task=task)
+    async def place_new_task(self, task: Task):
+        await self.query(Column)[0].place_task(task=task)
         self.selected_task = task
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
     # Movement
     def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
@@ -160,6 +156,7 @@ class KanbanBoard(Horizontal):
 
     @on(TaskCard.Target)
     def color_target_column(self, event: TaskCard.Target):
+        self.scroll_visible()
         current_column_id = self.target_column or event.taskcard.task_.column
         match event.direction:
             case "left":
@@ -170,7 +167,11 @@ class KanbanBoard(Horizontal):
                 new_column_id = self.app.get_possible_next_column_id(current_column_id)
         if new_column_id == event.taskcard.task_.column:
             self.target_column = None
+            self.query_one(f"#column_{event.taskcard.task_.column}").scroll_visible(
+                animate=False
+            )
         else:
+            self.query_one(f"#column_{new_column_id}").scroll_visible(animate=False)
             self.target_column = new_column_id
             self.start_target_column_timer()
 
@@ -193,23 +194,29 @@ class KanbanBoard(Horizontal):
         else:
             self.timer.reset()
 
-    async def action_confirm_move(self):
+    @on(TaskCard.Moved)
+    async def action_confirm_move(self, event: TaskCard.Moved | None = None):
+        # BUG Fix for None Column
         self.app.app_focus = False
+
+        # If you confirm, just before the target column timer
+        # resets, it can happen, that self.target column is None
+        # here, which will raise an exception, because the column
+        # field in the database has a NOT NULL constraint
 
         await self.query_one(
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)
 
-        self.selected_task.column = self.target_column
-        update_task_db(
-            task=self.selected_task,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
+        # Handles both movement modes
+        self.selected_task.column = event.new_column if event else self.target_column
 
-        self.query_one(f"#column_{self.target_column}", Column).place_task(
+        self.app.backend.update_task_status(new_task=self.selected_task)
+
+        await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
+        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
         self.app.update_task_list()
         self.target_column = None
@@ -221,53 +228,57 @@ class KanbanBoard(Horizontal):
                 return False
         return True
 
-    @on(TaskCard.Moved)
-    async def move_card_to_other_column(self, event: TaskCard.Moved):
-        # remove focus and give focus back to same task in new column
-        self.app.app_focus = False
-
-        await self.query_one(
-            f"#column_{self.selected_task.column}", Column
-        ).remove_task(self.selected_task)
-
-        self.selected_task.column = event.new_column
-        update_task_db(
-            task=self.selected_task,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
-
-        self.query_one(f"#column_{event.new_column}", Column).place_task(
-            self.selected_task
-        )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}").focus()
-
-        self.app.update_task_list()
-
     @on(TaskCard.Delete)
     async def delete_task(self, event: TaskCard.Delete):
-        # TODO L
         await self.query_one(
             f"#column_{event.taskcard.task_.column}", Column
         ).remove_task(task=event.taskcard.task_)
-        delete_task_db(
-            task_id=event.taskcard.task_.task_id,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
+        self.app.backend.delete_task(task_id=event.taskcard.task_.task_id)
         self.app.update_task_list()
+
+    @on(MouseDown)
+    def lift_task(self, event: MouseDown):
+        for taskcard in self.query(TaskCard):
+            if taskcard.region.contains_point(event.screen_offset):
+                self.mouse_down = True
+
+    @on(MouseUp)
+    async def drop_task(self, event: MouseUp):
+        if all((self.mouse_down, (self.target_column is not None))):
+            await self.action_confirm_move()
+        self.mouse_down = False
+
+    @on(MouseMove)
+    def move_task(self, event: MouseMove):
+        if not self.mouse_down:
+            return
+        for column in self.query(Column):
+            if column.region.contains_point(event.screen_offset):
+                is_same_column = self.selected_task.column == int(
+                    column.id.split("_")[-1]
+                )
+                if is_same_column:
+                    self.target_column = None
+                    if self._timers:
+                        self.timer.reset()
+                else:
+                    self.target_column = int(column.id.split("_")[-1])
+                    self.start_target_column_timer()
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
-        if not self.app.task_list:
+        if not self.app.visible_task_list:
             self.can_focus = True
             self.focus()
-            self.notify(
-                title="Welcome to Kanban Tui",
-                message="Looks like you are new, press [blue]n[/] to create your first Card",
-            )
+            if not self.app.task_list:
+                self.notify(
+                    title="Welcome to Kanban Tui",
+                    message="Looks like you are new, press [blue]n[/] to create your first Card",
+                )
         else:
             self.can_focus = False
 
-    # Filter Stuff, to be implemented
+    # TODO Filter Stuff, to be implemented
     def action_toggle_filter(self) -> None:
         filter = self.query_one(FilterOverlay)
         # open filter

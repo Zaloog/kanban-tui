@@ -1,22 +1,20 @@
 from typing import Iterable, TYPE_CHECKING
 from datetime import datetime
 
-
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
-
 
 from textual import on
 from textual.events import Mount
 from textual.widget import Widget
 from textual.binding import Binding
+from textual.validation import Length
 from textual.screen import ModalScreen
 from textual.widgets import Input, TextArea, Button, Select, Label, Switch, Footer
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
-from kanban_tui.backends.sqlite.database import create_new_task_db, update_task_entry_db
 from kanban_tui.widgets.modal_task_widgets import (
     CreationDateInfo,
     CategorySelector,
@@ -35,14 +33,20 @@ class ModalTaskEditScreen(ModalScreen):
         Binding("ctrl+j", "update_task", "Save/Edit Task", priority=True),
     ]
 
-    def __init__(self, task: Task | None = None) -> None:
+    def __init__(self, task: Task | None = None, *args, **kwargs) -> None:
         self.kanban_task = task
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical(id="vertical_modal"):
             yield Label("Create New Task", id="label_header")
-            yield Input(placeholder="enter a Task Title", id="input_title")
+            yield Input(
+                placeholder="enter a Task Title",
+                id="input_title",
+                valid_empty=False,
+                validate_on=["changed"],
+                validators=Length(minimum=1, failure_description="Enter a valid title"),
+            )
             yield CreationDateInfo()
             with Horizontal(id="horizontal_dates"):
                 yield StartDateInfo()
@@ -52,7 +56,9 @@ class ModalTaskEditScreen(ModalScreen):
                 self.detail_infos = DetailInfos(id="detail_infos")
                 yield self.detail_infos
             with Horizontal(id="horizontal_buttons"):
-                yield Button("Create Task", id="btn_continue", variant="success")
+                yield Button(
+                    "Create Task", id="btn_continue", variant="success", disabled=True
+                )
                 yield Button("Cancel", id="btn_cancel", variant="error")
             yield Footer()
         return super().compose()
@@ -67,11 +73,21 @@ class ModalTaskEditScreen(ModalScreen):
         if self.kanban_task:
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
+            self.query_one("#btn_continue", Button).disabled = False
             self.query_one("#label_header", Label).update("Edit Task")
+
+    @on(Input.Changed, "#input_title")
+    def disable_continue_button(self, event: Input.Changed):
+        self.query_one(
+            "#btn_continue", Button
+        ).disabled = not event.validation_result.is_valid
+        # if event.validation_result:
 
     @on(Button.Pressed, "#btn_continue")
     def action_update_task(self):
         title = self.query_one("#input_title", Input).value
+        if not title:
+            return
         description = self.query_one(TextArea).text
         category = (
             None if self.query_one(Select).is_blank() else self.query_one(Select).value
@@ -84,44 +100,34 @@ class ModalTaskEditScreen(ModalScreen):
 
         if not self.kanban_task:
             # create new task
-            create_new_task_db(
+            new_task = self.app.backend.create_new_task(
                 title=title,
                 description=description,
-                column=list(self.app.visible_column_dict.keys())[0],
-                start_date=datetime.now()
-                if (list(self.app.visible_column_dict.keys())[0] == "Doing")
-                else None,
+                column=next(iter(self.app.visible_column_dict)),
                 category=category,
                 due_date=due_date,
-                board_id=self.app.config.backend.sqlite_settings.active_board_id,
-                database=self.app.config.backend.sqlite_settings.database_path,
             )
 
             self.app.update_task_list()
-            self.dismiss(result=self.app.task_list[-1])
+            self.dismiss(result=new_task)
 
         else:
             self.kanban_task.title = title
-            if due_date is not None:
-                self.kanban_task.due_date = datetime.fromisoformat(due_date)
-                self.kanban_task.days_left = self.kanban_task.get_days_left_till_due()
-            else:
-                self.kanban_task.due_date = None
-                self.kanban_task.days_left = self.kanban_task.get_days_left_till_due()
+            self.kanban_task.due_date = (
+                datetime.fromisoformat(due_date) if due_date else None
+            )
 
             self.kanban_task.description = description
             self.kanban_task.category = category
 
-            update_task_entry_db(
+            updated_task = self.app.backend.update_task_entry(
                 task_id=self.kanban_task.task_id,
                 title=self.kanban_task.title,
-                due_date=self.kanban_task.due_date,
                 description=self.kanban_task.description,
                 category=self.kanban_task.category,
-                database=self.app.config.backend.sqlite_settings.database_path,
+                due_date=self.kanban_task.due_date,
             )
-
-            self.dismiss(result=self.kanban_task)
+            self.dismiss(result=updated_task)
 
     @on(Button.Pressed, "#btn_cancel")
     def close_window(self):
