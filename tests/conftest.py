@@ -5,11 +5,6 @@ import pytest
 
 from kanban_tui.constants import CONFIG_NAME, DATABASE_NAME
 from kanban_tui.config import Settings, init_config
-from kanban_tui.backends.sqlite.database import (
-    init_new_db,
-    create_new_task_db,
-    create_new_board_db,
-)
 from kanban_tui.app import KanbanTui
 
 
@@ -40,63 +35,12 @@ def test_config(test_config_path: str, test_database_path: str) -> Settings:
 
 
 @pytest.fixture
-def init_test_db(test_database_path: str, test_config: Settings):
-    init_new_db(database=test_database_path)
-    # Ready 3
-    create_new_board_db(name="Test_Board", icon=":bug:", database=test_database_path)
-
-    create_new_task_db(
-        title="Task_ready_0",
-        description="Hallo",
-        # category="green",
-        column=1,
-        board_id=test_config.backend.sqlite_settings.active_board_id,
-        database=test_database_path,
-    )
-    create_new_task_db(
-        title="Task_ready_1",
-        description="Hallo",
-        # category="blue",
-        column=1,
-        board_id=test_config.backend.sqlite_settings.active_board_id,
-        database=test_database_path,
-    )
-    create_new_task_db(
-        title="Task_ready_2",
-        description="Hallo",
-        category=None,
-        column=1,
-        board_id=test_config.backend.sqlite_settings.active_board_id,
-        database=test_database_path,
-    )
-
-    # Doing 1
-    create_new_task_db(
-        title="Task_doing_0",
-        description="Hallo",
-        # category="green",
-        column=2,
-        board_id=test_config.backend.sqlite_settings.active_board_id,
-        database=test_database_path,
-    )
-    # Done 1
-    create_new_task_db(
-        title="Task_done_0",
-        description="Hallo",
-        # category="red",
-        column=3,
-        board_id=test_config.backend.sqlite_settings.active_board_id,
-        database=test_database_path,
-    )
-
-
-@pytest.fixture
 def empty_app(test_config_path, test_database_path, test_config):
     yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
 
 
 @pytest.fixture
-def test_app(test_config_path, test_database_path, init_test_db, test_config: Settings):
+def test_app(test_config_path, test_database_path, test_config: Settings):
     # with initialized test_db
     # add categories to config
     # cfg = test_config
@@ -112,5 +56,39 @@ def test_app(test_config_path, test_database_path, init_test_db, test_config: Se
     #     category="red",
     #     color="#FF0000",
     # )
+    app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    app.backend.create_new_task(
+        title="Task_ready_0",
+        description="Hallo",
+        # category="green",
+        column=1,
+    )
+    app.backend.create_new_task(
+        title="Task_ready_1",
+        description="Hallo",
+        # category="blue",
+        column=1,
+    )
+    app.backend.create_new_task(
+        title="Task_ready_2",
+        description="Hallo",
+        category=None,
+        column=1,
+    )
 
-    yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    # Doing, 1 Task
+    app.backend.create_new_task(
+        title="Task_doing_0",
+        description="Hallo",
+        # category="green",
+        column=2,
+    )
+    # Done, 1 Task
+    app.backend.create_new_task(
+        title="Task_done_0",
+        description="Hallo",
+        # category="red",
+        column=3,
+    )
+
+    yield app

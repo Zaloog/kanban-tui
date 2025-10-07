@@ -36,28 +36,28 @@ async def test_init_new_db(test_database_path):
                 raise e
 
 
-def test_task_factory(init_test_db, test_database_path):
+def test_task_factory(test_app, test_database_path):
     with create_connection(database=test_database_path) as con:
         con.row_factory = task_factory
         row = con.execute("SELECT * from tasks WHERE task_id = 1").fetchone()
         assert isinstance(row, Task)
 
 
-def test_column_factory(init_test_db, test_database_path):
+def test_column_factory(test_app, test_database_path):
     with create_connection(database=test_database_path) as con:
         con.row_factory = column_factory
         row = con.execute("SELECT * from columns WHERE board_id = 1").fetchone()
         assert isinstance(row, Column)
 
 
-def test_board_factory(init_test_db, test_database_path):
+def test_board_factory(test_app, test_database_path):
     with create_connection(database=test_database_path) as con:
         con.row_factory = board_factory
         row = con.execute("SELECT * from boards WHERE board_id = 1").fetchone()
         assert isinstance(row, Board)
 
 
-def test_logevent_factory(init_test_db, test_database_path):
+def test_logevent_factory(test_app, test_database_path):
     with create_connection(database=test_database_path) as con:
         con.row_factory = logevent_factory
         row = con.execute("SELECT * from audits WHERE event_id = 1").fetchone()
@@ -67,7 +67,7 @@ def test_logevent_factory(init_test_db, test_database_path):
         assert row.event_type == "CREATE"
 
 
-def test_board_info_factory(init_test_db, test_database_path):
+def test_board_info_factory(test_app, test_database_path):
     info_str = """
     SELECT
     b.board_id AS board_id,
@@ -92,7 +92,7 @@ def test_board_info_factory(init_test_db, test_database_path):
         }
 
 
-def test_create_new_board_db(init_test_db, test_database_path):
+def test_create_new_board_db(test_app, test_database_path):
     for name, icon in zip(["TestDB1", "TestDB2"], [":Icon1:", ":Icon2:"]):
         create_new_board_db(name=name, icon=icon, database=test_database_path)
 

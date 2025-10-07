@@ -15,6 +15,7 @@ from kanban_tui.backends.sqlite.database import (
     get_all_boards_db,
     get_all_tasks_on_board_db,
     get_all_columns_on_board_db,
+    init_new_db,
     update_board_entry_db,
     update_task_entry_db,
     update_task_status_db,
@@ -80,8 +81,8 @@ class SqliteBackend(Backend):
         title: str,
         description: str,
         column: int,
-        category: str,
-        due_date: datetime,
+        category: str | None = None,
+        due_date: datetime | None = None,
     ) -> Task:
         return create_new_task_db(
             title=title,
@@ -137,6 +138,10 @@ class SqliteBackend(Backend):
             filter=filter,
             database=self.database_path,
         )
+
+    def create_database(self):
+        """Creates database if not exists"""
+        init_new_db(database=self.database_path)
 
     @property
     def active_board(self) -> Board:

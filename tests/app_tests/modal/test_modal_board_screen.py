@@ -187,8 +187,8 @@ async def test_modal_board_edit(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalNewBoardScreen)
 
         assert pilot.app.screen.kanban_board is not None
-        assert pilot.app.screen.kanban_board.name == "Test_Board"
-        assert pilot.app.screen.kanban_board.icon == ":bug:"
+        assert pilot.app.screen.kanban_board.name == "Kanban Board"
+        assert pilot.app.screen.kanban_board.icon == ":sparkles:"
 
         assert (
             pilot.app.screen.query_exactly_one(
@@ -202,9 +202,12 @@ async def test_modal_board_edit(test_app: KanbanTui):
         )
 
         assert (
-            pilot.app.screen.query_one("#input_board_name", Input).value == "Test_Board"
+            pilot.app.screen.query_one("#input_board_name", Input).value
+            == "Kanban Board"
         )
-        assert pilot.app.screen.query_one("#input_board_icon", Input).value == "bug"
+        assert (
+            pilot.app.screen.query_one("#input_board_icon", Input).value == "sparkles"
+        )
         assert not pilot.app.screen.query_one(
             "#btn_continue_new_board", Button
         ).disabled
@@ -280,9 +283,9 @@ async def test_modal_board_copy_board(test_app: KanbanTui):
 
         await pilot.press("j")
         assert pilot.app.focused.highlighted_child.board.board_id == 2
-        assert pilot.app.focused.highlighted_child.board.name == "Test_Board_copy"
-        assert pilot.app.focused.highlighted_child.board.icon == ":bug:"
+        assert pilot.app.focused.highlighted_child.board.name == "Kanban Board_copy"
+        assert pilot.app.focused.highlighted_child.board.icon == ":sparkles:"
         await pilot.press("enter")
         assert isinstance(pilot.app.screen, MainView)
-        assert pilot.app.active_board.name == "Test_Board_copy"
+        assert pilot.app.active_board.name == "Kanban Board_copy"
         assert len(pilot.app.board_list) == 2

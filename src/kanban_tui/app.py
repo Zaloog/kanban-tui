@@ -13,7 +13,6 @@ from kanban_tui.config import (
 )
 from kanban_tui.backends import SqliteBackend
 from kanban_tui.backends.sqlite.database import (
-    init_new_db,
     init_first_board,
 )
 from kanban_tui.classes.task import Task
@@ -46,8 +45,8 @@ class KanbanTui(App):
         self.backend = self.get_backend()
         self.demo_mode = demo_mode
 
-        init_new_db(database=self.config.backend.sqlite_settings.database_path)
-        init_first_board(database=self.config.backend.sqlite_settings.database_path)
+        self.backend.create_database()
+        init_first_board(database=self.backend.database_path)
         super().__init__()
 
     def get_backend(self):
