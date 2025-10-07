@@ -24,7 +24,7 @@ def test_database_path(test_file_location: Path) -> str:
     yield (test_file_location / DATABASE_NAME).as_posix()
 
 
-# Init Config and DB
+# Init Config
 @pytest.fixture
 def test_config(test_config_path: str, test_database_path: str) -> Settings:
     os.environ["KANBAN_TUI_CONFIG_FILE"] = test_config_path
@@ -39,8 +39,10 @@ def empty_app(test_config_path, test_database_path, test_config):
     yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
 
 
+# Create Testapp and inject test tasks
 @pytest.fixture
 def test_app(test_config_path, test_database_path, test_config: Settings):
+    # TODO
     # with initialized test_db
     # add categories to config
     # cfg = test_config
