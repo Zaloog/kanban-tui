@@ -5,6 +5,7 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from textual import on
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.binding import Binding
@@ -59,7 +60,8 @@ class DetailInfos(Vertical):
         self.border = "$success"
         self.border_title = "Additional Infos"
 
-    def on_switch_changed(self, event: Switch.Changed):
+    @on(Switch.Changed)
+    def show_due_date_info(self, event: Switch.Changed):
         self.due_date_label.display = event.value
         self.due_date_select.display = event.value
 

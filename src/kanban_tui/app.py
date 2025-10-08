@@ -5,6 +5,7 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import TabbedContent
 
+from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.views.main_view import MainView
 from kanban_tui.config import (
     init_config,
@@ -26,7 +27,7 @@ class KanbanTui(App):
         Binding("f5", "refresh", "🔄Refresh", priority=True),
     ]
 
-    SCREENS = {"MainView": MainView}
+    SCREENS = {"MainView": MainView, "Board": BoardScreen}
 
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
@@ -61,7 +62,8 @@ class KanbanTui(App):
     def on_mount(self) -> None:
         self.theme = self.config.board.theme
         self.update_board_list()
-        self.push_screen(MainView().data_bind(KanbanTui.active_board))
+        # self.push_screen(MainView().data_bind(KanbanTui.active_board))
+        self.push_screen(BoardScreen().data_bind(KanbanTui.active_board))
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()

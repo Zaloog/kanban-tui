@@ -16,6 +16,7 @@ Underline .underline--bar {
 }
 KanbanBoard{
   width: 1fr;
+  border: $success;
 
 }
 Column{

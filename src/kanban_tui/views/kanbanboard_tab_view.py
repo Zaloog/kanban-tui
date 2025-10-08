@@ -49,7 +49,6 @@ class KanbanBoard(HorizontalScroll):
                     title=column.name, task_list=column_tasks, id_num=column.column_id
                 )
         self.get_first_card()
-        # yield FilterOverlay()
 
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
@@ -62,9 +61,7 @@ class KanbanBoard(HorizontalScroll):
     # Active Board Change
     def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
         if refresh_needed:
-            self.app.screen.query_one(
-                "#tabbed_content_boards"
-            ).border_title = Text.from_markup(
+            self.border_title = Text.from_markup(
                 f" [red]Active Board:[/] {self.app.active_board.full_name}"
             )
             self.refresh(recompose=True)

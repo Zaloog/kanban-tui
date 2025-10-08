@@ -89,8 +89,6 @@ class BoardListItem(ListItem):
                     due_string = f"Next Task due in [yellow]{self.next_due}[/] days"
             yield Label(due_string)
 
-        return super().compose()
-
 
 class CustomColumnList(VerticalScroll):
     app: "KanbanTui"
