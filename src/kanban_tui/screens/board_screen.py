@@ -6,11 +6,12 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
+from textual import on
 from rich.text import Text
 from textual.widget import Widget
+from textual.events import ScreenResume
 from textual.widgets import Header, Footer
 from textual.screen import Screen
-from textual.binding import Binding
 
 from kanban_tui.classes.board import Board
 from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
@@ -20,15 +21,9 @@ class BoardScreen(Screen):
     app: "KanbanTui"
     active_board: reactive[Board | None] = reactive(None)
 
-    BINDINGS = [
-        Binding("ctrl+j", 'show_tab("tab_board")', "Board", priority=True),
-        Binding("ctrl+k", 'show_tab("tab_overview")', "Overview", priority=True),
-        Binding("ctrl+l", 'show_tab("tab_settings")', "Settings", priority=True),
-    ]
-
     def compose(self) -> Iterable[Widget]:
-        yield Header()
         yield KanbanBoard()
+        yield Header()
         yield Footer()
 
     def on_mount(self) -> None:
@@ -59,37 +54,10 @@ class BoardScreen(Screen):
                 severity="warning",
             )
 
-    # @on(TabbedContent.TabActivated)
-    # async def refresh_board(self, event: TabbedContent.TabActivated | str):
-    #     # force refresh on manual refresh
-    #     if isinstance(event, str):
-    #         self.query_one(SettingsView).config_has_changed = True
-    #         active_tab_id = event
-    #     else:
-    #         active_tab_id = event.tabbed_content.active
-    #
-    #     match active_tab_id:
-    #         case "tab_board":
-    #             if self.query_one(SettingsView).config_has_changed:
-    #                 self.query_one(KanbanBoard).refresh(recompose=True)
-    #                 self.set_timer(delay=0.15, callback=self.app.action_focus_next)
-    #             self.query_one(SettingsView).config_has_changed = False
-    #         case "tab_overview":
-    #             if (
-    #                 self.query_one("#tabbed_content_overview", TabbedContent).active
-    #                 == "tab_plot"
-    #             ):
-    #                 await self.query_one(OverViewPlot).update_plot_by_filters()
-    #                 self.query_one("#switch_plot_category_detail", Switch).focus()
-    #             else:
-    #                 overview_log = self.query_one(OverViewLog)
-    #                 self.query_one(LogTable).load_events(
-    #                     objects=overview_log.active_object_types,
-    #                     events=overview_log.active_event_types,
-    #                     time=overview_log.active_timestamp,
-    #                 )
-    #
-    #                 self.query_one("#select_logdate_filter", Select).focus()
-    #         case "tab_settings":
-    #             self.query_one(SettingsView).refresh(recompose=True)
-    #             self.set_timer(delay=0.15, callback=self.app.action_focus_next)
+    @on(ScreenResume)
+    def update_board(self):
+        if self.app.config_has_changed:
+            self.notify("updated")
+            self.query_one(KanbanBoard).refresh_on_board_change()
+            self.watch_active_board()
+            self.app.config_has_changed = False

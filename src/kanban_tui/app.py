@@ -6,6 +6,7 @@ from textual.reactive import reactive
 from textual.widgets import TabbedContent
 
 from kanban_tui.screens.board_screen import BoardScreen
+from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.views.main_view import MainView
 from kanban_tui.config import (
     init_config,
@@ -25,10 +26,14 @@ class KanbanTui(App):
     CSS_PATH = Path("assets/style.tcss")
     BINDINGS = [
         Binding("f5", "refresh", "🔄Refresh", priority=True),
+        Binding("ctrl+j", 'switch_screen("board")', "Board"),
+        Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
+        # Binding("ctrl+l", 'show_tab("tab_settings")', "Settings", priority=True),
     ]
 
-    SCREENS = {"MainView": MainView, "Board": BoardScreen}
+    SCREENS = {"mainView": MainView, "board": BoardScreen, "settings": SettingsScreen}
 
+    config_has_changed: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
@@ -108,6 +113,9 @@ class KanbanTui(App):
         if column_id_list[0] == current_id:
             return current_id
         return column_id_list[column_id_list.index(current_id) - 1]
+
+    def watch_config_has_changed(self):
+        self.notify(f"{self.config_has_changed}")
 
     @property
     def visible_column_dict(self) -> dict[int, str]:
