@@ -1,7 +1,7 @@
 import pytest
 
 from kanban_tui.app import KanbanTui
-from kanban_tui.views.main_view import MainView
+from kanban_tui.screens.overview_screen import OverViewScreen
 from kanban_tui.widgets.overview_widgets import LogFilterButton
 
 APP_SIZE = (150, 50)
@@ -12,13 +12,11 @@ async def test_overview_view_empty(empty_app: KanbanTui, test_database_path):
         await pilot.press("ctrl+k")
         await pilot.pause()
 
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, OverViewScreen)
         assert pilot.app.screen.query_one("#plot_widget").styles.width.value == 1
 
         await pilot.press("L")
         assert pilot.app.screen.query_one("#datatable_logs").row_count == 5
-
-        # assert pilot.app.screen, MainView)
 
 
 async def test_overview_view(test_app: KanbanTui, test_database_path):
@@ -26,7 +24,7 @@ async def test_overview_view(test_app: KanbanTui, test_database_path):
         await pilot.press("ctrl+k")
         await pilot.pause()
 
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, OverViewScreen)
         await pilot.press("P")
         assert (
             pilot.app.screen.query_one("#tabbed_content_overview").active == "tab_plot"

@@ -2,8 +2,8 @@ import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button
 from kanban_tui.config import MovementModes
-from kanban_tui.views.main_view import MainView
-from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
+from kanban_tui.screens.board_screen import BoardScreen
+from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import (
     ModalBoardOverviewScreen,
@@ -20,7 +20,7 @@ APP_SIZE = (150, 50)
 async def test_empty_kanbanboard(empty_app: KanbanTui):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 0
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         assert isinstance(pilot.app.focused, KanbanBoard)
 
@@ -39,7 +39,7 @@ async def test_kanbanboard_task_creation(empty_app: KanbanTui):
 
         # save task
         await pilot.click("#btn_continue")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         assert len(list(pilot.app.screen.query(TaskCard).results())) == 1
 
@@ -69,7 +69,7 @@ async def test_kanbanboard_board_view(empty_app: KanbanTui):
         # save board
         await pilot.click("#btn_continue_new_board")
         await pilot.press("escape")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         # new Board no tasks
         assert len(list(pilot.app.screen.query(TaskCard).results())) == 0

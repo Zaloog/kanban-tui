@@ -3,9 +3,11 @@ from pathlib import Path
 from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
-from textual.widgets import TabbedContent
 
-from kanban_tui.views.main_view import MainView
+from importlib.metadata import version
+from kanban_tui.screens.board_screen import BoardScreen
+from kanban_tui.screens.overview_screen import OverViewScreen
+from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.config import (
     init_config,
     SETTINGS,
@@ -24,10 +26,19 @@ class KanbanTui(App):
     CSS_PATH = Path("assets/style.tcss")
     BINDINGS = [
         Binding("f5", "refresh", "🔄Refresh", priority=True),
+        Binding("ctrl+j", 'switch_screen("board")', "Board"),
+        Binding("ctrl+k", 'switch_screen("overview")', "Settings"),
+        Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
     ]
 
-    SCREENS = {"MainView": MainView}
+    SCREENS = {
+        "board": BoardScreen,
+        "overview": OverViewScreen,
+        "settings": SettingsScreen,
+    }
+    TITLE = f"KanbanTui v{version('kanban_tui')}"
 
+    config_has_changed: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
@@ -58,10 +69,31 @@ class KanbanTui(App):
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.theme = self.config.board.theme
         self.update_board_list()
-        self.push_screen(MainView().data_bind(KanbanTui.active_board))
+        # self.push_screen(MainView().data_bind(KanbanTui.active_board))
+        await self.push_screen("board")
+        self.screen.data_bind(KanbanTui.active_board)
+        if self.demo_mode:
+            self.show_demo_notification()
+
+    def show_demo_notification(self):
+        self.title = f"{self.TITLE} (Demo Mode)"
+        pop_up_msg = "Using a temporary Database and Config. Kanban-Tui will delete those after closing the app when not using [green]--keep[/]."
+        if self.task_list:
+            self.notify(
+                title="Demo Mode active",
+                message=pop_up_msg
+                + " For a clean demo pass the [green]--clean[/] flag",
+                severity="warning",
+            )
+        else:
+            self.notify(
+                title="Demo Mode active (clean)",
+                message=pop_up_msg,
+                severity="warning",
+            )
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
@@ -86,8 +118,7 @@ class KanbanTui(App):
         self.update_board_list()
         self.watch_active_board()
         self.watch_column_list()
-        active_tab = self.screen.query_one(TabbedContent).active_pane.id
-        await self.screen.refresh_board(event=active_tab)
+        await self.screen.update_board()
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()
@@ -106,6 +137,9 @@ class KanbanTui(App):
         if column_id_list[0] == current_id:
             return current_id
         return column_id_list[column_id_list.index(current_id) - 1]
+
+    def watch_config_has_changed(self):
+        self.notify(f"config changed: {self.config_has_changed}")
 
     @property
     def visible_column_dict(self) -> dict[int, str]:

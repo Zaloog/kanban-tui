@@ -61,7 +61,6 @@ class ModalTaskEditScreen(ModalScreen):
                 )
                 yield Button("Cancel", id="btn_cancel", variant="error")
             yield Footer()
-        return super().compose()
 
     def on_mount(self, event: Mount) -> None:
         # TODO

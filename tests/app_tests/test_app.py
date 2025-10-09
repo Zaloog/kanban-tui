@@ -2,8 +2,8 @@ from pathlib import Path
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.backends.sqlite.backend import SqliteBackend
-from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
-from kanban_tui.views.main_view import MainView
+from kanban_tui.screens.board_screen import BoardScreen
+from kanban_tui.widgets.board_widgets import KanbanBoard
 
 APP_SIZE = (150, 50)
 
@@ -13,7 +13,7 @@ async def test_empty_app(
 ):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 0
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         assert Path(test_database_path).exists()
         assert Path(test_config_path).exists()
@@ -22,7 +22,7 @@ async def test_empty_app(
 async def test_app(test_app: KanbanTui, test_config_path: str, test_database_path: str):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 5
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         assert Path(test_database_path).exists()
         assert Path(test_config_path).exists()
@@ -85,7 +85,7 @@ async def test_app_refresh(
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 5
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         pilot.app.backend.delete_task(task_id=1)
         assert len(pilot.app.task_list) == 5

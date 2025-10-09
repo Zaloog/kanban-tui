@@ -2,7 +2,7 @@ from datetime import datetime
 
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, TextArea, Select
-from kanban_tui.views.main_view import MainView
+from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen, ModalConfirmScreen
 
 from kanban_tui.widgets.task_card import TaskCard
@@ -57,7 +57,7 @@ async def test_task_creation(empty_app: KanbanTui):
 
         # save task
         await pilot.click("#btn_continue")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
         assert len(pilot.app.task_list) == 1
         await pilot.pause(delay=0.5)
         assert pilot.app.focused.id == "taskcard_1"
@@ -134,7 +134,7 @@ async def test_task_edit_cancel(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         # Cancel with escape
         await pilot.press("escape")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.focused.id == "taskcard_1"
 
 
@@ -149,7 +149,7 @@ async def test_task_delete(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         # Cancel with escape
         await pilot.click("#btn_continue_delete")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.focused.id == "taskcard_5"
 
 
