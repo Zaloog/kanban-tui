@@ -3,7 +3,7 @@ from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button
 from kanban_tui.config import MovementModes
 from kanban_tui.screens.board_screen import BoardScreen
-from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
+from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import (
     ModalBoardOverviewScreen,

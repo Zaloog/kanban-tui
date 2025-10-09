@@ -2,8 +2,8 @@ import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Select, Switch, Button
 from kanban_tui.config import MovementModes
-from kanban_tui.views.main_view import MainView, SettingsView
-from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
+from kanban_tui.screens.settings_screen import SettingsScreen
+from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.widgets.settings_widgets import (
     ColumnSelector,
     AddRule,
@@ -25,7 +25,7 @@ async def test_settings_view_empty(empty_app: KanbanTui, test_database_path):
         await pilot.press("ctrl+l")
         await pilot.pause()
 
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, SettingsScreen)
         await pilot.click("#input_database_path")
         assert isinstance(pilot.app.focused, Input)
         assert pilot.app.focused.value == test_database_path
@@ -36,7 +36,7 @@ async def test_settings_view(test_app: KanbanTui, test_database_path):
         await pilot.press("ctrl+l")
         await pilot.pause()
 
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, SettingsScreen)
         await pilot.click("#input_database_path")
         assert isinstance(pilot.app.focused, Input)
         assert pilot.app.focused.value == test_database_path
@@ -50,13 +50,13 @@ async def test_task_expand_switch(test_app: KanbanTui):
         assert not pilot.app.screen.query_exactly_one(
             "#switch_expand_tasks", Switch
         ).value
-        assert not pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+        assert not pilot.app.config_has_changed
 
         # toggle Switch
         await pilot.click("#switch_expand_tasks")
         assert pilot.app.screen.query_exactly_one("#switch_expand_tasks", Switch).value
         assert pilot.app.config.task.always_expanded
-        assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+        assert pilot.app.config_has_changed
 
 
 async def test_task_movement_mode(test_app: KanbanTui):
@@ -78,14 +78,14 @@ async def test_task_movement_mode(test_app: KanbanTui):
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
             == MovementModes.JUMP
         )
-        assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+        assert pilot.app.config_has_changed
 
 
 async def test_board_columns_in_view(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert not pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
         await pilot.press("ctrl+l")
 
-        assert not pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
         assert pilot.app.config.board.columns_in_view == 3
         assert (
             pilot.app.screen.query_exactly_one("#select_columns_in_view", Select).value
@@ -101,7 +101,7 @@ async def test_board_columns_in_view(test_app: KanbanTui):
             pilot.app.screen.query_exactly_one("#select_columns_in_view", Select).value
             == 2
         )
-        assert pilot.app.screen.query_exactly_one(SettingsView).config_has_changed
+        assert pilot.app.config_has_changed
 
         # check columns in view
         await pilot.press("ctrl+j")
@@ -182,7 +182,7 @@ async def test_column_delete_press(empty_app: KanbanTui):
         await pilot.press("d")
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         await pilot.press("enter")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, SettingsScreen)
         assert len(pilot.app.column_list) == 3
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
@@ -205,7 +205,7 @@ async def test_column_delete_click(empty_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         await pilot.click("#btn_continue_delete")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, SettingsScreen)
         assert len(pilot.app.column_list) == 3
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
@@ -258,7 +258,7 @@ async def test_column_creation_cancel_press(test_app: KanbanTui):
 
         # Cancel Modal View
         await pilot.press("escape")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, SettingsScreen)
 
 
 async def test_column_creation_cancel_click(test_app: KanbanTui):
@@ -278,7 +278,7 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
         # Cancel Modal View
         await pilot.click("#btn_cancel_new_col")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, SettingsScreen)
 
 
 async def test_column_creation_column_name_present(test_app: KanbanTui):

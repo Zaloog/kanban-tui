@@ -1,7 +1,7 @@
 import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button, Static, Label
-from kanban_tui.views.main_view import MainView
+from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.modal.modal_board_screen import (
     ModalBoardOverviewScreen,
@@ -45,7 +45,7 @@ async def test_modal_board_creation_default(test_app: KanbanTui):
         await pilot.click("#btn_continue_new_board")
         # leave board screen, still stay on old board
         await pilot.press("escape")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         # new Board no tasks
         assert len(list(pilot.app.screen.query(TaskCard).results())) == 5
@@ -105,7 +105,7 @@ async def test_modal_board_creation_custom(test_app: KanbanTui):
         await pilot.click("#btn_continue_new_board")
         # Click to activate new Board
         await pilot.press("j", "enter")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
 
         # new Board no tasks
         assert len(pilot.app.column_list) == 1
@@ -269,7 +269,7 @@ async def test_modal_board_activate_board(test_app: KanbanTui):
         # activate Board number 3
         await pilot.press(*"jj")
         await pilot.press("enter")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.active_board.name == "Test Board 2"
 
 
@@ -286,6 +286,6 @@ async def test_modal_board_copy_board(test_app: KanbanTui):
         assert pilot.app.focused.highlighted_child.board.name == "Kanban Board_copy"
         assert pilot.app.focused.highlighted_child.board.icon == ":sparkles:"
         await pilot.press("enter")
-        assert isinstance(pilot.app.screen, MainView)
+        assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.active_board.name == "Kanban Board_copy"
         assert len(pilot.app.board_list) == 2

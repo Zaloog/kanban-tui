@@ -3,11 +3,10 @@ from pathlib import Path
 from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
-from textual.widgets import TabbedContent
 
+from importlib.metadata import version
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.settings_screen import SettingsScreen
-from kanban_tui.views.main_view import MainView
 from kanban_tui.config import (
     init_config,
     SETTINGS,
@@ -31,7 +30,8 @@ class KanbanTui(App):
         # Binding("ctrl+l", 'show_tab("tab_settings")', "Settings", priority=True),
     ]
 
-    SCREENS = {"mainView": MainView, "board": BoardScreen, "settings": SettingsScreen}
+    SCREENS = {"board": BoardScreen, "settings": SettingsScreen}
+    TITLE = f"KanbanTui v{version('kanban_tui')}"
 
     config_has_changed: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
@@ -69,6 +69,25 @@ class KanbanTui(App):
         self.update_board_list()
         # self.push_screen(MainView().data_bind(KanbanTui.active_board))
         self.push_screen(BoardScreen().data_bind(KanbanTui.active_board))
+        if self.demo_mode:
+            self.show_demo_notification()
+
+    def show_demo_notification(self):
+        self.title = f"{self.TITLE} (Demo Mode)"
+        pop_up_msg = "Using a temporary Database and Config. Kanban-Tui will delete those after closing the app when not using [green]--keep[/]."
+        if self.task_list:
+            self.notify(
+                title="Demo Mode active",
+                message=pop_up_msg
+                + " For a clean demo pass the [green]--clean[/] flag",
+                severity="warning",
+            )
+        else:
+            self.notify(
+                title="Demo Mode active (clean)",
+                message=pop_up_msg,
+                severity="warning",
+            )
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
@@ -93,8 +112,7 @@ class KanbanTui(App):
         self.update_board_list()
         self.watch_active_board()
         self.watch_column_list()
-        active_tab = self.screen.query_one(TabbedContent).active_pane.id
-        await self.screen.refresh_board(event=active_tab)
+        await self.screen.update_board()
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()

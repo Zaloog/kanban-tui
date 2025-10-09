@@ -22,7 +22,7 @@ from kanban_tui.views.overview_tab_view import (
     OverViewPlot,
     LogTable,
 )
-from kanban_tui.views.settings_tab_view import SettingsView
+from kanban_tui.widgets.settings_widgets import SettingsView
 
 
 class MainView(Screen):

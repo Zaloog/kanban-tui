@@ -14,7 +14,7 @@ from textual.widgets import Header, Footer
 from textual.screen import Screen
 
 from kanban_tui.classes.board import Board
-from kanban_tui.views.kanbanboard_tab_view import KanbanBoard
+from kanban_tui.widgets.board_widgets import KanbanBoard
 
 
 class BoardScreen(Screen):
@@ -26,10 +26,6 @@ class BoardScreen(Screen):
         yield Header()
         yield Footer()
 
-    def on_mount(self) -> None:
-        if self.app.demo_mode:
-            self.show_demo_notification()
-
     def watch_active_board(self):
         if self.active_board:
             border_title = Text.from_markup(
@@ -37,25 +33,8 @@ class BoardScreen(Screen):
             )
             self.query_one(KanbanBoard).border_title = border_title
 
-    def show_demo_notification(self):
-        self.title = "Kanban-Tui (Demo Mode)"
-        pop_up_msg = "Using a temporary Database and Config. Kanban-Tui will delete those after closing the app when not using [green]--keep[/]."
-        if self.app.task_list:
-            self.notify(
-                title="Demo Mode active",
-                message=pop_up_msg
-                + " For a clean demo pass the [green]--clean[/] flag",
-                severity="warning",
-            )
-        else:
-            self.notify(
-                title="Demo Mode active (clean)",
-                message=pop_up_msg,
-                severity="warning",
-            )
-
     @on(ScreenResume)
-    def update_board(self):
+    async def update_board(self):
         if self.app.config_has_changed:
             self.notify("updated")
             self.query_one(KanbanBoard).refresh_on_board_change()
