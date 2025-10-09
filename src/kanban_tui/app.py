@@ -6,6 +6,7 @@ from textual.reactive import reactive
 
 from importlib.metadata import version
 from kanban_tui.screens.board_screen import BoardScreen
+from kanban_tui.screens.overview_screen import OverViewScreen
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.config import (
     init_config,
@@ -26,11 +27,15 @@ class KanbanTui(App):
     BINDINGS = [
         Binding("f5", "refresh", "🔄Refresh", priority=True),
         Binding("ctrl+j", 'switch_screen("board")', "Board"),
+        Binding("ctrl+k", 'switch_screen("overview")', "Settings"),
         Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
-        # Binding("ctrl+l", 'show_tab("tab_settings")', "Settings", priority=True),
     ]
 
-    SCREENS = {"board": BoardScreen, "settings": SettingsScreen}
+    SCREENS = {
+        "board": BoardScreen,
+        "overview": OverViewScreen,
+        "settings": SettingsScreen,
+    }
     TITLE = f"KanbanTui v{version('kanban_tui')}"
 
     config_has_changed: reactive[bool] = reactive(False, init=False)
@@ -64,11 +69,12 @@ class KanbanTui(App):
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.theme = self.config.board.theme
         self.update_board_list()
         # self.push_screen(MainView().data_bind(KanbanTui.active_board))
-        self.push_screen(BoardScreen().data_bind(KanbanTui.active_board))
+        await self.push_screen("board")
+        self.screen.data_bind(KanbanTui.active_board)
         if self.demo_mode:
             self.show_demo_notification()
 
@@ -133,7 +139,7 @@ class KanbanTui(App):
         return column_id_list[column_id_list.index(current_id) - 1]
 
     def watch_config_has_changed(self):
-        self.notify(f"{self.config_has_changed}")
+        self.notify(f"config changed: {self.config_has_changed}")
 
     @property
     def visible_column_dict(self) -> dict[int, str]:

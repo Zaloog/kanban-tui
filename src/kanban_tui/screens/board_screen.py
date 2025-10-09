@@ -26,6 +26,9 @@ class BoardScreen(Screen):
         yield Header()
         yield Footer()
 
+    def on_mount(self):
+        self.notify("mounted")
+
     def watch_active_board(self):
         if self.active_board:
             border_title = Text.from_markup(
@@ -35,8 +38,8 @@ class BoardScreen(Screen):
 
     @on(ScreenResume)
     async def update_board(self):
+        self.watch_active_board()
         if self.app.config_has_changed:
             self.notify("updated")
             self.query_one(KanbanBoard).refresh_on_board_change()
-            self.watch_active_board()
             self.app.config_has_changed = False

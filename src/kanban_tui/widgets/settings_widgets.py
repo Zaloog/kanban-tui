@@ -284,7 +284,7 @@ class ColumnSelector(ListView):
                     StatusColumnSelector
                 ).get_select_widget_values()
                 # Trigger Update on tab Switch
-                self.parent.parent.config_changes()
+                self.app.config_has_changed = True
 
                 self.index = column.position
 
