@@ -389,3 +389,35 @@ async def test_status_column_selector(test_app: KanbanTui):
         await pilot.press("enter")
         assert pilot.app.active_board.reset_column is None
         assert pilot.app.active_board.start_column == 1
+
+
+async def test_status_update_task_in_start_column(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        await pilot.press("ctrl+s")
+        assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
+        # Go to Start Select
+        await pilot.press("j")
+        assert str(pilot.app.focused.value) == "Select.BLANK"
+
+        # Select Ready
+        await pilot.press("enter")
+        await pilot.press("j")
+        await pilot.press("enter")
+
+        assert pilot.app.focused.value == 1
+        assert pilot.app.active_board.start_column == 1
+
+        # go to finish select
+        await pilot.press("j")
+        await pilot.press("enter")
+        await pilot.press(*"jj")
+        await pilot.press("enter")
+        assert pilot.app.active_board.finish_column == 2
+
+        await pilot.press("ctrl+j")
+        await pilot.press("L")
+        assert (
+            pilot.app.focused.task_.creation_date == pilot.app.focused.task_.start_date
+        )
