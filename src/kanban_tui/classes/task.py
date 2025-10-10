@@ -32,6 +32,12 @@ class Task(BaseModel):
 
     def update_time_worked_on(self):
         """get duration in hours from start till finish of task"""
+        # if the start_column is set while the task
+        # is inside it already, the creation_date will be taken
+        # as the start date, when attempting to finish the task
+        if not self.start_date:
+            self.start_date = self.creation_date
+
         self.time_worked_on += (self.finish_date - self.start_date) // timedelta(
             minutes=1
         ) + 1
