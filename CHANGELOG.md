@@ -12,6 +12,8 @@ which makes the board is now horizontally scrollable
 
 ### Fixed
 - Fixed focus bug if no visible tasks are on board (due to column visibility change)
+- Fixed error, if start column was set to a column a task was already in and the task was then moved
+to finish column. The creation_date is used in that case, instead of the start_date (#43).
 
 ### Changed
 - Changed kanban-tui config to a `.toml` config file instead of `.yaml`
