@@ -20,8 +20,8 @@ from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 APP_SIZE = (150, 50)
 
 
-async def test_settings_view_empty(empty_app: KanbanTui, test_database_path):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_settings_view_empty(no_task_app: KanbanTui, test_database_path):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
 
@@ -165,8 +165,8 @@ async def test_column_visibility(test_app: KanbanTui):
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done", 4: "Archive"}
 
 
-async def test_column_delete_press(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_column_delete_press(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
         # focus selector
@@ -187,8 +187,8 @@ async def test_column_delete_press(empty_app: KanbanTui):
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
 
-async def test_column_delete_click(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_column_delete_click(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
         # focus selector

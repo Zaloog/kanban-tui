@@ -8,10 +8,10 @@ from kanban_tui.widgets.board_widgets import KanbanBoard
 APP_SIZE = (150, 50)
 
 
-async def test_empty_app(
-    empty_app: KanbanTui, test_config_path: str, test_database_path: str
+async def test_no_task_app(
+    no_task_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 0
         assert isinstance(pilot.app.screen, BoardScreen)
 

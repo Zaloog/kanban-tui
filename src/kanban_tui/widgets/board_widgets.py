@@ -263,7 +263,12 @@ class KanbanBoard(HorizontalScroll):
         if not self.app.visible_task_list:
             self.can_focus = True
             self.focus()
-            if not self.app.task_list:
+            if not self.app.active_board:
+                self.notify(
+                    title="Welcome to Kanban Tui",
+                    message="Looks like you are new, press [blue]n[/] to create your first Board",
+                )
+            elif not self.app.task_list:
                 self.notify(
                     title="Welcome to Kanban Tui",
                     message="Looks like you are new, press [blue]n[/] to create your first Card",

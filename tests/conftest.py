@@ -56,9 +56,21 @@ def empty_app(test_config_path, test_database_path, test_config):
     yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
 
 
+@pytest.fixture
+def no_task_app(test_config_path, test_database_path, test_config):
+    app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
+    app.backend.create_new_board(
+        name="Kanban Board",
+        icon=":sparkles:",
+    )
+
+    yield app
+
+
 # Create Testapp and inject test tasks
 @pytest.fixture
-def test_app(test_config_path, test_database_path, test_config: Settings):
+# def test_app(test_config_path, test_database_path, test_config: Settings):
+def test_app(no_task_app):
     # TODO
     # with initialized test_db
     # add categories to config
@@ -75,20 +87,21 @@ def test_app(test_config_path, test_database_path, test_config: Settings):
     #     category="red",
     #     color="#FF0000",
     # )
-    app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
-    app.backend.create_new_task(
+    # app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
+
+    no_task_app.backend.create_new_task(
         title="Task_ready_0",
         description="Hallo",
         # category="green",
         column=1,
     )
-    app.backend.create_new_task(
+    no_task_app.backend.create_new_task(
         title="Task_ready_1",
         description="Hallo",
         # category="blue",
         column=1,
     )
-    app.backend.create_new_task(
+    no_task_app.backend.create_new_task(
         title="Task_ready_2",
         description="Hallo",
         category=None,
@@ -96,18 +109,18 @@ def test_app(test_config_path, test_database_path, test_config: Settings):
     )
 
     # Doing, 1 Task
-    app.backend.create_new_task(
+    no_task_app.backend.create_new_task(
         title="Task_doing_0",
         description="Hallo",
         # category="green",
         column=2,
     )
     # Done, 1 Task
-    app.backend.create_new_task(
+    no_task_app.backend.create_new_task(
         title="Task_done_0",
         description="Hallo",
         # category="red",
         column=3,
     )
 
-    yield app
+    yield no_task_app

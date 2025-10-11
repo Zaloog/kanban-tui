@@ -3,6 +3,7 @@ from pathlib import Path
 
 from kanban_tui.backends.jira.backend import JiraBackend
 from kanban_tui.config import Settings, init_config
+from kanban_tui.constants import AUTH_FILE
 
 
 def test_read_sample_theme_from_env() -> None:
@@ -79,6 +80,7 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
             },
             "jira_settings": {
                 "base_url": "",
+                "auth_file_path": AUTH_FILE.as_posix(),
             },
         },
     }

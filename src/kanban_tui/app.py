@@ -15,9 +15,6 @@ from kanban_tui.config import (
     Settings,
 )
 from kanban_tui.backends import SqliteBackend
-from kanban_tui.backends.sqlite.database import (
-    init_first_board,
-)
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
@@ -43,7 +40,7 @@ class KanbanTui(App):
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
-    active_board: reactive[Board | None] = reactive(None)
+    active_board: reactive[Board | None] = reactive(None, init=False)
 
     def __init__(
         self,
@@ -58,7 +55,7 @@ class KanbanTui(App):
         self.demo_mode = demo_mode
 
         self.backend.create_database()
-        init_first_board(database=self.backend.database_path)
+        # init_first_board(database=self.backend.database_path)
         super().__init__()
 
     def get_backend(self):
@@ -73,9 +70,10 @@ class KanbanTui(App):
     async def on_mount(self) -> None:
         self.theme = self.config.board.theme
         self.update_board_list()
-        # self.push_screen(MainView().data_bind(KanbanTui.active_board))
-        await self.push_screen("board")
-        self.screen.data_bind(KanbanTui.active_board)
+
+        screen = self.get_screen("board").data_bind(KanbanTui.active_board)
+        await self.push_screen(screen)
+
         if self.demo_mode:
             self.show_demo_notification()
 
@@ -103,6 +101,7 @@ class KanbanTui(App):
         self.active_board = self.backend.active_board
 
     def watch_active_board(self):
+        self.notify(f"app:{self.active_board}")
         if self.active_board:
             self.app.config.set_active_board(
                 new_active_board_id=self.active_board.board_id
