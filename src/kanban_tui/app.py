@@ -101,7 +101,6 @@ class KanbanTui(App):
         self.active_board = self.backend.active_board
 
     def watch_active_board(self):
-        self.notify(f"app:{self.active_board}")
         if self.active_board:
             self.app.config.set_active_board(
                 new_active_board_id=self.active_board.board_id
