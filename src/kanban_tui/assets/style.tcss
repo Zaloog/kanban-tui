@@ -480,7 +480,7 @@ TaskMovementSelector{
     padding: 1 0 0 1;
   }
 }
-DefaultTaskColorSelector{
+TaskDefaultColorSelector{
   height:auto;
 
   Label{
@@ -618,6 +618,7 @@ AddRule Button{
   height: auto;
 }
 .setting-block {
+  height:auto;
   border:$success;
 
   &:focus-within {

@@ -55,7 +55,6 @@ class KanbanTui(App):
         self.demo_mode = demo_mode
 
         self.backend.create_database()
-        # init_first_board(database=self.backend.database_path)
         super().__init__()
 
     def get_backend(self):

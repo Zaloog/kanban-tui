@@ -9,8 +9,8 @@ from kanban_tui.widgets.settings_widgets import (
     AddRule,
     DataBasePathInput,
     TaskAlwaysExpandedSwitch,
-    DefaultTaskColorSelector,
     StatusColumnSelector,
+    TaskDefaultColorSelector,
     TaskMovementSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
@@ -358,7 +358,7 @@ async def test_setting_shortcuts(test_app: KanbanTui):
 
         await pilot.press("ctrl+g")
         assert pilot.app.screen.query_exactly_one(
-            DefaultTaskColorSelector
+            TaskDefaultColorSelector
         ).has_focus_within
 
         await pilot.press("ctrl+s")

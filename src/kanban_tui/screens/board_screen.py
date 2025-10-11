@@ -1,14 +1,11 @@
 from typing import Iterable, TYPE_CHECKING
 
-from textual.reactive import reactive
-
-
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-
-from textual import on
 from rich.text import Text
+from textual import on
+from textual.reactive import reactive
 from textual.widget import Widget
 from textual.events import ScreenResume
 from textual.widgets import Header, Footer
