@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from kanban_tui.constants import CONFIG_NAME, DATABASE_NAME
+from kanban_tui.constants import AUTH_NAME, CONFIG_NAME, DATABASE_NAME
 from kanban_tui.config import Settings, init_config
 from kanban_tui.app import KanbanTui
 
@@ -24,6 +24,13 @@ def test_database_path(test_file_location: Path) -> str:
     yield (test_file_location / DATABASE_NAME).as_posix()
 
 
+@pytest.fixture
+def test_auth_path(test_file_location: Path) -> str:
+    directory = test_file_location / "auth"
+    directory.mkdir(exist_ok=True)
+    yield (directory / AUTH_NAME).as_posix()
+
+
 # Init Config
 @pytest.fixture
 def test_config(test_config_path: str, test_database_path: str) -> Settings:
@@ -31,6 +38,16 @@ def test_config(test_config_path: str, test_database_path: str) -> Settings:
     init_config(config_path=test_config_path, database=test_database_path)
 
     cfg = Settings()
+    yield cfg
+
+
+@pytest.fixture
+def test_jira_config(test_config_path, test_auth_path) -> Settings:
+    config_path = Path(__file__).parent / "sample-configs/jira_backend.toml"
+    os.environ["KANBAN_TUI_CONFIG_FILE"] = config_path.as_posix()
+
+    cfg = Settings()
+    cfg.backend.jira_settings.auth_file_path = test_auth_path
     yield cfg
 
 

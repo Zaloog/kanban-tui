@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from kanban_tui.backends.jira.backend import JiraBackend
 from kanban_tui.config import Settings, init_config
 
 
@@ -12,15 +13,12 @@ def test_read_sample_theme_from_env() -> None:
     assert config.board.theme == "test_theme"
 
 
-def test_read_sample_jira_backend_from_env() -> None:
-    os.environ["KANBAN_TUI_CONFIG_FILE"] = (
-        Path(__file__).parent / "sample-configs/jira_backend.toml"
-    ).as_posix()
-    config = Settings()
-    assert config.backend.mode == "jira"
-    assert config.backend.jira_settings.url == "www.test-url.com"
-    assert config.backend.jira_settings.user == "Zaloog"
-    assert config.backend.jira_settings.api_token == "1337"
+def test_read_sample_jira_backend_from_env(
+    test_jira_config: Settings, test_auth_path
+) -> None:
+    assert test_jira_config.backend.mode == "jira"
+    assert test_jira_config.backend.jira_settings.base_url == "http://localhost:8080"
+    assert test_jira_config.backend.jira_settings.auth_file_path == test_auth_path
 
 
 def test_read_sample_sqlite_backend_from_env() -> None:
@@ -54,6 +52,13 @@ def test_config_creation(
     )
 
 
+def test_auth_dir_creation(test_jira_config: Settings, test_auth_path) -> None:
+    backend = JiraBackend(settings=test_jira_config.backend.jira_settings)
+    assert backend.settings.base_url == "http://localhost:8080"
+    assert backend.settings.auth_file_path == test_auth_path
+    assert Path(test_auth_path).exists()
+
+
 def test_default_config(test_config: Settings, test_database_path: str) -> None:
     settings_dict = test_config.model_dump(serialize_as_any=True)
     default_settings = {
@@ -73,9 +78,7 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
                 "active_board_id": 1,
             },
             "jira_settings": {
-                "user": "",
-                "api_token": "",
-                "url": "",
+                "base_url": "",
             },
         },
     }

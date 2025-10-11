@@ -13,6 +13,7 @@ from pydantic_settings import (
 )
 
 from kanban_tui.constants import (
+    AUTH_FILE,
     CONFIG_FILE,
     DATABASE_FILE,
 )
@@ -41,9 +42,8 @@ class TaskSettings(BaseModel):
 
 
 class JiraBackendSettings(BaseModel):
-    user: str = Field(default="")
-    api_token: str = Field(default="")
-    url: str = Field(default="")
+    base_url: str = Field(default="")
+    auth_file_path: str = Field(default=AUTH_FILE.as_posix())
 
 
 class SqliteBackendSettings(BaseModel):

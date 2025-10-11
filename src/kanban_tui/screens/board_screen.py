@@ -26,9 +26,6 @@ class BoardScreen(Screen):
         yield Header()
         yield Footer()
 
-    def on_mount(self):
-        self.notify("mounted")
-
     def watch_active_board(self):
         if self.active_board:
             border_title = Text.from_markup(

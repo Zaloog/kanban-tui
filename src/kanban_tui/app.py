@@ -5,6 +5,7 @@ from textual.binding import Binding
 from textual.reactive import reactive
 
 from importlib.metadata import version
+from kanban_tui.backends.jira.backend import JiraBackend
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.overview_screen import OverViewScreen
 from kanban_tui.screens.settings_screen import SettingsScreen
@@ -27,7 +28,7 @@ class KanbanTui(App):
     BINDINGS = [
         Binding("f5", "refresh", "🔄Refresh", priority=True),
         Binding("ctrl+j", 'switch_screen("board")', "Board"),
-        Binding("ctrl+k", 'switch_screen("overview")', "Settings"),
+        Binding("ctrl+k", 'switch_screen("overview")', "Overview"),
         Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
     ]
 
@@ -65,7 +66,7 @@ class KanbanTui(App):
             case "sqlite":
                 return SqliteBackend(self.config.backend.sqlite_settings)
             case "jira":
-                raise NotImplementedError("Jira Backend is not supported yet")
+                return JiraBackend(self.config.backend.jira_settings)
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")
 
