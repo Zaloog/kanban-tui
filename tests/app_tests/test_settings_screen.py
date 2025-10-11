@@ -1,7 +1,7 @@
 import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Select, Switch, Button
-from kanban_tui.config import MovementModes
+from kanban_tui.config import Backends, MovementModes
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.widgets.settings_widgets import (
@@ -77,6 +77,28 @@ async def test_task_movement_mode(test_app: KanbanTui):
         assert (
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
             == MovementModes.JUMP
+        )
+        assert pilot.app.config_has_changed
+
+
+async def test_backend_mode(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        assert pilot.app.config.backend.mode == Backends.SQLITE
+        assert (
+            pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
+            == Backends.SQLITE
+        )
+
+        # change Value
+        await pilot.click("#select_backend_mode")
+        await pilot.press("down")
+        await pilot.press("enter")
+        assert pilot.app.config.backend.mode == Backends.JIRA
+        assert (
+            pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
+            == Backends.JIRA
         )
         assert pilot.app.config_has_changed
 

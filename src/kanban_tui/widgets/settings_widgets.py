@@ -69,7 +69,7 @@ class BackendSelector(Horizontal):
             yield VimSelect.from_values(
                 Backends,
                 value=self.app.config.backend.mode,
-                id="select_movement_mode",
+                id="select_backend_mode",
                 allow_blank=False,
             )
 

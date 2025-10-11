@@ -1,10 +1,12 @@
 from pathlib import Path
+from importlib.metadata import version
 
+from textual import on
 from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
+from textual.widgets import Select
 
-from importlib.metadata import version
 from kanban_tui.backends.jira.backend import JiraBackend
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.overview_screen import OverViewScreen
@@ -93,6 +95,12 @@ class KanbanTui(App):
                 severity="warning",
             )
 
+    @on(Select.Changed, "#select_backend_mode")
+    def update_backend(self, event: Select.Changed):
+        self.backend = self.get_backend()
+        self.update_board_list()
+        self.get_screen("board", BoardScreen).refresh(recompose=True)
+
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
 
@@ -104,7 +112,7 @@ class KanbanTui(App):
             self.app.config.set_active_board(
                 new_active_board_id=self.active_board.board_id
             )
-            self.update_column_list()
+        self.update_column_list()
 
     def watch_column_list(self):
         self.update_task_list()

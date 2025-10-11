@@ -38,7 +38,6 @@ class BoardScreen(Screen):
 
     @on(ScreenResume)
     async def update_board(self):
-        self.watch_active_board()
         if self.app.config_has_changed:
-            self.query_one(KanbanBoard).refresh_on_board_change()
+            await self.query_one(KanbanBoard).populate_board()
             self.app.config_has_changed = False

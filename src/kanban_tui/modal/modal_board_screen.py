@@ -260,7 +260,7 @@ class ModalBoardOverviewScreen(ModalScreen):
     @on(ListView.Selected, "#board_list")
     def activate_board(self, event: ListView.Selected):
         self.app.active_board = self.app.board_list[event.list_view.index]
-        self.dismiss(True)
+        self.dismiss()
 
     async def update_board_listview(self, item_to_hightlight: int | None = None):
         current_index = item_to_hightlight or self.query_one(ListView).index
