@@ -198,13 +198,12 @@ ModalTaskEditScreen {
     }
 
     #horizontal_buttons {
-        height:1fr;
-        min-height:3;
+        height:3;
         width:1fr;
         Button {
             width:1fr;
+            height:3;
             min-height:3;
-            height:1fr;
         }
     }
 }
