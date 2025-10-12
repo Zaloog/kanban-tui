@@ -13,6 +13,12 @@ class JiraBackend(Backend):
     settings: JiraBackendSettings
 
     def __post_init__(self):
+        # TODO array of tables in toml
+        # [[auth]]
+        # name = "User 1"
+        # api_key = XXXXXXXXXXXXX
+        # [[auth.jqls]]
+        # board_key = "project = XY"
         init_auth_file(file=self.settings.auth_file_path)
 
     # Queries

@@ -5,7 +5,7 @@ RUN 			   := uv run
 
 # -- Testing ---
 test:
-	$(RUN) pytest $(ARGS)
+	$(RUN) pytest $(ARGS) --no-cov
 
 check:
 	$(RUN) ruff check . $(ARGS)
