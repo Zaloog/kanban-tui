@@ -9,15 +9,17 @@
 which makes the board is now horizontally scrollable
 - Added vim bindings to all Select Navigation
 - Added Task Card Movement via Mouse Drag n Drop
+- Added Jira Backend + AuthFile (Backends can be switched in Settings)
 
 ### Fixed
 - Fixed focus bug if no visible tasks are on board (due to column visibility change)
 - Fixed error, if start column was set to a column a task was already in and the task was then moved
-to finish column. The creation_date is used in that case, instead of the start_date (#43).
+to finish column. The creation_date is used in that case, instead of the start_date
 
 ### Changed
-- Changed kanban-tui config to a `.toml` config file instead of `.yaml`
+- Changed kanban-tui config to a `.toml` config file instead of `.yaml` and now using pydantic_settings
 - XDG dirs are now under `~/.local/share/kanban_tui` for data and `~/.config/kanban_tui` for configs
+- Reworked UI
 
 ## v0.8.2
 - Fix Bugs and make `kanban-tui` compatible with `textual` 6.X
