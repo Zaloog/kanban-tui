@@ -49,13 +49,15 @@ class KanbanTui(App):
         config_path: str,
         database_path: str,
         demo_mode: bool = False,
+        *args,
+        **kwargs,
     ) -> None:
         SETTINGS.set(Settings())
         init_config(config_path=config_path, database=database_path)
         self.config = SETTINGS.get()
         self.backend = self.get_backend()
         self.demo_mode = demo_mode
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def get_backend(self):
         match self.config.backend.mode:

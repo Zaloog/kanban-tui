@@ -69,6 +69,7 @@ def no_task_app(test_config_path, test_database_path, test_config):
         name="Kanban Board",
         icon=":sparkles:",
     )
+    app.animation_level = "none"
 
     yield app
 
