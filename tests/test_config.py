@@ -91,6 +91,8 @@ def test_config_creation(
 
 
 def test_auth_dir_creation(test_jira_config: Settings, test_auth_path) -> None:
+    os.environ["KANBAN_TUI_AUTH_FILE"] = test_auth_path
+
     backend = JiraBackend(settings=test_jira_config.backend.jira_settings)
     assert backend.settings.base_url == "http://localhost:8080"
     assert backend.settings.auth_file_path == test_auth_path

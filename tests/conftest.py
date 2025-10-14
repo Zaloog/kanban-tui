@@ -52,6 +52,12 @@ def test_jira_config(test_config_path, test_auth_path) -> Settings:
 
 
 @pytest.fixture
+def test_auth_file():
+    config_path = Path(__file__).parent / "sample-configs/sample_auth.toml"
+    os.environ["KANBAN_TUI_AUTH_FILE"] = config_path.as_posix()
+
+
+@pytest.fixture
 def empty_app(test_config_path, test_database_path, test_config):
     yield KanbanTui(config_path=test_config_path, database_path=test_database_path)
 

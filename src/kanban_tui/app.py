@@ -55,8 +55,6 @@ class KanbanTui(App):
         self.config = SETTINGS.get()
         self.backend = self.get_backend()
         self.demo_mode = demo_mode
-
-        self.backend.create_database()
         super().__init__()
 
     def get_backend(self):
