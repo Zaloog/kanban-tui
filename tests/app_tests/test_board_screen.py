@@ -12,7 +12,7 @@ from kanban_tui.modal.modal_board_screen import (
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.task_column import Column
 
-APP_SIZE = (150, 50)
+APP_SIZE = (200, 80)
 
 
 async def test_no_task_kanbanboard(no_task_app: KanbanTui):
