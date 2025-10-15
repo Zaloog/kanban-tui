@@ -15,6 +15,7 @@ from kanban_tui.constants import AUTH_FILE
 
 class ApiKeyEntry(BaseModel):
     api_key: str = ""
+    cert_path: str = ""
 
 
 class AuthSettings(BaseSettings):
@@ -22,6 +23,10 @@ class AuthSettings(BaseSettings):
 
     def set_jira_api_key(self, new_api_key: str) -> None:
         self.jira.api_key = new_api_key
+        self.save()
+
+    def set_cert_path(self, new_cert_path: str) -> None:
+        self.jira.cert_path = new_cert_path
         self.save()
 
     def save(self, path: str = AUTH_FILE.as_posix()):

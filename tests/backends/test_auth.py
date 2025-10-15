@@ -34,3 +34,27 @@ def test_update_api_key(test_auth_path):
     # Read again
     auth = AuthSettings()
     assert auth.jira.api_key == "ANOTHER_KEY"
+
+
+def test_update_cert_path(test_auth_path):
+    os.environ["KANBAN_TUI_AUTH_FILE"] = test_auth_path
+    auth = AuthSettings()
+    assert auth.jira.cert_path == ""
+    # Update Key in temp File
+    auth.set_cert_path(new_cert_path="NEW_PATH")
+    # Read again
+    auth = AuthSettings()
+    assert auth.jira.cert_path == "NEW_PATH"
+
+
+def test_default_auth(test_auth_path):
+    os.environ["KANBAN_TUI_AUTH_FILE"] = test_auth_path
+    auth = AuthSettings()
+    auth_dict = auth.model_dump(serialize_as_any=True)
+    default_auth = {
+        "jira": {
+            "api_key": "",
+            "cert_path": "",
+        }
+    }
+    assert auth_dict == default_auth
