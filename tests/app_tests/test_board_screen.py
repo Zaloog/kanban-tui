@@ -1,3 +1,7 @@
+import sys
+
+import pytest
+
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button
 from kanban_tui.config import MovementModes
@@ -232,6 +236,9 @@ async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
         assert pilot.app.focused.row == 0
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="Issues when runnning on windows CI runner"
+)
 async def test_kanbanboard_card_movement_mouse_different_column(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
