@@ -54,19 +54,21 @@ class KanbanTui(App):
     ) -> None:
         SETTINGS.set(Settings())
         init_config(config_path=config_path, database=database_path)
-        self.config = SETTINGS.get()
-        self.backend = self.get_backend()
-        self.demo_mode = demo_mode
         super().__init__(*args, **kwargs)
+        self.config = SETTINGS.get()
+        self.demo_mode = demo_mode
+        self.backend = self.get_backend()
 
     def get_backend(self):
         match self.config.backend.mode:
             case "sqlite":
-                return SqliteBackend(self.config.backend.sqlite_settings)
+                backend = SqliteBackend(self.config.backend.sqlite_settings)
             case "jira":
-                return JiraBackend(self.config.backend.jira_settings)
+                backend = JiraBackend(self.config.backend.jira_settings)
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")
+
+        return backend
 
     async def on_mount(self) -> None:
         self.theme = self.config.board.theme
@@ -99,7 +101,7 @@ class KanbanTui(App):
     def update_backend(self, event: Select.Changed):
         self.backend = self.get_backend()
         self.update_board_list()
-        self.get_screen("board", BoardScreen).refresh(recompose=True)
+        # self.get_screen("board", BoardScreen).refresh(recompose=True)
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
@@ -124,7 +126,7 @@ class KanbanTui(App):
         self.update_board_list()
         self.watch_active_board()
         self.watch_column_list()
-        await self.screen.update_board()
+        await self.screen.load_kanban_board()
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()
@@ -143,9 +145,6 @@ class KanbanTui(App):
         if column_id_list[0] == current_id:
             return current_id
         return column_id_list[column_id_list.index(current_id) - 1]
-
-    def watch_config_has_changed(self):
-        self.notify(f"config changed: {self.config_has_changed}")
 
     @property
     def visible_column_dict(self) -> dict[int, str]:

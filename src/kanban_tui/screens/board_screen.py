@@ -1,5 +1,7 @@
 from typing import Iterable, TYPE_CHECKING
 
+from kanban_tui.config import Backends
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -24,10 +26,17 @@ class BoardScreen(Screen):
         yield Header()
         yield Footer()
 
-    def on_mount(self):
-        self.set_reactive(BoardScreen.active_board, self.app.active_board)
-        if not self.active_board:
-            self.query_one(KanbanBoard).action_show_boards()
+    # def on_mount(self):
+    #     self.set_reactive(BoardScreen.active_board, self.app.active_board)
+    #
+    #     match self.app.config.backend.mode:
+    #         case Backends.JIRA:
+    #             if not self.app.backend.api_key:
+    #                 self.app.push_screen("settings")
+    #
+    #
+    #     if not self.active_board:
+    #         self.query_one(KanbanBoard).action_show_boards()
 
     def watch_active_board(self):
         if self.active_board:
@@ -36,8 +45,24 @@ class BoardScreen(Screen):
             )
             self.query_one(KanbanBoard).border_title = border_title
 
+    async def ensure_active_board(self):
+        if not self.active_board:
+            self.query_one(KanbanBoard).action_show_boards()
+
+    async def ensure_api_key(self):
+        if not self.app.backend.api_key:
+            await self.app.push_screen("overview")
+
     @on(ScreenResume)
-    async def update_board(self):
+    async def load_kanban_board(self):
+        self.set_reactive(BoardScreen.active_board, self.app.active_board)
+
+        match self.app.config.backend.mode:
+            case Backends.JIRA:
+                await self.ensure_api_key()
+
+        await self.ensure_active_board()
+
         if self.app.config_has_changed:
             await self.query_one(KanbanBoard).populate_board()
             self.app.config_has_changed = False
