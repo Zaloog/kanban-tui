@@ -27,18 +27,6 @@ class BoardScreen(Screen):
         yield Header()
         yield Footer()
 
-    # def on_mount(self):
-    #     self.set_reactive(BoardScreen.active_board, self.app.active_board)
-    #
-    #     match self.app.config.backend.mode:
-    #         case Backends.JIRA:
-    #             if not self.app.backend.api_key:
-    #                 self.app.push_screen("settings")
-    #
-    #
-    #     if not self.active_board:
-    #         self.query_one(KanbanBoard).action_show_boards()
-
     def watch_active_board(self):
         if self.active_board:
             border_title = Text.from_markup(
