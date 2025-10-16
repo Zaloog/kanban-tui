@@ -61,8 +61,10 @@ class KanbanBoard(HorizontalScroll):
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
-    def action_show_boards(self) -> None:
-        self.app.push_screen(ModalBoardOverviewScreen(), callback=self.populate_board)
+    async def action_show_boards(self) -> None:
+        await self.app.push_screen(
+            ModalBoardOverviewScreen(), callback=self.populate_board
+        )
 
     async def place_new_task(self, task: Task):
         await self.query(Column)[0].place_task(task=task)

@@ -101,7 +101,7 @@ class KanbanTui(App):
     def update_backend(self, event: Select.Changed):
         self.backend = self.get_backend()
         self.update_board_list()
-        # self.get_screen("board", BoardScreen).refresh(recompose=True)
+        self.get_screen("board", BoardScreen).refresh(recompose=True)
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
@@ -122,11 +122,12 @@ class KanbanTui(App):
     def watch_theme(self, theme: str):
         self.config.set_theme(theme)
 
-    async def action_refresh(self):
+    def action_refresh(self):
         self.update_board_list()
         self.watch_active_board()
         self.watch_column_list()
-        await self.screen.load_kanban_board()
+        # used a worker here, so no await
+        self.screen.load_kanban_board()
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()

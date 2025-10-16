@@ -284,6 +284,16 @@ ModalNewBoardScreen {
     }
 }
 
+ModalAuthScreen {
+    align:center middle;
+    Vertical{
+        width:70%;
+        border:$success;
+        height:60%;
+        align:center middle;
+        content-align:center middle;
+    }
+}
 ModalBoardOverviewScreen {
     align:center middle;
     Vertical{

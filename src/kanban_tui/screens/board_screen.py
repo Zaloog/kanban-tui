@@ -1,12 +1,13 @@
 from typing import Iterable, TYPE_CHECKING
 
 from kanban_tui.config import Backends
+from kanban_tui.modal.modal_auth_screen import ModalAuthScreen
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from rich.text import Text
-from textual import on
+from textual import on, work
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.events import ScreenResume
@@ -47,14 +48,15 @@ class BoardScreen(Screen):
 
     async def ensure_active_board(self):
         if not self.active_board:
-            self.query_one(KanbanBoard).action_show_boards()
+            await self.query_one(KanbanBoard).action_show_boards()
 
     async def ensure_api_key(self):
         if not self.app.backend.api_key:
-            await self.app.push_screen("overview")
+            await self.app.push_screen_wait(ModalAuthScreen())
 
     @on(ScreenResume)
-    async def load_kanban_board(self):
+    @work()
+    async def load_kanban_board(self, event: ScreenResume | None = None):
         self.set_reactive(BoardScreen.active_board, self.app.active_board)
 
         match self.app.config.backend.mode:

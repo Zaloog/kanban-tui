@@ -21,6 +21,9 @@ class JiraBackend(Backend):
     def get_boards(self) -> list[Board]:
         return []
 
+    def get_board_infos(self) -> list[Board]:
+        return []
+
     def get_columns(self, board_id: int | None = None) -> list[Column]:
         return []
 
