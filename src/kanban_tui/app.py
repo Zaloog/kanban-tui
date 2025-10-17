@@ -13,6 +13,7 @@ from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.overview_screen import OverViewScreen
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.config import (
+    Backends,
     init_config,
     SETTINGS,
     Settings,
@@ -64,9 +65,9 @@ class KanbanTui(App):
 
     def get_backend(self):
         match self.config.backend.mode:
-            case "sqlite":
+            case Backends.SQLITE:
                 backend = SqliteBackend(self.config.backend.sqlite_settings)
-            case "jira":
+            case Backends.JIRA:
                 backend = JiraBackend(self.config.backend.jira_settings)
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")
@@ -81,13 +82,13 @@ class KanbanTui(App):
             await self.show_auth_screen_only()
             return
 
+        if self.demo_mode:
+            self.show_demo_notification()
+
         self.update_board_list()
 
         screen = self.get_screen("board").data_bind(KanbanTui.active_board)
         await self.push_screen(screen)
-
-        if self.demo_mode:
-            self.show_demo_notification()
 
     async def show_auth_screen_only(self):
         await self.push_screen_wait(ModalAuthScreen())
@@ -132,8 +133,8 @@ class KanbanTui(App):
     def watch_column_list(self):
         self.update_task_list()
 
-    def watch_theme(self, theme: str):
-        self.config.set_theme(theme)
+    def watch_theme(self, new_theme: str):
+        self.config.set_theme(new_theme)
 
     def action_refresh(self):
         self.update_board_list()

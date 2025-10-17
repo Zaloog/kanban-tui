@@ -4,6 +4,7 @@ import click
 from rich.console import Console
 
 from kanban_tui.app import KanbanTui
+from kanban_tui.config import Backends
 from kanban_tui.utils import create_demo_tasks
 from kanban_tui.constants import (
     CONFIG_FILE,
@@ -52,7 +53,7 @@ def cli(ctx, web: bool):
 @click.option("--web", is_flag=True, default=False, help="Host app locally")
 def run_demo_app(clean: bool, keep: bool, web: bool):
     """
-    Starts a Demo App with temporary DB and Config
+    Starts a demo app with temporary database and config
     """
     os.environ["KANBAN_TUI_CONFIG_FILE"] = DEMO_CONFIG_FILE.as_posix()
     if clean:
@@ -103,7 +104,7 @@ def run_demo_app(clean: bool, keep: bool, web: bool):
 )
 def delete_config_and_database(confirm: bool):
     """
-    Deletes DB and Config
+    Deletes database and config
     """
     if confirm:
         CONFIG_FILE.unlink(missing_ok=True)
@@ -112,6 +113,34 @@ def delete_config_and_database(confirm: bool):
         Console().print(
             f"Database under {DATABASE_FILE}  deleted [green]successfully[/]"
         )
+
+
+@cli.command("auth")
+def enter_auth_only_mode():
+    """
+    Open authentication screen only (requires `jira` backend selected)
+    """
+    app = KanbanTui(
+        config_path=CONFIG_FILE.as_posix(),
+        database_path=DATABASE_FILE.as_posix(),
+        auth_only=True,
+    )
+    if app.config.backend.mode != Backends.JIRA:
+        Console().print(f"Currently using [blue]{app.config.backend.mode}[/] backend.")
+        Console().print(
+            "Please change the backend to [blue]jira[/] before using the [green]`auth`[/] command"
+        )
+        return
+
+    app.run()
+    Console().print("Entered api key")
+
+
+@cli.command("info")
+def show_file_infos():
+    """
+    Displayes location of config and data files
+    """
 
 
 if __name__ == "__main__":
