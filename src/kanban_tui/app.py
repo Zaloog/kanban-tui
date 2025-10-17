@@ -38,7 +38,9 @@ class KanbanTui(App):
         "overview": OverViewScreen,
         "settings": SettingsScreen,
     }
-    TITLE = f"KanbanTui v{version('kanban_tui')}"
+    TITLE = "kanban-tui"
+
+    SUB_TITLE = f"v{version('kanban_tui')}"
 
     config_has_changed: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
