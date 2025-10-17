@@ -1,13 +1,14 @@
 from pathlib import Path
 from importlib.metadata import version
 
-from textual import on
+from textual import on, work
 from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import Select
 
 from kanban_tui.backends.jira.backend import JiraBackend
+from kanban_tui.modal.modal_auth_screen import ModalAuthScreen
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.overview_screen import OverViewScreen
 from kanban_tui.screens.settings_screen import SettingsScreen
@@ -49,6 +50,7 @@ class KanbanTui(App):
         config_path: str,
         database_path: str,
         demo_mode: bool = False,
+        auth_only: bool = False,
         *args,
         **kwargs,
     ) -> None:
@@ -57,6 +59,7 @@ class KanbanTui(App):
         super().__init__(*args, **kwargs)
         self.config = SETTINGS.get()
         self.demo_mode = demo_mode
+        self.auth_only = auth_only
         self.backend = self.get_backend()
 
     def get_backend(self):
@@ -70,8 +73,14 @@ class KanbanTui(App):
 
         return backend
 
+    @work()
     async def on_mount(self) -> None:
         self.theme = self.config.board.theme
+
+        if self.auth_only:
+            await self.show_auth_screen_only()
+            return
+
         self.update_board_list()
 
         screen = self.get_screen("board").data_bind(KanbanTui.active_board)
@@ -79,6 +88,10 @@ class KanbanTui(App):
 
         if self.demo_mode:
             self.show_demo_notification()
+
+    async def show_auth_screen_only(self):
+        await self.push_screen_wait(ModalAuthScreen())
+        self.exit()
 
     def show_demo_notification(self):
         self.title = f"{self.TITLE} (Demo Mode)"

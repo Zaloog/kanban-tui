@@ -51,7 +51,7 @@ class ModalAuthScreen(ModalScreen):
     app: "KanbanTui"
 
     BINDINGS = [
-        Binding("escape", "app.pop_screen", "Close"),
+        Binding("escape", "dismiss", "Close"),
         Binding("e", "edit", "Edit"),
         Binding("space", "show_hide_key('show')", "Show"),
         Binding("space", "show_hide_key('hide')", "Hide"),
