@@ -1,13 +1,10 @@
 from typing import Iterable, TYPE_CHECKING, Literal
 
-from rich.text import Text
-from textual.reactive import reactive
-
-
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-
+from rich.text import Text
+from textual.reactive import reactive
 from textual import on
 from textual.widget import Widget
 from textual.binding import Binding
@@ -22,6 +19,9 @@ class IconButton(Button): ...
 
 
 class ApiKeyInput(Input):
+    BINDINGS = [
+        Binding("enter", "submit", "Submit"),
+    ]
     app: "KanbanTui"
 
     def on_mount(self):
@@ -35,8 +35,9 @@ class ApiKeyWidget(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        if self.app.backend.api_key:
-            self.can_focus = True
+        has_api_key = bool(self.app.backend.api_key)
+        self.can_focus = has_api_key
+        self.query_one("#button_edit_api_key", IconButton).display = has_api_key
 
     def compose(self):
         yield ApiKeyInput(self.app.backend.api_key, id="input_api_key")
@@ -99,6 +100,11 @@ class ModalAuthScreen(ModalScreen):
         )
         self.api_key = value
 
+    @on(Input.Submitted, "#input_api_key")
+    def show_edit_button(self, event: Input.Changed):
+        event.input.disabled = True
+        self.query_one("#button_edit_api_key", IconButton).focus().display = True
+
     @on(Input.Changed, "#input_api_key")
     def update_visibility_show_button(self, event: Input.Changed):
         should_be_visible = bool(event.value)
@@ -114,6 +120,7 @@ class ModalAuthScreen(ModalScreen):
     def action_edit(self):
         input_widget = self.query_one(ApiKeyInput)
         input_widget.disabled = not input_widget.disabled
+        self.query_one("#button_edit_api_key", IconButton).display = False
 
         if not input_widget.disabled:
             input_widget.focus()
