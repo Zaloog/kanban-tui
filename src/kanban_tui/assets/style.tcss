@@ -4,12 +4,6 @@ Tab {
 Tab.-active {
     color: $success;
 }
-/* Tab Underline Color */
-Underline .underline--bar {
-    background: $primary;
-    color: $success;
-}
-
 .highlighted {
   border-top:thick $warning;
   border-title-align: center;
@@ -285,14 +279,40 @@ ModalNewBoardScreen {
 }
 
 ModalAuthScreen {
-    align:center middle;
-    Vertical{
-        width:70%;
-        border:$success;
-        height:60%;
-        align:center middle;
-        content-align:center middle;
+  align:center middle;
+  Vertical{
+      width:70%;
+      border:$success;
+      height:60%;
+      align:center middle;
+  }
+}
+ApiKeyWidget{
+  height:auto;
+  &:focus-within {
+    border-left: thick $primary-muted;
+  }
+  ApiKeyInput{
+    border: none;
+    width:1fr;
+    height: 1;
+    min-height: 1;
+    &:focus {
+      border: none;
     }
+  }
+  IconButton{
+    height: 1;
+    border-top: none;
+    border-bottom: none;
+    width:6;
+    min-width:6;
+    margin: 0 1 0 0;
+    &:focus {
+        text-style: none;
+    }
+  }
+
 }
 ModalBoardOverviewScreen {
     align:center middle;
@@ -512,10 +532,19 @@ StatusColumnSelector {
 
 }
 ColumnSelector{
-    height: auto;
-    max-height: 16;
-    width:1fr;
-    margin:0;
+  background: $background;
+  height: auto;
+  max-height: 16;
+  width:1fr;
+  margin:0;
+  &:focus {
+      background-tint: $background;
+      & > ListItem.-highlight {
+          color: $block-cursor-foreground;
+          background: $primary-muted;
+          text-style: $block-cursor-text-style;
+      }
+    }
 }
 ModalUpdateColumnScreen {
     align: center middle;
@@ -556,11 +585,11 @@ OverViewPlot TaskPlot {
 }
 OverViewLog {
     &>Horizontal {
-        height:auto;
+        height: auto;
     }
     LogTable {
-        border:$success;
-        height:1fr;
+        border: $success;
+        height: 1fr;
     }
 }
 
@@ -632,7 +661,7 @@ AddRule Button{
   border:$success;
 
   &:focus-within {
-    border:yellow;
+    border:$primary;
   }
 
 }

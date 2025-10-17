@@ -1,4 +1,7 @@
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Literal
+
+from rich.text import Text
+from textual.reactive import reactive
 
 
 if TYPE_CHECKING:
@@ -9,36 +12,111 @@ from textual import on
 from textual.widget import Widget
 from textual.binding import Binding
 
-# from textual.validation import Validator, ValidationResult
+from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
-from textual.widgets import Footer, Input, Label  # , Button
-from textual.containers import Vertical
+from textual.widgets import Button, Footer, Input, Label
+from textual.containers import Horizontal, Vertical
+
+
+class IconButton(Button): ...
+
+
+class ApiKeyInput(Input):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        if self.value:
+            self.disabled = True
+        self.password = True
+        self.placeholder = "Please enter a valid api key"
+
+
+class ApiKeyWidget(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        if self.app.backend.api_key:
+            self.can_focus = True
+
+    def compose(self):
+        yield ApiKeyInput(self.app.backend.api_key, id="input_api_key")
+        yield IconButton(label=Text.from_markup(":pen:"), id="button_edit_api_key")
+        yield IconButton(
+            label=Text.from_markup(":clipboard:"), id="button_copy_api_key"
+        )
+        yield IconButton(label=Text.from_markup(":eye:"), id="button_show_api_key")
 
 
 class ModalAuthScreen(ModalScreen):
     app: "KanbanTui"
-    BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
+
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Close"),
+        Binding("e", "edit", "Edit"),
+        Binding("space", "show_hide_key('show')", "Show"),
+        Binding("space", "show_hide_key('hide')", "Hide"),
+    ]
+    api_key: reactive[str] = reactive("")
 
     def on_mount(self):
-        self.notify(
-            title="No Api Key found",
-            message="Please enter a valid Api Key",
-            severity="warning",
-        )
+        self.api_key = self.app.backend.api_key
+        if not self.api_key:
+            self.query_one("#button_show_api_key", IconButton).display = False
+            self.notify(
+                title="No Api Key found",
+                message="Please enter a valid Api Key",
+                severity="warning",
+            )
 
     def compose(self) -> Iterable[Widget]:
-        yield Footer()
         with Vertical():
+            yield Footer()
             yield Label(
-                f"Your Jira API Key is stored at `{self.app.backend.settings.auth_file_path}`"
+                f"Your Jira API Key is stored at `{self.app.backend.settings.auth_file_path}`",
             )
-            yield Label(f"Your API Key is`{self.app.backend.api_key}`")
-            yield Input()
+            yield Label("Api key:")
+            yield ApiKeyWidget()
 
-    @on(Input.Submitted)
+            yield Label("Path to certificate file")
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "show_hide_key":
+            is_visible = self.query_one(ApiKeyInput).password
+            if parameters == ("show",):
+                return is_visible
+            elif parameters == ("hide",):
+                return not is_visible
+        return True
+
+    @on(Input.Submitted, "#input_api_key")
     def update_api_key(self, event: Input.Submitted):
         value = event.value
         self.app.backend.auth.set_jira_api_key(value)
+
+        self.notify(
+            title="New api key saved",
+            message="Press escape to close auth screen",
+        )
+        self.api_key = value
+
+    @on(Input.Changed, "#input_api_key")
+    def update_visibility_show_button(self, event: Input.Changed):
+        should_be_visible = bool(event.value)
+        self.query_one("#button_show_api_key", IconButton).display = should_be_visible
+
+    @on(Button.Pressed, "#button_show_api_key")
+    def action_show_hide_key(self, show: Literal["show", "hide"] | None = None):
+        input_widget = self.query_one(ApiKeyInput)
+        input_widget.password = not input_widget.password
+        self.refresh_bindings()
+
+    @on(Button.Pressed, "#button_edit_api_key")
+    def action_edit(self):
+        input_widget = self.query_one(ApiKeyInput)
+        input_widget.disabled = not input_widget.disabled
+
+        if not input_widget.disabled:
+            input_widget.focus()
 
 
 #     @on(Input.Changed)
@@ -48,22 +126,19 @@ class ModalAuthScreen(ModalScreen):
 #         ).disabled = not event.validation_result.is_valid
 #
 #
-# class ValidApiKey(Validator):
-#     def __init__(self, columns: list[str], *args, **kwargs) -> None:
-#         self.columns = columns
-#         super().__init__(*args, **kwargs)
-#
-#     def column_is_valid(self, value: str) -> bool:
-#         return value not in self.columns
-#
-#     def column_is_empty(self, value: str) -> bool:
-#         return value.strip() == ""
-#
-#     def validate(self, value: str) -> ValidationResult:
-#         """Check if column name is already present"""
-#         if self.column_is_empty(value):
-#             return self.failure()
-#         if self.column_is_valid(value):
-#             return self.success()
-#         else:
-#             return self.failure("Please choose a different column name")
+class ValidApiKey(Validator):
+    def __init__(self, columns: list[str], *args, **kwargs) -> None:
+        self.columns = columns
+        super().__init__(*args, **kwargs)
+
+    def key_is_empty(self, value: str) -> bool:
+        return value.strip() == ""
+
+    def validate(self, value: str) -> ValidationResult:
+        """Check if column name is already present"""
+        if self.column_is_empty(value):
+            return self.failure()
+        if self.column_is_valid(value):
+            return self.success()
+        else:
+            return self.failure("Please choose a different column name")
