@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 from typing import Literal, Any
 
 import re
@@ -505,3 +506,8 @@ def get_time_range(
             # Still a bit buggy
             # doesn't show task for jan25 when color hue is active
             return list(rrule(freq=MONTHLY, dtstart=start, until=end))
+
+
+def create_xdg_table_string(path: Path) -> str:
+    path_exists = "([green]exists[/])" if path.exists() else "([red]nothing here[/])"
+    return f"[yellow]{path}[/] {path_exists}"

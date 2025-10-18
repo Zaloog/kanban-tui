@@ -7,7 +7,7 @@ from rich.table import Table
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.config import Backends
-from kanban_tui.utils import create_demo_tasks
+from kanban_tui.utils import create_demo_tasks, create_xdg_table_string
 from kanban_tui.constants import (
     AUTH_FILE,
     CONFIG_FILE,
@@ -145,53 +145,39 @@ def enter_auth_only_mode():
 @cli.command("info")
 def show_file_infos():
     """
-    Displayes location of config and data files
+    Displays location of config/data/auth xdg path files
     """
     table = Table(title="[yellow]kanban-tui[/] xdg file locations", show_header=False)
 
-    config_file = Path(os.getenv("KANBAN_TUI_CONFIG_FILE", CONFIG_FILE))
-    config_exists = (
-        "([green]exists[/])" if config_file.exists() else "([red]nothing here[/])"
-    )
-    demo_config_file = Path(os.getenv("KANBAN_TUI_CONFIG_FILE", DEMO_CONFIG_FILE))
-    demo_config_exists = (
-        "([green]exists[/])" if demo_config_file.exists() else "([red]nothing here[/])"
-    )
-
+    # Config Paths
     table.add_row("[blue]config files[/]", end_section=True)
     config_table = Table(show_header=False, show_edge=False)
-    config_table.add_row("Normal", f"[yellow]{config_file}[/] {config_exists}")
     config_table.add_row(
-        "Demo", f"[yellow]{demo_config_file}[/] {demo_config_exists}", end_section=True
+        "Normal",
+        create_xdg_table_string(Path(os.getenv("KANBAN_TUI_CONFIG_FILE", CONFIG_FILE))),
+    )
+    config_table.add_row(
+        "Demo", create_xdg_table_string(DEMO_CONFIG_FILE), end_section=True
     )
     table.add_row(config_table, end_section=True)
 
-    data_file = DATABASE_FILE
-    data_exists = (
-        "([green]exists[/])" if data_file.exists() else "([red]nothing here[/])"
-    )
-    demo_data_file = DEMO_DATABASE_FILE
-    demo_data_exists = (
-        "([green]exists[/])" if demo_data_file.exists() else "([red]nothing here[/])"
-    )
-
+    # Data Paths
     table.add_row("[blue]data files[/]", end_section=True)
     data_table = Table(show_header=False, show_edge=False)
-    data_table.add_row("Normal", f"[yellow]{data_file}[/] {data_exists}")
+    data_table.add_row("Normal", create_xdg_table_string(DATABASE_FILE))
     data_table.add_row(
-        "Demo", f"[yellow]{demo_data_file}[/] {demo_data_exists}", end_section=True
+        "Demo", create_xdg_table_string(DEMO_DATABASE_FILE), end_section=True
     )
     table.add_row(data_table, end_section=True)
 
-    auth_file = Path(os.getenv("KANBAN_TUI_AUTH_FILE", AUTH_FILE))
-    auth_exists = (
-        "([green]exists[/])" if auth_file.exists() else "([red]nothing here[/])"
-    )
-
+    # Auth Paths
     table.add_row("[blue]auth file[/]", end_section=True)
     auth_table = Table(show_header=False, show_edge=False)
-    auth_table.add_row("Normal", f"[yellow]{auth_file}[/] {auth_exists}")
-    table.add_row(auth_table, end_section=True)
+    auth_table.add_row(
+        "Normal",
+        create_xdg_table_string(Path(os.getenv("KANBAN_TUI_AUTH_FILE", AUTH_FILE))),
+    )
+    table.add_row(auth_table)
 
     Console().print(table)
 
