@@ -1,7 +1,7 @@
 import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Select, Switch, Button
-from kanban_tui.config import MovementModes
+from kanban_tui.config import Backends, MovementModes
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.widgets.settings_widgets import (
@@ -9,8 +9,8 @@ from kanban_tui.widgets.settings_widgets import (
     AddRule,
     DataBasePathInput,
     TaskAlwaysExpandedSwitch,
-    DefaultTaskColorSelector,
     StatusColumnSelector,
+    TaskDefaultColorSelector,
     TaskMovementSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
@@ -20,8 +20,8 @@ from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 APP_SIZE = (150, 50)
 
 
-async def test_settings_view_empty(empty_app: KanbanTui, test_database_path):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_settings_view_empty(no_task_app: KanbanTui, test_database_path):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
 
@@ -77,6 +77,28 @@ async def test_task_movement_mode(test_app: KanbanTui):
         assert (
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
             == MovementModes.JUMP
+        )
+        assert pilot.app.config_has_changed
+
+
+async def test_backend_mode(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        assert pilot.app.config.backend.mode == Backends.SQLITE
+        assert (
+            pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
+            == Backends.SQLITE
+        )
+
+        # change Value
+        await pilot.click("#select_backend_mode")
+        await pilot.press("down")
+        await pilot.press("enter")
+        assert pilot.app.config.backend.mode == Backends.JIRA
+        assert (
+            pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
+            == Backends.JIRA
         )
         assert pilot.app.config_has_changed
 
@@ -165,8 +187,8 @@ async def test_column_visibility(test_app: KanbanTui):
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done", 4: "Archive"}
 
 
-async def test_column_delete_press(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_column_delete_press(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
         # focus selector
@@ -187,8 +209,8 @@ async def test_column_delete_press(empty_app: KanbanTui):
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
 
-async def test_column_delete_click(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_column_delete_click(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
         await pilot.pause()
         # focus selector
@@ -358,7 +380,7 @@ async def test_setting_shortcuts(test_app: KanbanTui):
 
         await pilot.press("ctrl+g")
         assert pilot.app.screen.query_exactly_one(
-            DefaultTaskColorSelector
+            TaskDefaultColorSelector
         ).has_focus_within
 
         await pilot.press("ctrl+s")

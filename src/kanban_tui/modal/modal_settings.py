@@ -50,7 +50,6 @@ class ModalUpdateColumnScreen(ModalScreen):
                     disabled=True,
                 )
                 yield Button("Cancel", id="btn_cancel_new_col", variant="error")
-            return super().compose()
 
     @on(Button.Pressed, "#btn_continue_new_col")
     def confirm_new_column(self):

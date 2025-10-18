@@ -2,6 +2,5 @@
 mode = "jira"
 
 [backend.jira_settings]
-url = "www.test-url.com"
-user = "Zaloog"
-api_token = "1337"
+base_url = "http://localhost:8080"
+auth_file_path = "test_path"

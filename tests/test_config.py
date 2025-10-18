@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
 
-from kanban_tui.config import Settings, init_config
+from kanban_tui.backends.jira.backend import JiraBackend
+from kanban_tui.config import JqlEntry, Settings, init_config
+from kanban_tui.constants import AUTH_FILE
 
 
 def test_read_sample_theme_from_env() -> None:
@@ -12,15 +14,12 @@ def test_read_sample_theme_from_env() -> None:
     assert config.board.theme == "test_theme"
 
 
-def test_read_sample_jira_backend_from_env() -> None:
-    os.environ["KANBAN_TUI_CONFIG_FILE"] = (
-        Path(__file__).parent / "sample-configs/jira_backend.toml"
-    ).as_posix()
-    config = Settings()
-    assert config.backend.mode == "jira"
-    assert config.backend.jira_settings.url == "www.test-url.com"
-    assert config.backend.jira_settings.user == "Zaloog"
-    assert config.backend.jira_settings.api_token == "1337"
+def test_read_sample_jira_backend_from_env(
+    test_jira_config: Settings, test_auth_path
+) -> None:
+    assert test_jira_config.backend.mode == "jira"
+    assert test_jira_config.backend.jira_settings.base_url == "http://localhost:8080"
+    assert test_jira_config.backend.jira_settings.auth_file_path == test_auth_path
 
 
 def test_read_sample_sqlite_backend_from_env() -> None:
@@ -33,12 +32,49 @@ def test_read_sample_sqlite_backend_from_env() -> None:
     assert config.backend.sqlite_settings.active_board_id == 2
 
 
-def test_config_theme_update(test_config: Settings, test_config_path: Path) -> None:
+def test_config_theme_update(test_config: Settings) -> None:
     test_config.set_theme("monokai")
     assert test_config.board.theme == "monokai"
 
     updated_config = Settings()
     assert updated_config.board.theme == "monokai"
+
+
+def test_config_jql_add(test_config: Settings) -> None:
+    JQLS = [
+        JqlEntry(name="projectA", jql="project = A"),
+        JqlEntry(name="project B", jql="project = B"),
+    ]
+    TARGET_CONFIG = [
+        {"name": "projectA", "jql": "project = A"},
+        {"name": "project B", "jql": "project = B"},
+    ]
+    assert test_config.backend.jira_settings.jqls == []
+
+    for jql in JQLS:
+        test_config.add_jql(jql)
+
+    updated_config = Settings()
+    model_dict = updated_config.model_dump()
+    assert model_dict["backend"]["jira_settings"]["jqls"] == TARGET_CONFIG
+
+
+def test_config_jql_remove(test_config: Settings) -> None:
+    JQLS_ADD = [
+        JqlEntry(name="projectA", jql="project = A"),
+        JqlEntry(name="project B", jql="project = B"),
+    ]
+    TARGET_CONFIG = [
+        {"name": "project B", "jql": "project = B"},
+    ]
+    for jql in JQLS_ADD:
+        test_config.add_jql(jql)
+    assert test_config.backend.jira_settings.jqls == JQLS_ADD
+
+    test_config.remove_jql(JqlEntry(name="projectA", jql="project = A"))
+    updated_config = Settings()
+    model_dict = updated_config.model_dump()
+    assert model_dict["backend"]["jira_settings"]["jqls"] == TARGET_CONFIG
 
 
 def test_config_creation(
@@ -52,6 +88,15 @@ def test_config_creation(
         init_config(config_path=test_config_path, database=test_database_path)
         == "Config Exists"
     )
+
+
+def test_auth_dir_creation(test_jira_config: Settings, test_auth_path) -> None:
+    os.environ["KANBAN_TUI_AUTH_FILE"] = test_auth_path
+
+    backend = JiraBackend(settings=test_jira_config.backend.jira_settings)
+    assert backend.settings.base_url == "http://localhost:8080"
+    assert backend.settings.auth_file_path == test_auth_path
+    assert Path(test_auth_path).exists()
 
 
 def test_default_config(test_config: Settings, test_database_path: str) -> None:
@@ -73,9 +118,9 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
                 "active_board_id": 1,
             },
             "jira_settings": {
-                "user": "",
-                "api_token": "",
-                "url": "",
+                "base_url": "",
+                "auth_file_path": AUTH_FILE.as_posix(),
+                "jqls": [],
             },
         },
     }

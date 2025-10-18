@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import Literal, Any
-
+import os
 import re
+from pathlib import Path
+from typing import Literal, Any
 from datetime import datetime, timedelta
 from dateutil.rrule import rrule, MONTHLY, WEEKLY, DAILY
 from functools import lru_cache
+
+from rich.table import Table
 
 from kanban_tui.backends.sqlite.database import (
     create_new_task_db,
@@ -12,6 +15,13 @@ from kanban_tui.backends.sqlite.database import (
     create_new_board_db,
 )
 from kanban_tui.config import Settings, init_config
+from kanban_tui.constants import (
+    AUTH_FILE,
+    CONFIG_FILE,
+    DATABASE_FILE,
+    DEMO_CONFIG_FILE,
+    DEMO_DATABASE_FILE,
+)
 
 
 def get_column_status_dict(
@@ -505,3 +515,44 @@ def get_time_range(
             # Still a bit buggy
             # doesn't show task for jan25 when color hue is active
             return list(rrule(freq=MONTHLY, dtstart=start, until=end))
+
+
+def create_xdg_table_string(path: Path) -> str:
+    path_exists = "([green]exists[/])" if path.exists() else "([red]nothing here[/])"
+    return f"[yellow]{path}[/] {path_exists}"
+
+
+def build_info_table() -> Table:
+    table = Table(title="[yellow]kanban-tui[/] xdg file locations", show_header=False)
+
+    # Config Paths
+    table.add_row("[blue]config files[/]", end_section=True)
+    config_table = Table(show_header=False, show_edge=False)
+    config_table.add_row(
+        "Normal",
+        create_xdg_table_string(Path(os.getenv("KANBAN_TUI_CONFIG_FILE", CONFIG_FILE))),
+    )
+    config_table.add_row(
+        "Demo", create_xdg_table_string(DEMO_CONFIG_FILE), end_section=True
+    )
+    table.add_row(config_table, end_section=True)
+
+    # Data Paths
+    table.add_row("[blue]data files[/]", end_section=True)
+    data_table = Table(show_header=False, show_edge=False)
+    data_table.add_row("Normal", create_xdg_table_string(DATABASE_FILE))
+    data_table.add_row(
+        "Demo", create_xdg_table_string(DEMO_DATABASE_FILE), end_section=True
+    )
+    table.add_row(data_table, end_section=True)
+
+    # Auth Paths
+    table.add_row("[blue]auth file[/]", end_section=True)
+    auth_table = Table(show_header=False, show_edge=False)
+    auth_table.add_row(
+        "Normal",
+        create_xdg_table_string(Path(os.getenv("KANBAN_TUI_AUTH_FILE", AUTH_FILE))),
+    )
+    table.add_row(auth_table)
+
+    return table

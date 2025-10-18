@@ -128,7 +128,7 @@ class ModalNewBoardScreen(ModalScreen):
             )
 
             self.app.update_board_list()
-            self.dismiss(result=len(self.app.task_list))
+            self.dismiss(result=len(self.app.board_list))
 
     @on(Button.Pressed, "#btn_cancel_new_board")
     def cancel_new_board(self):
@@ -187,6 +187,12 @@ class ModalBoardOverviewScreen(ModalScreen):
             )
 
             yield Footer(show_command_palette=False)
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action in ["edit_board", "delete_board", "copy_board", "dismiss"]:
+            if self.query_one(BoardList).highlighted_child is None:
+                return False
+        return True
 
     @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
@@ -254,7 +260,7 @@ class ModalBoardOverviewScreen(ModalScreen):
     @on(ListView.Selected, "#board_list")
     def activate_board(self, event: ListView.Selected):
         self.app.active_board = self.app.board_list[event.list_view.index]
-        self.dismiss(True)
+        self.dismiss()
 
     async def update_board_listview(self, item_to_hightlight: int | None = None):
         current_index = item_to_hightlight or self.query_one(ListView).index

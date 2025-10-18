@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 from contextvars import ContextVar
 from typing import Type
@@ -13,6 +14,7 @@ from pydantic_settings import (
 )
 
 from kanban_tui.constants import (
+    AUTH_FILE,
     CONFIG_FILE,
     DATABASE_FILE,
 )
@@ -40,10 +42,15 @@ class TaskSettings(BaseModel):
     movement_mode: MovementModes = Field(default=MovementModes.ADJACENT)
 
 
+class JqlEntry(BaseModel):
+    name: str
+    jql: str
+
+
 class JiraBackendSettings(BaseModel):
-    user: str = Field(default="")
-    api_token: str = Field(default="")
-    url: str = Field(default="")
+    base_url: str = Field(default="")
+    auth_file_path: str = Field(default=AUTH_FILE.as_posix())
+    jqls: list[JqlEntry] = Field(default_factory=list)
 
 
 class SqliteBackendSettings(BaseModel):
@@ -99,6 +106,16 @@ class Settings(BaseSettings):
 
     def set_active_board(self, new_active_board_id: int) -> None:
         self.backend.sqlite_settings.active_board_id = new_active_board_id
+        self.save()
+
+    def add_jql(self, new_jql: JqlEntry) -> None:
+        self.backend.jira_settings.jqls.append(new_jql)
+        self.save()
+
+    def remove_jql(self, jql_to_remove: JqlEntry) -> None:
+        for jql in self.backend.jira_settings.jqls:
+            if jql == jql_to_remove:
+                self.backend.jira_settings.jqls.remove(jql_to_remove)
         self.save()
 
     def save(self, path: str = CONFIG_FILE.as_posix()):

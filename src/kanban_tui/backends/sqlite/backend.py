@@ -29,6 +29,9 @@ from kanban_tui.backends.sqlite.database import (
 class SqliteBackend(Backend):
     settings: SqliteBackendSettings
 
+    def __post_init__(self):
+        self.create_database()
+
     # Queries
     def get_boards(self) -> list[Board]:
         return get_all_boards_db(database=self.settings.database_path)

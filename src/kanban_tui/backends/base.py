@@ -7,5 +7,5 @@ class Backend:
     def get_columns(self):
         raise NotImplementedError("This is required")
 
-    def get_tasks(self):
+    def get_tasks_on_active_board(self):
         raise NotImplementedError("This is required")
