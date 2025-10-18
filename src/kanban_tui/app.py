@@ -24,7 +24,7 @@ from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
 
 
-class KanbanTui(App):
+class KanbanTui(App[str | None]):
     CSS_PATH = Path("assets/style.tcss")
     BINDINGS = [
         Binding("f5", "refresh", "🔄Refresh", priority=True),
@@ -94,7 +94,7 @@ class KanbanTui(App):
 
     async def show_auth_screen_only(self):
         await self.push_screen_wait(ModalAuthScreen())
-        self.exit()
+        self.exit(self.backend.api_key)
 
     def show_demo_notification(self):
         self.title = f"{self.TITLE} (Demo Mode)"

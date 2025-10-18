@@ -64,8 +64,8 @@ class ModalAuthScreen(ModalScreen):
         if not self.api_key:
             self.query_one("#button_show_api_key", IconButton).display = False
             self.notify(
-                title="No Api Key found",
-                message="Please enter a valid Api Key",
+                title="No api key found",
+                message="Please enter a valid api key",
                 severity="warning",
             )
 
