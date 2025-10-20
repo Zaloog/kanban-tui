@@ -25,6 +25,10 @@ class AuthSettings(BaseSettings):
         self.jira.api_key = new_api_key
         self.save()
 
+    def set_jira_cert_path(self, new_cert_path: str) -> None:
+        self.jira.cert_path = new_cert_path
+        self.save()
+
     def set_cert_path(self, new_cert_path: str) -> None:
         self.jira.cert_path = new_cert_path
         self.save()

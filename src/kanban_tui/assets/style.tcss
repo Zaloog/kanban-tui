@@ -283,33 +283,43 @@ ModalAuthScreen {
   Vertical{
       width:70%;
       border:$success;
-      height:60%;
+      height:auto;
       align:center middle;
   }
 }
-ApiKeyWidget{
+AuthLabel{
+  margin: 0 0 1 0;
+  text-align:center;
+  width:1fr;
+}
+
+.auth-widgets{
   height:auto;
+  margin: 0 0 1 0;
   &:focus-within {
     border-left: thick $primary-muted;
   }
-  ApiKeyInput{
+  Input{
     border: none;
     width:1fr;
     height: 1;
     min-height: 1;
+    margin: 0 1 0 0;
     &:focus {
       border: none;
     }
   }
-  IconButton{
+   Button{
     height: 1;
     border-top: none;
     border-bottom: none;
+    background: $error-muted;
     width:6;
     min-width:6;
     margin: 0 1 0 0;
     &:focus {
         text-style: none;
+        background: $error;
     }
   }
 

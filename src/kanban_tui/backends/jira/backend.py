@@ -36,3 +36,7 @@ class JiraBackend(Backend):
     @property
     def api_key(self) -> str | None:
         return self.auth.jira.api_key
+
+    @property
+    def cert_path(self) -> str | None:
+        return self.auth.jira.cert_path
