@@ -1,3 +1,4 @@
+import sys
 from typing import Iterable, TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
@@ -56,6 +57,22 @@ class ApiKeyWidget(Horizontal):
         input_widget = self.query_one(ApiKeyInput)
         input_widget.disabled = not input_widget.disabled
         self.query_one("#button_edit_api_key", IconButton).display = False
+
+        if not input_widget.disabled:
+            input_widget.focus()
+
+    @on(Button.Pressed, "#button_copy_api_key")
+    def action_copy(self, event: Button.Pressed):
+        input_widget = self.query_one(ApiKeyInput)
+        value = input_widget.value
+        if sys.platform.startswith("darwin"):
+            self.notify(
+                message="Copying api key this way is not possible on [$warning]MacOs[/]",
+                title="Functionality not supported",
+                severity="warning",
+            )
+            return
+        self.app.copy_to_clipboard(value)
 
         if not input_widget.disabled:
             input_widget.focus()
