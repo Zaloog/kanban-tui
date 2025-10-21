@@ -166,7 +166,7 @@ class ModalAuthScreen(ModalScreen):
     @on(Input.Submitted, "#input_api_key")
     def update_api_key(self, event: Input.Submitted):
         value = event.value
-        self.app.backend.auth.set_jira_api_key(value)
+        self.app.backend.auth_settings.set_jira_api_key(value)
 
         self.notify(
             title="New api key saved",
@@ -177,7 +177,7 @@ class ModalAuthScreen(ModalScreen):
     @on(Input.Submitted, "#input_cert_path")
     def update_cert_path(self, event: Input.Submitted):
         value = event.value
-        self.app.backend.auth.set_jira_cert_path(value)
+        self.app.backend.auth_settings.set_jira_cert_path(value)
 
         self.notify(
             title="New certificate path saved",

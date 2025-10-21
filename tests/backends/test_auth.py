@@ -5,6 +5,7 @@ from kanban_tui.backends.auth import AuthSettings, init_auth_file
 
 
 def test_init_auth_dir(test_auth_path) -> None:
+    os.environ["KANBAN_TUI_AUTH_FILE"] = test_auth_path
     assert not Path(test_auth_path).exists()
     assert init_auth_file(test_auth_path) == "Auth file created"
     assert Path(test_auth_path).exists()

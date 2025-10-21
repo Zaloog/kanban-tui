@@ -15,7 +15,7 @@ class JiraBackend(Backend):
 
     def __post_init__(self):
         init_auth_file(self.settings.auth_file_path)
-        self.auth = AuthSettings()
+        self.auth_settings = AuthSettings()
 
     # Queries
     def get_boards(self) -> list[Board]:
@@ -35,8 +35,8 @@ class JiraBackend(Backend):
 
     @property
     def api_key(self) -> str | None:
-        return self.auth.jira.api_key
+        return self.auth_settings.jira.api_key
 
     @property
     def cert_path(self) -> str | None:
-        return self.auth.jira.cert_path
+        return self.auth_settings.jira.cert_path
