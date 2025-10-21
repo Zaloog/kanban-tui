@@ -42,12 +42,12 @@ def test_config_theme_update(test_config: Settings) -> None:
 
 def test_config_jql_add(test_config: Settings) -> None:
     JQLS = [
-        JqlEntry(name="projectA", jql="project = A"),
-        JqlEntry(name="project B", jql="project = B"),
+        JqlEntry(id=1, name="projectA", jql="project = A"),
+        JqlEntry(id=2, name="project B", jql="project = B"),
     ]
     TARGET_CONFIG = [
-        {"name": "projectA", "jql": "project = A"},
-        {"name": "project B", "jql": "project = B"},
+        {"id": 1, "name": "projectA", "jql": "project = A"},
+        {"id": 2, "name": "project B", "jql": "project = B"},
     ]
     assert test_config.backend.jira_settings.jqls == []
 
@@ -61,17 +61,17 @@ def test_config_jql_add(test_config: Settings) -> None:
 
 def test_config_jql_remove(test_config: Settings) -> None:
     JQLS_ADD = [
-        JqlEntry(name="projectA", jql="project = A"),
-        JqlEntry(name="project B", jql="project = B"),
+        JqlEntry(id=1, name="projectA", jql="project = A"),
+        JqlEntry(id=2, name="project B", jql="project = B"),
     ]
     TARGET_CONFIG = [
-        {"name": "project B", "jql": "project = B"},
+        {"id": 2, "name": "project B", "jql": "project = B"},
     ]
     for jql in JQLS_ADD:
         test_config.add_jql(jql)
     assert test_config.backend.jira_settings.jqls == JQLS_ADD
 
-    test_config.remove_jql(JqlEntry(name="projectA", jql="project = A"))
+    test_config.remove_jql(JqlEntry(id=1, name="projectA", jql="project = A"))
     updated_config = Settings()
     model_dict = updated_config.model_dump()
     assert model_dict["backend"]["jira_settings"]["jqls"] == TARGET_CONFIG
@@ -121,6 +121,7 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
                 "base_url": "",
                 "auth_file_path": AUTH_FILE.as_posix(),
                 "jqls": [],
+                "active_jql": 1,
             },
         },
     }

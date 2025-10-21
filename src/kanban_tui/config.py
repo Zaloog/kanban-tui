@@ -43,6 +43,7 @@ class TaskSettings(BaseModel):
 
 
 class JqlEntry(BaseModel):
+    id: int
     name: str
     jql: str
 
@@ -51,6 +52,7 @@ class JiraBackendSettings(BaseModel):
     base_url: str = Field(default="")
     auth_file_path: str = Field(default=AUTH_FILE.as_posix())
     jqls: list[JqlEntry] = Field(default_factory=list)
+    active_jql: int = Field(default=1)
 
 
 class SqliteBackendSettings(BaseModel):
