@@ -1,4 +1,7 @@
+import sys
+
 import pytest
+
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button
 from kanban_tui.config import MovementModes
@@ -11,22 +14,21 @@ from kanban_tui.modal.modal_board_screen import (
 )
 
 from kanban_tui.widgets.task_card import TaskCard
-from kanban_tui.widgets.filter_sidebar import FilterOverlay
 from kanban_tui.widgets.task_column import Column
 
 APP_SIZE = (150, 50)
 
 
-async def test_empty_kanbanboard(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_no_task_kanbanboard(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         assert len(pilot.app.task_list) == 0
         assert isinstance(pilot.app.screen, BoardScreen)
 
         assert isinstance(pilot.app.focused, KanbanBoard)
 
 
-async def test_kanbanboard_task_creation(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_kanbanboard_task_creation(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         await pilot.press("n")
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
@@ -44,8 +46,8 @@ async def test_kanbanboard_task_creation(empty_app: KanbanTui):
         assert len(list(pilot.app.screen.query(TaskCard).results())) == 1
 
 
-async def test_kanbanboard_board_view(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_kanbanboard_board_view(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # open modal to show Boards
         await pilot.press("B")
         assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
@@ -77,8 +79,8 @@ async def test_kanbanboard_board_view(empty_app: KanbanTui):
 
 
 # https://github.com/Zaloog/kanban-tui/issues/1
-async def test_kanbanboard_movement_empty_app(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_kanbanboard_movement_no_task_app(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # check if board has focus
         assert isinstance(pilot.app.focused, KanbanBoard)
 
@@ -234,6 +236,9 @@ async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
         assert pilot.app.focused.row == 0
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="Issues when runnning on windows CI runner"
+)
 async def test_kanbanboard_card_movement_mouse_different_column(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
@@ -246,51 +251,3 @@ async def test_kanbanboard_card_movement_mouse_different_column(test_app: Kanban
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 3
         assert pilot.app.focused.row == 1
-
-
-@pytest.mark.skip(reason="Filter not implemented yet")
-async def test_filter_empty_app(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
-        # 1st card is focused
-        # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, KanbanBoard)
-
-        assert "-hidden" in pilot.app.screen.query_one(FilterOverlay).classes
-        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
-
-        # Open Filter
-        await pilot.press("f1")
-        await pilot.wait_for_animation()
-        assert pilot.app.screen.query_one(FilterOverlay).offset[0] == 0
-        assert pilot.app.focused.id == "category_filter"
-        assert all(task.disabled for task in pilot.app.screen.query(TaskCard))
-
-        # Close Filter
-        await pilot.press("f1")
-        await pilot.wait_for_animation()
-        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
-        assert isinstance(pilot.app.focused, KanbanBoard)
-
-
-@pytest.mark.skip(reason="Filter not implemented yet")
-async def test_filter(test_app: KanbanTui):
-    async with test_app.run_test(size=APP_SIZE) as pilot:
-        # 1st card is focused
-        # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, TaskCard)
-
-        assert "-hidden" in pilot.app.screen.query_one(FilterOverlay).classes
-        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
-
-        # Open Filter
-        await pilot.press("f1")
-        await pilot.wait_for_animation()
-        assert pilot.app.screen.query_one(FilterOverlay).offset[0] == 0
-        assert pilot.app.focused.id == "category_filter"
-        assert all(task.disabled for task in pilot.app.screen.query(TaskCard))
-
-        # Close Filter
-        await pilot.press("f1")
-        await pilot.wait_for_animation()
-        assert abs(pilot.app.screen.query_one(FilterOverlay).offset[0]) > 0
-        assert isinstance(pilot.app.focused, TaskCard)

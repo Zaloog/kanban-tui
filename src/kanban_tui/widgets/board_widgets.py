@@ -1,16 +1,14 @@
 from __future__ import annotations
-from typing import Iterable, TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal
 
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 
-from rich.text import Text
 from textual import on
 from textual.events import MouseDown, MouseMove, MouseUp
 from textual.binding import Binding
-from textual.widget import Widget
 from textual.reactive import reactive
 from textual.containers import HorizontalScroll
 
@@ -37,7 +35,13 @@ class KanbanBoard(HorizontalScroll):
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
     mouse_down: reactive[bool] = reactive(False)
 
-    def compose(self) -> Iterable[Widget]:
+    async def on_mount(self):
+        await self.populate_board()
+
+    async def populate_board(self, *args):
+        """Populate the board with columns"""
+        await self.remove_children()
+
         for column in self.app.column_list:
             if column.visible:
                 column_tasks = [
@@ -45,27 +49,22 @@ class KanbanBoard(HorizontalScroll):
                     for task in self.app.task_list
                     if task.column == column.column_id
                 ]
-                yield Column(
-                    title=column.name, task_list=column_tasks, id_num=column.column_id
+                await self.mount(
+                    Column(
+                        title=column.name,
+                        task_list=column_tasks,
+                        id_num=column.column_id,
+                    )
                 )
         self.get_first_card()
 
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)
 
-    def action_show_boards(self) -> None:
-        self.app.push_screen(
-            ModalBoardOverviewScreen(), callback=self.refresh_on_board_change
+    async def action_show_boards(self) -> None:
+        await self.app.push_screen(
+            ModalBoardOverviewScreen(), callback=self.populate_board
         )
-
-    # Active Board Change
-    def refresh_on_board_change(self, refresh_needed: bool | None = True) -> None:
-        if refresh_needed:
-            self.border_title = Text.from_markup(
-                f" [red]Active Board:[/] {self.app.active_board.full_name}"
-            )
-            self.refresh(recompose=True)
-            self.set_timer(delay=0.1, callback=self.app.action_focus_next)
 
     async def place_new_task(self, task: Task):
         await self.query(Column)[0].place_task(task=task)
@@ -223,11 +222,15 @@ class KanbanBoard(HorizontalScroll):
 
     @on(TaskCard.Delete)
     async def delete_task(self, event: TaskCard.Delete):
+        self.notify("del")
         await self.query_one(
             f"#column_{event.taskcard.task_.column}", Column
         ).remove_task(task=event.taskcard.task_)
         self.app.backend.delete_task(task_id=event.taskcard.task_.task_id)
         self.app.update_task_list()
+
+        if not self.app.task_list:
+            self.get_first_card()
 
     @on(MouseDown)
     def lift_task(self, event: MouseDown):
@@ -263,10 +266,16 @@ class KanbanBoard(HorizontalScroll):
         if not self.app.visible_task_list:
             self.can_focus = True
             self.focus()
-            if not self.app.task_list:
+            if not self.app.active_board:
+                self.notify(
+                    title="Welcome to Kanban Tui",
+                    message="Looks like you are new, press [blue]n[/] to create your first Board",
+                )
+            elif not self.app.task_list:
                 self.notify(
                     title="Welcome to Kanban Tui",
                     message="Looks like you are new, press [blue]n[/] to create your first Card",
                 )
         else:
             self.can_focus = False
+            self.app.action_focus_next()

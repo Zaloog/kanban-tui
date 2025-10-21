@@ -14,8 +14,8 @@ wheels/
 # dev
 *.db
 *.ini
-kanban_tui.yaml
 todo.md
+.env
 
 # mre for testing stuff
 mre.py

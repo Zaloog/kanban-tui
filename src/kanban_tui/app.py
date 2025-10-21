@@ -1,33 +1,35 @@
 from pathlib import Path
+from importlib.metadata import version
 
+from textual import on, work
 from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
+from textual.widgets import Select
 
-from importlib.metadata import version
+from kanban_tui.backends.jira.backend import JiraBackend
+from kanban_tui.modal.modal_auth_screen import ModalAuthScreen
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.overview_screen import OverViewScreen
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.config import (
+    Backends,
     init_config,
     SETTINGS,
     Settings,
 )
 from kanban_tui.backends import SqliteBackend
-from kanban_tui.backends.sqlite.database import (
-    init_first_board,
-)
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
 
 
-class KanbanTui(App):
+class KanbanTui(App[str | None]):
     CSS_PATH = Path("assets/style.tcss")
     BINDINGS = [
         Binding("f5", "refresh", "🔄Refresh", priority=True),
         Binding("ctrl+j", 'switch_screen("board")', "Board"),
-        Binding("ctrl+k", 'switch_screen("overview")', "Settings"),
+        Binding("ctrl+k", 'switch_screen("overview")', "Overview"),
         Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
     ]
 
@@ -36,47 +38,63 @@ class KanbanTui(App):
         "overview": OverViewScreen,
         "settings": SettingsScreen,
     }
-    TITLE = f"KanbanTui v{version('kanban_tui')}"
+    TITLE = "kanban-tui"
+
+    SUB_TITLE = f"v{version('kanban_tui')}"
 
     config_has_changed: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
-    active_board: reactive[Board | None] = reactive(None)
+    active_board: reactive[Board | None] = reactive(None, init=False)
 
     def __init__(
         self,
         config_path: str,
         database_path: str,
         demo_mode: bool = False,
+        auth_only: bool = False,
+        *args,
+        **kwargs,
     ) -> None:
         SETTINGS.set(Settings())
         init_config(config_path=config_path, database=database_path)
+        super().__init__(*args, **kwargs)
         self.config = SETTINGS.get()
-        self.backend = self.get_backend()
         self.demo_mode = demo_mode
-
-        self.backend.create_database()
-        init_first_board(database=self.backend.database_path)
-        super().__init__()
+        self.auth_only = auth_only
+        self.backend = self.get_backend()
 
     def get_backend(self):
         match self.config.backend.mode:
-            case "sqlite":
-                return SqliteBackend(self.config.backend.sqlite_settings)
-            case "jira":
-                raise NotImplementedError("Jira Backend is not supported yet")
+            case Backends.SQLITE:
+                backend = SqliteBackend(self.config.backend.sqlite_settings)
+            case Backends.JIRA:
+                backend = JiraBackend(self.config.backend.jira_settings)
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")
 
+        return backend
+
+    @work()
     async def on_mount(self) -> None:
         self.theme = self.config.board.theme
-        self.update_board_list()
-        # self.push_screen(MainView().data_bind(KanbanTui.active_board))
-        await self.push_screen("board")
-        self.screen.data_bind(KanbanTui.active_board)
+
+        if self.auth_only:
+            await self.show_auth_screen_only()
+            return
+
         if self.demo_mode:
             self.show_demo_notification()
+
+        self.update_board_list()
+
+        screen = self.get_screen("board").data_bind(KanbanTui.active_board)
+        await self.push_screen(screen)
+
+    async def show_auth_screen_only(self):
+        await self.push_screen_wait(ModalAuthScreen())
+        self.exit(self.backend.api_key)
 
     def show_demo_notification(self):
         self.title = f"{self.TITLE} (Demo Mode)"
@@ -95,6 +113,12 @@ class KanbanTui(App):
                 severity="warning",
             )
 
+    @on(Select.Changed, "#select_backend_mode")
+    def update_backend(self, event: Select.Changed):
+        self.backend = self.get_backend()
+        self.update_board_list()
+        self.get_screen("board", BoardScreen).refresh(recompose=True)
+
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
 
@@ -106,19 +130,20 @@ class KanbanTui(App):
             self.app.config.set_active_board(
                 new_active_board_id=self.active_board.board_id
             )
-            self.update_column_list()
+        self.update_column_list()
 
     def watch_column_list(self):
         self.update_task_list()
 
-    def watch_theme(self, theme: str):
-        self.config.set_theme(theme)
+    def watch_theme(self, new_theme: str):
+        self.config.set_theme(new_theme)
 
-    async def action_refresh(self):
+    def action_refresh(self):
         self.update_board_list()
         self.watch_active_board()
         self.watch_column_list()
-        await self.screen.update_board()
+        # used a worker here, so no await
+        self.screen.load_kanban_board()
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()
@@ -137,9 +162,6 @@ class KanbanTui(App):
         if column_id_list[0] == current_id:
             return current_id
         return column_id_list[column_id_list.index(current_id) - 1]
-
-    def watch_config_has_changed(self):
-        self.notify(f"config changed: {self.config_has_changed}")
 
     @property
     def visible_column_dict(self) -> dict[int, str]:

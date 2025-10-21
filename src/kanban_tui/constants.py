@@ -12,6 +12,12 @@ def _create_kanban_tui_dirs(root: Path) -> Path:
     return directory
 
 
+def _create_kanban_tui_auth_dir(root: Path) -> Path:
+    directory = root / "auth"
+    directory.mkdir(exist_ok=True, parents=True)
+    return directory
+
+
 CONFIG_NAME = "config.toml"
 CONFIG_DIR = _create_kanban_tui_dirs(xdg_config_home())
 CONFIG_FILE = CONFIG_DIR / CONFIG_NAME
@@ -21,3 +27,7 @@ DATABASE_NAME = "kanban_tui.db"
 DATA_DIR = _create_kanban_tui_dirs(xdg_data_home())
 DATABASE_FILE = DATA_DIR / DATABASE_NAME
 DEMO_DATABASE_FILE = DATA_DIR / "demo_kanban_tui.db"
+
+AUTH_NAME = "authentication.toml"
+AUTH_DIR = _create_kanban_tui_auth_dir(CONFIG_DIR)
+AUTH_FILE = AUTH_DIR / AUTH_NAME

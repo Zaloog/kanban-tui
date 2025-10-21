@@ -7,8 +7,8 @@ from kanban_tui.widgets.overview_widgets import LogFilterButton
 APP_SIZE = (150, 50)
 
 
-async def test_overview_view_empty(empty_app: KanbanTui, test_database_path):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_overview_view_no_tasks(no_task_app: KanbanTui, test_database_path):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+k")
         await pilot.pause()
 

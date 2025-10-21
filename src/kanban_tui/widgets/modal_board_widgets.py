@@ -34,6 +34,7 @@ class BoardList(ListView):
         board_listitems = self.get_board_list_items()
         await self.extend(board_listitems)
         self.index = index
+        self.refresh_bindings()
 
     def get_initial_index(self) -> int | None:
         for board_index, board in enumerate(self.app.board_list):

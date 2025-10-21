@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Literal
 
-from kanban_tui.config import MovementModes
+from kanban_tui.config import Backends, MovementModes
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 if TYPE_CHECKING:
@@ -50,11 +50,32 @@ class DataBasePathInput(Horizontal):
         yield Label("Database File")
         with self.prevent(Input.Changed):
             yield Input(
-                value=self.app.config.backend.sqlite_settings.database_path,
+                value=self.app.backend.database_path,
                 select_on_focus=False,
                 id="input_database_path",
             )
         return super().compose()
+
+
+class BackendSelector(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "backend.mode [yellow on black]^n[/]"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Backend mode")
+        with self.prevent(Select.Changed):
+            yield VimSelect.from_values(
+                Backends,
+                value=self.app.config.backend.mode,
+                id="select_backend_mode",
+                allow_blank=False,
+            )
+
+    @on(Select.Changed)
+    def update_config(self, event: Select.Changed):
+        self.app.config.set_backend(new_backend=event.value)
 
 
 class TaskMovementSelector(Horizontal):
@@ -117,7 +138,7 @@ class TaskAlwaysExpandedSwitch(Horizontal):
         self.app.config.set_task_always_expanded(new_value=event.value)
 
 
-class DefaultTaskColorSelector(Horizontal):
+class TaskDefaultColorSelector(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self) -> None:
@@ -555,8 +576,9 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
             yield TaskMovementSelector(classes="setting-block")
+            yield TaskDefaultColorSelector(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
-            yield DefaultTaskColorSelector(classes="setting-block")
+            yield BackendSelector(classes="setting-block")
             yield BoardColumnsInView(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")
@@ -591,7 +613,7 @@ class SettingsView(Vertical):
             case "movement_mode":
                 self.query_one(TaskMovementSelector).query_one(Select).focus()
             case "defaultcolor":
-                self.query_one(DefaultTaskColorSelector).query_one(Input).focus()
+                self.query_one(TaskDefaultColorSelector).query_one(Input).focus()
             case "columns":
                 self.query_one(ColumnSelector).focus()
             case "status":

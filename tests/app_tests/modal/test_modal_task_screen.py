@@ -11,8 +11,8 @@ from kanban_tui.modal.modal_color_pick import TitleInput
 APP_SIZE = (150, 50)
 
 
-async def test_task_creation(empty_app: KanbanTui):
-    async with empty_app.run_test(size=APP_SIZE) as pilot:
+async def test_task_creation(no_task_app: KanbanTui):
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         await pilot.press("n")
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
