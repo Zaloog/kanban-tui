@@ -622,7 +622,7 @@ ColumnListItem Label{
         text-align:left;
 }
 ColumnListItem Switch{
-        width: 3fr;
+        width: 1fr;
 }
 ColumnListItem > Button{
         width: 1fr;

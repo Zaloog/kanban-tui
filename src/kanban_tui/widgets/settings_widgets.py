@@ -361,6 +361,12 @@ class ColumnSelector(ListView):
                     [FirstListItem()]
                     + [ColumnListItem(column=column) for column in self.app.column_list]
                 )
+                # Update dependent Widgets
+                await self.app.screen.query_one(BoardColumnsInView).recompose()
+                await self.app.screen.query_one(StatusColumnSelector).recompose()
+                self.app.screen.query_one(
+                    StatusColumnSelector
+                ).get_select_widget_values()
                 self.index = event.addrule.position + 1
                 self.amount_visible += 1
 
@@ -402,6 +408,12 @@ class ColumnSelector(ListView):
 
                 # Remove ListItem
                 await event.column_list_item.remove()
+                # Update dependent Widgets
+                await self.app.screen.query_one(StatusColumnSelector).recompose()
+                self.app.screen.query_one(
+                    StatusColumnSelector
+                ).get_select_widget_values()
+                await self.app.screen.query_one(BoardColumnsInView).recompose()
 
                 self.notify(
                     title="Columns Updated",
