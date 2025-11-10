@@ -506,20 +506,6 @@ TaskAlwaysExpandedSwitch{
       width:1fr;
   }
 }
-BoardColumnsInView{
-  height:auto;
-  Label {
-    width:1fr;
-    padding: 1 0 0 1;
-  }
-}
-TaskMovementSelector{
-  height:auto;
-  Label {
-    width:1fr;
-    padding: 1 0 0 1;
-  }
-}
 TaskDefaultColorSelector{
   height:auto;
 
@@ -532,14 +518,6 @@ TaskDefaultColorSelector{
       height: 3;
       border-title-align: right;
   }
-}
-StatusColumnSelector {
-    height: auto;
-    Label {
-        width:1fr;
-        padding: 1 0 0 1;
-    }
-
 }
 ColumnSelector{
   background: $background;
@@ -669,6 +647,11 @@ AddRule Button{
 .setting-block {
   height:auto;
   border:$success;
+
+  Label {
+    width:1fr;
+    padding: 1 0 0 1;
+  }
 
   &:focus-within {
     border:$primary;

@@ -61,7 +61,7 @@ class BackendSelector(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = "backend.mode [yellow on black]^n[/]"
+        self.border_title = "backend.mode [yellow on black][/]"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Backend mode")
@@ -75,7 +75,17 @@ class BackendSelector(Horizontal):
 
     @on(Select.Changed)
     def update_config(self, event: Select.Changed):
-        self.app.config.set_backend(new_backend=event.value)
+        match event.value:
+            case Backends.SQLITE:
+                self.app.config.set_backend(new_backend=event.value)
+            case Backends.JIRA:
+                self.app.config.set_backend(new_backend=event.value)
+            case _:
+                self.notify(
+                    title="Backend not available yet",
+                    message="Please choose the `sqlite` backend",
+                    severity="warning",
+                )
 
 
 class TaskMovementSelector(Horizontal):
@@ -449,7 +459,9 @@ class StatusColumnSelector(Vertical):
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(classes="setting-horizontal"):
-            yield Label("Reset")
+            reset_label = Label("Reset")
+            reset_label.tooltip = """Placing a task in this column resets its [green]start_date[/] and [green]finish_date[/]"""
+            yield reset_label
             yield VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
@@ -460,7 +472,9 @@ class StatusColumnSelector(Vertical):
                 id="select_reset",
             )
         with Horizontal(classes="setting-horizontal"):
-            yield Label("Start")
+            start_label = Label("Start")
+            start_label.tooltip = """Placing a task in this column starts the task and updates the [green]start_date[/] of the task"""
+            yield start_label
             yield VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
@@ -471,7 +485,9 @@ class StatusColumnSelector(Vertical):
                 id="select_start",
             )
         with Horizontal(classes="setting-horizontal"):
-            yield Label("Finish")
+            finish_label = Label("Finish")
+            finish_label.tooltip = """Placing a task in this column finishes the task if it was started and updates the [green]finish_date[/] of the task"""
+            yield finish_label
             yield VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
