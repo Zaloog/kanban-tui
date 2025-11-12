@@ -64,48 +64,32 @@ def empty_app(test_config_path, test_database_path, test_config):
 
 @pytest.fixture
 def no_task_app(test_config_path, test_database_path, test_config):
+    os.environ["TEXTUAL_ANIMATION"] = "none"
     app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
     app.backend.create_new_board(
         name="Kanban Board",
         icon=":sparkles:",
     )
-    app.animation_level = "none"
-
     yield app
 
 
 # Create Testapp and inject test tasks
 @pytest.fixture
-# def test_app(test_config_path, test_database_path, test_config: Settings):
-def test_app(no_task_app):
-    # TODO
-    # with initialized test_db
-    # add categories to config
-    # cfg = test_config
-    # cfg.add_category(
-    #     category="green",
-    #     color="#00FF00",
-    # )
-    # cfg.add_category(
-    #     category="blue",
-    #     color="#0000FF",
-    # )
-    # cfg.add_category(
-    #     category="red",
-    #     color="#FF0000",
-    # )
-    # app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
+def test_app(no_task_app: KanbanTui):
+    no_task_app.backend.create_new_category(name="red", color="#FF0000")
+    no_task_app.backend.create_new_category(name="green", color="#00FF00")
+    no_task_app.backend.create_new_category(name="blue", color="#0000FF")
 
     no_task_app.backend.create_new_task(
         title="Task_ready_0",
         description="Hallo",
-        # category="green",
+        category=1,
         column=1,
     )
     no_task_app.backend.create_new_task(
         title="Task_ready_1",
         description="Hallo",
-        # category="blue",
+        category=3,
         column=1,
     )
     no_task_app.backend.create_new_task(
@@ -119,14 +103,14 @@ def test_app(no_task_app):
     no_task_app.backend.create_new_task(
         title="Task_doing_0",
         description="Hallo",
-        # category="green",
+        category=2,
         column=2,
     )
     # Done, 1 Task
     no_task_app.backend.create_new_task(
         title="Task_done_0",
         description="Hallo",
-        # category="red",
+        category=1,
         column=3,
     )
 

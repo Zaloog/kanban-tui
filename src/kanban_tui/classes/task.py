@@ -11,7 +11,7 @@ class Task(BaseModel):
     start_date: datetime | None = None
     finish_date: datetime | None = None
     time_worked_on: int = Field(default=0, ge=0)
-    category: str | None = None
+    category: int | None = None
     due_date: datetime | None = None
     description: str | None = None
 

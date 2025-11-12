@@ -132,25 +132,26 @@ class ModalTaskEditScreen(ModalScreen):
     def close_window(self):
         self.app.pop_screen()
 
-    def update_description_background(self, category: str):
-        if category != CategorySelector.NEW:
-            self.query_one(
-                TextArea
-            ).styles.background = self.app.config.task.default_color
-            # ).styles.background = self.app.cfg.category_color_dict.get(
-            #     category, self.app.cfg.no_category_task_color
-            # )
-            self.query_one(TextArea).styles.background = self.query_one(
-                TextArea
-            ).styles.background.darken(0.2)
+    def update_description_background(self, category_color: str):
+        text_area = self.query_one(TextArea)
+        if category_color != CategorySelector.NEW:
+            text_area.styles.background = category_color
+        else:
+            text_area.styles.background = self.app.config.task.default_color
+        text_area.styles.background = text_area.styles.background.darken(0.2)
 
     def read_values_from_task(self):
         self.query_one("#input_title", Input).value = self.kanban_task.title
         self.query_one(TextArea).text = self.kanban_task.description
-        # self.update_description_background(category=self.kanban_task.category)
+
+        if category_id := self.kanban_task.category:
+            category = self.app.backend.get_category_by_id(category_id)
+            self.update_description_background(category_color=category.color)
 
         self.query_one(Select).value = (
-            self.kanban_task.category if self.kanban_task.category else Select.BLANK
+            # TODO
+            Select.BLANK
+            # self.kanban_task.category if self.kanban_task.category else Select.BLANK
         )
         self.query_one("#label_create_date", Label).update(
             f"Task created at: {self.kanban_task.creation_date.isoformat(sep=' ', timespec='seconds')}"

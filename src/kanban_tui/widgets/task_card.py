@@ -110,15 +110,13 @@ class TaskCard(Vertical):
         yield self.description
 
         self.styles.background = self.app.config.task.default_color
-        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
 
     def on_mount(self):
-        ...
-        # TODO
-        # self.styles.background = self.app.cfg.category_color_dict.get(
-        #     self.task_.category, self.app.cfg.no_category_task_color
-        # )
-        # self.refresh_bindings()
+        if category_id := self.task_.category:
+            self.styles.background = self.app.backend.get_category_by_id(
+                category_id
+            ).color
+        self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
 
     # def watch_task_(self):
     #     self.refresh_bindings()
