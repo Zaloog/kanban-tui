@@ -138,6 +138,12 @@ class KanbanTui(App[str | None]):
     def watch_theme(self, new_theme: str):
         self.config.set_theme(new_theme)
 
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "refresh":
+            if not isinstance(self.screen, BoardScreen):
+                return False
+        return True
+
     def action_refresh(self):
         self.update_board_list()
         self.watch_active_board()

@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Iterable, TYPE_CHECKING
 
+from kanban_tui.config import Backends
+
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
@@ -196,7 +198,15 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
-        self.app.push_screen(ModalNewBoardScreen(), callback=self.update_board_listview)
+        # TODO Change this back later
+        match self.app.config.backend.mode:
+            case Backends.SQLITE:
+                self.app.push_screen(
+                    ModalNewBoardScreen(), callback=self.update_board_listview
+                )
+            case Backends.JIRA:
+                msg = self.app.backend.jql()
+                self.notify(f"{msg}", markup=False)
 
     def action_edit_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
