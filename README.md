@@ -18,7 +18,7 @@ kanban-tui is a customizable task manager in the terminal.
 If you want to test `kanban-tui` you can directly run this demo yourself with the help of [uv] using `uvx` with
 
 ```bash
-uvx --from kanban-tui ktui demo
+uvx kanban-tui demo
 ```
 
 ## Features
@@ -27,7 +27,7 @@ Expand for more detailed information
 </details>
 <details><summary>Following the XDG basedir convention</summary>
 
-kanban-tui utilizes [platformdirs] `user_config_dir` to save
+kanban-tui utilizes [xdg-base-dirs] `user_config_dir` to save
 the config file and `user_data_dir` for the sqlite database.
 </details>
 
@@ -91,13 +91,9 @@ pipx install kanban-tui
 ```
 
 ```bash
-rye install kanban-tui
-```
-
-```bash
 uv tool install kanban-tui
 ```
-I recommend using [pipx], [rye] or [uv] to install CLI Tools into an isolated environment.
+I recommend using [pipx] or [uv] to install CLI Tools into an isolated environment.
 
 To be able to use `kanban-tui` in your browser with the `--web`-flag, the optional dependency
 `textual-serve` is needed. You can add this to `kanban-tui` by installing the optional `web`-dependency
@@ -135,6 +131,14 @@ delete your current database and configuration file.
 ktui clear
 ```
 
+### Show Location of Data and Config Files
+`kanban-tui` follows the [XDG] basedir-spec and uses the [xdg-base-dirs] package to get the locations for data and config files.
+You can use this command to check where the files are, that `kanban-tui` creates on your system.
+
+```bash
+ktui info
+```
+
 ## Feedback and Issues
 Feel free to reach out and share your feedback, or open an [Issue],
 if something doesn't work as expected.
@@ -147,14 +151,13 @@ Also check the [Changelog] for new updates.
 
 
 <!-- external Links Python -->
-[platformdirs]: https://platformdirs.readthedocs.io/en/latest/
 [textual]: https://textual.textualize.io
 [pipx]: https://github.com/pypa/pipx
 [PyPi]: https://pypi.org/project/kanban-tui/
 [plotext]: https://github.com/piccolomo/plotext
 [textual-plotext]: https://github.com/Textualize/textual-plotext
+[xdg-base-dirs]: https://github.com/srstevenson/xdg-base-dirs
 
 <!-- external Links Others -->
 [XDG]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-[rye]: https://rye.astral.sh
 [uv]: https://docs.astral.sh/uv

@@ -7,7 +7,6 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import Select
 
-from kanban_tui.backends.jira.backend import JiraBackend
 from kanban_tui.modal.modal_auth_screen import ModalAuthScreen
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.screens.overview_screen import OverViewScreen
@@ -70,6 +69,8 @@ class KanbanTui(App[str | None]):
             case Backends.SQLITE:
                 backend = SqliteBackend(self.config.backend.sqlite_settings)
             case Backends.JIRA:
+                from kanban_tui.backends.jira.backend import JiraBackend
+
                 backend = JiraBackend(self.config.backend.jira_settings)
             case _:
                 raise NotImplementedError("Only sqlite Backend is supported for now")

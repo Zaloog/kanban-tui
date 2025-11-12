@@ -11,6 +11,9 @@ You can contribute to kanban-tui in many ways:
  3. Fix a bug
  4. Improve the documentation
 
+Before starting with your PR, I recommend reaching out first by commenting on a new or existing issue,
+to align on what to do.
+
 # Setup
 
 1. Fork the kanban-tui repository

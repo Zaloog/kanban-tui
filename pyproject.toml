@@ -15,7 +15,6 @@ dependencies = [
     "pydantic-settings>=2.10.1",
     "tomli-w>=1.2.0",
     "xdg-base-dirs>=6.0.2",
-    "atlassian-python-api>=4.0.7",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -46,6 +45,9 @@ kanban-tui = "kanban_tui.__main__:cli"
 [project.optional-dependencies]
 web = [
     "textual-serve>=1.1.1",
+]
+jira = [
+    "atlassian-python-api>=4.0.7",
 ]
 
 
