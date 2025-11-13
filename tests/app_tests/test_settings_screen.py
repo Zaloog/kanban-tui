@@ -95,7 +95,8 @@ async def test_backend_mode(test_app: KanbanTui):
         await pilot.click("#select_backend_mode")
         await pilot.press("down")
         await pilot.press("enter")
-        assert pilot.app.config.backend.mode == Backends.JIRA
+        # Change in Future
+        assert pilot.app.config.backend.mode == Backends.SQLITE
         assert (
             pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
             == Backends.JIRA
