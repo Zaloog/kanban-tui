@@ -13,6 +13,41 @@ KanbanBoard{
   border: $success;
 
 }
+KanbanTuiFooter {
+  height: 1;
+  dock: bottom;
+  color: $footer-foreground;
+  background: red;
+
+  Horizontal {
+    width:90%;
+  }
+  & > FooterKey {
+    color: $footer-foreground;
+    background:$primary-muted;
+  }
+  Label {
+    width:1fr;
+    color: $footer-foreground;
+    background:$primary-muted;
+    content-align: left middle;
+    padding-left: 1;
+  }
+  Select {
+    color:$primary-muted;
+    width: 1fr;
+    height: 1;
+    max-height: 1;
+    content-align:center middle;
+    align:center middle;
+    border:none;
+    SelectOverlay {
+      background:$primary-muted;
+      content-align:center middle;
+    }
+  }
+}
+
 Column{
   height:1fr;
   width:1fr;

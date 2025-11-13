@@ -21,6 +21,7 @@ from kanban_tui.backends import SqliteBackend
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
+from kanban_tui.widgets.custom_footer import KanbanTuiFooter
 
 
 class KanbanTui(App[str | None]):
@@ -30,6 +31,7 @@ class KanbanTui(App[str | None]):
         Binding("ctrl+j", 'switch_screen("board")', "Board"),
         Binding("ctrl+k", 'switch_screen("overview")', "Overview"),
         Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
+        Binding("C", "show_backend_selector", show=False, priority=True),
     ]
 
     SCREENS = {
@@ -144,6 +146,9 @@ class KanbanTui(App[str | None]):
             if not isinstance(self.screen, BoardScreen):
                 return False
         return True
+
+    def action_show_backend_selector(self):
+        self.screen.query_one(KanbanTuiFooter).toggle_show()
 
     def action_refresh(self):
         self.update_board_list()

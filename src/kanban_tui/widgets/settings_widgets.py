@@ -79,7 +79,12 @@ class BackendSelector(Horizontal):
             case Backends.SQLITE:
                 self.app.config.set_backend(new_backend=event.value)
             case Backends.JIRA:
-                self.app.config.set_backend(new_backend=event.value)
+                # self.app.config.set_backend(new_backend=event.value)
+                self.notify(
+                    title="Backend not available yet",
+                    message="Please choose the `sqlite` backend",
+                    severity="warning",
+                )
             case _:
                 self.notify(
                     title="Backend not available yet",
