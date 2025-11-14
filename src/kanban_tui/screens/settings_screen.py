@@ -3,10 +3,11 @@ from typing import Iterable
 from textual import on
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Header, Footer, Input, Switch, Button, Select
+from textual.widgets import Header, Input, Switch, Button, Select
 from textual.screen import Screen
 
 from kanban_tui.widgets.settings_widgets import SettingsView
+from kanban_tui.widgets.custom_footer import KanbanTuiFooter
 
 
 class SettingsScreen(Screen):
@@ -14,7 +15,7 @@ class SettingsScreen(Screen):
 
     def compose(self) -> Iterable[Widget]:
         yield Header()
-        yield Footer()
+        yield KanbanTuiFooter()
         yield SettingsView()
 
     @on(Input.Changed)
