@@ -106,9 +106,15 @@ TaskCard Markdown {
         margin:0;
 }
 
+.task-field {
+  border:$success;
+  width:1fr;
+  height:auto;
 
+}
 ModalTaskEditScreen {
   align:center middle;
+
   #vertical_modal {
     width:70%;
     border:$success;
@@ -157,21 +163,23 @@ ModalTaskEditScreen {
         }
     }
 
+    Markdown{
+        border:none;
+        height: 10;
+        width: 1fr;
+        color:auto;
+        overflow-y: auto;
+    }
+    TextArea{
+        border:none;
+        height: 10;
+        width: 1fr;
+        color:auto;
+    }
     #horizontal_detail{
         width:1fr;
         height:5fr;
 
-        DescriptionInfos{
-            border:$success;
-            height: 1fr;
-            width: 1fr;
-
-            TextArea{
-                height: 1fr;
-                width: 1fr;
-                color:auto;
-            }
-        }
         DetailInfos{
             border:$success;
             height: 1fr;
@@ -617,6 +625,7 @@ Switch.-on > .switch--slider {
 
 * {
     scrollbar-color: $warning;
+    scrollbar-size-vertical: 1;
     scrollbar-color-active: $success;
     scrollbar-color-hover: $success;
 }

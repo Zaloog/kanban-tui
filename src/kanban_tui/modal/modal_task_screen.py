@@ -11,7 +11,7 @@ from textual.binding import Binding
 from textual.validation import Length
 from textual.screen import ModalScreen
 from textual.widgets import Input, TextArea, Button, Select, Label, Switch, Footer
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 
 from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
@@ -22,7 +22,7 @@ from kanban_tui.widgets.modal_task_widgets import (
     StartDateInfo,
     FinishDateInfo,
     DetailInfos,
-    DescriptionInfos,
+    TaskDescription,
 )
 
 
@@ -39,10 +39,10 @@ class ModalTaskEditScreen(ModalScreen):
         super().__init__(*args, **kwargs)
 
     def compose(self) -> Iterable[Widget]:
-        with Vertical(id="vertical_modal"):
+        with VerticalScroll(id="vertical_modal", can_focus=False):
             yield TaskTitleInput()
+            yield TaskDescription(classes="task-field")
             with Horizontal(id="horizontal_detail"):
-                yield DescriptionInfos()
                 self.detail_infos = DetailInfos(id="detail_infos")
                 yield self.detail_infos
             yield CreationDateInfo()
@@ -57,7 +57,7 @@ class ModalTaskEditScreen(ModalScreen):
             yield Footer()
 
     def on_mount(self, event: Mount) -> None:
-        self.query_one("#vertical_modal", Vertical).border_title = "Create Task"
+        self.query_one("#vertical_modal", VerticalScroll).border_title = "Create Task"
         # TODO
         # self.watch(
         #     self.detail_infos.query_one(CategorySelector),
@@ -65,7 +65,7 @@ class ModalTaskEditScreen(ModalScreen):
         #     self.update_description_background,
         # )
         if self.kanban_task:
-            self.query_one("#vertical_modal", Vertical).border_title = "Edit Task"
+            self.query_one("#vertical_modal", VerticalScroll).border_title = "Edit Task"
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#btn_continue", Button).disabled = False
@@ -129,16 +129,20 @@ class ModalTaskEditScreen(ModalScreen):
         self.app.pop_screen()
 
     def update_description_background(self, category_color: str):
-        text_area = self.query_one(TextArea)
+        text_area = self.query_one(TaskDescription).editor
+        text_preview = self.query_one(TaskDescription).preview
         if category_color != CategorySelector.NEW:
             text_area.styles.background = category_color
+            text_preview.styles.background = category_color
         else:
             text_area.styles.background = self.app.config.task.default_color
+            text_preview.styles.background = self.app.config.task.default_color
         text_area.styles.background = text_area.styles.background.darken(0.2)
+        text_preview.styles.background = text_preview.styles.background.darken(0.2)
 
     def read_values_from_task(self):
         self.query_one("#input_title", Input).value = self.kanban_task.title
-        self.query_one(TextArea).text = self.kanban_task.description
+        self.query_one(TaskDescription).text = self.kanban_task.description
 
         if category_id := self.kanban_task.category:
             category = self.app.backend.get_category_by_id(category_id)
@@ -198,7 +202,7 @@ class ModalTaskEditScreen2(ModalScreen):
                 yield StartDateInfo()
                 yield FinishDateInfo()
             with Horizontal(id="horizontal_detail"):
-                yield DescriptionInfos()
+                yield TaskDescription()
                 self.detail_infos = DetailInfos(id="detail_infos")
                 yield self.detail_infos
             with Horizontal(id="horizontal_buttons"):

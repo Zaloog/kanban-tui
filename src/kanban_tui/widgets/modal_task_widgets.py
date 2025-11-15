@@ -5,14 +5,16 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from rich.text import Text
 from textual import on
+from textual.events import DescendantBlur, DescendantFocus
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.binding import Binding
 from textual.validation import Length
-from textual.widgets import Input, TextArea, Select, Label, Switch
+from textual.widgets import Input, Markdown, TextArea, Select, Label, Switch
 from textual.widgets._select import SelectOverlay
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 
 from kanban_tui.modal.modal_color_pick import CategoryColorPicker
 from kanban_tui.widgets.date_select import CustomDateSelect
@@ -43,15 +45,44 @@ class TaskTitleInput(Input):
             self.border_subtitle = "a title is required"
 
 
-class DescriptionInfos(Vertical):
+class TaskDescription(VerticalScroll):
     can_focus = False
+    edit_mode: reactive[bool] = reactive(False)
+    text: reactive[str] = reactive("", init=False)
 
     def compose(self) -> Iterable[Widget]:
-        yield TextArea()
+        self.preview = Markdown(self.text)
+        self.preview.can_focus = True
+        yield self.preview
+        self.editor = TextArea(self.text)
+        self.editor.display = False
+        yield self.editor
 
     def on_mount(self):
         self.border = "$success"
-        self.border_title = "Task Description"
+        self.border_title = "Description"
+
+    def watch_text(self):
+        self.editor.text = self.text
+        self.preview.update(self.text)
+
+    @on(DescendantFocus)
+    def start_editing(self, event: DescendantFocus):
+        self.edit_mode = True
+
+    @on(DescendantBlur)
+    def stop_editing(self, event: DescendantBlur):
+        self.edit_mode = False
+
+    def watch_edit_mode(self):
+        self.preview.display = not self.edit_mode
+        self.editor.display = self.edit_mode
+        self.preview.update(self.editor.text)
+        self.border_subtitle = (
+            Text.from_markup(":pen: edit")
+            if self.edit_mode
+            else Text.from_markup(":eye:  preview")
+        )
 
 
 class DetailInfos(Vertical):
