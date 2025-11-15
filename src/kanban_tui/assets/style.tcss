@@ -108,29 +108,18 @@ TaskCard Markdown {
 
 
 ModalTaskEditScreen {
+  align:center middle;
+  #vertical_modal {
+    width:70%;
+    border:$success;
+    height:75%;
     align:center middle;
-    #vertical_modal {
-        width:70%;
+    border-title-align:center;
+    content-align:center middle;
+
+    CustomDatePickerDialog {
         border:$success;
-        height:75%;
-        align:center middle;
-        content-align:center middle;
-
-        CustomDatePickerDialog {
-            border:$success;
-            margin:-30 45 0 0;
-        }
-
-    #label_header {
-        width:1fr;
-        height:5%;
-        background: $background;
-        align:center middle;
-        text-align:center;
-    }
-
-    #input_title{
-        text-align:center;
+        margin:-30 45 0 0;
     }
 
     CreationDateInfo{

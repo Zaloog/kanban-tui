@@ -9,12 +9,38 @@ from textual import on
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.binding import Binding
-from textual.widgets import TextArea, Select, Label, Switch
+from textual.validation import Length
+from textual.widgets import Input, TextArea, Select, Label, Switch
 from textual.widgets._select import SelectOverlay
 from textual.containers import Horizontal, Vertical
 
 from kanban_tui.modal.modal_color_pick import CategoryColorPicker
 from kanban_tui.widgets.date_select import CustomDateSelect
+
+
+class TaskTitleInput(Input):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            id="input_title",
+            validators=Length(minimum=1, failure_description="Enter a valid title"),
+            valid_empty=False,
+            placeholder="enter a task title",
+            *args,
+            **kwargs,
+        )
+
+    def on_mount(self):
+        self.validate(self.value)
+        self.show_validation_hint()
+
+    @on(Input.Changed)
+    @on(Input.Blurred)
+    @on(Input.Submitted)
+    def show_validation_hint(self):
+        if self.is_valid:
+            self.border_subtitle = ""
+        else:
+            self.border_subtitle = "a title is required"
 
 
 class DescriptionInfos(Vertical):
@@ -37,9 +63,7 @@ class DetailInfos(Vertical):
             yield Label("Category:")
             # TODO
             # yield CategorySelector()
-            placeholder = Select.from_values(["placeholder"])
-            placeholder.prompt = "In Work"
-            yield placeholder
+            yield Select.from_values(["placeholder"], prompt="In Work")
         with Horizontal(id="horizontal_due_date"):
             yield Label("has a due Date:")
             with self.prevent(Switch.Changed):
