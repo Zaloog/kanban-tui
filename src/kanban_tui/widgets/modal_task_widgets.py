@@ -62,10 +62,6 @@ class TaskDescription(VerticalScroll):
         self.border = "$success"
         self.border_title = "Description"
 
-    def watch_text(self):
-        self.editor.text = self.text
-        self.preview.update(self.text)
-
     @on(DescendantFocus)
     def start_editing(self, event: DescendantFocus):
         self.edit_mode = True
@@ -74,10 +70,14 @@ class TaskDescription(VerticalScroll):
     def stop_editing(self, event: DescendantBlur):
         self.edit_mode = False
 
+    def watch_text(self):
+        self.editor.text = self.text
+        self.preview.update(self.text)
+
     def watch_edit_mode(self):
+        self.text = self.editor.text
         self.preview.display = not self.edit_mode
         self.editor.display = self.edit_mode
-        self.preview.update(self.editor.text)
         self.border_subtitle = (
             Text.from_markup(":pen: edit")
             if self.edit_mode

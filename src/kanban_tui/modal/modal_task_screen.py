@@ -83,6 +83,8 @@ class ModalTaskEditScreen(ModalScreen):
         title = self.query_one("#input_title", Input).value
         if not title:
             return
+        # Read from Textarea cause TaskDescription.text mightve
+        # not been updated when using shortcut
         description = self.query_one(TextArea).text
         category = (
             None if self.query_one(Select).is_blank() else self.query_one(Select).value
@@ -292,7 +294,7 @@ class ModalTaskEditScreen2(ModalScreen):
 
     def read_values_from_task(self):
         self.query_one("#input_title", Input).value = self.kanban_task.title
-        self.query_one(TextArea).text = self.kanban_task.description
+        self.query_one(TaskDescription).text = self.kanban_task.description
 
         if category_id := self.kanban_task.category:
             category = self.app.backend.get_category_by_id(category_id)
