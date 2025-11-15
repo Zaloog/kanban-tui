@@ -13,6 +13,7 @@ which makes the board is now horizontally scrollable
 - Added new `auth` command to directly open the auth modal screen when jira backend is chosen
 - Added new `info` command to show location and presence of xdg config/data/auth file paths
 - Option to switch the Backend in the Footer
+- Rework the Modal Task Screen
 
 ### Fixed
 - Fixed focus bug if no visible tasks are on board (due to column visibility change)
