@@ -5,7 +5,7 @@ from textual.widgets import Header
 from textual.screen import Screen
 
 from kanban_tui.widgets.overview_widgets import OverView
-from kanban_tui.widgets.custom_footer import KanbanTuiFooter
+from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 
 
 class OverViewScreen(Screen):

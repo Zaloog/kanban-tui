@@ -21,7 +21,7 @@ from kanban_tui.backends import SqliteBackend
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
-from kanban_tui.widgets.custom_footer import KanbanTuiFooter
+from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 
 
 class KanbanTui(App[str | None]):

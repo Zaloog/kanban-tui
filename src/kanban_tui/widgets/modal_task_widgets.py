@@ -10,14 +10,22 @@ from textual import on
 from textual.events import DescendantBlur, DescendantFocus
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.binding import Binding
 from textual.validation import Length
-from textual.widgets import Input, Markdown, TextArea, Select, Label, Switch
-from textual.widgets._select import SelectOverlay
+from textual.widgets import (
+    Input,
+    Markdown,
+    Rule,
+    TextArea,
+    Select,
+    Label,
+    Switch,
+    Button,
+)
 from textual.containers import Horizontal, Vertical, VerticalScroll
 
 from kanban_tui.modal.modal_color_pick import CategoryColorPicker
 from kanban_tui.widgets.date_select import CustomDateSelect
+from kanban_tui.widgets.custom_widgets import VimSelect
 
 
 class TaskTitleInput(Input):
@@ -51,10 +59,11 @@ class TaskDescription(VerticalScroll):
     text: reactive[str] = reactive("", init=False)
 
     def compose(self) -> Iterable[Widget]:
-        self.preview = Markdown(self.text)
+        self.preview = Markdown(self.text, classes="description-widgets")
         self.preview.can_focus = True
         yield self.preview
-        self.editor = TextArea(self.text)
+
+        self.editor = TextArea(self.text, classes="description-widgets")
         self.editor.display = False
         yield self.editor
 
@@ -85,39 +94,40 @@ class TaskDescription(VerticalScroll):
         )
 
 
-class DetailInfos(Vertical):
+class TaskCategorySelector(Horizontal):
+    def compose(self):
+        # TODO
+        # yield CategorySelector()
+        yield Select.from_values(["placeholder"], prompt="In Work")
+
+    def on_mount(self):
+        self.border_title = "Category"
+
+
+class TaskDueDateSelector(Horizontal):
     app: "KanbanTui"
     due_date: reactive[datetime] = reactive(None)
 
-    def compose(self) -> Iterable[Widget]:
-        with Horizontal(id="horizontal_category"):
-            yield Label("Category:")
-            # TODO
-            # yield CategorySelector()
-            yield Select.from_values(["placeholder"], prompt="In Work")
-        with Horizontal(id="horizontal_due_date"):
-            yield Label("has a due Date:")
-            with self.prevent(Switch.Changed):
-                yield Switch(value=False, id="switch_due_date", animate=False)
-        with Vertical(id="vertical_due_date_choice"):
-            self.due_date_label = Label("[yellow]??[/] days left", id="label_days_left")
-            self.due_date_label.display = False
-            yield self.due_date_label
-            self.due_date_select = CustomDateSelect(
-                placeholder="Select Due Date",
-                format="%Y-%m-%d",
-                picker_mount="#vertical_modal",
-                id="dateselect_due_date",
-            )
-            self.due_date_select.display = False
-            yield self.due_date_select
+    def compose(self):
+        yield Label("has a due Date:")
+        with self.prevent(Switch.Changed):
+            yield Switch(value=False, id="switch_due_date", animate=False)
 
-        self.border = "$success"
-        self.border_title = "Additional Infos"
+        self.due_date_select = CustomDateSelect(
+            placeholder="Select Due Date",
+            format="%Y-%m-%d",
+            picker_mount="#vertical_modal",
+            id="dateselect_due_date",
+        )
+        self.due_date_select.display = False
+        yield self.due_date_select
+
+    def on_mount(self):
+        self.border_title = "Due Date"
+        self.border_subtitle = "[yellow]??[/] days left"
 
     @on(Switch.Changed)
     def show_due_date_info(self, event: Switch.Changed):
-        self.due_date_label.display = event.value
         self.due_date_select.display = event.value
 
         if not event.value:
@@ -131,27 +141,30 @@ class DetailInfos(Vertical):
 
     def watch_due_date(self):
         if not self.due_date:
-            self.query_one("#label_days_left", Label).update("[yellow]??[/] days left")
+            self.border_subtitle = ""
             return
 
         # Delta Calculation
         if self.due_date.date() <= datetime.now().date():
             delta = 0
-            self.query_one("#label_days_left", Label).update(
-                f"[red]{delta}[/] days left"
-            )
         else:
             delta = (self.due_date - datetime.now()).days + 1
 
-        # Label display Update
+        # Border Sub Title Update for singular and plural
         if delta == 1:
-            self.query_one("#label_days_left", Label).update(
-                f"[green]{delta}[/] day left"
-            )
+            days_left_text = f"[yellow]{delta}[/] day left"
+        elif delta == 0:
+            days_left_text = f"[red]{delta}[/] days left"
         else:
-            self.query_one("#label_days_left", Label).update(
-                f"[green]{delta}[/] days left"
-            )
+            days_left_text = f"[green]{delta}[/] days left"
+        self.border_subtitle = days_left_text
+
+
+class TaskAdditionalInfos(Vertical):
+    def compose(self):
+        yield Rule()
+        yield TaskCategorySelector(id="horizontal_category", classes="task-field")
+        yield TaskDueDateSelector(id="vertical_due_date_choice", classes="task-field")
 
 
 class NewCategorySelection:
@@ -160,30 +173,6 @@ class NewCategorySelection:
 
 
 NEW = NewCategorySelection()
-
-
-class VimSelect(Select):
-    BINDINGS = [
-        Binding("enter,space,l", "show_overlay", "Show Overlay", show=False),
-        Binding("up,k", "cursor_up", "Cursor Up", show=False),
-        Binding("down,j", "cursor_down", "Cursor Down", show=False),
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_to_search = False
-
-    def action_cursor_up(self):
-        if self.expanded:
-            self.query_one(SelectOverlay).action_cursor_up()
-        else:
-            self.screen.focus_previous()
-
-    def action_cursor_down(self):
-        if self.expanded:
-            self.query_one(SelectOverlay).action_cursor_down()
-        else:
-            self.screen.focus_next()
 
 
 class CategorySelector(VimSelect):
@@ -225,12 +214,21 @@ class CategorySelector(VimSelect):
         return options
 
 
+class DateRow(Horizontal):
+    def compose(self):
+        yield CreationDateInfo(classes="date-container")
+        yield StartDateInfo(classes="date-container")
+        yield FinishDateInfo(classes="date-container")
+
+
 class CreationDateInfo(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label(
-            f"Task created at: {datetime.now().replace(microsecond=0)}",
+            f"{datetime.now().replace(microsecond=0)}",
             id="label_create_date",
         )
+        self.border = "$success"
+        self.border_title = "Creation Date"
         return super().compose()
 
 
@@ -248,3 +246,9 @@ class FinishDateInfo(Vertical):
         self.border = "$success"
         self.border_title = "Finish Date"
         return super().compose()
+
+
+class ButtonRow(Horizontal):
+    def compose(self):
+        yield Button("Create Task", id="btn_continue", variant="success", disabled=True)
+        yield Button("Cancel", id="btn_cancel", variant="error")

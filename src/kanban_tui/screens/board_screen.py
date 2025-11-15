@@ -16,7 +16,7 @@ from textual.screen import Screen
 
 from kanban_tui.classes.board import Board
 from kanban_tui.widgets.board_widgets import KanbanBoard
-from kanban_tui.widgets.custom_footer import KanbanTuiFooter
+from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 
 
 class BoardScreen(Screen):

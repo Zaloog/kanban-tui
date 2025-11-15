@@ -1,9 +1,10 @@
+from textual.binding import Binding
 from textual.containers import Horizontal
 from textual.widgets import Footer, Label, Select
 from textual.widgets._footer import FooterKey
+from textual.widgets._select import SelectOverlay
 
 from kanban_tui.config import Backends
-from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 
 class KanbanTuiFooter(Horizontal):
@@ -40,3 +41,27 @@ class KanbanTuiFooter(Horizontal):
     def toggle_show(self):
         selector = self.query_one(VimSelect)
         selector.expanded = not selector.expanded
+
+
+class VimSelect(Select):
+    BINDINGS = [
+        Binding("enter,space,l", "show_overlay", "Show Overlay", show=False),
+        Binding("up,k", "cursor_up", "Cursor Up", show=False),
+        Binding("down,j", "cursor_down", "Cursor Down", show=False),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_to_search = False
+
+    def action_cursor_up(self):
+        if self.expanded:
+            self.query_one(SelectOverlay).action_cursor_up()
+        else:
+            self.screen.focus_previous()
+
+    def action_cursor_down(self):
+        if self.expanded:
+            self.query_one(SelectOverlay).action_cursor_down()
+        else:
+            self.screen.focus_next()

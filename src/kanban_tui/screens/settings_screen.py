@@ -7,7 +7,7 @@ from textual.widgets import Header, Input, Switch, Button, Select
 from textual.screen import Screen
 
 from kanban_tui.widgets.settings_widgets import SettingsView
-from kanban_tui.widgets.custom_footer import KanbanTuiFooter
+from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 
 
 class SettingsScreen(Screen):

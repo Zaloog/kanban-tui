@@ -112,6 +112,29 @@ TaskCard Markdown {
   height:auto;
 
 }
+.description-widgets {
+  border:none;
+  height: 10;
+  width: 1fr;
+  color:auto;
+  overflow-y: auto;
+}
+.date-container{
+  border:$success;
+  width:1fr;
+  height:1fr;
+  align:center middle;
+  Label {
+    width:1fr;
+    height:1fr;
+    text-align:center;
+  }
+}
+CustomDatePickerDialog {
+  border:$success;
+  margin:-30 55 0 0;
+}
+
 ModalTaskEditScreen {
   align:center middle;
 
@@ -123,114 +146,42 @@ ModalTaskEditScreen {
     border-title-align:center;
     content-align:center middle;
 
-    CustomDatePickerDialog {
-        border:$success;
-        margin:-30 45 0 0;
+
+    TaskAdditionalInfos {
+      height: auto;
+      Label{
+          padding: 1 0 0 0;
+      }
+      Switch{
+          width:1fr;
+          height:auto;
+      }
+      CustomDateSelect{
+          height:auto;
+          width:1fr;
+      }
     }
 
-    CreationDateInfo{
-        width:1fr;
-        height:5%;
-        align:center middle;
+    DateRow {
+      height:3;
+      min-height:3;
+      width:1fr;
     }
 
-    #horizontal_dates {
-        height:10%;
-        min-height:3;
-        width:1fr;
-
-        StartDateInfo{
-            border:$success;
-            width:1fr;
-            height:1fr;
-            align:center middle;
-            Label {
-                width:1fr;
-                height:1fr;
-                text-align:center;
-            }
-        }
-        FinishDateInfo{
-            border:$success;
-            width:1fr;
-            height:1fr;
-            align:center middle;
-            Label {
-                width:1fr;
-                height:1fr;
-                text-align:center;
-            }
-        }
-    }
-
-    Markdown{
-        border:none;
-        height: 10;
-        width: 1fr;
-        color:auto;
-        overflow-y: auto;
-    }
-    TextArea{
-        border:none;
-        height: 10;
-        width: 1fr;
-        color:auto;
-    }
     #horizontal_detail{
         width:1fr;
-        height:5fr;
+        height:20%;
 
-        DetailInfos{
-            border:$success;
-            height: 1fr;
-            width: 1fr;
-            align:center middle;
-            #horizontal_category{
-                align:center middle;
-                Label{
-                    padding: 1 0 0 0;
-                }
-                Select{
-                    width:1fr;
-                    height:auto;
-                }
-            }
-            # switch
-            #horizontal_due_date{
-                width:1fr;
-                height:auto;
-                Label{
-                    padding: 1 0 0 0;
-                }
-                Switch{
-                    width:1fr;
-                    height:auto;
-                }
-            }
-            #vertical_due_date_choice{
-                height:1fr;
-                align:center middle;
-                #label_days_left {
-                    text-align:center;
-                    width:1fr;
-                }
-
-                CustomDateSelect{
-                    height:auto;
-                }
-            }
-
-        }
     }
 
-    #horizontal_buttons {
-        height:3;
+    ButtonRow {
+      height:3;
+      width:1fr;
+      Button {
         width:1fr;
-        Button {
-            width:1fr;
-            height:3;
-            min-height:3;
-        }
+        height:3;
+        min-height:3;
+      }
     }
 }
 }
