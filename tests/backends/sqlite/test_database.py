@@ -4,6 +4,9 @@ from pathlib import Path
 import pytest
 
 from kanban_tui.backends.sqlite.database import (
+    create_new_category_db,
+    get_all_categories_db,
+    get_category_by_id_db,
     init_new_db,
     create_connection,
     task_factory,
@@ -98,3 +101,26 @@ def test_create_new_board_db(test_app, test_database_path):
 
     boards = get_all_boards_db(database=test_database_path)
     assert len(boards) == 3
+
+
+def test_create_new_category_db(no_task_app, test_database_path):
+    for name, color in zip(["green", "red"], ["#00FF00", "#FF0000"]):
+        create_new_category_db(name=name, color=color, database=test_database_path)
+
+    categories = get_all_categories_db(database=test_database_path)
+    assert len(categories) == 2
+
+
+@pytest.mark.parametrize(
+    "category_id, name, color",
+    [
+        (1, "red", "#FF0000"),
+        (2, "green", "#00FF00"),
+    ],
+)
+def test_get_category_db(test_app, test_database_path, category_id, name, color):
+    category = get_category_by_id_db(
+        category_id=category_id, database=test_database_path
+    )
+    assert category.name == name
+    assert category.color == color

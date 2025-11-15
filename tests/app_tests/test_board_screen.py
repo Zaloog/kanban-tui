@@ -4,7 +4,7 @@ import pytest
 
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button
-from kanban_tui.config import MovementModes
+from kanban_tui.config import Backends, MovementModes
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
@@ -13,6 +13,7 @@ from kanban_tui.modal.modal_board_screen import (
     ModalNewBoardScreen,
 )
 
+from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.task_column import Column
 
@@ -251,3 +252,17 @@ async def test_kanbanboard_card_movement_mouse_different_column(test_app: Kanban
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 3
         assert pilot.app.focused.row == 1
+
+
+async def test_custom_footer(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert not pilot.app.screen.query_one(VimSelect).display
+
+        await pilot.press("C")
+        assert pilot.app.screen.query_one(VimSelect).display
+
+
+async def test_custom_footer_backend_switcher(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert not pilot.app.screen.query_one(VimSelect).display
+        assert pilot.app.screen.query_one(VimSelect).value == Backends.SQLITE

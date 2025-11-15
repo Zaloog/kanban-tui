@@ -10,6 +10,7 @@ from functools import lru_cache
 from rich.table import Table
 
 from kanban_tui.backends.sqlite.database import (
+    create_new_category_db,
     create_new_task_db,
     init_new_db,
     create_new_board_db,
@@ -390,22 +391,14 @@ def create_demo_tasks(database_path: str, config_path: str):
 
     cfg = Settings()
 
-    # cfg.add_category(
-    #     category="green",
-    #     color="#008F00",
-    # )
-    # cfg.add_category(
-    #     category="blue",
-    #     color="#00008F",
-    # )
-    # cfg.add_category(
-    #     category="red",
-    #     color="#8F0000",
-    # )
-
     init_new_db(database=database_path)
 
-    # Create 2 Demo Boards
+    # Create new categories
+    create_new_category_db(name="red", color="#8F0000", database=database_path)
+    create_new_category_db(name="green", color="#008F00", database=database_path)
+    create_new_category_db(name="blue", color="#00008F", database=database_path)
+
+    # Create 5 Demo Boards
     create_new_board_db(
         name="Demo Board No1", icon=":construction:", database=database_path
     )
@@ -421,7 +414,7 @@ def create_demo_tasks(database_path: str, config_path: str):
     create_new_task_db(
         title="Task_green_ready",
         description="First Task",
-        # category="green",
+        category=2,
         column=1,
         due_date=datetime.now().replace(microsecond=0),
         board_id=cfg.backend.sqlite_settings.active_board_id,
@@ -430,7 +423,7 @@ def create_demo_tasks(database_path: str, config_path: str):
     create_new_task_db(
         title="Task_blue_ready",
         description="Second Task",
-        # category="blue",
+        category=3,
         column=1,
         due_date=datetime.now().replace(microsecond=0) + timedelta(days=1),
         board_id=cfg.backend.sqlite_settings.active_board_id,
@@ -450,7 +443,7 @@ def create_demo_tasks(database_path: str, config_path: str):
     create_new_task_db(
         title="Task_green_doing",
         description="Task I am working on",
-        # category="green",
+        category=2,
         column=2,
         start_date=datetime.now(),
         board_id=cfg.backend.sqlite_settings.active_board_id,
@@ -460,7 +453,7 @@ def create_demo_tasks(database_path: str, config_path: str):
     create_new_task_db(
         title="Task_red_done",
         description="Task Finished",
-        # category="red",
+        category=1,
         column=3,
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
         finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
@@ -472,7 +465,7 @@ def create_demo_tasks(database_path: str, config_path: str):
         create_new_task_db(
             title="Task_red_archive",
             description="Hallo",
-            # category="red",
+            category=1,
             column=4,
             start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
             finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
@@ -483,7 +476,7 @@ def create_demo_tasks(database_path: str, config_path: str):
         create_new_task_db(
             title="Task_red_archive",
             description="Hallo",
-            # category="red",
+            category=1,
             column=4,
             start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
             finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
