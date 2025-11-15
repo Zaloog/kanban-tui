@@ -157,7 +157,7 @@ ModalTaskEditScreen {
           height:auto;
       }
       CustomDateSelect{
-          height:auto;
+          height:3;
           width:1fr;
       }
     }
