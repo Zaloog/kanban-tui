@@ -357,7 +357,7 @@ NewColumnItem Button {
     width:1fr;
 }
 
-CategoryColorPicker{
+ModalCategoryManageScreen{
     align:center middle;
     Vertical {
         width:40%;
@@ -496,7 +496,8 @@ TaskDefaultColorSelector{
       width: 1fr;
       padding:1 0 0 1;
   }
-  TitleInput{
+  Input{
+      color: auto;
       width: 1fr;
       height: 3;
       border-title-align: right;

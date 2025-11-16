@@ -26,7 +26,6 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical
 from rich.text import Text
 
-from kanban_tui.modal.modal_color_pick import TitleInput
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
@@ -156,21 +155,21 @@ class TaskAlwaysExpandedSwitch(Horizontal):
 class TaskDefaultColorSelector(Horizontal):
     app: "KanbanTui"
 
-    def on_mount(self) -> None:
-        self.query_one(TitleInput).background = self.app.config.task.default_color
-        self.border_title = "task.default_color [yellow on black]^g[/]"
-
     def compose(self) -> Iterable[Widget]:
         yield Label("Default Task Color")
         with self.prevent(Input.Changed):  # prevent config change on init
-            yield TitleInput(
+            yield Input(
                 value=self.app.config.task.default_color, id="task_color_preview"
             )
+
+    def on_mount(self) -> None:
+        self.query_one(Input).styles.background = self.app.config.task.default_color
+        self.border_title = "task.default_color [yellow on black]^g[/]"
 
     @on(Input.Changed)
     def update_input_color(self, event: Input.Changed):
         try:
-            self.query_one(TitleInput).background = event.input.value
+            event.input.styles.background = event.input.value
             self.app.config.set_task_default_color(new_color=event.input.value)
             event.input.styles.border = "tall", "green"
             event.input.border_subtitle = None
@@ -178,14 +177,15 @@ class TaskDefaultColorSelector(Horizontal):
         # Todo add validator to input?
         except Exception:
             event.input.styles.border = "tall", "red"
-            event.input.border_subtitle = "invalid color value"
+            event.input.border_subtitle = "invalid color"
             event.input.border_title = (
                 f"last valid: {self.app.config.task.default_color}"
             )
+            event.input.styles.background = self.app.config.task.default_color
 
     @on(DescendantBlur)
     def reset_color(self):
-        self.query_one(TitleInput).value = self.app.config.task.default_color
+        self.query_one(Input).value = self.app.config.task.default_color
 
 
 # Widget to Add new columns and change column visibility

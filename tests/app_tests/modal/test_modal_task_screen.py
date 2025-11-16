@@ -6,7 +6,6 @@ from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen, ModalConfirmScreen
 
 from kanban_tui.widgets.task_card import TaskCard
-from kanban_tui.modal.modal_color_pick import TitleInput
 
 APP_SIZE = (150, 50)
 
@@ -43,7 +42,7 @@ async def test_task_creation(no_task_app: KanbanTui):
         await pilot.press("j")
         await pilot.press("enter")
         # new category open popup screen
-        assert isinstance(pilot.app.focused, TitleInput)
+        assert isinstance(pilot.app.focused, Input)
         await pilot.press(*"Test Category")
         await pilot.press("tab")
         # choose color

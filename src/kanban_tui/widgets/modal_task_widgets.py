@@ -22,7 +22,7 @@ from textual.widgets import (
 )
 from textual.containers import Horizontal, Vertical, VerticalScroll
 
-from kanban_tui.modal.modal_color_pick import CategoryColorPicker
+from kanban_tui.modal.modal_category_screen import ModalCategoryManageScreen
 from kanban_tui.widgets.date_select import CustomDateSelect
 from kanban_tui.widgets.custom_widgets import VimSelect
 
@@ -190,7 +190,9 @@ class CategorySelector(VimSelect):
 
     def watch_value(self):
         if self.value == self.NEW:
-            self.app.push_screen(CategoryColorPicker(), callback=self.jump_to_value)
+            self.app.push_screen(
+                ModalCategoryManageScreen(), callback=self.jump_to_value
+            )
 
     def jump_to_value(self, value: tuple[str, str] | None = None) -> None:
         if value:

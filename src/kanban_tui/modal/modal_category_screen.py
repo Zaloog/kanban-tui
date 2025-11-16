@@ -199,7 +199,7 @@ COLORS = [
 ]
 
 
-class CategoryColorPicker(ModalScreen):
+class ModalCategoryManageScreen(ModalScreen):
     app: "KanbanTui"
     color: reactive[str] = reactive("transparent")
 
@@ -207,7 +207,6 @@ class CategoryColorPicker(ModalScreen):
         with Vertical():
             yield TitleInput(placeholder="Enter Category Name")
             yield Label("Pick your Category Color")
-            yield ColorTable()
             with Horizontal(id="horizontal_buttons"):
                 yield Button(
                     "Add Category", id="btn_confirm_category", variant="success"
