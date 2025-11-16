@@ -116,7 +116,7 @@ TaskCard Markdown {
   border:none;
   height: 10;
   width: 1fr;
-  color:auto;
+  color: auto;
   overflow-y: auto;
 }
 .date-container{
@@ -375,16 +375,6 @@ ModalCategoryManageScreen{
             height:auto;
             width:1fr;
             text-align:center;
-        }
-        ColorTable {
-            width:1fr;
-            height:1fr;
-            text-align:center;
-            &:focus {
-                & .datatable--cursor {
-                    color:white;
-                }
-            }
         }
         Horizontal{
             height:auto;

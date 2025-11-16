@@ -78,9 +78,9 @@ class TaskDescription(VerticalScroll):
     def stop_editing(self, event: DescendantBlur):
         self.edit_mode = False
 
-    def watch_text(self):
+    async def watch_text(self):
         self.editor.text = self.text
-        self.preview.update(self.text)
+        await self.preview.update(self.text)
 
     def watch_edit_mode(self):
         self.text = self.editor.text
