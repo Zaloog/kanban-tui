@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from rich.text import Text
 from textual import on
+from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Input, Button, Label, DataTable
@@ -200,6 +201,10 @@ COLORS = [
 
 
 class ModalCategoryManageScreen(ModalScreen):
+    BINDINGS = [
+        Binding("escape", "app.pop_screen", "Close"),
+    ]
+
     app: "KanbanTui"
     color: reactive[str] = reactive("transparent")
 
