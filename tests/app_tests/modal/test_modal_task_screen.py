@@ -81,7 +81,7 @@ async def test_task_edit_button(test_app: KanbanTui):
             == "Task_ready_0"
         )
         assert pilot.app.screen.query_exactly_one(TextArea).text == "Hallo"
-        assert pilot.app.screen.query_exactly_one(Select).selection is None
+        assert pilot.app.screen.query_exactly_one(Select).selection == 1
 
         # add 1 to title
         # focus the input first to select the text
@@ -111,7 +111,7 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
             == "Task_ready_0"
         )
         assert pilot.app.screen.query_exactly_one(TextArea).text == "Hallo"
-        assert pilot.app.screen.query_exactly_one(Select).selection is None
+        assert pilot.app.screen.query_exactly_one(Select).selection == 1
 
         # add 1 to title
         # Focus Input first

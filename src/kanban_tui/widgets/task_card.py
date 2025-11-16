@@ -6,8 +6,6 @@ from kanban_tui.config import MovementModes
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-# from textual.geometry import Offset
-
 from rich.text import Text
 from textual import on
 from textual.reactive import reactive
@@ -109,17 +107,17 @@ class TaskCard(Vertical):
         )
         yield self.description
 
-        self.styles.background = self.app.config.task.default_color
+        # Handle Coloring
+        self.color_task()
 
-    def on_mount(self):
+    def color_task(self):
         if category_id := self.task_.category:
             self.styles.background = self.app.backend.get_category_by_id(
                 category_id
             ).color
+        else:
+            self.styles.background = self.app.config.task.default_color
         self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
-
-    # def watch_task_(self):
-    #     self.refresh_bindings()
 
     # Remove those, cause it messes with tab selection
     # @on(Enter)
