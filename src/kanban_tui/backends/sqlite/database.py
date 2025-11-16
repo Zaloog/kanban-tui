@@ -986,7 +986,7 @@ def update_column_name_db(
 def update_task_entry_db(
     task_id: int,
     title: str,
-    category: str | None = None,
+    category: int | None = None,
     description: str | None = None,
     due_date: datetime.datetime | None = None,
     database: str = DATABASE_FILE.as_posix(),

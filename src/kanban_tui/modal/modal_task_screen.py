@@ -1,4 +1,4 @@
-from typing import Iterable, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING
 from datetime import datetime
 
 if TYPE_CHECKING:
@@ -48,17 +48,16 @@ class ModalTaskEditScreen(ModalScreen):
 
     def on_mount(self, event: Mount) -> None:
         self.query_one("#vertical_modal", VerticalScroll).border_title = "Create Task"
-        # TODO
-        # self.watch(
-        #     self.detail_infos.query_one(CategorySelector),
-        #     "value",
-        #     self.update_description_background,
-        # )
         if self.kanban_task:
             self.query_one("#vertical_modal", VerticalScroll).border_title = "Edit Task"
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#btn_continue", Button).disabled = False
+            self.watch(
+                self.query_one(TaskAdditionalInfos).query_one(CategorySelector),
+                "value",
+                self.update_description_background,
+            )
 
     @on(Input.Changed, "#input_title")
     def disable_continue_button(self, event: Input.Changed):
@@ -77,7 +76,9 @@ class ModalTaskEditScreen(ModalScreen):
         # not been updated when using shortcut
         description = self.query_one(TextArea).text
         category = (
-            None if self.query_one(Select).is_blank() else self.query_one(Select).value
+            None
+            if self.query_one(CategorySelector).is_blank()
+            else self.query_one(CategorySelector).value
         )
         due_date = (
             self.query_one(TaskDueDateSelector).due_date.isoformat(
@@ -87,8 +88,8 @@ class ModalTaskEditScreen(ModalScreen):
             else None
         )
 
+        # create new task
         if not self.kanban_task:
-            # create new task
             new_task = self.app.backend.create_new_task(
                 title=title,
                 description=description,
@@ -122,10 +123,12 @@ class ModalTaskEditScreen(ModalScreen):
     def close_window(self):
         self.app.pop_screen()
 
-    def update_description_background(self, category_color: str):
+    def update_description_background(self, category_id: int | Any):
         text_area = self.query_one(TaskDescription).editor
         text_preview = self.query_one(TaskDescription).preview
-        if category_color != CategorySelector.NEW:
+        if category_id not in (CategorySelector.BLANK, CategorySelector.NEW):
+            category = self.app.backend.get_category_by_id(category_id)
+            category_color = category.color
             text_area.styles.background = category_color
             text_preview.styles.background = category_color
         else:
@@ -139,13 +142,10 @@ class ModalTaskEditScreen(ModalScreen):
         self.query_one(TaskDescription).text = self.kanban_task.description
 
         if category_id := self.kanban_task.category:
-            category = self.app.backend.get_category_by_id(category_id)
-            self.update_description_background(category_color=category.color)
+            self.update_description_background(category_id=category_id)
 
         self.query_one(Select).value = (
-            # TODO
-            Select.BLANK
-            # self.kanban_task.category if self.kanban_task.category else Select.BLANK
+            self.kanban_task.category if self.kanban_task.category else Select.BLANK
         )
         self.query_one("#label_create_date", Label).update(
             f"{self.kanban_task.creation_date.isoformat(sep=' ', timespec='seconds')}"

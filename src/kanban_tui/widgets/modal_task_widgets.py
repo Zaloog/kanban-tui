@@ -16,7 +16,6 @@ from textual.widgets import (
     Markdown,
     Rule,
     TextArea,
-    Select,
     Label,
     Switch,
     Button,
@@ -90,15 +89,15 @@ class TaskDescription(VerticalScroll):
         self.border_subtitle = (
             Text.from_markup(":pen: edit")
             if self.edit_mode
-            else Text.from_markup(":eye:  preview")
+            else Text.from_markup(":eye:  preview (click/focus to edit)")
         )
 
 
 class TaskCategorySelector(Horizontal):
     def compose(self):
         # TODO
-        # yield CategorySelector()
-        yield Select.from_values(["placeholder"], prompt="In Work")
+        yield CategorySelector()
+        # yield Select.from_values(["placeholder"], prompt="In Work")
 
     def on_mount(self):
         self.border_title = "Category"
@@ -181,7 +180,7 @@ class CategorySelector(VimSelect):
     NEW = NEW
 
     def __init__(self):
-        options = self.get_options()
+        options = self.get_available_categories()
         super().__init__(
             options=options,
             prompt="No Category",
@@ -197,18 +196,19 @@ class CategorySelector(VimSelect):
         if value:
             category, color = value
 
-            self.app.cfg.add_category(category=category, color=color)
-            options = self.get_options()
+            # TODO
+            # self.app.backend.add(category=category, color=color)
+            options = self.get_available_categories()
 
             self.set_options(options=options)
             self.value = category
         else:
             self.value = self.BLANK
 
-    def get_options(self):
+    def get_available_categories(self):
         options = [
-            (f"[on {color}]{category}[/]", category)
-            for category, color in self.app.cfg.category_color_dict.items()
+            (f"[on {category.color}]  [/] {category.name}", category.category_id)
+            for category in self.app.backend.get_all_categories()
         ]
         options.insert(0, ("Add a new Category", self.NEW))
         return options

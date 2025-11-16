@@ -112,7 +112,7 @@ class SqliteBackend(Backend):
         task_id: int,
         title: str,
         description: str,
-        category: str,
+        category: int,
         due_date: datetime,
     ) -> Task:
         return update_task_entry_db(
