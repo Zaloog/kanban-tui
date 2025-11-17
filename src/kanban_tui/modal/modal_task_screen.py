@@ -16,7 +16,6 @@ from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
 from kanban_tui.widgets.modal_task_widgets import (
     ButtonRow,
-    DateRow,
     TaskAdditionalInfos,
     TaskDueDateSelector,
     TaskTitleInput,
@@ -38,18 +37,18 @@ class ModalTaskEditScreen(ModalScreen):
         super().__init__(*args, **kwargs)
 
     def compose(self) -> Iterable[Widget]:
-        with VerticalScroll(id="vertical_modal", can_focus=False):
-            yield TaskTitleInput()
-            yield TaskDescription(classes="task-field")
-            yield TaskAdditionalInfos()
-            yield DateRow(id="horizontal_dates")
+        with Vertical(id="vertical_modal"):
+            with VerticalScroll(can_focus=False):
+                yield TaskTitleInput()
+                yield TaskDescription(classes="task-field")
+                yield TaskAdditionalInfos()
             yield ButtonRow(id="horizontal_buttons")
             yield Footer()
 
     def on_mount(self, event: Mount) -> None:
-        self.query_one("#vertical_modal", VerticalScroll).border_title = "Create Task"
+        self.query_one("#vertical_modal", Vertical).border_title = "Create Task"
         if self.kanban_task:
-            self.query_one("#vertical_modal", VerticalScroll).border_title = "Edit Task"
+            self.query_one("#vertical_modal", Vertical).border_title = "Edit Task"
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#btn_continue", Button).disabled = False

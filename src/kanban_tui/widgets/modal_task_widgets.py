@@ -164,6 +164,7 @@ class TaskAdditionalInfos(Vertical):
         yield Rule()
         yield TaskCategorySelector(id="horizontal_category", classes="task-field")
         yield TaskDueDateSelector(id="vertical_due_date_choice", classes="task-field")
+        yield DateRow(id="horizontal_dates")
 
 
 class NewCategorySelection:

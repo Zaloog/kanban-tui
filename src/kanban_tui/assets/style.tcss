@@ -154,33 +154,26 @@ ModalTaskEditScreen {
       }
       Switch{
           width:1fr;
-          height:auto;
       }
       CustomDateSelect{
           height:3;
           width:1fr;
       }
-    }
-
-    DateRow {
-      height:3;
-      min-height:3;
-      width:1fr;
-    }
-
-    #horizontal_detail{
-        width:1fr;
-        height:20%;
-
-    }
-
-    ButtonRow {
-      height:3;
-      width:1fr;
-      Button {
-        width:1fr;
+      DateRow {
         height:3;
         min-height:3;
+        width:1fr;
+      }
+    }
+
+
+    ButtonRow {
+      height: 3;
+      width: 1fr;
+      Button {
+        width: 1fr;
+        height: 3;
+        min-height: 3;
       }
     }
 }
