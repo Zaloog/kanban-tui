@@ -195,16 +195,14 @@ class CategorySelector(VimSelect):
                 ModalCategoryManageScreen(), callback=self.jump_to_value
             )
 
-    def jump_to_value(self, value: tuple[str, str] | None = None) -> None:
-        if value:
-            category, color = value
-
+    def jump_to_value(self, category_id: int | None = None) -> None:
+        if category_id:
             # TODO
             # self.app.backend.add(category=category, color=color)
             options = self.get_available_categories()
 
             self.set_options(options=options)
-            self.value = category
+            self.value = category_id
         else:
             self.value = self.BLANK
 

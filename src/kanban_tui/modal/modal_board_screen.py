@@ -88,12 +88,12 @@ class ModalNewBoardScreen(ModalScreen):
                 )
                 yield Button("Cancel", id="btn_cancel_new_board", variant="error")
 
-    def on_switch_changed(self, event: Switch.Changed):
+    @on(Switch.Changed)
+    def customize_columns(self, event: Switch.Changed):
         if event.value:
             self.query_one(CustomColumnList).display = False
         else:
             self.query_one(CustomColumnList).display = True
-            # self.due_date = None
 
     @on(Button.Pressed, "#btn_continue_new_board")
     def confirm_new_board(self):

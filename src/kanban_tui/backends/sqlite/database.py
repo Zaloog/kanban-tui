@@ -704,24 +704,26 @@ def create_new_category_db(
     name: str,
     color: str,
     database: str = DATABASE_FILE.as_posix(),
-):
+) -> Category:
     transaction_str_cols = """
     INSERT INTO categories
     VALUES (
         NULL,
         :name,
         :color
-        );"""
+        )
+        RETURNING *
+        ;"""
     category_dict = {
         "name": name,
         "color": color,
     }
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = category_factory
         try:
-            con.execute(transaction_str_cols, category_dict)
+            new_category = con.execute(transaction_str_cols, category_dict).fetchone()
             con.commit()
-            return 0
+            return new_category
         except sqlite3.Error as e:
             con.rollback()
             raise e

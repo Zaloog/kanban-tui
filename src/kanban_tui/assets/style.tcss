@@ -351,33 +351,77 @@ NewColumnItem Button {
 }
 
 ModalCategoryManageScreen{
+  align:center middle;
+  Vertical {
+    width:40%;
+    height:60%;
+    border:$success;
     align:center middle;
-    Vertical {
-        width:40%;
-        height:60%;
-        border:$success;
-        align:center middle;
-        content-align:center middle;
-        TitleInput {
-            width:1fr;
-            text-align:center;
-            background:red;
-            height:auto;
-        }
-        Label{
-            height:auto;
-            width:1fr;
-            text-align:center;
-        }
-        Horizontal{
-            height:auto;
-            Button {
-                width:1fr;
-                text-align:center;
-                height:auto;
-            }
-        }
+    content-align:center middle;
+    Label{
+      height:auto;
+      width:1fr;
+      text-align:center;
     }
+    Button {
+      width:1fr;
+      text-align:center;
+      height:auto;
+    }
+  }
+}
+CategoryListItem{
+    height:3;
+    content-align:center middle;
+    Label{
+        width: 1fr;
+        padding:1 0;
+        text-align:left;
+    }
+    Rule{
+        height:auto;
+        color:black;
+    }
+}
+ModalNewCategoryScreen {
+  align:center middle;
+  Vertical{
+    width:60%;
+    border:$success;
+    height:auto;
+    align:center middle;
+    content-align:center middle;
+
+    Horizontal{
+        height:auto;
+    }
+    Label{
+        width:1fr;
+        height:auto;
+        background: $background;
+        align:center middle;
+        text-align:center;
+        padding: 1 0;
+    }
+    #input_category_color {
+        width:3fr;
+        height: auto;
+        border: tall $success;
+        border-title-align:center;
+        text-align:center;
+    }
+    #input_category_name {
+        width:5fr;
+        height: auto;
+        border: tall $success;
+        border-title-align:center;
+        text-align:center;
+    }
+    Button {
+        width: 1fr;
+        height:auto;
+    }
+  }
 }
 
 FilterOverlay {
