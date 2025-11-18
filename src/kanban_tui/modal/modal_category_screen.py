@@ -107,7 +107,6 @@ class ModalCategoryManageScreen(ModalScreen):
             self.app.push_screen(
                 ModalNewCategoryScreen(category=hightlighted_item.category)
             )
-        self.notify("edit")
 
     def action_delete(self):
         self.notify("delete")
@@ -180,11 +179,12 @@ class ModalNewCategoryScreen(ModalScreen):
 
         category_color = self.query_exactly_one("#input_category_color", Input).value
         if self.category:
-            self.app.backend.update_board(
-                board_id=self.kanban_board.board_id,
-                name=category_name,
-                color=category_color,
-            )
+            # TODO Add Update Logic
+            # self.app.backend.update_board(
+            #     board_id=self.kanban_board.board_id,
+            #     name=category_name,
+            #     color=category_color,
+            # )
             self.dismiss(result=None)
         else:
             new_category = self.app.backend.create_new_category(
@@ -196,6 +196,8 @@ class ModalNewCategoryScreen(ModalScreen):
     @on(Button.Pressed, "#btn_cancel_new_category")
     def cancel_new_category(self):
         self.dismiss(result=None)
+
+    # TODO Add Validation of Name and Color
 
     # @on(Input.Changed, "#input_board_name")
     # def check_if_board_name_valid(self, event: Input.Changed):
