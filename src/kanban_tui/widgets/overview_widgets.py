@@ -2,7 +2,6 @@ import datetime
 from typing import Iterable, TYPE_CHECKING
 from collections import Counter
 
-from textual.reactive import reactive
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -20,9 +19,10 @@ from textual.widgets import (
     TabbedContent,
     TabPane,
 )
-from textual_plotext import PlotextPlot
+from textual.reactive import reactive
 from textual.containers import Horizontal, HorizontalScroll, Vertical
 from textual.widgets._select import SelectOverlay
+from textual_plotext import PlotextPlot
 
 from kanban_tui.utils import getrgb, get_time_range
 from kanban_tui.classes.logevent import LogEvent
@@ -383,7 +383,6 @@ class OverView(Horizontal):
                 yield OverViewPlot()
             with TabPane("[yellow on black]L[/]og", id="tab_log"):
                 yield OverViewLog()
-        return super().compose()
 
     def action_show_tab(self, tab: str) -> None:
         """Switch to a new tab."""
@@ -403,7 +402,6 @@ class OverViewPlot(Vertical):
             yield AmountPlotFilter(classes="overview-filter")
             yield FrequencyPlotFilter(classes="overview-filter")
         yield TaskPlot()
-        return super().compose()
 
     @on(Switch.Changed)
     @on(Select.Changed)
@@ -451,7 +449,6 @@ class OverViewLog(Vertical):
             yield LogEventTypeFilter(classes="overview-filter")
             yield LogObjectTypeFilter(classes="overview-filter")
         yield LogTable()
-        return super().compose()
 
     def on_button_pressed(self, event: Button.Pressed):
         tmp_event_list = []
