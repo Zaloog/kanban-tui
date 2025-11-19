@@ -9,11 +9,12 @@
 which makes the board is now horizontally scrollable
 - Added vim bindings to all Select Navigation
 - Added Task Card Movement via Mouse Drag n Drop
-- Added Jira Backend + AuthFile (Backends can be switched in Settings)
+- Added Category Management to database and menu in TaskEditScreen
 - Added new `auth` command to directly open the auth modal screen when jira backend is chosen
 - Added new `info` command to show location and presence of xdg config/data/auth file paths
 - Option to switch the Backend in the Footer
 - Rework the Modal Task Screen
+- (not functional yet) Added Jira Backend + AuthFile (Backends can be switched in Settings)
 
 ### Fixed
 - Fixed focus bug if no visible tasks are on board (due to column visibility change)
