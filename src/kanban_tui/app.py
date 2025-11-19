@@ -43,7 +43,7 @@ class KanbanTui(App[str | None]):
 
     SUB_TITLE = f"v{version('kanban_tui')}"
 
-    config_has_changed: reactive[bool] = reactive(False, init=False)
+    needs_refresh: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)

@@ -54,6 +54,7 @@ class BoardScreen(Screen):
 
         await self.ensure_active_board()
 
-        if self.app.config_has_changed:
+        if self.app.needs_refresh:
+            self.app.update_task_list()
             await self.query_one(KanbanBoard).populate_board()
-            self.app.config_has_changed = False
+            self.app.needs_refresh = False

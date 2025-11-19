@@ -117,6 +117,7 @@ class ModalCategoryManageScreen(ModalScreen):
                 screen=ModalNewCategoryScreen(category=hightlighted_item.category),
                 callback=self.query_one(CategoryList).populate_widget,
             )
+            self.app.needs_refresh = True
 
     async def action_delete(self):
         hightlighted_item = self.query_one(CategoryList).highlighted_child
@@ -124,6 +125,7 @@ class ModalCategoryManageScreen(ModalScreen):
             category_id = hightlighted_item.category.category_id
             self.app.backend.delete_category(category_id=category_id)
             await self.query_one(CategoryList).populate_widget(index=category_id)
+            self.app.needs_refresh = True
 
     def action_close_category_management(self):
         self.dismiss(self.current_category_id)

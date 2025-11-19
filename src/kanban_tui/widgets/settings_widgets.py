@@ -320,7 +320,7 @@ class ColumnSelector(ListView):
                     StatusColumnSelector
                 ).get_select_widget_values()
                 # Trigger Update on tab Switch
-                self.app.config_has_changed = True
+                self.app.needs_refresh = True
 
                 self.index = column.position
 
@@ -602,7 +602,6 @@ class SettingsView(Vertical):
             priority=True,
         ),
     ]
-    config_has_changed: reactive[bool] = reactive(False, init=False)
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput(classes="setting-block")
@@ -616,13 +615,6 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")
             yield ColumnSelector(classes="setting-block")
-
-    @on(Input.Changed)
-    @on(Switch.Changed)
-    @on(Button.Pressed)
-    @on(Select.Changed)
-    def config_changes(self):
-        self.config_has_changed = True
 
     def action_quick_focus_setting(
         self,
