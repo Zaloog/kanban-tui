@@ -98,7 +98,7 @@ class ModalCategoryManageScreen(ModalScreen):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action in ("edit", "delete"):
             hightlighted_item = self.query_one(CategoryList).highlighted_child
-            if not hightlighted_item:
+            if not hightlighted_item or not self.query_one(CategoryList).has_focus:
                 return False
         return True
 
