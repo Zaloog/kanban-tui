@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
 
 from rich.text import Text
+from textual.color import Color, ColorParseError
 
 from kanban_tui.classes.category import Category
 
@@ -10,6 +11,7 @@ if TYPE_CHECKING:
 
 from textual import on
 from textual.binding import Binding
+from textual.validation import Length, Validator, ValidationResult
 from textual.widget import Widget
 from textual.widgets import (
     Input,
@@ -140,28 +142,64 @@ class ModalCategoryManageScreen(ModalScreen):
             self.dismiss(event.item.category.category_id)
 
 
-class ColorInput(Horizontal):
+class IsValidColor(Validator):
+    def validate(self, value: str) -> ValidationResult:
+        if self.color_can_be_parsed(value):
+            return self.success()
+        else:
+            return self.failure()
+
+    @staticmethod
+    def color_can_be_parsed(value: str) -> bool:
+        try:
+            Color.parse(value)
+            return True
+        except ColorParseError:
+            return False
+
+
+class ColorInputContainer(Horizontal):
     def compose(self):
         yield Input(
             placeholder="Enter category color",
             validate_on=["changed"],
+            validators=[Length(minimum=1), IsValidColor()],
+            valid_empty=False,
             id="input_category_color",
         )
 
     def on_mount(self):
         self.border_title = "Color"
+        self.check_validation(event=Input.Changed)
+
+    @on(Input.Changed)
+    def check_validation(self, event: Input.Changed):
+        if event.validation_result and event.validation_result.is_valid:
+            self.remove_class("invalid")
+        else:
+            self.add_class("invalid")
 
 
-class NameInput(Horizontal):
+class NameInputContainer(Horizontal):
     def compose(self):
         yield Input(
             placeholder="e.g. textual-project",
-            value="",
+            validate_on=["changed"],
+            validators=[Length(minimum=1)],
+            valid_empty=False,
             id="input_category_name",
         )
 
     def on_mount(self):
         self.border_title = "Name"
+        self.check_validation(event=Input.Changed)
+
+    @on(Input.Changed)
+    def check_validation(self, event: Input.Changed):
+        if event.validation_result and event.validation_result.is_valid:
+            self.remove_class("invalid")
+        else:
+            self.add_class("invalid")
 
 
 class ModalNewCategoryScreen(ModalScreen):
@@ -176,14 +214,14 @@ class ModalNewCategoryScreen(ModalScreen):
         with Vertical():
             yield Label("Create new category", id="label_header")
             with Horizontal():
-                yield NameInput(classes="input-container")
-                yield ColorInput(classes="input-container")
+                yield NameInputContainer(classes="input-container")
+                yield ColorInputContainer(classes="input-container")
             with Horizontal(id="horizontal_buttons_delete"):
                 yield Button(
                     "Create category",
                     id="btn_continue_new_category",
                     variant="success",
-                    # disabled=True,
+                    disabled=True,
                 )
                 yield Button("Cancel", id="btn_cancel_new_category", variant="error")
 
@@ -223,12 +261,9 @@ class ModalNewCategoryScreen(ModalScreen):
     def cancel_new_category(self):
         self.dismiss(result=None)
 
-    # TODO Add Validation of Name and Color
-
-    # @on(Input.Changed, "#input_board_name")
-    # def check_if_board_name_valid(self, event: Input.Changed):
-    #     if event.validation_result is None:
-    #         return
-    #     self.query_exactly_one(
-    #         "#btn_continue_new_board", Button
-    #     ).disabled = not event.validation_result.is_valid
+    @on(Input.Changed)
+    def check_if_all_input_fields_are_valid(self, event: Input.Changed):
+        all_valid = all([input.is_valid for input in self.query(Input).results()])
+        self.query_exactly_one(
+            "#btn_continue_new_category", Button
+        ).disabled = not all_valid

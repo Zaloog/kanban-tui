@@ -97,11 +97,6 @@ class Settings(BaseSettings):
         self.backend.mode = new_backend
         self.save()
 
-    # TODO
-    # def add_category(self, category: str, color: str) -> None:
-    #     self.category_color_dict[category] = color
-    #     self.save()
-
     def set_db_path(self, new_db_path: str) -> None:
         self.backend.sqlite_settings.database_path = new_db_path
         self.save()

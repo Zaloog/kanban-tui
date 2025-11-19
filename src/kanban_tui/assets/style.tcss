@@ -393,11 +393,14 @@ ModalNewCategoryScreen {
     }
     .input-container {
       height: auto;
-      border-title-align:center;
-      border:$success;
+      border-title-align: center;
+      border: $success;
+      &.invalid {
+        border: $error;
+      }
       Input {
-        border:none;
-        height:1;
+        border: none;
+        height: 1;
       }
     }
     Label{
