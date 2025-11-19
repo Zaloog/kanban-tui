@@ -371,16 +371,12 @@ ModalCategoryManageScreen{
   }
 }
 CategoryListItem{
-    height:3;
+    height:1;
     content-align:center middle;
     Label{
         width: 1fr;
-        padding:1 0;
+        color: auto;
         text-align:left;
-    }
-    Rule{
-        height:auto;
-        color:black;
     }
 }
 ModalNewCategoryScreen {
@@ -395,6 +391,15 @@ ModalNewCategoryScreen {
     Horizontal{
         height:auto;
     }
+    .input-container {
+      height: auto;
+      border-title-align:center;
+      border:$success;
+      Input {
+        border:none;
+        height:1;
+      }
+    }
     Label{
         width:1fr;
         height:auto;
@@ -402,20 +407,6 @@ ModalNewCategoryScreen {
         align:center middle;
         text-align:center;
         padding: 1 0;
-    }
-    #input_category_color {
-        width:3fr;
-        height: auto;
-        border: tall $success;
-        border-title-align:center;
-        text-align:center;
-    }
-    #input_category_name {
-        width:5fr;
-        height: auto;
-        border: tall $success;
-        border-title-align:center;
-        text-align:center;
     }
     Button {
         width: 1fr;

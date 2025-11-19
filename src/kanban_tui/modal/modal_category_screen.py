@@ -18,7 +18,6 @@ from textual.widgets import (
     ListView,
     Footer,
     ListItem,
-    Rule,
 )
 from textual.containers import Vertical, Horizontal
 from textual.screen import ModalScreen
@@ -42,7 +41,7 @@ class CategoryList(ListView):
         await self.clear()
         category_listitems = self.get_category_list_items()
         await self.extend(category_listitems)
-        self.index = index
+        self.index = index - 1 if index else index  # ListView starts with 0
         self.refresh_bindings()
 
     def get_category_list_items(self) -> list[CategoryListItem]:
@@ -65,7 +64,6 @@ class CategoryListItem(ListItem):
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
             yield Label(Text.from_markup(self.category.name))
-            yield Rule(orientation="vertical")
             color_label = Label(f"{self.category.color}")
             color_label.styles.background = self.category.color
             yield color_label
@@ -81,7 +79,7 @@ class CategoryListItem(ListItem):
 
 class ModalCategoryManageScreen(ModalScreen):
     BINDINGS = [
-        Binding(key="escape", action="app.pop_screen", description="Close"),
+        Binding(key="escape", action="close_category_management", description="Close"),
         Binding(key="e", action="edit", description="Edit", show=True, priority=True),
         Binding(
             key="d", action="delete", description="Delete", show=True, priority=True
@@ -89,6 +87,10 @@ class ModalCategoryManageScreen(ModalScreen):
     ]
 
     app: "KanbanTui"
+
+    def __init__(self, current_category_id: Category | None, *args, **kwargs) -> None:
+        self.current_category_id = current_category_id
+        super().__init__(*args, **kwargs)
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():
@@ -101,26 +103,66 @@ class ModalCategoryManageScreen(ModalScreen):
             )
             yield Footer(show_command_palette=False)
 
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action in ("edit", "delete"):
+            hightlighted_item = self.query_one(CategoryList).highlighted_child
+            if not hightlighted_item:
+                return False
+        return True
+
     def action_edit(self):
         hightlighted_item = self.query_one(CategoryList).highlighted_child
         if hightlighted_item:
             self.app.push_screen(
-                ModalNewCategoryScreen(category=hightlighted_item.category)
+                screen=ModalNewCategoryScreen(category=hightlighted_item.category),
+                callback=self.query_one(CategoryList).populate_widget,
             )
 
-    def action_delete(self):
-        self.notify("delete")
+    async def action_delete(self):
+        hightlighted_item = self.query_one(CategoryList).highlighted_child
+        if hightlighted_item:
+            category_id = hightlighted_item.category.category_id
+            self.app.backend.delete_category(category_id=category_id)
+            await self.query_one(CategoryList).populate_widget(index=category_id)
+
+    def action_close_category_management(self):
+        self.dismiss(self.current_category_id)
 
     @on(Button.Pressed)
     def create_new_category(self):
         self.app.push_screen(
-            ModalNewCategoryScreen(), self.query_one(CategoryList).populate_widget
+            screen=ModalNewCategoryScreen(),
+            callback=self.query_one(CategoryList).populate_widget,
         )
 
     @on(ListView.Selected, "#category_list")
     def select_category(self, event: ListView.Selected):
         if event.item:
             self.dismiss(event.item.category.category_id)
+
+
+class ColorInput(Horizontal):
+    def compose(self):
+        yield Input(
+            placeholder="Enter category color",
+            validate_on=["changed"],
+            id="input_category_color",
+        )
+
+    def on_mount(self):
+        self.border_title = "Color"
+
+
+class NameInput(Horizontal):
+    def compose(self):
+        yield Input(
+            placeholder="e.g. textual-project",
+            value="",
+            id="input_category_name",
+        )
+
+    def on_mount(self):
+        self.border_title = "Name"
 
 
 class ModalNewCategoryScreen(ModalScreen):
@@ -135,22 +177,8 @@ class ModalNewCategoryScreen(ModalScreen):
         with Vertical():
             yield Label("Create new category", id="label_header")
             with Horizontal():
-                name_input = Input(
-                    placeholder="e.g. textual-project",
-                    value="",
-                    id="input_category_name",
-                )
-                name_input.border_title = "Name"
-                yield name_input
-
-                color_input = Input(
-                    placeholder="Enter category color",
-                    validate_on=["changed"],
-                    id="input_category_color",
-                )
-                color_input.border_title = "Color"
-                yield color_input
-
+                yield NameInput(classes="input-container")
+                yield ColorInput(classes="input-container")
             with Horizontal(id="horizontal_buttons_delete"):
                 yield Button(
                     "Create category",
@@ -179,13 +207,12 @@ class ModalNewCategoryScreen(ModalScreen):
 
         category_color = self.query_exactly_one("#input_category_color", Input).value
         if self.category:
-            # TODO Add Update Logic
-            # self.app.backend.update_board(
-            #     board_id=self.kanban_board.board_id,
-            #     name=category_name,
-            #     color=category_color,
-            # )
-            self.dismiss(result=None)
+            updated_category = self.app.backend.update_category(
+                category_id=self.category.category_id,
+                name=category_name,
+                color=category_color,
+            )
+            self.dismiss(result=updated_category.category_id)
         else:
             new_category = self.app.backend.create_new_category(
                 name=category_name,

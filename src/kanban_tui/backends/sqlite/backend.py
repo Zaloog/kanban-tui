@@ -13,6 +13,7 @@ from kanban_tui.backends.sqlite.database import (
     create_new_category_db,
     create_new_task_db,
     delete_board_db,
+    delete_category_db,
     delete_task_db,
     get_all_boards_db,
     get_all_categories_db,
@@ -21,6 +22,7 @@ from kanban_tui.backends.sqlite.database import (
     get_category_by_id_db,
     init_new_db,
     update_board_entry_db,
+    update_category_entry_db,
     update_task_entry_db,
     update_task_status_db,
     get_board_info_dict,
@@ -135,6 +137,14 @@ class SqliteBackend(Backend):
         return create_new_category_db(
             name=name, color=color, database=self.database_path
         )
+
+    def update_category(self, category_id: int, name: str, color: str) -> Category:
+        return update_category_entry_db(
+            category_id=category_id, name=name, color=color, database=self.database_path
+        )
+
+    def delete_category(self, category_id: int):
+        return delete_category_db(category_id=category_id, database=self.database_path)
 
     def get_all_categories(self) -> list[Category]:
         return get_all_categories_db(database=self.database_path)

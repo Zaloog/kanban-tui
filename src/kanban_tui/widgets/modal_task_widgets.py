@@ -95,9 +95,7 @@ class TaskDescription(VerticalScroll):
 
 class TaskCategorySelector(Horizontal):
     def compose(self):
-        # TODO
         yield CategorySelector()
-        # yield Select.from_values(["placeholder"], prompt="In Work")
 
     def on_mount(self):
         self.border_title = "Category"
@@ -189,19 +187,17 @@ class CategorySelector(VimSelect):
             type_to_search=False,
         )
 
-    def watch_value(self):
-        if self.value == self.NEW:
+    def watch_value(self, old_value, new_value):
+        if new_value == self.NEW:
             self.app.push_screen(
-                ModalCategoryManageScreen(), callback=self.jump_to_value
+                ModalCategoryManageScreen(current_category_id=old_value),
+                callback=self.update_values,
             )
 
-    def jump_to_value(self, category_id: int | None = None) -> None:
+    def update_values(self, category_id: int | None = None) -> None:
+        options = self.get_available_categories()
+        self.set_options(options=options)
         if category_id:
-            # TODO
-            # self.app.backend.add(category=category, color=color)
-            options = self.get_available_categories()
-
-            self.set_options(options=options)
             self.value = category_id
         else:
             self.value = self.BLANK
