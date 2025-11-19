@@ -178,13 +178,15 @@ class CategorySelector(VimSelect):
     # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
     NEW = NEW
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         options = self.get_available_categories()
         super().__init__(
             options=options,
             prompt="No Category",
             allow_blank=True,
             type_to_search=False,
+            *args,
+            **kwargs,
         )
 
     def watch_value(self, old_value, new_value):
@@ -207,7 +209,7 @@ class CategorySelector(VimSelect):
             (f"[on {category.color}]  [/] {category.name}", category.category_id)
             for category in self.app.backend.get_all_categories()
         ]
-        options.insert(0, ("Add a new Category", self.NEW))
+        options.insert(0, ("Add/Edit categories", self.NEW))
         return options
 
 

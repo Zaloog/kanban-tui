@@ -68,14 +68,6 @@ class CategoryListItem(ListItem):
             color_label.styles.background = self.category.color
             yield color_label
 
-    @on(Button.Pressed, "#btn_confirm_category")
-    def create_new_category(self):
-        self.dismiss(result=(self.query_one(Input).value, self.color))
-
-    @on(Button.Pressed, "#btn_cancel_category")
-    def cancel_new_category(self):
-        self.dismiss(result=None)
-
 
 class ModalCategoryManageScreen(ModalScreen):
     BINDINGS = [
@@ -123,8 +115,13 @@ class ModalCategoryManageScreen(ModalScreen):
         hightlighted_item = self.query_one(CategoryList).highlighted_child
         if hightlighted_item:
             category_id = hightlighted_item.category.category_id
+            # Update current_category to not error on value update
+            if self.current_category_id == category_id:
+                self.current_category_id = None
             self.app.backend.delete_category(category_id=category_id)
             await self.query_one(CategoryList).populate_widget(index=category_id)
+            # We need to refresh the board to update Taskcard colors
+            # In case of categories being deleted/updated
             self.app.needs_refresh = True
 
     def action_close_category_management(self):
