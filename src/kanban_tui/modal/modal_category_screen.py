@@ -147,7 +147,7 @@ class IsValidColor(Validator):
         if self.color_can_be_parsed(value):
             return self.success()
         else:
-            return self.failure()
+            return self.failure(description="invalid color")
 
     @staticmethod
     def color_can_be_parsed(value: str) -> bool:

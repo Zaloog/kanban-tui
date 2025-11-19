@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Literal
 
-from kanban_tui.config import Backends, MovementModes
-from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -26,6 +24,9 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical
 from rich.text import Text
 
+from kanban_tui.config import Backends, MovementModes
+from kanban_tui.modal.modal_category_screen import IsValidColor
+from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
@@ -159,7 +160,10 @@ class TaskDefaultColorSelector(Horizontal):
         yield Label("Default Task Color")
         with self.prevent(Input.Changed):  # prevent config change on init
             yield Input(
-                value=self.app.config.task.default_color, id="task_color_preview"
+                value=self.app.config.task.default_color,
+                id="task_color_preview",
+                validators=[IsValidColor()],
+                validate_on=["changed", "blur"],
             )
 
     def on_mount(self) -> None:
@@ -168,19 +172,10 @@ class TaskDefaultColorSelector(Horizontal):
 
     @on(Input.Changed)
     def update_input_color(self, event: Input.Changed):
-        try:
+        if event.validation_result and event.validation_result.is_valid:
             event.input.styles.background = event.input.value
             self.app.config.set_task_default_color(new_color=event.input.value)
-            event.input.styles.border = "tall", "green"
-            event.input.border_subtitle = None
-            event.input.border_title = None
-        # Todo add validator to input?
-        except Exception:
-            event.input.styles.border = "tall", "red"
-            event.input.border_subtitle = "invalid color"
-            event.input.border_title = (
-                f"last valid: {self.app.config.task.default_color}"
-            )
+        else:
             event.input.styles.background = self.app.config.task.default_color
 
     @on(DescendantBlur)
