@@ -17,5 +17,6 @@ class OverViewScreen(Screen):
         yield KanbanTuiFooter()
 
     @on(ScreenResume)
-    def refresh_page(self):
-        self.query_one(OverView).refresh(recompose=True)
+    async def refresh_page(self):
+        await self.query_one(OverView).recompose()
+        self.app.action_focus_next()
