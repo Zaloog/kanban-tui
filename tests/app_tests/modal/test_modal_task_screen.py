@@ -1,12 +1,13 @@
 from datetime import datetime
 
 from kanban_tui.app import KanbanTui
-from textual.widgets import Input, TextArea, Select
+from textual.widgets import Input, TextArea
+from kanban_tui.modal.modal_category_screen import ModalCategoryManageScreen
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen, ModalConfirmScreen
 
+from kanban_tui.widgets.modal_task_widgets import CategorySelector
 from kanban_tui.widgets.task_card import TaskCard
-from kanban_tui.modal.modal_color_pick import TitleInput
 
 APP_SIZE = (150, 50)
 
@@ -32,28 +33,29 @@ async def test_task_creation(no_task_app: KanbanTui):
 
         # Choose new task Category
         await pilot.press("tab")
-        # assert isinstance(pilot.app.focused, CategorySelector)
-        assert isinstance(pilot.app.focused, Select)
+        assert isinstance(pilot.app.focused, CategorySelector)
 
-        return
-        # Skip This for now
         # open selector dropdown
         await pilot.press("enter")
         # go down and select new category
         await pilot.press("j")
         await pilot.press("enter")
+        # focus button and press
+        await pilot.press("tab")
+        await pilot.press("enter")
         # new category open popup screen
-        assert isinstance(pilot.app.focused, TitleInput)
+        assert isinstance(pilot.app.focused, Input)
         await pilot.press(*"Test Category")
         await pilot.press("tab")
         # choose color
-        await pilot.press("l")
-        table = pilot.app.focused
-        assert table.get_cell_at(table.cursor_coordinate).color_value == "#a8a29e"
-        await pilot.click("#btn_confirm_category")
+        await pilot.press(*"yellow")
+        await pilot.click("#btn_continue_new_category")
 
         # check value
-        assert pilot.app.focused.value == "Test Category"
+        await pilot.press("shift+tab")
+        assert pilot.app.focused.highlighted_child.category.name == "Test Category"
+        # selecting new category and exiting screen
+        await pilot.press("enter")
 
         # save task
         await pilot.click("#btn_continue")
@@ -61,6 +63,7 @@ async def test_task_creation(no_task_app: KanbanTui):
         assert len(pilot.app.task_list) == 1
         await pilot.pause(delay=0.5)
         assert pilot.app.focused.id == "taskcard_1"
+        assert pilot.app.focused.styles.background.hex == "#FFFF00"
 
 
 async def test_task_edit_button(test_app: KanbanTui):
@@ -81,7 +84,7 @@ async def test_task_edit_button(test_app: KanbanTui):
             == "Task_ready_0"
         )
         assert pilot.app.screen.query_exactly_one(TextArea).text == "Hallo"
-        assert pilot.app.screen.query_exactly_one(Select).selection is None
+        assert pilot.app.screen.query_exactly_one(CategorySelector).selection == 1
 
         # add 1 to title
         # focus the input first to select the text
@@ -111,7 +114,7 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
             == "Task_ready_0"
         )
         assert pilot.app.screen.query_exactly_one(TextArea).text == "Hallo"
-        assert pilot.app.screen.query_exactly_one(Select).selection is None
+        assert pilot.app.screen.query_exactly_one(CategorySelector).selection == 1
 
         # add 1 to title
         # Focus Input first
@@ -177,7 +180,8 @@ async def test_task_due_date_picker(test_app: KanbanTui):
         # open edit window
         await pilot.press("e")
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
-        # Cancel with escape
+
+        # click due date switch
         await pilot.click("#switch_due_date")
         assert pilot.app.screen.query_one("#switch_due_date").value
         await pilot.click("#dateselect_due_date")
@@ -186,3 +190,49 @@ async def test_task_due_date_picker(test_app: KanbanTui):
             pilot.app.screen.query_one("#dateselect_due_date").value.date()
             == datetime.today().date()
         )
+
+
+async def test_task_category_selector(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+
+        # open edit window
+        await pilot.press("e")
+        assert isinstance(pilot.app.screen, ModalTaskEditScreen)
+
+        # check if category is correct in select
+        category_id = pilot.app.screen.kanban_task.category
+        assert pilot.app.screen.query_one(CategorySelector).value == category_id
+
+
+async def test_task_category_deletion(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # 1st card is focused
+        # 3 in ready, 1 in doing, 1 in done
+        assert isinstance(pilot.app.focused, TaskCard)
+
+        # open edit window
+        await pilot.press("e")
+        assert isinstance(pilot.app.screen, ModalTaskEditScreen)
+
+        await pilot.press("tab")
+        await pilot.press("tab")
+        assert isinstance(pilot.app.focused, CategorySelector)
+
+        # open selector dropdown
+        await pilot.press("enter")
+        # go up from current category and select add/edit category
+        await pilot.press("k")
+        await pilot.press("enter")
+        assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
+        # delete category of current task and go back to task screen
+        await pilot.press("d")
+        await pilot.press("escape")
+        # go back to board screen
+        await pilot.press("escape")
+        # check if category is None
+        assert pilot.app.focused.task_.category is None
+
+        # assert pilot.app.screen.query_one(CategorySelector).value == category_id

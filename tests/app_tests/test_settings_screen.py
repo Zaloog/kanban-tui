@@ -50,13 +50,13 @@ async def test_task_expand_switch(test_app: KanbanTui):
         assert not pilot.app.screen.query_exactly_one(
             "#switch_expand_tasks", Switch
         ).value
-        assert not pilot.app.config_has_changed
+        assert not pilot.app.needs_refresh
 
         # toggle Switch
         await pilot.click("#switch_expand_tasks")
         assert pilot.app.screen.query_exactly_one("#switch_expand_tasks", Switch).value
         assert pilot.app.config.task.always_expanded
-        assert pilot.app.config_has_changed
+        assert pilot.app.needs_refresh
 
 
 async def test_task_movement_mode(test_app: KanbanTui):
@@ -78,7 +78,7 @@ async def test_task_movement_mode(test_app: KanbanTui):
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
             == MovementModes.JUMP
         )
-        assert pilot.app.config_has_changed
+        assert pilot.app.needs_refresh
 
 
 async def test_backend_mode(test_app: KanbanTui):
@@ -95,12 +95,13 @@ async def test_backend_mode(test_app: KanbanTui):
         await pilot.click("#select_backend_mode")
         await pilot.press("down")
         await pilot.press("enter")
-        assert pilot.app.config.backend.mode == Backends.JIRA
+        # Change in Future
+        assert pilot.app.config.backend.mode == Backends.SQLITE
         assert (
             pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
             == Backends.JIRA
         )
-        assert pilot.app.config_has_changed
+        assert pilot.app.needs_refresh
 
 
 async def test_board_columns_in_view(test_app: KanbanTui):
@@ -123,7 +124,7 @@ async def test_board_columns_in_view(test_app: KanbanTui):
             pilot.app.screen.query_exactly_one("#select_columns_in_view", Select).value
             == 2
         )
-        assert pilot.app.config_has_changed
+        assert pilot.app.needs_refresh
 
         # check columns in view
         await pilot.press("ctrl+j")

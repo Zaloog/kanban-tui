@@ -5,64 +5,126 @@ from typing import Iterable, TYPE_CHECKING
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
+from rich.text import Text
 from textual import on
+from textual.events import DescendantBlur, DescendantFocus
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.binding import Binding
-from textual.widgets import TextArea, Select, Label, Switch
-from textual.widgets._select import SelectOverlay
-from textual.containers import Horizontal, Vertical
+from textual.validation import Length
+from textual.widgets import (
+    Input,
+    Markdown,
+    Rule,
+    TextArea,
+    Label,
+    Switch,
+    Button,
+)
+from textual.containers import Horizontal, Vertical, VerticalScroll
 
-from kanban_tui.modal.modal_color_pick import CategoryColorPicker
+from kanban_tui.modal.modal_category_screen import ModalCategoryManageScreen
 from kanban_tui.widgets.date_select import CustomDateSelect
+from kanban_tui.widgets.custom_widgets import VimSelect
 
 
-class DescriptionInfos(Vertical):
+class TaskTitleInput(Input):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            id="input_title",
+            validators=Length(minimum=1, failure_description="Enter a valid title"),
+            valid_empty=False,
+            placeholder="enter a task title",
+            *args,
+            **kwargs,
+        )
+
+    def on_mount(self):
+        self.validate(self.value)
+        self.show_validation_hint()
+
+    @on(Input.Changed)
+    @on(Input.Blurred)
+    @on(Input.Submitted)
+    def show_validation_hint(self):
+        if self.is_valid:
+            self.border_subtitle = ""
+        else:
+            self.border_subtitle = "a title is required"
+
+
+class TaskDescription(VerticalScroll):
     can_focus = False
+    edit_mode: reactive[bool] = reactive(False)
+    text: reactive[str] = reactive("", init=False)
 
     def compose(self) -> Iterable[Widget]:
-        yield TextArea()
+        self.preview = Markdown(self.text, classes="description-widgets")
+        self.preview.can_focus = True
+        yield self.preview
+
+        self.editor = TextArea(self.text, classes="description-widgets")
+        self.editor.display = False
+        yield self.editor
 
     def on_mount(self):
         self.border = "$success"
-        self.border_title = "Task Description"
+        self.border_title = "Description"
+
+    @on(DescendantFocus)
+    def start_editing(self, event: DescendantFocus):
+        self.edit_mode = True
+
+    @on(DescendantBlur)
+    def stop_editing(self, event: DescendantBlur):
+        self.edit_mode = False
+
+    async def watch_text(self):
+        self.editor.text = self.text
+        await self.preview.update(self.text)
+
+    def watch_edit_mode(self):
+        self.text = self.editor.text
+        self.preview.display = not self.edit_mode
+        self.editor.display = self.edit_mode
+        self.border_subtitle = (
+            Text.from_markup(":pen: edit")
+            if self.edit_mode
+            else Text.from_markup(":eye:  preview (click/focus to edit)")
+        )
 
 
-class DetailInfos(Vertical):
+class TaskCategorySelector(Horizontal):
+    def compose(self):
+        yield CategorySelector()
+
+    def on_mount(self):
+        self.border_title = "Category"
+
+
+class TaskDueDateSelector(Horizontal):
     app: "KanbanTui"
     due_date: reactive[datetime] = reactive(None)
 
-    def compose(self) -> Iterable[Widget]:
-        with Horizontal(id="horizontal_category"):
-            yield Label("Category:")
-            # TODO
-            # yield CategorySelector()
-            placeholder = Select.from_values(["placeholder"])
-            placeholder.prompt = "In Work"
-            yield placeholder
-        with Horizontal(id="horizontal_due_date"):
-            yield Label("has a due Date:")
-            with self.prevent(Switch.Changed):
-                yield Switch(value=False, id="switch_due_date", animate=False)
-        with Vertical(id="vertical_due_date_choice"):
-            self.due_date_label = Label("[yellow]??[/] days left", id="label_days_left")
-            self.due_date_label.display = False
-            yield self.due_date_label
-            self.due_date_select = CustomDateSelect(
-                placeholder="Select Due Date",
-                format="%Y-%m-%d",
-                picker_mount="#vertical_modal",
-                id="dateselect_due_date",
-            )
-            self.due_date_select.display = False
-            yield self.due_date_select
+    def compose(self):
+        yield Label("has a due Date:")
+        with self.prevent(Switch.Changed):
+            yield Switch(value=False, id="switch_due_date", animate=False)
 
-        self.border = "$success"
-        self.border_title = "Additional Infos"
+        self.due_date_select = CustomDateSelect(
+            placeholder="Select Due Date",
+            format="%Y-%m-%d",
+            picker_mount="#vertical_modal",
+            id="dateselect_due_date",
+        )
+        self.due_date_select.display = False
+        yield self.due_date_select
+
+    def on_mount(self):
+        self.border_title = "Due Date"
+        self.border_subtitle = "[yellow]??[/] days left"
 
     @on(Switch.Changed)
     def show_due_date_info(self, event: Switch.Changed):
-        self.due_date_label.display = event.value
         self.due_date_select.display = event.value
 
         if not event.value:
@@ -76,27 +138,31 @@ class DetailInfos(Vertical):
 
     def watch_due_date(self):
         if not self.due_date:
-            self.query_one("#label_days_left", Label).update("[yellow]??[/] days left")
+            self.border_subtitle = ""
             return
 
         # Delta Calculation
         if self.due_date.date() <= datetime.now().date():
             delta = 0
-            self.query_one("#label_days_left", Label).update(
-                f"[red]{delta}[/] days left"
-            )
         else:
             delta = (self.due_date - datetime.now()).days + 1
 
-        # Label display Update
+        # Border Sub Title Update for singular and plural
         if delta == 1:
-            self.query_one("#label_days_left", Label).update(
-                f"[green]{delta}[/] day left"
-            )
+            days_left_text = f"[yellow]{delta}[/] day left"
+        elif delta == 0:
+            days_left_text = f"[red]{delta}[/] days left"
         else:
-            self.query_one("#label_days_left", Label).update(
-                f"[green]{delta}[/] days left"
-            )
+            days_left_text = f"[green]{delta}[/] days left"
+        self.border_subtitle = days_left_text
+
+
+class TaskAdditionalInfos(Vertical):
+    def compose(self):
+        yield Rule()
+        yield TaskCategorySelector(id="horizontal_category", classes="task-field")
+        yield TaskDueDateSelector(id="vertical_due_date_choice", classes="task-field")
+        yield DateRow(id="horizontal_dates")
 
 
 class NewCategorySelection:
@@ -107,75 +173,61 @@ class NewCategorySelection:
 NEW = NewCategorySelection()
 
 
-class VimSelect(Select):
-    BINDINGS = [
-        Binding("enter,space,l", "show_overlay", "Show Overlay", show=False),
-        Binding("up,k", "cursor_up", "Cursor Up", show=False),
-        Binding("down,j", "cursor_down", "Cursor Down", show=False),
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_to_search = False
-
-    def action_cursor_up(self):
-        if self.expanded:
-            self.query_one(SelectOverlay).action_cursor_up()
-        else:
-            self.screen.focus_previous()
-
-    def action_cursor_down(self):
-        if self.expanded:
-            self.query_one(SelectOverlay).action_cursor_down()
-        else:
-            self.screen.focus_next()
-
-
 class CategorySelector(VimSelect):
     app: "KanbanTui"
     # thanks Darren (https://github.com/darrenburns/posting/blob/main/src/posting/widgets/select.py)
     NEW = NEW
 
-    def __init__(self):
-        options = self.get_options()
+    def __init__(self, *args, **kwargs):
+        options = self.get_available_categories()
         super().__init__(
             options=options,
             prompt="No Category",
             allow_blank=True,
             type_to_search=False,
+            *args,
+            **kwargs,
         )
 
-    def watch_value(self):
-        if self.value == self.NEW:
-            self.app.push_screen(CategoryColorPicker(), callback=self.jump_to_value)
+    def watch_value(self, old_value, new_value):
+        if new_value == self.NEW:
+            self.app.push_screen(
+                ModalCategoryManageScreen(current_category_id=old_value),
+                callback=self.update_values,
+            )
 
-    def jump_to_value(self, value: tuple[str, str] | None = None) -> None:
-        if value:
-            category, color = value
-
-            self.app.cfg.add_category(category=category, color=color)
-            options = self.get_options()
-
-            self.set_options(options=options)
-            self.value = category
+    def update_values(self, category_id: int | None = None) -> None:
+        options = self.get_available_categories()
+        self.set_options(options=options)
+        if category_id:
+            self.value = category_id
         else:
             self.value = self.BLANK
 
-    def get_options(self):
+    def get_available_categories(self):
         options = [
-            (f"[on {color}]{category}[/]", category)
-            for category, color in self.app.cfg.category_color_dict.items()
+            (f"[on {category.color}]  [/] {category.name}", category.category_id)
+            for category in self.app.backend.get_all_categories()
         ]
-        options.insert(0, ("Add a new Category", self.NEW))
+        options.insert(0, ("Add/Edit categories", self.NEW))
         return options
+
+
+class DateRow(Horizontal):
+    def compose(self):
+        yield CreationDateInfo(classes="date-container")
+        yield StartDateInfo(classes="date-container")
+        yield FinishDateInfo(classes="date-container")
 
 
 class CreationDateInfo(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label(
-            f"Task created at: {datetime.now().replace(microsecond=0)}",
+            f"{datetime.now().replace(microsecond=0)}",
             id="label_create_date",
         )
+        self.border = "$success"
+        self.border_title = "Creation Date"
         return super().compose()
 
 
@@ -193,3 +245,9 @@ class FinishDateInfo(Vertical):
         self.border = "$success"
         self.border_title = "Finish Date"
         return super().compose()
+
+
+class ButtonRow(Horizontal):
+    def compose(self):
+        yield Button("Create Task", id="btn_continue", variant="success", disabled=True)
+        yield Button("Cancel", id="btn_cancel", variant="error")

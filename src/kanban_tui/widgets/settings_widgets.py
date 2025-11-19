@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING, Literal
 
-from kanban_tui.config import Backends, MovementModes
-from kanban_tui.widgets.modal_task_widgets import VimSelect
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -26,7 +24,9 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical
 from rich.text import Text
 
-from kanban_tui.modal.modal_color_pick import TitleInput
+from kanban_tui.config import Backends, MovementModes
+from kanban_tui.modal.modal_category_screen import IsValidColor
+from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
@@ -79,7 +79,12 @@ class BackendSelector(Horizontal):
             case Backends.SQLITE:
                 self.app.config.set_backend(new_backend=event.value)
             case Backends.JIRA:
-                self.app.config.set_backend(new_backend=event.value)
+                # self.app.config.set_backend(new_backend=event.value)
+                self.notify(
+                    title="Backend not available yet",
+                    message="Please choose the `sqlite` backend",
+                    severity="warning",
+                )
             case _:
                 self.notify(
                     title="Backend not available yet",
@@ -151,36 +156,31 @@ class TaskAlwaysExpandedSwitch(Horizontal):
 class TaskDefaultColorSelector(Horizontal):
     app: "KanbanTui"
 
-    def on_mount(self) -> None:
-        self.query_one(TitleInput).background = self.app.config.task.default_color
-        self.border_title = "task.default_color [yellow on black]^g[/]"
-
     def compose(self) -> Iterable[Widget]:
         yield Label("Default Task Color")
         with self.prevent(Input.Changed):  # prevent config change on init
-            yield TitleInput(
-                value=self.app.config.task.default_color, id="task_color_preview"
+            yield Input(
+                value=self.app.config.task.default_color,
+                id="task_color_preview",
+                validators=[IsValidColor()],
+                validate_on=["changed", "blur"],
             )
+
+    def on_mount(self) -> None:
+        self.query_one(Input).styles.background = self.app.config.task.default_color
+        self.border_title = "task.default_color [yellow on black]^g[/]"
 
     @on(Input.Changed)
     def update_input_color(self, event: Input.Changed):
-        try:
-            self.query_one(TitleInput).background = event.input.value
+        if event.validation_result and event.validation_result.is_valid:
+            event.input.styles.background = event.input.value
             self.app.config.set_task_default_color(new_color=event.input.value)
-            event.input.styles.border = "tall", "green"
-            event.input.border_subtitle = None
-            event.input.border_title = None
-        # Todo add validator to input?
-        except Exception:
-            event.input.styles.border = "tall", "red"
-            event.input.border_subtitle = "invalid color value"
-            event.input.border_title = (
-                f"last valid: {self.app.config.task.default_color}"
-            )
+        else:
+            event.input.styles.background = self.app.config.task.default_color
 
     @on(DescendantBlur)
     def reset_color(self):
-        self.query_one(TitleInput).value = self.app.config.task.default_color
+        self.query_one(Input).value = self.app.config.task.default_color
 
 
 # Widget to Add new columns and change column visibility
@@ -315,7 +315,7 @@ class ColumnSelector(ListView):
                     StatusColumnSelector
                 ).get_select_widget_values()
                 # Trigger Update on tab Switch
-                self.app.config_has_changed = True
+                self.app.needs_refresh = True
 
                 self.index = column.position
 
@@ -597,7 +597,6 @@ class SettingsView(Vertical):
             priority=True,
         ),
     ]
-    config_has_changed: reactive[bool] = reactive(False, init=False)
 
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput(classes="setting-block")
@@ -611,13 +610,6 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")
             yield ColumnSelector(classes="setting-block")
-
-    @on(Input.Changed)
-    @on(Switch.Changed)
-    @on(Button.Pressed)
-    @on(Select.Changed)
-    def config_changes(self):
-        self.config_has_changed = True
 
     def action_quick_focus_setting(
         self,

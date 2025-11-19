@@ -1,4 +1,4 @@
-from typing import Iterable, TYPE_CHECKING
+from typing import Any, Iterable, TYPE_CHECKING
 from datetime import datetime
 
 if TYPE_CHECKING:
@@ -8,20 +8,19 @@ from textual import on
 from textual.events import Mount
 from textual.widget import Widget
 from textual.binding import Binding
-from textual.validation import Length
 from textual.screen import ModalScreen
 from textual.widgets import Input, TextArea, Button, Select, Label, Switch, Footer
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 
 from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
 from kanban_tui.widgets.modal_task_widgets import (
-    CreationDateInfo,
+    ButtonRow,
+    TaskAdditionalInfos,
+    TaskDueDateSelector,
+    TaskTitleInput,
     CategorySelector,
-    StartDateInfo,
-    FinishDateInfo,
-    DetailInfos,
-    DescriptionInfos,
+    TaskDescription,
 )
 
 
@@ -39,47 +38,32 @@ class ModalTaskEditScreen(ModalScreen):
 
     def compose(self) -> Iterable[Widget]:
         with Vertical(id="vertical_modal"):
-            yield Label("Create New Task", id="label_header")
-            yield Input(
-                placeholder="enter a Task Title",
-                id="input_title",
-                valid_empty=False,
-                validate_on=["changed"],
-                validators=Length(minimum=1, failure_description="Enter a valid title"),
-            )
-            yield CreationDateInfo()
-            with Horizontal(id="horizontal_dates"):
-                yield StartDateInfo()
-                yield FinishDateInfo()
-            with Horizontal(id="horizontal_detail"):
-                yield DescriptionInfos()
-                self.detail_infos = DetailInfos(id="detail_infos")
-                yield self.detail_infos
-            with Horizontal(id="horizontal_buttons"):
-                yield Button(
-                    "Create Task", id="btn_continue", variant="success", disabled=True
-                )
-                yield Button("Cancel", id="btn_cancel", variant="error")
+            with VerticalScroll(can_focus=False):
+                yield TaskTitleInput()
+                yield TaskDescription(classes="task-field")
+                yield TaskAdditionalInfos()
+            yield ButtonRow(id="horizontal_buttons")
             yield Footer()
 
     def on_mount(self, event: Mount) -> None:
-        # TODO
-        # self.watch(
-        #     self.detail_infos.query_one(CategorySelector),
-        #     "value",
-        #     self.update_description_background,
-        # )
+        self.query_one("#vertical_modal", Vertical).border_title = "Create Task"
         if self.kanban_task:
+            self.query_one("#vertical_modal", Vertical).border_title = "Edit Task"
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"
             self.query_one("#btn_continue", Button).disabled = False
-            self.query_one("#label_header", Label).update("Edit Task")
+            self.watch(
+                self.query_one(TaskAdditionalInfos).query_one(CategorySelector),
+                "value",
+                self.update_description_background,
+            )
 
     @on(Input.Changed, "#input_title")
     def disable_continue_button(self, event: Input.Changed):
-        self.query_one(
-            "#btn_continue", Button
-        ).disabled = not event.validation_result.is_valid
+        if event.validation_result:
+            self.query_one(
+                "#btn_continue", Button
+            ).disabled = not event.validation_result.is_valid
         # if event.validation_result:
 
     @on(Button.Pressed, "#btn_continue")
@@ -87,18 +71,24 @@ class ModalTaskEditScreen(ModalScreen):
         title = self.query_one("#input_title", Input).value
         if not title:
             return
+        # Read from Textarea cause TaskDescription.text mightve
+        # not been updated when using shortcut
         description = self.query_one(TextArea).text
         category = (
-            None if self.query_one(Select).is_blank() else self.query_one(Select).value
+            None
+            if self.query_one(CategorySelector).is_blank()
+            else self.query_one(CategorySelector).value
         )
         due_date = (
-            self.query_one(DetailInfos).due_date.isoformat(sep=" ", timespec="seconds")
-            if self.query_one(DetailInfos).due_date
+            self.query_one(TaskDueDateSelector).due_date.isoformat(
+                sep=" ", timespec="seconds"
+            )
+            if self.query_one(TaskDueDateSelector).due_date
             else None
         )
 
+        # create new task
         if not self.kanban_task:
-            # create new task
             new_task = self.app.backend.create_new_task(
                 title=title,
                 description=description,
@@ -132,37 +122,41 @@ class ModalTaskEditScreen(ModalScreen):
     def close_window(self):
         self.app.pop_screen()
 
-    def update_description_background(self, category: str):
-        if category != CategorySelector.NEW:
-            self.query_one(
-                TextArea
-            ).styles.background = self.app.config.task.default_color
-            # ).styles.background = self.app.cfg.category_color_dict.get(
-            #     category, self.app.cfg.no_category_task_color
-            # )
-            self.query_one(TextArea).styles.background = self.query_one(
-                TextArea
-            ).styles.background.darken(0.2)
+    def update_description_background(self, category_id: int | Any):
+        text_area = self.query_one(TaskDescription).editor
+        text_preview = self.query_one(TaskDescription).preview
+        if category_id not in (CategorySelector.BLANK, CategorySelector.NEW):
+            category = self.app.backend.get_category_by_id(category_id)
+            category_color = category.color
+            text_area.styles.background = category_color
+            text_preview.styles.background = category_color
+        else:
+            text_area.styles.background = self.app.config.task.default_color
+            text_preview.styles.background = self.app.config.task.default_color
+        text_area.styles.background = text_area.styles.background.darken(0.2)
+        text_preview.styles.background = text_preview.styles.background.darken(0.2)
 
     def read_values_from_task(self):
         self.query_one("#input_title", Input).value = self.kanban_task.title
-        self.query_one(TextArea).text = self.kanban_task.description
-        # self.update_description_background(category=self.kanban_task.category)
+        self.query_one(TaskDescription).text = self.kanban_task.description
+
+        if category_id := self.kanban_task.category:
+            self.update_description_background(category_id=category_id)
 
         self.query_one(Select).value = (
             self.kanban_task.category if self.kanban_task.category else Select.BLANK
         )
         self.query_one("#label_create_date", Label).update(
-            f"Task created at: {self.kanban_task.creation_date.isoformat(sep=' ', timespec='seconds')}"
+            f"{self.kanban_task.creation_date.isoformat(sep=' ', timespec='seconds')}"
         )
         if self.kanban_task.due_date:
             # toggle switch
             self.query_one(Switch).value = True
             # set date in widget
             self.query_one(DateSelect).date = self.kanban_task.due_date
-            self.query_one(DetailInfos).due_date = self.kanban_task.due_date.replace(
-                microsecond=0, tzinfo=None
-            )
+            self.query_one(
+                TaskDueDateSelector
+            ).due_date = self.kanban_task.due_date.replace(microsecond=0, tzinfo=None)
 
         if self.kanban_task.start_date:
             self.query_one("#label_start_date", Label).update(

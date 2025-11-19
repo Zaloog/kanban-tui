@@ -4,6 +4,7 @@ from typing import Any, Generator, Sequence
 from contextlib import contextmanager
 import datetime
 
+from kanban_tui.classes.category import Category
 from kanban_tui.constants import DATABASE_FILE, DEFAULT_COLUMN_DICT
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
@@ -46,6 +47,11 @@ def board_factory(cursor, row):
     return Board(**{k: v for k, v in zip(fields, row)})
 
 
+def category_factory(cursor, row):
+    fields = [column[0] for column in cursor.description]
+    return Category(**{k: v for k, v in zip(fields, row)})
+
+
 def column_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return Column(**{k: v for k, v in zip(fields, row)})
@@ -70,7 +76,7 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     task_id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
     column INTEGER NOT NULL,
-    category TEXT,
+    category INTEGER,
     description TEXT,
     creation_date DATETIME NOT NULL,
     start_date DATETIME,
@@ -80,6 +86,7 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     board_id INTEGER,
     FOREIGN KEY (board_id) REFERENCES boards(board_id),
     FOREIGN KEY (column) REFERENCES columns(column_id),
+    FOREIGN KEY (category) REFERENCES categories(category_id),
     CHECK (title <> "")
     );
     """
@@ -99,6 +106,7 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     CHECK (name <> "")
     );
     """
+
     column_table_creation_str = """
     CREATE TABLE IF NOT EXISTS columns (
     column_id INTEGER PRIMARY KEY,
@@ -108,6 +116,16 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     board_id INTEGER,
     FOREIGN KEY (board_id) REFERENCES boards(board_id),
     CHECK (name <> "")
+    );
+    """
+
+    category_table_creation_str = """
+    CREATE TABLE IF NOT EXISTS categories (
+    category_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    color TEXT NOT NULL,
+    CHECK (name <> ""),
+    CHECK (color <> "")
     );
     """
 
@@ -504,6 +522,7 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
         con.row_factory = sqlite3.Row
         try:
             con.execute(audit_table_creation_str)
+            con.execute(category_table_creation_str)
 
             con.execute(task_table_creation_str)
             con.execute(task_create_trigger_str)
@@ -598,7 +617,7 @@ def create_new_task_db(
     title: str,
     board_id: int,
     column: int,
-    category: str | None = None,
+    category: int | None = None,
     description: str | None = None,
     start_date: datetime.datetime | None = None,
     finish_date: datetime.datetime | None = None,
@@ -674,6 +693,97 @@ def create_new_column_db(
         con.row_factory = sqlite3.Row
         try:
             con.execute(transaction_str_cols, column_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def create_new_category_db(
+    name: str,
+    color: str,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Category:
+    transaction_str_cols = """
+    INSERT INTO categories
+    VALUES (
+        NULL,
+        :name,
+        :color
+        )
+        RETURNING *
+        ;"""
+    category_dict = {
+        "name": name,
+        "color": color,
+    }
+    with create_connection(database=database) as con:
+        con.row_factory = category_factory
+        try:
+            new_category = con.execute(transaction_str_cols, category_dict).fetchone()
+            con.commit()
+            return new_category
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def update_category_entry_db(
+    category_id: int,
+    name: str,
+    color: str,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Category:
+    update_category_dict = {
+        "category_id": category_id,
+        "name": name,
+        "color": color,
+    }
+
+    transaction_str = """
+    UPDATE categories
+    SET
+        name = :name,
+        color = :color
+    WHERE category_id = :category_id
+    RETURNING *
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = category_factory
+        try:
+            updated_category = con.execute(
+                transaction_str, update_category_dict
+            ).fetchone()
+            con.commit()
+            return updated_category
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def delete_category_db(
+    category_id: int, database: str = DATABASE_FILE.as_posix()
+) -> int:
+    reset_tasks_str = """
+    UPDATE tasks
+    SET
+        category = null
+    WHERE category = ?
+    """
+
+    delete_category_str = """
+    DELETE FROM categories
+    WHERE category_id = ?
+    """
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(reset_tasks_str, (category_id,))
+            con.execute(delete_category_str, (category_id,))
+
             con.commit()
             return 0
         except sqlite3.Error as e:
@@ -779,6 +889,48 @@ def get_all_boards_db(
             boards = con.execute(query_str).fetchall()
             con.commit()
             return boards
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
+def get_all_categories_db(
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[Category]:
+    query_str = """
+    SELECT *
+    FROM categories;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = category_factory
+        try:
+            categories = con.execute(query_str).fetchall()
+            con.commit()
+            return categories
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
+def get_category_by_id_db(
+    category_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Category:
+    query_str = """
+    SELECT *
+    FROM categories
+    WHERE category_id = :category_id
+    ;
+    """
+    category_id_dict = {"category_id": category_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = category_factory
+        try:
+            category = con.execute(query_str, category_id_dict).fetchone()
+            con.commit()
+            return category
         except sqlite3.Error as e:
             con.rollback()
             raise (e)
@@ -898,7 +1050,7 @@ def update_column_name_db(
 def update_task_entry_db(
     task_id: int,
     title: str,
-    category: str | None = None,
+    category: int | None = None,
     description: str | None = None,
     due_date: datetime.datetime | None = None,
     database: str = DATABASE_FILE.as_posix(),

@@ -65,7 +65,7 @@ class CustomDateSelect(DateSelect):
         self.dialog = CustomDatePickerDialog()
         self.dialog.target = self
 
-    # TODO
+    # TODO this is pretty ugly...
     async def on_mount(self):
         await self.parent.parent.parent.parent.mount(self.dialog)
 
