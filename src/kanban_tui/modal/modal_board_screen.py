@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from rich.text import Text
-from textual import on
+from textual import on, work
 from textual.widget import Widget
 from textual.binding import Binding
 from textual.events import Mount
@@ -232,7 +232,8 @@ class ModalBoardOverviewScreen(ModalScreen):
         self.app.update_board_list()
         await self.update_board_listview(len(self.app.board_list))
 
-    def action_delete_board(self) -> None:
+    @work()
+    async def action_delete_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
 
         highlighted_board = highlighted.board
@@ -247,20 +248,14 @@ class ModalBoardOverviewScreen(ModalScreen):
             )
             return
 
-        self.app.push_screen(
+        confirm_deletion = await self.app.push_screen(
             ModalConfirmScreen(
                 text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?"
             ),
-            callback=self.from_modal_delete_board,
+            wait_for_dismiss=True,
         )
 
-    async def from_modal_delete_board(self, delete_yn: bool) -> None:
-        highlighted = self.query_exactly_one(BoardList).highlighted_child
-
-        if highlighted is None:
-            return
-        highlighted_board = highlighted.board
-        if delete_yn:
+        if confirm_deletion:
             self.app.backend.delete_board(
                 board_id=highlighted_board.board_id,
             )
