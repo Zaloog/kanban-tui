@@ -14,7 +14,7 @@ from kanban_tui.widgets.settings_widgets import (
     TaskMovementSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
-from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 
 
 APP_SIZE = (150, 50)

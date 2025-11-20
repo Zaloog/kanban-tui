@@ -28,7 +28,7 @@ from kanban_tui.config import Backends, MovementModes
 from kanban_tui.modal.modal_category_screen import IsValidColor
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
-from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
     update_column_name_db,

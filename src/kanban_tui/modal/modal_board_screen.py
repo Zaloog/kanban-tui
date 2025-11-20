@@ -21,7 +21,7 @@ from kanban_tui.widgets.modal_board_widgets import (
     BoardList,
     CustomColumnList,
 )
-from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 
 
 class ModalNewBoardScreen(ModalScreen):

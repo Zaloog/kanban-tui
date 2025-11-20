@@ -2,7 +2,7 @@ import pytest
 from kanban_tui.app import KanbanTui
 from textual.widgets import Input, Button, Static, Label
 from kanban_tui.screens.board_screen import BoardScreen
-from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.modal.modal_board_screen import (
     ModalBoardOverviewScreen,
     ModalNewBoardScreen,

@@ -4,7 +4,8 @@ from kanban_tui.app import KanbanTui
 from textual.widgets import Input, TextArea
 from kanban_tui.modal.modal_category_screen import ModalCategoryManageScreen
 from kanban_tui.screens.board_screen import BoardScreen
-from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen, ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 
 from kanban_tui.widgets.modal_task_widgets import CategorySelector
 from kanban_tui.widgets.task_card import TaskCard

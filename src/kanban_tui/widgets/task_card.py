@@ -19,10 +19,8 @@ from textual.message import Message
 
 from kanban_tui.classes.task import Task
 from kanban_tui.utils import get_column_status_dict
-from kanban_tui.modal.modal_task_screen import (
-    ModalTaskEditScreen,
-    ModalConfirmScreen,
-)
+from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 
 
 class TaskCard(Vertical):
