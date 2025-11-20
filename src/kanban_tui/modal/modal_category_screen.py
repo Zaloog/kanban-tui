@@ -9,7 +9,7 @@ from kanban_tui.classes.category import Category
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-from textual import on
+from textual import on, work
 from textual.binding import Binding
 from textual.validation import Length, Validator, ValidationResult
 from textual.widget import Widget
@@ -23,6 +23,8 @@ from textual.widgets import (
 )
 from textual.containers import Vertical, Horizontal
 from textual.screen import ModalScreen
+
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 
 # https://github.com/1dancook/tailwind-color-picker/blob/master/src/tailwind_cp/main.py#L20-L43
 
@@ -113,8 +115,16 @@ class ModalCategoryManageScreen(ModalScreen):
             )
             self.app.needs_refresh = True
 
+    @work()
     async def action_delete(self):
         hightlighted_item = self.query_one(CategoryList).highlighted_child
+
+        confirm_deletion = await self.app.push_screen(
+            ModalConfirmScreen("Delete Category?"), wait_for_dismiss=True
+        )
+        if not confirm_deletion:
+            return
+
         if hightlighted_item:
             category_id = hightlighted_item.category.category_id
             # Update current_category to not error on value update

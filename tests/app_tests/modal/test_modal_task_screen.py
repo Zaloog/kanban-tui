@@ -230,6 +230,8 @@ async def test_task_category_deletion(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
         # delete category of current task and go back to task screen
         await pilot.press("d")
+        # confirm deletion
+        await pilot.press("enter")
         await pilot.press("escape")
         # go back to board screen
         await pilot.press("escape")

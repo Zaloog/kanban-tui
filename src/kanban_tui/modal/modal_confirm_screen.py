@@ -8,7 +8,7 @@ from textual.widgets import Button, Label
 from textual.widget import Widget
 
 
-class ModalConfirmScreen(ModalScreen):
+class ModalConfirmScreen(ModalScreen[bool]):
     BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
 
     def __init__(self, text: str) -> None:
