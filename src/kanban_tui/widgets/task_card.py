@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
 from rich.text import Text
-from textual import on
+from textual import on, work
 from textual.reactive import reactive
 from textual.binding import Binding
 from textual.events import Click
@@ -222,12 +222,11 @@ class TaskCard(Vertical):
         self.task_ = updated_task
         self.refresh(recompose=True)
 
-    def action_delete_task(self) -> None:
-        self.app.push_screen(
+    @work()
+    async def action_delete_task(self) -> None:
+        confirm_deletion = await self.app.push_screen(
             ModalConfirmScreen(text=f"Delete Task [blue]{self.task_.title}[/]?"),
-            callback=self.from_modal_delete_task,
+            wait_for_dismiss=True,
         )
-
-    def from_modal_delete_task(self, should_be_deleted: bool) -> None:
-        if should_be_deleted:
+        if confirm_deletion:
             self.post_message(self.Delete(taskcard=self))
