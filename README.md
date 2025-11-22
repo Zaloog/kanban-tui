@@ -18,7 +18,7 @@ kanban-tui is a customizable task manager in the terminal.
 If you want to test `kanban-tui` you can directly run this demo yourself with the help of [uv] using `uvx` with
 
 ```bash
-uvx --from kanban-tui ktui demo
+uvx kanban-tui demo
 ```
 
 ## Features
