@@ -65,52 +65,52 @@ erDiagram
     tasks }|--o| categories: have
     tasks }|--|| audits: updates
     tasks {
-        task_id INTEGER PK
-        board_id INTEGER FK
-        column INTEGER FK
-        category INTEGER FK
-        title TEXT
-        description TEXT
-        creation_date DATETIME
-        start_date DATETIME
-        finish_date DATETIME
-        due_date DATETIME
-        time_worked_on INTEGER
+        INTEGER task_id PK
+        INTEGER board_id FK
+        INTEGER column FK
+        INTEGER category FK
+        TEXT title
+        TEXT description
+        DATETIME creation_date
+        DATETIME start_date
+        DATETIME finish_date
+        DATETIME due_date
+        INTEGER time_worked_on
     }
     boards }|--o{ columns: contains
     boards }|--|| audits: updates
     boards {
-        board_id INTEGER PK
-        reset_column INTEGER FK
-        start_column INTEGER FK
-        finish_column INTEGER FK
-        name TEXT
-        icon TEXT
-        creation_date DATETIME
+        INTEGER board_id PK
+        INTEGER reset_column FK
+        INTEGER start_column FK
+        INTEGER finish_column FK
+        TEXT name
+        TEXT icon
+        DATETIME creation_date
     }
     columns ||--|{ tasks: contains
     columns }|--|| audits: updates
     columns {
-        column_id INTEGER PK
-        name TEXT
-        visible BOOLEAN
-        position INTEGER
-        board_id INTEGER FK
+        INTEGER column_id PK
+        INTEGER board_id FK
+        TEXT name
+        BOOLEAN visible
+        INTEGER position
     }
     categories {
-        category_id INTEGER PK
-        name TEXT
-        color TEXT
+        INTEGER category_id PK
+        TEXT name
+        TEXT color
     }
     audits {
-        event_id INTEGER PK
-        event_timestamp DATETIME
-        event_type TEXT
-        object_type TEXT
-        object_id INTEGER
-        object_field TEXT
-        value_old TEXT
-        value_new TEXT
+        INTEGER event_id PK
+        DATETIME event_timestamp
+        TEXT event_type
+        TEXT object_type
+        INTEGER object_id
+        TEXT object_field
+        TEXT value_old
+        TEXT value_new
     }
 ```
 </details>
