@@ -75,7 +75,6 @@ erDiagram
         DATETIME start_date
         DATETIME finish_date
         DATETIME due_date
-        INTEGER time_worked_on
     }
     boards }|--o{ columns: contains
     boards }|--|| audits: updates

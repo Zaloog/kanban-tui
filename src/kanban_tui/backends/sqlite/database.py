@@ -82,7 +82,6 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     start_date DATETIME,
     finish_date DATETIME,
     due_date DATETIME,
-    time_worked_on INTEGER,
     board_id INTEGER,
     FOREIGN KEY (board_id) REFERENCES boards(board_id),
     FOREIGN KEY (column) REFERENCES columns(column_id),
@@ -622,7 +621,6 @@ def create_new_task_db(
     start_date: datetime.datetime | None = None,
     finish_date: datetime.datetime | None = None,
     due_date: datetime.datetime | None = None,
-    time_worked_on: int = 0,
     database: str = DATABASE_FILE.as_posix(),
 ) -> Task:
     task_dict = {
@@ -634,7 +632,6 @@ def create_new_task_db(
         "category": category,
         "due_date": due_date,
         "description": description,
-        "time_worked_on": time_worked_on,
         "board_id": board_id,
     }
 
@@ -650,7 +647,6 @@ def create_new_task_db(
         :start_date,
         :finish_date,
         :due_date,
-        :time_worked_on,
         :board_id
         )
         RETURNING *
@@ -945,14 +941,12 @@ def update_task_status_db(
         "start_date": task.start_date,
         "column": task.column,
         "finish_date": task.finish_date,
-        "time_worked_on": task.time_worked_on,
     }
     transaction_str = """
     UPDATE tasks
     SET start_date = :start_date,
         finish_date = :finish_date,
-        column = :column,
-        time_worked_on = :time_worked_on
+        column = :column
     WHERE task_id = :task_id
     """
     with create_connection(database=database) as con:
