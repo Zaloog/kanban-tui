@@ -14,7 +14,9 @@ which makes the board is now horizontally scrollable
 - Added new `info` command to show location and presence of xdg config/data/auth file paths
 - Option to switch the Backend in the Footer
 - Rework the Modal Task Screen
+- Added new entrypoint `kanban-tui`, old entrypoint `ktui` is still available
 - (not functional yet) Added Jira Backend + AuthFile (Backends can be switched in Settings)
+- Update Docs (mermaid schema, new commands)
 
 ### Fixed
 - Fixed focus bug if no visible tasks are on board (due to column visibility change)
