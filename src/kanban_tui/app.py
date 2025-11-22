@@ -118,6 +118,19 @@ class KanbanTui(App[str | None]):
 
     @on(Select.Changed, "#select_backend_mode")
     def update_backend(self, event: Select.Changed):
+        match event.value:
+            case Backends.SQLITE:
+                self.app.config.set_backend(new_backend=event.value)
+            case _:
+                self.notify(
+                    title="Backend not available yet",
+                    message="Please choose the `sqlite` backend",
+                    severity="warning",
+                )
+                with self.prevent(Select.Changed):
+                    event.select.value = Backends.SQLITE
+                self.app.action_focus_next()
+                return
         self.backend = self.get_backend()
         self.update_board_list()
         self.get_screen("board", BoardScreen).refresh(recompose=True)
@@ -144,6 +157,10 @@ class KanbanTui(App[str | None]):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "refresh":
             if not isinstance(self.screen, BoardScreen):
+                return False
+
+        if action == "show_backend_selector":
+            if not isinstance(self.screen, tuple(self.SCREENS.values())):
                 return False
         return True
 

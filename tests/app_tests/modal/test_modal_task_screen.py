@@ -4,7 +4,8 @@ from kanban_tui.app import KanbanTui
 from textual.widgets import Input, TextArea
 from kanban_tui.modal.modal_category_screen import ModalCategoryManageScreen
 from kanban_tui.screens.board_screen import BoardScreen
-from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen, ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 
 from kanban_tui.widgets.modal_task_widgets import CategorySelector
 from kanban_tui.widgets.task_card import TaskCard
@@ -229,6 +230,8 @@ async def test_task_category_deletion(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
         # delete category of current task and go back to task screen
         await pilot.press("d")
+        # confirm deletion
+        await pilot.press("enter")
         await pilot.press("escape")
         # go back to board screen
         await pilot.press("escape")

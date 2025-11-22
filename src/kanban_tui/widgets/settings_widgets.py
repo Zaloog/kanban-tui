@@ -5,7 +5,7 @@ from typing import Iterable, TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
 
-from textual import on
+from textual import on, work
 from textual.message import Message
 from textual.events import DescendantBlur
 from textual.reactive import reactive
@@ -24,11 +24,11 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical
 from rich.text import Text
 
-from kanban_tui.config import Backends, MovementModes
+from kanban_tui.config import MovementModes
 from kanban_tui.modal.modal_category_screen import IsValidColor
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
-from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
     update_column_name_db,
@@ -55,42 +55,6 @@ class DataBasePathInput(Horizontal):
                 id="input_database_path",
             )
         return super().compose()
-
-
-class BackendSelector(Horizontal):
-    app: "KanbanTui"
-
-    def on_mount(self):
-        self.border_title = "backend.mode [yellow on black][/]"
-
-    def compose(self) -> Iterable[Widget]:
-        yield Label("Backend mode")
-        with self.prevent(Select.Changed):
-            yield VimSelect.from_values(
-                Backends,
-                value=self.app.config.backend.mode,
-                id="select_backend_mode",
-                allow_blank=False,
-            )
-
-    @on(Select.Changed)
-    def update_config(self, event: Select.Changed):
-        match event.value:
-            case Backends.SQLITE:
-                self.app.config.set_backend(new_backend=event.value)
-            case Backends.JIRA:
-                # self.app.config.set_backend(new_backend=event.value)
-                self.notify(
-                    title="Backend not available yet",
-                    message="Please choose the `sqlite` backend",
-                    severity="warning",
-                )
-            case _:
-                self.notify(
-                    title="Backend not available yet",
-                    message="Please choose the `sqlite` backend",
-                    severity="warning",
-                )
 
 
 class TaskMovementSelector(Horizontal):
@@ -380,50 +344,49 @@ class ColumnSelector(ListView):
             self.highlighted_child.query_one(Button).press()
 
     @on(ColumnListItem.Deleted)
-    def delete_column(self, event: ColumnListItem.Deleted):
-        column_name = event.column_list_item.column.name
+    @work()
+    async def delete_column(self, event: ColumnListItem.Deleted):
+        column = event.column_list_item.column
         if (
-            len([task for task in self.app.task_list if task.column == column_name])
+            len(
+                [task for task in self.app.task_list if task.column == column.column_id]
+            )
             != 0
         ):
-            self.send_error_notify(column_name)
+            self.send_error_notify(column.name)
             return
 
-        async def modal_delete_column(
-            event: ColumnListItem.Deleted, delete_yn: bool
-        ) -> None:
-            if delete_yn:
-                column_id = event.column_list_item.column.column_id
-                column_name = event.column_list_item.column.name
+        confirm_deletion = await self.app.push_screen(
+            ModalConfirmScreen(text=f"Delete Column [blue]{column.name}[/]"),
+            wait_for_dismiss=True,
+        )
+        if not confirm_deletion:
+            return
 
-                delete_column_db(
-                    column_id=column_id,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-                self.app.update_column_list()
-                if event.column_list_item.column.visible:
-                    self.amount_visible -= 1
-                else:
-                    self.watch_amount_visible()
+        column_id = event.column_list_item.column.column_id
+        column_name = event.column_list_item.column.name
 
-                # Remove ListItem
-                await event.column_list_item.remove()
-                # Update dependent Widgets
-                await self.app.screen.query_one(StatusColumnSelector).recompose()
-                self.app.screen.query_one(
-                    StatusColumnSelector
-                ).get_select_widget_values()
-                await self.app.screen.query_one(BoardColumnsInView).recompose()
+        delete_column_db(
+            column_id=column_id,
+            database=self.app.config.backend.sqlite_settings.database_path,
+        )
+        self.app.update_column_list()
+        if event.column_list_item.column.visible:
+            self.amount_visible -= 1
+        else:
+            self.watch_amount_visible()
 
-                self.notify(
-                    title="Columns Updated",
-                    message=f"Column [blue]{column_name}[/] deleted",
-                    timeout=2,
-                )
+        # Remove ListItem
+        await event.column_list_item.remove()
+        # Update dependent Widgets
+        await self.app.screen.query_one(StatusColumnSelector).recompose()
+        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+        await self.app.screen.query_one(BoardColumnsInView).recompose()
 
-        self.app.push_screen(
-            ModalConfirmScreen(text=f"Delete Column [blue]{column_name}[/]"),
-            callback=lambda x: modal_delete_column(event=event, delete_yn=x),
+        self.notify(
+            title="Columns Updated",
+            message=f"Column [blue]{column_name}[/] deleted",
+            timeout=2,
         )
 
     def send_error_notify(self, column_name: str):
@@ -603,9 +566,8 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
             yield TaskMovementSelector(classes="setting-block")
-            yield TaskDefaultColorSelector(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
-            yield BackendSelector(classes="setting-block")
+            yield TaskDefaultColorSelector(classes="setting-block")
             yield BoardColumnsInView(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")

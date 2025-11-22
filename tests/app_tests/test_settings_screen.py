@@ -14,7 +14,7 @@ from kanban_tui.widgets.settings_widgets import (
     TaskMovementSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
-from kanban_tui.modal.modal_task_screen import ModalConfirmScreen
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 
 
 APP_SIZE = (150, 50)
@@ -91,17 +91,16 @@ async def test_backend_mode(test_app: KanbanTui):
             == Backends.SQLITE
         )
 
-        # change Value
-        await pilot.click("#select_backend_mode")
+        # toggle Backend Footer Select Value
+        await pilot.press("C")
         await pilot.press("down")
         await pilot.press("enter")
-        # Change in Future
+        # TODO Change in Future
         assert pilot.app.config.backend.mode == Backends.SQLITE
         assert (
             pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
-            == Backends.JIRA
+            == Backends.SQLITE
         )
-        assert pilot.app.needs_refresh
 
 
 async def test_board_columns_in_view(test_app: KanbanTui):

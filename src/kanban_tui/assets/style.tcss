@@ -180,24 +180,27 @@ ModalTaskEditScreen {
 }
 
 ModalConfirmScreen {
+  align:center middle;
+  Vertical{
+    width:60%;
+    border:$success;
+    height: 7;
     align:center middle;
-    Vertical{
-        width:60%;
-        border:$success;
-        height:20%;
-        align:center middle;
-        content-align:center middle;
+    content-align:center middle;
 
-        Label{
-            width:1fr;
-            height: 1fr;
-            text-align:center;
-        }
-        Button {
-            width: 1fr;
-            height:1fr;
-        }
+    Label{
+      width:1fr;
+      height: 1fr;
+      text-align:center;
     }
+    Horizontal{
+      height: auto;
+      Button {
+        width: 1fr;
+        height: 3;
+      }
+    }
+  }
 }
 
 ModalNewBoardScreen {

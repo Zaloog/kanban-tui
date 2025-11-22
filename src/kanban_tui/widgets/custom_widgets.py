@@ -19,6 +19,7 @@ class KanbanTuiFooter(Horizontal):
                 compact=True,
                 prompt="Backend",
                 value=self.app.config.backend.mode,
+                id="select_backend_mode",
             )
         # Keep the focus behavior
         selector.disabled = True
