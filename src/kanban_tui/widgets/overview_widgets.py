@@ -74,7 +74,6 @@ class TaskPlot(HorizontalScroll):
                 )
 
         date_range = plt.datetimes_to_strings(date_range)
-        self.log.error(f"dates: {date_range}")
         # Adjust Plotext size, if there are only a few entries
         if len(date_range) < 12:
             self.query_one(PlotextPlot).styles.width = "1fr"
@@ -107,17 +106,17 @@ class TaskPlot(HorizontalScroll):
                     if sum(category_values.values()) > 0
                 ],
                 labels=[
-                    category or "No Category"
-                    for category, category_values in category_value_dict.items()
+                    self.app.backend.get_category_by_id(category_id).name
+                    if category_id
+                    else "No Category"
+                    for category_id, category_values in category_value_dict.items()
                     if sum(category_values.values()) > 0
                 ],
                 color=[
                     getrgb(
-                        self.app.config.task.default_color
-                        # TODO Add back category functionality
-                        # self.app.cfg.category_color_dict.get(
-                        #     category, self.app.cfg.no_category_task_color
-                        # )
+                        self.app.backend.get_category_by_id(category).color
+                        if category
+                        else self.app.config.task.default_color
                     )
                     for category, category_values in category_value_dict.items()
                     if sum(category_values.values()) > 0
