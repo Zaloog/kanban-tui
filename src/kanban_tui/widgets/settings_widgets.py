@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, TYPE_CHECKING, Literal
+from typing import Iterable, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -44,7 +44,7 @@ class DataBasePathInput(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = "database.database_path [yellow on black]^d[/]"
+        self.border_title = "database.database_path"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Database File")
@@ -61,17 +61,19 @@ class TaskMovementSelector(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = "task.movement_mode [yellow on black]^n[/]"
+        self.border_title = "task.movement_mode"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Task movement_mode")
         with self.prevent(Select.Changed):
-            yield VimSelect.from_values(
+            movement_select = VimSelect.from_values(
                 MovementModes,
                 value=self.app.config.task.movement_mode,
                 id="select_movement_mode",
                 allow_blank=False,
             )
+            movement_select.jump_mode = "focus"
+            yield movement_select
 
     @on(Select.Changed)
     def update_config(self, event: Select.Changed):
@@ -82,17 +84,19 @@ class BoardColumnsInView(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = "board.columns_in_view [yellow on black]^b[/]"
+        self.border_title = "board.columns_in_view"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Columns in view")
         with self.prevent(Select.Changed):
-            yield VimSelect.from_values(
+            column_select = VimSelect.from_values(
                 [i + 1 for i in range(len(self.app.column_list))],
                 value=self.app.config.board.columns_in_view,
                 id="select_columns_in_view",
                 allow_blank=False,
             )
+            column_select.jump_mode = "focus"
+            yield column_select
 
     @on(Select.Changed)
     def update_config(self, event: Select.Changed):
@@ -103,14 +107,15 @@ class TaskAlwaysExpandedSwitch(Horizontal):
     app: "KanbanTui"
 
     def on_mount(self):
-        self.border_title = "task.always_expanded [yellow on black]^e[/]"
+        self.border_title = "task.always_expanded"
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Always Expand Tasks")
-        yield Switch(
+        expand_switch = Switch(
             value=self.app.config.task.always_expanded, id="switch_expand_tasks"
         )
-        return super().compose()
+        expand_switch.jump_mode = "focus"
+        yield expand_switch
 
     @on(Switch.Changed)
     def update_config(self, event: Switch.Changed):
@@ -123,16 +128,18 @@ class TaskDefaultColorSelector(Horizontal):
     def compose(self) -> Iterable[Widget]:
         yield Label("Default Task Color")
         with self.prevent(Input.Changed):  # prevent config change on init
-            yield Input(
+            color_input = Input(
                 value=self.app.config.task.default_color,
                 id="task_color_preview",
                 validators=[IsValidColor()],
                 validate_on=["changed", "blur"],
             )
+            color_input.jump_mode = "focus"
+            yield color_input
 
     def on_mount(self) -> None:
         self.query_one(Input).styles.background = self.app.config.task.default_color
-        self.border_title = "task.default_color [yellow on black]^g[/]"
+        self.border_title = "task.default_color"
 
     @on(Input.Changed)
     def update_input_color(self, event: Input.Changed):
@@ -226,6 +233,7 @@ class ColumnSelector(ListView):
     """Widget to add/delete/rename columns and change the column visibility"""
 
     app: "KanbanTui"
+    jump_mode = "focus"
 
     BINDINGS = [
         Binding(key="j", action="cursor_down", show=False),
@@ -242,7 +250,7 @@ class ColumnSelector(ListView):
     amount_visible: reactive[int] = reactive(0)
 
     def on_mount(self) -> None:
-        self.border_title = "column.visibility [yellow on black]^c[/]"
+        self.border_title = "column.visibility"
         self.amount_visible = len(self.app.visible_column_dict)
 
     def __init__(self, *args, **kwargs) -> None:
@@ -398,7 +406,7 @@ class ColumnSelector(ListView):
         )
 
     def watch_amount_visible(self):
-        self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/] [yellow on black]^c[/]"
+        self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/]"
 
     @on(ListView.Selected)
     def on_space_key(self, event: ListView.Selected):
@@ -428,7 +436,7 @@ class StatusColumnSelector(Vertical):
     """Widget to select the columns, which are used to update the start/finish dates on tasks"""
 
     def on_mount(self):
-        self.border_title = "column.status_update [yellow on black]^s[/]"
+        self.border_title = "column.status_update"
         with self.prevent(Select.Changed):
             self.get_select_widget_values()
 
@@ -437,7 +445,7 @@ class StatusColumnSelector(Vertical):
             reset_label = Label("Reset")
             reset_label.tooltip = """Placing a task in this column resets its [green]start_date[/] and [green]finish_date[/]"""
             yield reset_label
-            yield VimSelect(
+            reset_select = VimSelect(
                 [
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
@@ -446,6 +454,8 @@ class StatusColumnSelector(Vertical):
                 prompt="No reset column",
                 id="select_reset",
             )
+            reset_select.jump_mode = "focus"
+            yield reset_select
         with Horizontal(classes="setting-horizontal"):
             start_label = Label("Start")
             start_label.tooltip = """Placing a task in this column starts the task and updates the [green]start_date[/] of the task"""
@@ -519,48 +529,6 @@ class StatusColumnSelector(Vertical):
 
 
 class SettingsView(Vertical):
-    BINDINGS = [
-        Binding(
-            key="ctrl+d", action="quick_focus_setting('db')", show=False, priority=True
-        ),
-        Binding(
-            key="ctrl+e",
-            action="quick_focus_setting('expand')",
-            show=False,
-            priority=True,
-        ),
-        Binding(
-            key="ctrl+n",
-            action="quick_focus_setting('movement_mode')",
-            show=False,
-            priority=True,
-        ),
-        Binding(
-            key="ctrl+b",
-            action="quick_focus_setting('columns_in_view')",
-            show=False,
-            priority=True,
-        ),
-        Binding(
-            key="ctrl+g",
-            action="quick_focus_setting('defaultcolor')",
-            show=False,
-            priority=True,
-        ),
-        Binding(
-            key="ctrl+c",
-            action="quick_focus_setting('columns')",
-            show=False,
-            priority=True,
-        ),
-        Binding(
-            key="ctrl+s",
-            action="quick_focus_setting('status')",
-            show=False,
-            priority=True,
-        ),
-    ]
-
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
@@ -572,31 +540,3 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")
             yield ColumnSelector(classes="setting-block")
-
-    def action_quick_focus_setting(
-        self,
-        block: Literal[
-            "db",
-            "expand",
-            "movement_mode",
-            "defaultcolor",
-            "columns",
-            "status",
-            "columns_in_view",
-        ],
-    ):
-        match block:
-            case "db":
-                self.query_one(DataBasePathInput).query_one(Input).focus()
-            case "expand":
-                self.query_one(TaskAlwaysExpandedSwitch).query_one(Switch).focus()
-            case "columns_in_view":
-                self.query_one(BoardColumnsInView).query_one(Select).focus()
-            case "movement_mode":
-                self.query_one(TaskMovementSelector).query_one(Select).focus()
-            case "defaultcolor":
-                self.query_one(TaskDefaultColorSelector).query_one(Input).focus()
-            case "columns":
-                self.query_one(ColumnSelector).focus()
-            case "status":
-                self.query_one(StatusColumnSelector).query(Select).focus()

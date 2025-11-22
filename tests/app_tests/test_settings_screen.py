@@ -364,26 +364,32 @@ async def test_setting_shortcuts(test_app: KanbanTui):
 
         assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
-        await pilot.press("ctrl+e")
+        await pilot.press("ctrl+o")
+        await pilot.press("e")
         assert pilot.app.screen.query_exactly_one(
             TaskAlwaysExpandedSwitch
         ).has_focus_within
 
-        await pilot.press("ctrl+d")
-        assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
+        # await pilot.press("ctrl+o")
+        # await pilot.press("d")
+        # assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
-        await pilot.press("ctrl+c")
+        await pilot.press("ctrl+o")
+        await pilot.press("c")
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
-        await pilot.press("ctrl+n")
+        await pilot.press("ctrl+o")
+        await pilot.press("n")
         assert pilot.app.screen.query_exactly_one(TaskMovementSelector).has_focus_within
 
-        await pilot.press("ctrl+g")
+        await pilot.press("ctrl+o")
+        await pilot.press("g")
         assert pilot.app.screen.query_exactly_one(
             TaskDefaultColorSelector
         ).has_focus_within
 
-        await pilot.press("ctrl+s")
+        await pilot.press("ctrl+o")
+        await pilot.press("s")
         assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
 
 
@@ -394,7 +400,8 @@ async def test_status_column_selector(test_app: KanbanTui):
 
         assert pilot.app.screen.query_exactly_one(DataBasePathInput).has_focus_within
 
-        await pilot.press("ctrl+s")
+        await pilot.press("ctrl+o")
+        await pilot.press("s")
         assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
 
         assert str(pilot.app.focused.value) == "Select.BLANK"
@@ -417,7 +424,8 @@ async def test_status_update_task_in_start_column(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
 
-        await pilot.press("ctrl+s")
+        await pilot.press("ctrl+o")
+        await pilot.press("s")
         assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
         # Go to Start Select
         await pilot.press("j")

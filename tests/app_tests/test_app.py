@@ -54,7 +54,10 @@ async def test_app_no_visible_tasks(test_app: KanbanTui):
 
         # Only make doing col visible
         await pilot.press("ctrl+l")
-        await pilot.press("ctrl+c")
+        # Focus widget
+        await pilot.press("ctrl+o")
+        await pilot.press("c")
+        # Turn off Columns
         await pilot.press("j")
         await pilot.press("space")
         await pilot.press(*"jj")
