@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, computed_field
 
 
 class Task(BaseModel):
@@ -10,7 +10,6 @@ class Task(BaseModel):
     creation_date: datetime = datetime.now().replace(microsecond=0)
     start_date: datetime | None = None
     finish_date: datetime | None = None
-    time_worked_on: int = Field(default=0, ge=0)
     category: int | None = None
     due_date: datetime | None = None
     description: str | None = None
@@ -30,18 +29,6 @@ class Task(BaseModel):
             )
         return None
 
-    def update_time_worked_on(self):
-        """get duration in hours from start till finish of task"""
-        # if the start_column is set while the task
-        # is inside it already, the creation_date will be taken
-        # as the start date, when attempting to finish the task
-        if not self.start_date:
-            self.start_date = self.creation_date
-
-        self.time_worked_on += (self.finish_date - self.start_date) // timedelta(
-            minutes=1
-        ) + 1
-
     def reset_task(self):
         self.start_date = None
         self.finish_date = None
@@ -51,8 +38,12 @@ class Task(BaseModel):
         self.finish_date = None
 
     def finish_task(self):
+        # if the start_column is set while the task
+        # is inside it already, the creation_date will be taken
+        # as the start date, when attempting to finish the task
+        if not self.start_date:
+            self.start_date = self.creation_date
         self.finish_date = datetime.now().replace(microsecond=0)
-        self.update_time_worked_on()
 
     def update_task_status(
         self, new_column: int, update_column_dict: dict[str, int | None]

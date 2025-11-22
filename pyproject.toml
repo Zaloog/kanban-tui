@@ -15,6 +15,7 @@ dependencies = [
     "pydantic-settings>=2.10.1",
     "tomli-w>=1.2.0",
     "xdg-base-dirs>=6.0.2",
+    "textual-jumper>=0.2.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"

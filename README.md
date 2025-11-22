@@ -55,18 +55,64 @@ Each Board starts with the default columns, but the columns are individual for e
 When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or `move (H, L)` tasks between columns.
 </details>
 
-<!-- </details>
+</details>
 <details><summary>Database Information</summary>
+The current database schema looks as follows.
+The Audit table is filled automatically based on triggers.
 
-- Task attributes
-    - Title
-    - Category
-    - Description
-    - Due Date
-    - Creation Date (updated on task creation)
-    - Start Date (updated on movement to Doing column)
-    - Finish Date (updated on movement to Done column)
-</details> -->
+```mermaid
+erDiagram
+    tasks }|--o| categories: have
+    tasks }|--|| audits: updates
+    tasks {
+        INTEGER task_id PK
+        INTEGER board_id FK
+        INTEGER column FK
+        INTEGER category FK
+        TEXT title
+        TEXT description
+        DATETIME creation_date
+        DATETIME start_date
+        DATETIME finish_date
+        DATETIME due_date
+    }
+    boards }|--o{ columns: contains
+    boards }|--|| audits: updates
+    boards {
+        INTEGER board_id PK
+        INTEGER reset_column FK
+        INTEGER start_column FK
+        INTEGER finish_column FK
+        TEXT name
+        TEXT icon
+        DATETIME creation_date
+    }
+    columns ||--|{ tasks: contains
+    columns }|--|| audits: updates
+    columns {
+        INTEGER column_id PK
+        INTEGER board_id FK
+        TEXT name
+        BOOLEAN visible
+        INTEGER position
+    }
+    categories {
+        INTEGER category_id PK
+        TEXT name
+        TEXT color
+    }
+    audits {
+        INTEGER event_id PK
+        DATETIME event_timestamp
+        TEXT event_type
+        TEXT object_type
+        INTEGER object_id
+        TEXT object_field
+        TEXT value_old
+        TEXT value_new
+    }
+```
+</details>
 
 </details>
 <details><summary>Visual Summary</summary>
