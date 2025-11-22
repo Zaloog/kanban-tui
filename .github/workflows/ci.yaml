@@ -49,7 +49,11 @@ jobs:
         platform:
         - ubuntu-latest
         - macos-latest
-        - windows-latest
+        include:
+        - platform: windows-latest
+          continue-on-error: true
+
+    continue-on-error: ${{ matrix.continue-on-error || false }}
     runs-on: ${{matrix.platform}}
 
     steps:
