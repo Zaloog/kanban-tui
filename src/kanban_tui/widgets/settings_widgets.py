@@ -24,7 +24,7 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical
 from rich.text import Text
 
-from kanban_tui.config import Backends, MovementModes
+from kanban_tui.config import MovementModes
 from kanban_tui.modal.modal_category_screen import IsValidColor
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
@@ -55,42 +55,6 @@ class DataBasePathInput(Horizontal):
                 id="input_database_path",
             )
         return super().compose()
-
-
-class BackendSelector(Horizontal):
-    app: "KanbanTui"
-
-    def on_mount(self):
-        self.border_title = "backend.mode [yellow on black][/]"
-
-    def compose(self) -> Iterable[Widget]:
-        yield Label("Backend mode")
-        with self.prevent(Select.Changed):
-            yield VimSelect.from_values(
-                Backends,
-                value=self.app.config.backend.mode,
-                id="select_backend_mode",
-                allow_blank=False,
-            )
-
-    @on(Select.Changed)
-    def update_config(self, event: Select.Changed):
-        match event.value:
-            case Backends.SQLITE:
-                self.app.config.set_backend(new_backend=event.value)
-            case Backends.JIRA:
-                # self.app.config.set_backend(new_backend=event.value)
-                self.notify(
-                    title="Backend not available yet",
-                    message="Please choose the `sqlite` backend",
-                    severity="warning",
-                )
-            case _:
-                self.notify(
-                    title="Backend not available yet",
-                    message="Please choose the `sqlite` backend",
-                    severity="warning",
-                )
 
 
 class TaskMovementSelector(Horizontal):
@@ -602,9 +566,8 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
             yield TaskMovementSelector(classes="setting-block")
-            yield TaskDefaultColorSelector(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
-            yield BackendSelector(classes="setting-block")
+            yield TaskDefaultColorSelector(classes="setting-block")
             yield BoardColumnsInView(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")

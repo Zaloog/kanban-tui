@@ -43,8 +43,8 @@ class BoardScreen(Screen):
         if not self.app.backend.api_key:
             await self.app.push_screen_wait(ModalAuthScreen())
 
-    @on(ScreenResume)
     @work()
+    @on(ScreenResume)
     async def load_kanban_board(self, event: ScreenResume | None = None):
         self.set_reactive(BoardScreen.active_board, self.app.active_board)
 
