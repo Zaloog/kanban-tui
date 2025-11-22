@@ -103,9 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 'publish'
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      # id-token: write
-      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -122,11 +120,5 @@ jobs:
       - name: "Build Package"
         run: uv build
 
-      - name: "Publish Package to PyPi"
-        env:
-          # UV_PUBLISH_USERNAME: __token__
-          UV_PUBLISH_TOKEN: ${{secrets.PYPI_TOKEN}}
-
-        run: uv publish
-      # - name: Publish package distributions to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: "Publish package to PyPI"
+        uses: pypa/gh-action-pypi-publish@release/v1
