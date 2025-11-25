@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.1 (unreleased)
+### Added
+- Added option to change the column order via the SettingScreen
+
 ## v0.9.0
 ### Added
 - Added new config values `movement_mode` to change task movement modes
@@ -11,6 +15,7 @@ which makes the board is now horizontally scrollable
 - Added Task Card Movement via Mouse Drag n Drop
 - Added Category Management to database and menu in TaskEditScreen
 - Added new `info` command to show location and presence of xdg config/data/auth file paths
+- Added jump functionality to the SettingScreen via `textual-jumper`
 - Rework the Modal Task Screen
 - Added new entrypoint `kanban-tui`, old entrypoint `ktui` is still available
 - Update Docs (mermaid schema, new commands)
