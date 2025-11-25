@@ -288,20 +288,19 @@ AuthLabel{
       border: none;
     }
   }
-   Button{
-    height: 1;
-    border-top: none;
-    border-bottom: none;
-    background: $error-muted;
-    width:6;
-    min-width:6;
-    margin: 0 1 0 0;
-    &:focus {
-        text-style: none;
-        background: $error;
-    }
+}
+IconButton{
+  height: 1;
+  border-top: none;
+  border-bottom: none;
+  background: $error-muted;
+  width:6;
+  min-width:6;
+  margin: 0 1 0 0;
+  &:focus {
+      text-style: none;
+      background: $error;
   }
-
 }
 ModalBoardOverviewScreen {
     align:center middle;
@@ -622,31 +621,53 @@ DatePicker MonthControl {
 }
 
 ColumnListItem{
-    height:4;
-    content-align:center middle;
-}
-ColumnListItem Label{
-        width: 2fr;
-        padding:1 0 0 1;
-        text-align:left;
-}
-ColumnListItem Switch{
-        width: 1fr;
-}
-ColumnListItem > Button{
-        width: 1fr;
-        min-width:1fr;
+  height:3;
+  content-align:center middle;
+  border:none;
+
+  VerticalGroup{
+    width:5;
+    margin-left:0;
+
+  }
+  RepositionButton{
+    margin:0 0 0 0;
+    background:transparent;
+    min-width:4;
+    width: 4;
+    border:none;
+    &:focus {
+      text-style: none;
+      background:transparent;
+    }
+  }
+
+  Label {
+    width: 2fr;
+    padding:1 0 0 1;
+    text-align:left;
+  }
+  IconButton{
+    margin:1 1 0 0;
+    &.shown {
+      background:$success-muted;
+    }
+  }
 }
 AddRule{
-    margin:0;
-    align:left middle;
-    color:$success-lighten-3;
+  margin:0;
+  align:center middle;
+  color:$success-lighten-3;
+  Button {
+    width:auto;
+    min-width:5;
+    border:none;
+    height:1;
+    border-right: outer $success;
+    border-left: outer $success;
+  }
 }
 AddRule Button{
-        width:auto;
-        min-width:5;
-        border:none;
-        height:1;
 }
 
 # Classes

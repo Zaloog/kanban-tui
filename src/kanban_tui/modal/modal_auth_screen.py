@@ -15,10 +15,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Input, Label
 from textual.containers import Horizontal, Vertical
 
-
-class IconButton(Button):
-    def on_mount(self):
-        self.variant = "error"
+from kanban_tui.widgets.custom_widgets import IconButton
 
 
 class ApiKeyInput(Input):
