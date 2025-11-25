@@ -989,9 +989,34 @@ def update_column_visibility_db(
             raise e
 
 
+def update_single_column_position_db(
+    column_id: int, new_position: int, database: str = DATABASE_FILE.as_posix()
+) -> int:
+    update_column_position_dict = {"column_id": column_id, "new_position": new_position}
+
+    transaction_str = """
+    UPDATE columns
+    SET
+        position = :new_position
+    WHERE
+        column_id = :column_id
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(transaction_str, update_column_position_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
 def update_column_positions_db(
     board_id: int, new_position: int, database: str = DATABASE_FILE.as_posix()
-) -> str | int:
+) -> int:
     update_column_position_dict = {"board_id": board_id, "new_position": new_position}
 
     transaction_str = """

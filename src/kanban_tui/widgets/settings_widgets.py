@@ -37,6 +37,7 @@ from kanban_tui.backends.sqlite.database import (
     delete_column_db,
     create_new_column_db,
     update_column_positions_db,
+    update_single_column_position_db,
     update_status_update_columns_db,
 )
 
@@ -207,10 +208,14 @@ class ColumnListItem(ListItem):
                 yield RepositionButton(
                     label=Text.from_markup(":arrow_up_small:"),
                     id=f"button_col_up_{self.column.column_id}",
+                    classes="invisible" if self.column.position == 1 else None,
                 )
                 yield RepositionButton(
                     label=Text.from_markup(":arrow_down_small:"),
                     id=f"button_col_down_{self.column.column_id}",
+                    classes="invisible"
+                    if self.column.position == len(self.app.column_list)
+                    else None,
                 )
             yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
 
@@ -443,22 +448,82 @@ class ColumnSelector(ListView):
                 ).press()
 
     @on(Button.Pressed)
-    def update_visibility(self, event: Button.Pressed):
-        if "vis" not in event.button.id:
-            return
-        event.button.toggle_class("shown")
-        column_is_visible = event.button.has_class("shown")
+    async def handle_button_events(self, event: Button.Pressed):
+        button_kind = event.button.id.split("_")[2]
         column_id = int(event.button.id.split("_")[-1])
+        match button_kind:
+            case "vis":
+                event.button.toggle_class("shown")
 
-        self.amount_visible += 1 if column_is_visible else -1
+                column_is_visible = event.button.has_class("shown")
+                self.amount_visible += 1 if column_is_visible else -1
 
-        update_column_visibility_db(
-            column_id=column_id,
-            visible=column_is_visible,
-            database=self.app.config.backend.sqlite_settings.database_path,
-        )
-        self.app.update_column_list()
-        self.app.needs_refresh = True
+                update_column_visibility_db(
+                    column_id=column_id,
+                    visible=column_is_visible,
+                    database=self.app.config.backend.sqlite_settings.database_path,
+                )
+                self.app.update_column_list()
+                self.app.needs_refresh = True
+            case "up":
+                new_position = event.button.parent.parent.parent.column.position - 1
+                old_position = event.button.parent.parent.parent.column.position
+                # Update New Position
+                update_single_column_position_db(
+                    column_id=column_id,
+                    new_position=new_position,
+                    database=self.app.config.backend.sqlite_settings.database_path,
+                )
+                # Update Place other column to old position
+                other_column_id = self.children[new_position].column.column_id
+                update_single_column_position_db(
+                    column_id=other_column_id,
+                    new_position=old_position,
+                    database=self.app.config.backend.sqlite_settings.database_path,
+                )
+
+                # Update state and Widgets
+                self.app.update_column_list()
+                await self.clear()
+                await self.extend(
+                    [FirstListItem()]
+                    + [ColumnListItem(column=column) for column in self.app.column_list]
+                )
+                # Trigger Update on tab Switch
+                self.app.needs_refresh = True
+                self.index = new_position
+                self.focus()
+
+            case "down":
+                new_position = event.button.parent.parent.parent.column.position + 1
+                old_position = event.button.parent.parent.parent.column.position
+                # Update New Position
+                update_single_column_position_db(
+                    column_id=column_id,
+                    new_position=new_position,
+                    database=self.app.config.backend.sqlite_settings.database_path,
+                )
+                # Update Place other column to old position
+                other_column_id = self.children[new_position].column.column_id
+                update_single_column_position_db(
+                    column_id=other_column_id,
+                    new_position=old_position,
+                    database=self.app.config.backend.sqlite_settings.database_path,
+                )
+
+                # Update state and Widgets
+                self.app.update_column_list()
+                await self.clear()
+                await self.extend(
+                    [FirstListItem()]
+                    + [ColumnListItem(column=column) for column in self.app.column_list]
+                )
+                # Trigger Update on tab Switch
+                self.app.needs_refresh = True
+                self.index = new_position
+                self.focus()
+            case _:
+                return
 
 
 class StatusColumnSelector(Vertical):

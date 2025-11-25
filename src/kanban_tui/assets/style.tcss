@@ -640,6 +640,9 @@ ColumnListItem{
       text-style: none;
       background:transparent;
     }
+    &.invisible {
+      visibility: hidden;
+    }
   }
 
   Label {
