@@ -294,35 +294,36 @@ class ColumnSelector(ListView):
         super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
     # rename Column
-    @work()
-    async def action_rename_column(self):
-        if not isinstance(self.highlighted_child, ColumnListItem):
-            return
+    def action_rename_column(self):
+        self.rename_column(self.highlighted_child)
 
+    @work()
+    async def rename_column(self, column_list_item: ColumnListItem):
         event_col_name = await self.app.push_screen(
-            ModalUpdateColumnScreen(column=self.highlighted_child.column),
+            ModalUpdateColumnScreen(column=column_list_item.column),
             wait_for_dismiss=True,
         )
-        if event_col_name:
-            column, new_name = event_col_name
-            self.app.backend.update_column_name(
-                column_id=column.column_id,
-                new_name=new_name,
-            )
+        if not event_col_name:
+            return
 
-            # Update state and Widgets
-            self.app.update_column_list()
-            await self.clear()
-            await self.extend(
-                [FirstListItem()]
-                + [ColumnListItem(column=column) for column in self.app.column_list]
-            )
-            await self.app.screen.query_one(StatusColumnSelector).recompose()
-            self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+        column, new_name = event_col_name
+        self.app.backend.update_column_name(
+            column_id=column.column_id,
+            new_name=new_name,
+        )
 
-            self.app.needs_refresh = True
+        # Update state and Widgets
+        self.app.update_column_list()
+        await self.clear()
+        await self.extend(
+            [FirstListItem()]
+            + [ColumnListItem(column=column) for column in self.app.column_list]
+        )
+        await self.app.screen.query_one(StatusColumnSelector).recompose()
+        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
 
-            self.index = column.position
+        self.app.needs_refresh = True
+        self.index = column_list_item.column.position
 
     # New Column
     def action_addrule_press(self):
@@ -331,35 +332,32 @@ class ColumnSelector(ListView):
         self.highlighted_child.query_one(AddRule).query_one(Button).press()
 
     @on(AddRule.Pressed)
-    def add_new_column(self, event: AddRule.Pressed):
-        async def modal_add_new_column(
-            event_col_name: tuple[AddRule.Pressed, str] | None,
-        ):
-            if event_col_name:
-                event, column_name = event_col_name
-                self.app.backend.create_new_column(
-                    board_id=self.app.active_board.board_id,
-                    position=event.addrule.position + 1,
-                    name=column_name,
-                )
-                self.app.update_column_list()
-                await self.clear()
-                await self.extend(
-                    [FirstListItem()]
-                    + [ColumnListItem(column=column) for column in self.app.column_list]
-                )
-                # Update dependent Widgets
-                await self.app.screen.query_one(BoardColumnsInView).recompose()
-                await self.app.screen.query_one(StatusColumnSelector).recompose()
-                self.app.screen.query_one(
-                    StatusColumnSelector
-                ).get_select_widget_values()
-                self.index = event.addrule.position + 1
-                self.amount_visible += 1
-
-        self.app.push_screen(
-            ModalUpdateColumnScreen(event=event), callback=modal_add_new_column
+    @work()
+    async def add_new_column(self, event: AddRule.Pressed):
+        event_col_name = await self.app.push_screen(
+            ModalUpdateColumnScreen(event=event), wait_for_dismiss=True
         )
+        if not event_col_name:
+            return
+
+        event, column_name = event_col_name
+        self.app.backend.create_new_column(
+            board_id=self.app.active_board.board_id,
+            position=event.addrule.position + 1,
+            name=column_name,
+        )
+        self.app.update_column_list()
+        await self.clear()
+        await self.extend(
+            [FirstListItem()]
+            + [ColumnListItem(column=column) for column in self.app.column_list]
+        )
+        # Update dependent Widgets
+        await self.app.screen.query_one(BoardColumnsInView).recompose()
+        await self.app.screen.query_one(StatusColumnSelector).recompose()
+        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+        self.index = event.addrule.position + 1
+        self.amount_visible += 1
 
     # Delete Column
     def action_delete_press(self):
@@ -427,7 +425,7 @@ class ColumnSelector(ListView):
         else:
             self.post_message(ColumnListItem.Triggered(event.item, "vis"))
 
-    def change_visibility(self, column_list_item: ColumnListItem):
+    def change_column_visibility(self, column_list_item: ColumnListItem):
         column_list_item.column_visible = not column_list_item.column_visible
         self.amount_visible += 1 if column_list_item.column_visible else -1
 
@@ -445,9 +443,9 @@ class ColumnSelector(ListView):
             case "del":
                 self.delete_column(event.column_list_item)
             case "vis":
-                self.change_visibility(event.column_list_item)
+                self.change_column_visibility(event.column_list_item)
             case "rename":
-                self.action_rename_column()
+                self.rename_column(event.column_list_item)
             case "up":
                 new_position = event.button.parent.parent.parent.column.position - 1
                 old_position = event.button.parent.parent.parent.column.position
