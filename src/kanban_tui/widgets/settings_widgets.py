@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Literal
 
 
 if TYPE_CHECKING:
@@ -183,9 +183,15 @@ class RepositionButton(Button): ...
 
 class ColumnListItem(ListItem):
     app: "KanbanTui"
+    column_visible: reactive[bool] = reactive(True)
 
-    class Deleted(Message):
-        def __init__(self, column_list_item: ColumnListItem) -> None:
+    class Triggered(Message):
+        def __init__(
+            self,
+            column_list_item: ColumnListItem,
+            interaction: Literal["del", "vis", "rename", "up", "down"],
+        ) -> None:
+            self.interaction = interaction
             self.column_list_item = column_list_item
             super().__init__()
 
@@ -196,6 +202,7 @@ class ColumnListItem(ListItem):
     def __init__(self, column: Column) -> None:
         self.column = column
         super().__init__(id=f"listitem_column_{self.column.column_id}")
+        self.column_visible = self.column.visible
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
@@ -217,7 +224,7 @@ class ColumnListItem(ListItem):
             vis_button = IconButton(
                 label=Text.from_markup(":eye:"),
                 id=f"button_col_vis_{self.column.column_id}",
-                classes="shown" if self.column.visible else None,
+                # classes="shown" if self.column_visible else None,
             )
             vis_button.tooltip = "Toggle visibility"
             yield vis_button
@@ -237,10 +244,15 @@ class ColumnListItem(ListItem):
             yield delete_button
         yield AddRule(column=self.column)
 
+    async def watch_column_visible(self):
+        self.query_one(f"#button_col_vis_{self.column.column_id}", Button).toggle_class(
+            "shown"
+        )
+
     @on(Button.Pressed)
-    def trigger_column_delete(self, event: Button.Pressed):
-        if "del" in event.button.id:
-            self.post_message(self.Deleted(self))
+    def trigger_button_interaction(self, event: Button.Pressed):
+        interaction = event.button.id.split("_")[2]
+        self.post_message(self.Triggered(self, interaction=interaction))
 
 
 class FirstListItem(ListItem):
@@ -265,13 +277,9 @@ class ColumnSelector(ListView):
         Binding(key="j", action="cursor_down", show=False),
         Binding(key="k", action="cursor_up", show=False),
         Binding(key="enter,space", action="select_cursor", show=False),
-        Binding(key="d", action="delete_press", description="Delete Column", show=True),
-        Binding(
-            key="r", action="rename_column", description="Rename Column", show=True
-        ),
-        Binding(
-            key="n", action="addrule_press", description="Insert Column", show=True
-        ),
+        Binding(key="d", action="delete_press", description="Delete", show=True),
+        Binding(key="r", action="rename_column", description="Rename", show=True),
+        Binding(key="n", action="addrule_press", description="New Column", show=True),
     ]
     amount_visible: reactive[int] = reactive(0)
 
@@ -360,10 +368,9 @@ class ColumnSelector(ListView):
             target_button_id = f"#button_col_del_{column_id}"
             self.highlighted_child.query_one(target_button_id, Button).press()
 
-    @on(ColumnListItem.Deleted)
     @work()
-    async def delete_column(self, event: ColumnListItem.Deleted):
-        column = event.column_list_item.column
+    async def delete_column(self, column_list_item: ColumnListItem):
+        column = column_list_item.column
         if (
             len(
                 [task for task in self.app.task_list if task.column == column.column_id]
@@ -380,19 +387,17 @@ class ColumnSelector(ListView):
         if not confirm_deletion:
             return
 
-        column_id = event.column_list_item.column.column_id
-
         deleted_column = self.app.backend.delete_column(
-            column_id=column_id,
+            column_id=column_list_item.column.column_id,
         )
         self.app.update_column_list()
-        if event.column_list_item.column.visible:
+        if column_list_item.column.visible:
             self.amount_visible -= 1
         else:
             self.watch_amount_visible()
 
         # Remove ListItem
-        await event.column_list_item.remove()
+        await column_list_item.remove()
         # Update dependent Widgets
         await self.app.screen.query_one(StatusColumnSelector).recompose()
         self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
@@ -417,33 +422,30 @@ class ColumnSelector(ListView):
 
     @on(ListView.Selected)
     def on_space_key(self, event: ListView.Selected):
-        if isinstance(event.list_view.highlighted_child, FirstListItem):
+        if isinstance(event.item, FirstListItem):
             self.action_addrule_press()
         else:
-            if event.list_view.highlighted_child:
-                column_id = self.highlighted_child.column.column_id
-                target_button_id = f"#button_col_vis_{column_id}"
-                event.list_view.highlighted_child.query_one(
-                    target_button_id, Button
-                ).press()
+            self.post_message(ColumnListItem.Triggered(event.item, "vis"))
 
-    @on(Button.Pressed)
-    async def handle_button_events(self, event: Button.Pressed):
-        button_kind = event.button.id.split("_")[2]
-        column_id = int(event.button.id.split("_")[-1])
-        match button_kind:
+    def change_visibility(self, column_list_item: ColumnListItem):
+        column_list_item.column_visible = not column_list_item.column_visible
+        self.amount_visible += 1 if column_list_item.column_visible else -1
+
+        self.app.backend.update_column_visibility(
+            column_id=column_list_item.column.column_id,
+            visible=column_list_item.column_visible,
+        )
+        self.app.update_column_list()
+        self.app.needs_refresh = True
+
+    @on(ColumnListItem.Triggered)
+    async def handle_button_events(self, event: ColumnListItem.Triggered):
+        column_id = event.column_list_item.column.column_id
+        match event.interaction:
+            case "del":
+                self.delete_column(event.column_list_item)
             case "vis":
-                event.button.toggle_class("shown")
-
-                column_is_visible = event.button.has_class("shown")
-                self.amount_visible += 1 if column_is_visible else -1
-
-                self.app.backend.update_column_visibility(
-                    column_id=column_id,
-                    visible=column_is_visible,
-                )
-                self.app.update_column_list()
-                self.app.needs_refresh = True
+                self.change_visibility(event.column_list_item)
             case "rename":
                 self.action_rename_column()
             case "up":
