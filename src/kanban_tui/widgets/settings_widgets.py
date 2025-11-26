@@ -32,11 +32,8 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
-    update_column_name_db,
     update_column_visibility_db,
     delete_column_db,
-    create_new_column_db,
-    update_column_positions_db,
     update_single_column_position_db,
     update_status_update_columns_db,
 )
@@ -291,41 +288,35 @@ class ColumnSelector(ListView):
         super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
     # rename Column
-    def action_rename_column(self):
+    @work()
+    async def action_rename_column(self):
         if not isinstance(self.highlighted_child, ColumnListItem):
             return
 
-        async def modal_rename_column(
-            event_col_name: tuple[Column, str] | None,
-        ):
-            if event_col_name:
-                column, new_column_name = event_col_name
-                update_column_name_db(
-                    column_id=column.column_id,
-                    new_column_name=new_column_name,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-
-                # Update state and Widgets
-                self.app.update_column_list()
-                await self.clear()
-                await self.extend(
-                    [FirstListItem()]
-                    + [ColumnListItem(column=column) for column in self.app.column_list]
-                )
-                await self.app.screen.query_one(StatusColumnSelector).recompose()
-                self.app.screen.query_one(
-                    StatusColumnSelector
-                ).get_select_widget_values()
-                # Trigger Update on tab Switch
-                self.app.needs_refresh = True
-
-                self.index = column.position
-
-        self.app.push_screen(
+        event_col_name = await self.app.push_screen(
             ModalUpdateColumnScreen(column=self.highlighted_child.column),
-            callback=modal_rename_column,
+            wait_for_dismiss=True,
         )
+        if event_col_name:
+            column, new_name = event_col_name
+            self.app.backend.update_column_name(
+                column_id=column.column_id,
+                new_name=new_name,
+            )
+
+            # Update state and Widgets
+            self.app.update_column_list()
+            await self.clear()
+            await self.extend(
+                [FirstListItem()]
+                + [ColumnListItem(column=column) for column in self.app.column_list]
+            )
+            await self.app.screen.query_one(StatusColumnSelector).recompose()
+            self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+
+            self.app.needs_refresh = True
+
+            self.index = column.position
 
     # New Column
     def action_addrule_press(self):
@@ -340,17 +331,10 @@ class ColumnSelector(ListView):
         ):
             if event_col_name:
                 event, column_name = event_col_name
-                update_column_positions_db(
-                    board_id=self.app.active_board.board_id,
-                    new_position=event.addrule.position,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-                create_new_column_db(
+                self.app.backend.create_new_column(
                     board_id=self.app.active_board.board_id,
                     position=event.addrule.position + 1,
                     name=column_name,
-                    visible=True,
-                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
                 self.app.update_column_list()
                 await self.clear()
@@ -465,6 +449,8 @@ class ColumnSelector(ListView):
                 )
                 self.app.update_column_list()
                 self.app.needs_refresh = True
+            case "rename":
+                self.action_rename_column()
             case "up":
                 new_position = event.button.parent.parent.parent.column.position - 1
                 old_position = event.button.parent.parent.parent.column.position

@@ -669,7 +669,7 @@ def create_new_column_db(
     board_id: int,
     visible: bool = True,
     database: str = DATABASE_FILE.as_posix(),
-):
+) -> Column:
     transaction_str_cols = """
     INSERT INTO columns
     VALUES (
@@ -678,19 +678,31 @@ def create_new_column_db(
         :visible,
         :position,
         :board_id
-        );"""
+        )
+        RETURNING *
+        ;"""
     column_dict = {
         "name": name,
         "visible": visible,
         "position": position,
         "board_id": board_id,
     }
+    update_other_positions_str = """
+    UPDATE columns
+    SET
+        position = position + 1
+    WHERE
+        board_id = :board_id
+        AND position >= :position
+    ;
+    """
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = column_factory
         try:
-            con.execute(transaction_str_cols, column_dict)
+            con.execute(update_other_positions_str, column_dict)
+            new_column = con.execute(transaction_str_cols, column_dict).fetchone()
             con.commit()
-            return 0
+            return new_column
         except sqlite3.Error as e:
             con.rollback()
             raise e
@@ -1041,9 +1053,9 @@ def update_column_positions_db(
 
 
 def update_column_name_db(
-    column_id: int, new_column_name: str, database: str = DATABASE_FILE.as_posix()
+    column_id: int, new_name: str, database: str = DATABASE_FILE.as_posix()
 ) -> str | int:
-    update_column_name_dict = {"column_id": column_id, "new_name": new_column_name}
+    update_column_name_dict = {"column_id": column_id, "new_name": new_name}
 
     transaction_str = """
     UPDATE columns
