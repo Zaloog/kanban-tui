@@ -276,6 +276,18 @@ class ColumnSelector(ListView):
     BINDINGS = [
         Binding(key="j", action="cursor_down", show=False),
         Binding(key="k", action="cursor_up", show=False),
+        Binding(
+            key="J",
+            action="move_column_position('down')",
+            description="Move down",
+            show=True,
+        ),
+        Binding(
+            key="K",
+            action="move_column_position('up')",
+            description="Move up",
+            show=True,
+        ),
         Binding(key="enter,space", action="select_cursor", show=False),
         Binding(key="d", action="delete_press", description="Delete", show=True),
         Binding(key="r", action="rename_column", description="Rename", show=True),
@@ -294,6 +306,17 @@ class ColumnSelector(ListView):
         super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
     # Actions
+    def action_cursor_down(self) -> None:
+        self.refresh_bindings()
+        return super().action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        self.refresh_bindings()
+        return super().action_cursor_up()
+
+    def action_move_column_position(self, direction: Literal["up", "down"]):
+        self.notify(f"{direction}")
+
     def action_rename_column(self):
         self.rename_column(self.highlighted_child)
 
@@ -304,6 +327,15 @@ class ColumnSelector(ListView):
 
     async def action_delete_press(self):
         self.delete_column(self.highlighted_child)
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action in ["rename_column", "delete_press"]:
+            return self.index != 0
+        if "up" in parameters:
+            return (self.index is not None) and (self.index > 1)
+        if "down" in parameters:
+            return self.index not in [0, len(self.app.column_list)]
+        return True
 
     @work()
     async def rename_column(self, column_list_item: ColumnListItem):
@@ -417,7 +449,6 @@ class ColumnSelector(ListView):
             self.action_addrule_press()
         else:
             self.change_column_visibility(event.item)
-            # self.post_message(ColumnListItem.Triggered(event.item, "vis"))
 
     def change_column_visibility(self, column_list_item: ColumnListItem):
         column_list_item.column_visible = not column_list_item.column_visible
@@ -429,8 +460,6 @@ class ColumnSelector(ListView):
         )
         self.app.update_column_list()
         self.app.needs_refresh = True
-
-    def move_column_position(self): ...
 
     @on(ColumnListItem.Triggered)
     async def handle_button_events(self, event: ColumnListItem.Triggered):
