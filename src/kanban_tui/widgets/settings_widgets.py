@@ -32,7 +32,6 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
-    update_column_visibility_db,
     delete_column_db,
     update_single_column_position_db,
     update_status_update_columns_db,
@@ -442,10 +441,9 @@ class ColumnSelector(ListView):
                 column_is_visible = event.button.has_class("shown")
                 self.amount_visible += 1 if column_is_visible else -1
 
-                update_column_visibility_db(
+                self.app.backend.update_column_visibility(
                     column_id=column_id,
                     visible=column_is_visible,
-                    database=self.app.config.backend.sqlite_settings.database_path,
                 )
                 self.app.update_column_list()
                 self.app.needs_refresh = True

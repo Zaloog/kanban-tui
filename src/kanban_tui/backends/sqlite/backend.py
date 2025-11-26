@@ -25,6 +25,7 @@ from kanban_tui.backends.sqlite.database import (
     update_board_entry_db,
     update_column_name_db,
     update_category_entry_db,
+    update_column_visibility_db,
     update_task_entry_db,
     update_task_status_db,
     get_board_info_dict,
@@ -158,6 +159,11 @@ class SqliteBackend(Backend):
         return category
 
     # Column Management
+    def update_column_visibility(self, column_id: int, visible: bool):
+        update_column_visibility_db(
+            column_id=column_id, visible=visible, database=self.database_path
+        )
+
     def update_column_name(self, column_id: int, new_name: str):
         update_column_name_db(
             column_id=column_id, new_name=new_name, database=self.database_path
