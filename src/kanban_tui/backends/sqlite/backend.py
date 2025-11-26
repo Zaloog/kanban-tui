@@ -15,6 +15,7 @@ from kanban_tui.backends.sqlite.database import (
     create_new_task_db,
     delete_board_db,
     delete_category_db,
+    delete_column_db,
     delete_task_db,
     get_all_boards_db,
     get_all_categories_db,
@@ -168,6 +169,9 @@ class SqliteBackend(Backend):
         update_column_name_db(
             column_id=column_id, new_name=new_name, database=self.database_path
         )
+
+    def delete_column(self, column_id: int) -> Column:
+        return delete_column_db(column_id=column_id, database=self.database_path)
 
     def create_new_column(self, board_id: int, position: int, name: str):
         return create_new_column_db(

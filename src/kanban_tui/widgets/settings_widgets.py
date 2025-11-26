@@ -32,7 +32,6 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
-    delete_column_db,
     update_single_column_position_db,
     update_status_update_columns_db,
 )
@@ -382,11 +381,9 @@ class ColumnSelector(ListView):
             return
 
         column_id = event.column_list_item.column.column_id
-        column_name = event.column_list_item.column.name
 
-        delete_column_db(
+        deleted_column = self.app.backend.delete_column(
             column_id=column_id,
-            database=self.app.config.backend.sqlite_settings.database_path,
         )
         self.app.update_column_list()
         if event.column_list_item.column.visible:
@@ -403,7 +400,7 @@ class ColumnSelector(ListView):
 
         self.notify(
             title="Columns Updated",
-            message=f"Column [blue]{column_name}[/] deleted",
+            message=f"Column [blue]{deleted_column.name}[/] deleted",
             timeout=2,
         )
 

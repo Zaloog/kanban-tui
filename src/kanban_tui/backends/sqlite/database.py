@@ -1118,17 +1118,18 @@ def update_task_entry_db(
 
 def delete_column_db(
     column_id: int, database: str = DATABASE_FILE.as_posix()
-) -> int | str:
+) -> Column:
     delete_str = """
     DELETE FROM columns
     WHERE column_id = ?
+    RETURNING *
     """
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = column_factory
         try:
-            con.execute(delete_str, (column_id,))
+            deleted_column = con.execute(delete_str, (column_id,)).fetchone()
             con.commit()
-            return 0
+            return deleted_column
         except sqlite3.Error as e:
             con.rollback()
             raise e
