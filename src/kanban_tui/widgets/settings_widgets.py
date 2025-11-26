@@ -360,11 +360,12 @@ class ColumnSelector(ListView):
         self.amount_visible += 1
 
     # Delete Column
-    def action_delete_press(self):
-        if isinstance(self.highlighted_child, ColumnListItem):
-            column_id = self.highlighted_child.column.column_id
-            target_button_id = f"#button_col_del_{column_id}"
-            self.highlighted_child.query_one(target_button_id, Button).press()
+    async def action_delete_press(self):
+        self.delete_column(self.highlighted_child)
+        # if isinstance(, ColumnListItem):
+        #     column_id = self.highlighted_child.column.column_id
+        #     target_button_id = f"#button_col_del_{column_id}"
+        #     self.highlighted_child.query_one(target_button_id, Button).press()
 
     @work()
     async def delete_column(self, column_list_item: ColumnListItem):
@@ -406,6 +407,7 @@ class ColumnSelector(ListView):
             message=f"Column [blue]{deleted_column.name}[/] deleted",
             timeout=2,
         )
+        self.app.needs_refresh = True
 
     def send_error_notify(self, column_name: str):
         self.notify(
