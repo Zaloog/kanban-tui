@@ -293,23 +293,30 @@ class ColumnSelector(ListView):
         ]
         super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
-    # rename Column
+    # Actions
     def action_rename_column(self):
         self.rename_column(self.highlighted_child)
 
+    def action_addrule_press(self):
+        if self.highlighted_child is None:
+            return
+        self.highlighted_child.query_one(AddRule).query_one(Button).press()
+
+    async def action_delete_press(self):
+        self.delete_column(self.highlighted_child)
+
     @work()
     async def rename_column(self, column_list_item: ColumnListItem):
-        event_col_name = await self.app.push_screen(
+        column_name = await self.app.push_screen(
             ModalUpdateColumnScreen(column=column_list_item.column),
             wait_for_dismiss=True,
         )
-        if not event_col_name:
+        if column_name is None:
             return
 
-        column, new_name = event_col_name
         self.app.backend.update_column_name(
-            column_id=column.column_id,
-            new_name=new_name,
+            column_id=column_list_item.column.column_id,
+            new_name=column_name,
         )
 
         # Update state and Widgets
@@ -320,27 +327,19 @@ class ColumnSelector(ListView):
             + [ColumnListItem(column=column) for column in self.app.column_list]
         )
         await self.app.screen.query_one(StatusColumnSelector).recompose()
-        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
 
         self.app.needs_refresh = True
         self.index = column_list_item.column.position
 
-    # New Column
-    def action_addrule_press(self):
-        if self.highlighted_child is None:
-            return
-        self.highlighted_child.query_one(AddRule).query_one(Button).press()
-
     @on(AddRule.Pressed)
     @work()
     async def add_new_column(self, event: AddRule.Pressed):
-        event_col_name = await self.app.push_screen(
+        column_name = await self.app.push_screen(
             ModalUpdateColumnScreen(event=event), wait_for_dismiss=True
         )
-        if not event_col_name:
+        if column_name is None:
             return
 
-        event, column_name = event_col_name
         self.app.backend.create_new_column(
             board_id=self.app.active_board.board_id,
             position=event.addrule.position + 1,
@@ -355,17 +354,9 @@ class ColumnSelector(ListView):
         # Update dependent Widgets
         await self.app.screen.query_one(BoardColumnsInView).recompose()
         await self.app.screen.query_one(StatusColumnSelector).recompose()
-        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+
         self.index = event.addrule.position + 1
         self.amount_visible += 1
-
-    # Delete Column
-    async def action_delete_press(self):
-        self.delete_column(self.highlighted_child)
-        # if isinstance(, ColumnListItem):
-        #     column_id = self.highlighted_child.column.column_id
-        #     target_button_id = f"#button_col_del_{column_id}"
-        #     self.highlighted_child.query_one(target_button_id, Button).press()
 
     @work()
     async def delete_column(self, column_list_item: ColumnListItem):
@@ -425,7 +416,8 @@ class ColumnSelector(ListView):
         if isinstance(event.item, FirstListItem):
             self.action_addrule_press()
         else:
-            self.post_message(ColumnListItem.Triggered(event.item, "vis"))
+            self.change_column_visibility(event.item)
+            # self.post_message(ColumnListItem.Triggered(event.item, "vis"))
 
     def change_column_visibility(self, column_list_item: ColumnListItem):
         column_list_item.column_visible = not column_list_item.column_visible
@@ -437,6 +429,8 @@ class ColumnSelector(ListView):
         )
         self.app.update_column_list()
         self.app.needs_refresh = True
+
+    def move_column_position(self): ...
 
     @on(ColumnListItem.Triggered)
     async def handle_button_events(self, event: ColumnListItem.Triggered):
@@ -528,7 +522,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                # value=self.app.active_board.reset_column or BLANK,
+                value=self.app.active_board.reset_column or Select.BLANK,
                 prompt="No reset column",
                 id="select_reset",
             )
@@ -543,7 +537,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                # value=self.app.active_board.start_column or BLANK,
+                value=self.app.active_board.start_column or Select.BLANK,
                 prompt="No start column",
                 id="select_start",
             )
@@ -556,7 +550,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                # value=self.app.active_board.finish_column or BLANK,
+                value=self.app.active_board.finish_column or Select.BLANK,
                 prompt="No finish column",
                 id="select_finish",
             )

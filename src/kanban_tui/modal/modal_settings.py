@@ -53,7 +53,8 @@ class ModalUpdateColumnScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_continue_new_col")
     def confirm_new_column(self):
-        self.dismiss(result=(self.event, self.query_one(Input).value))
+        updated_name = self.query_one(Input).value
+        self.dismiss(result=updated_name)
 
     @on(Button.Pressed, "#btn_cancel_new_col")
     def cancel_new_column(self):
