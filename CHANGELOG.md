@@ -3,6 +3,7 @@
 ## v0.9.1 (unreleased)
 ### Added
 - Added option to change the column order via the SettingScreen
+- Reworked the ColumnListView UI
 
 ## v0.9.0
 ### Added

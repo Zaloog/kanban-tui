@@ -219,11 +219,7 @@ class ColumnListItem(ListItem):
                     if self.column.position == len(self.app.column_list)
                     else None,
                 )
-            yield Label(
-                Text.from_markup(
-                    f"Show [cyan]{self.column.name}[/] {self.column.position}"
-                )
-            )
+            yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
 
             vis_button = IconButton(
                 label=Text.from_markup(":eye:"),
