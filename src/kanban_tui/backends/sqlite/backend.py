@@ -170,8 +170,13 @@ class SqliteBackend(Backend):
             column_id=column_id, new_name=new_name, database=self.database_path
         )
 
-    def delete_column(self, column_id: int) -> Column:
-        return delete_column_db(column_id=column_id, database=self.database_path)
+    def delete_column(self, column_id: int, position: int, board_id: int) -> Column:
+        return delete_column_db(
+            column_id=column_id,
+            position=position,
+            board_id=board_id,
+            database=self.database_path,
+        )
 
     def create_new_column(self, board_id: int, position: int, name: str):
         return create_new_column_db(

@@ -32,7 +32,7 @@ from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
-    update_single_column_position_db,
+    switch_column_positions_db,
     update_status_update_columns_db,
 )
 
@@ -219,7 +219,11 @@ class ColumnListItem(ListItem):
                     if self.column.position == len(self.app.column_list)
                     else None,
                 )
-            yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
+            yield Label(
+                Text.from_markup(
+                    f"Show [cyan]{self.column.name}[/] {self.column.position}"
+                )
+            )
 
             vis_button = IconButton(
                 label=Text.from_markup(":eye:"),
@@ -314,8 +318,10 @@ class ColumnSelector(ListView):
         self.refresh_bindings()
         return super().action_cursor_up()
 
-    def action_move_column_position(self, direction: Literal["up", "down"]):
-        self.notify(f"{direction}")
+    async def action_move_column_position(self, direction: Literal["up", "down"]):
+        await self.move_column_position(
+            column_list_item=self.highlighted_child, direction=direction
+        )
 
     def action_rename_column(self):
         self.rename_column(self.highlighted_child)
@@ -352,13 +358,8 @@ class ColumnSelector(ListView):
         )
 
         # Update state and Widgets
-        self.app.update_column_list()
-        await self.clear()
-        await self.extend(
-            [FirstListItem()]
-            + [ColumnListItem(column=column) for column in self.app.column_list]
-        )
-        await self.app.screen.query_one(StatusColumnSelector).recompose()
+        await self.update_columns()
+        await self.update_dependent_widgets()
 
         self.app.needs_refresh = True
         self.index = column_list_item.column.position
@@ -377,15 +378,9 @@ class ColumnSelector(ListView):
             position=event.addrule.position + 1,
             name=column_name,
         )
-        self.app.update_column_list()
-        await self.clear()
-        await self.extend(
-            [FirstListItem()]
-            + [ColumnListItem(column=column) for column in self.app.column_list]
-        )
-        # Update dependent Widgets
-        await self.app.screen.query_one(BoardColumnsInView).recompose()
-        await self.app.screen.query_one(StatusColumnSelector).recompose()
+
+        await self.update_columns()
+        await self.update_dependent_widgets()
 
         self.index = event.addrule.position + 1
         self.amount_visible += 1
@@ -411,25 +406,24 @@ class ColumnSelector(ListView):
 
         deleted_column = self.app.backend.delete_column(
             column_id=column_list_item.column.column_id,
+            position=column_list_item.column.position,
+            board_id=self.app.active_board.board_id,
         )
-        self.app.update_column_list()
+
+        await self.update_columns()
+        await self.update_dependent_widgets()
+
         if column_list_item.column.visible:
             self.amount_visible -= 1
         else:
             self.watch_amount_visible()
-
-        # Remove ListItem
-        await column_list_item.remove()
-        # Update dependent Widgets
-        await self.app.screen.query_one(StatusColumnSelector).recompose()
-        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
-        await self.app.screen.query_one(BoardColumnsInView).recompose()
 
         self.notify(
             title="Columns Updated",
             message=f"Column [blue]{deleted_column.name}[/] deleted",
             timeout=2,
         )
+        self.index = column_list_item.column.position - 1
         self.app.needs_refresh = True
 
     def send_error_notify(self, column_name: str):
@@ -439,6 +433,19 @@ class ColumnSelector(ListView):
             timeout=1,
             severity="error",
         )
+
+    async def update_columns(self):
+        self.app.update_column_list()
+        await self.clear()
+        await self.extend(
+            [FirstListItem()]
+            + [ColumnListItem(column=column) for column in self.app.column_list]
+        )
+
+    async def update_dependent_widgets(self):
+        await self.app.screen.query_one(StatusColumnSelector).recompose()
+        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+        await self.app.screen.query_one(BoardColumnsInView).recompose()
 
     def watch_amount_visible(self):
         self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/]"
@@ -461,9 +468,30 @@ class ColumnSelector(ListView):
         self.app.update_column_list()
         self.app.needs_refresh = True
 
+    async def move_column_position(
+        self, column_list_item: ColumnListItem, direction: Literal["up", "down"]
+    ):
+        modifier = 1 if direction == "down" else -1
+        old_position = column_list_item.column.position
+        new_position = old_position + modifier
+        other_column_id = self.children[new_position].column.column_id
+        # Update New Position
+        switch_column_positions_db(
+            current_column_id=column_list_item.column.column_id,
+            other_column_id=other_column_id,
+            old_position=old_position,
+            new_position=new_position,
+            database=self.app.config.backend.sqlite_settings.database_path,
+        )
+        # Update state and Widgets
+        await self.update_columns()
+        # Trigger Update on tab Switch
+        self.app.needs_refresh = True
+        self.index = new_position
+        self.focus()
+
     @on(ColumnListItem.Triggered)
     async def handle_button_events(self, event: ColumnListItem.Triggered):
-        column_id = event.column_list_item.column.column_id
         match event.interaction:
             case "del":
                 self.delete_column(event.column_list_item)
@@ -472,62 +500,13 @@ class ColumnSelector(ListView):
             case "rename":
                 self.rename_column(event.column_list_item)
             case "up":
-                new_position = event.button.parent.parent.parent.column.position - 1
-                old_position = event.button.parent.parent.parent.column.position
-                # Update New Position
-                update_single_column_position_db(
-                    column_id=column_id,
-                    new_position=new_position,
-                    database=self.app.config.backend.sqlite_settings.database_path,
+                await self.move_column_position(
+                    column_list_item=event.column_list_item, direction="up"
                 )
-                # Update Place other column to old position
-                other_column_id = self.children[new_position].column.column_id
-                update_single_column_position_db(
-                    column_id=other_column_id,
-                    new_position=old_position,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-
-                # Update state and Widgets
-                self.app.update_column_list()
-                await self.clear()
-                await self.extend(
-                    [FirstListItem()]
-                    + [ColumnListItem(column=column) for column in self.app.column_list]
-                )
-                # Trigger Update on tab Switch
-                self.app.needs_refresh = True
-                self.index = new_position
-                self.focus()
-
             case "down":
-                new_position = event.button.parent.parent.parent.column.position + 1
-                old_position = event.button.parent.parent.parent.column.position
-                # Update New Position
-                update_single_column_position_db(
-                    column_id=column_id,
-                    new_position=new_position,
-                    database=self.app.config.backend.sqlite_settings.database_path,
+                await self.move_column_position(
+                    column_list_item=event.column_list_item, direction="down"
                 )
-                # Update Place other column to old position
-                other_column_id = self.children[new_position].column.column_id
-                update_single_column_position_db(
-                    column_id=other_column_id,
-                    new_position=old_position,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-
-                # Update state and Widgets
-                self.app.update_column_list()
-                await self.clear()
-                await self.extend(
-                    [FirstListItem()]
-                    + [ColumnListItem(column=column) for column in self.app.column_list]
-                )
-                # Trigger Update on tab Switch
-                self.app.needs_refresh = True
-                self.index = new_position
-                self.focus()
             case _:
                 return
 
