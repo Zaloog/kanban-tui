@@ -11,9 +11,11 @@ from kanban_tui.config import SqliteBackendSettings
 from kanban_tui.backends.sqlite.database import (
     create_new_board_db,
     create_new_category_db,
+    create_new_column_db,
     create_new_task_db,
     delete_board_db,
     delete_category_db,
+    delete_column_db,
     delete_task_db,
     get_all_boards_db,
     get_all_categories_db,
@@ -22,7 +24,9 @@ from kanban_tui.backends.sqlite.database import (
     get_category_by_id_db,
     init_new_db,
     update_board_entry_db,
+    update_column_name_db,
     update_category_entry_db,
+    update_column_visibility_db,
     update_task_entry_db,
     update_task_status_db,
     get_board_info_dict,
@@ -154,6 +158,33 @@ class SqliteBackend(Backend):
             category_id=category_id, database=self.database_path
         )
         return category
+
+    # Column Management
+    def update_column_visibility(self, column_id: int, visible: bool):
+        update_column_visibility_db(
+            column_id=column_id, visible=visible, database=self.database_path
+        )
+
+    def update_column_name(self, column_id: int, new_name: str):
+        update_column_name_db(
+            column_id=column_id, new_name=new_name, database=self.database_path
+        )
+
+    def delete_column(self, column_id: int, position: int, board_id: int) -> Column:
+        return delete_column_db(
+            column_id=column_id,
+            position=position,
+            board_id=board_id,
+            database=self.database_path,
+        )
+
+    def create_new_column(self, board_id: int, position: int, name: str):
+        return create_new_column_db(
+            board_id=board_id,
+            position=position,
+            name=name,
+            database=self.database_path,
+        )
 
     # Plotting
     def get_ordered_tasks(

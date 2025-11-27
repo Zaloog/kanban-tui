@@ -1,10 +1,13 @@
 from textual.binding import Binding
 from textual.containers import Horizontal
-from textual.widgets import Footer, Label, Select
+from textual.widgets import Footer, Label, Select, Button
 from textual.widgets._footer import FooterKey
 from textual.widgets._select import SelectOverlay
 
 from kanban_tui.config import Backends
+
+
+class IconButton(Button): ...
 
 
 class KanbanTuiFooter(Horizontal):

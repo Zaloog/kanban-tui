@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING, Literal
 
 
 if TYPE_CHECKING:
@@ -21,21 +21,18 @@ from textual.widgets import (
     ListView,
     ListItem,
 )
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalGroup
 from rich.text import Text
 
 from kanban_tui.config import MovementModes
-from kanban_tui.modal.modal_category_screen import IsValidColor
 from kanban_tui.widgets.modal_task_widgets import VimSelect
+from kanban_tui.widgets.custom_widgets import IconButton
+from kanban_tui.modal.modal_category_screen import IsValidColor
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.classes.column import Column
 from kanban_tui.backends.sqlite.database import (
-    update_column_name_db,
-    update_column_visibility_db,
-    delete_column_db,
-    create_new_column_db,
-    update_column_positions_db,
+    switch_column_positions_db,
     update_status_update_columns_db,
 )
 
@@ -154,8 +151,7 @@ class TaskDefaultColorSelector(Horizontal):
         self.query_one(Input).value = self.app.config.task.default_color
 
 
-# Widget to Add new columns and change column visibility
-# Select Widget, visible Green, not visible red
+# Widget to Add new columns
 class AddRule(Rule):
     class Pressed(Message):
         def __init__(self, addrule: AddRule) -> None:
@@ -174,18 +170,28 @@ class AddRule(Rule):
 
     def compose(self) -> Iterable[Widget]:
         yield Button("+")
-        return super().compose()
 
     @on(Button.Pressed)
-    def send_message_to_add_column(self):
+    def send_message_to_add_column(self, event: Button.Pressed):
+        # Stop propagating the Button event to parents
+        event.stop()
         self.post_message(self.Pressed(self))
+
+
+class RepositionButton(Button): ...
 
 
 class ColumnListItem(ListItem):
     app: "KanbanTui"
+    column_visible: reactive[bool] = reactive(True)
 
-    class Deleted(Message):
-        def __init__(self, column_list_item: ColumnListItem) -> None:
+    class Triggered(Message):
+        def __init__(
+            self,
+            column_list_item: ColumnListItem,
+            interaction: Literal["del", "vis", "rename", "up", "down"],
+        ) -> None:
+            self.interaction = interaction
             self.column_list_item = column_list_item
             super().__init__()
 
@@ -196,25 +202,57 @@ class ColumnListItem(ListItem):
     def __init__(self, column: Column) -> None:
         self.column = column
         super().__init__(id=f"listitem_column_{self.column.column_id}")
+        self.column_visible = self.column.visible
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal():
+            with VerticalGroup():
+                yield RepositionButton(
+                    label=Text.from_markup(":arrow_up_small:"),
+                    id=f"button_col_up_{self.column.column_id}",
+                    classes="invisible" if self.column.position == 1 else None,
+                )
+                yield RepositionButton(
+                    label=Text.from_markup(":arrow_down_small:"),
+                    id=f"button_col_down_{self.column.column_id}",
+                    classes="invisible"
+                    if self.column.position == len(self.app.column_list)
+                    else None,
+                )
             yield Label(Text.from_markup(f"Show [cyan]{self.column.name}[/]"))
-            yield Switch(
-                value=self.column.visible,
-                id=f"switch_col_vis_{self.column.column_id}",
+
+            vis_button = IconButton(
+                label=Text.from_markup(":eye:"),
+                id=f"button_col_vis_{self.column.column_id}",
+                # classes="shown" if self.column_visible else None,
             )
-            yield Button(
-                label="Delete",
+            vis_button.tooltip = "Toggle visibility"
+            yield vis_button
+
+            edit_button = IconButton(
+                label=Text.from_markup(":pen:"),
+                id=f"button_col_rename_{self.column.column_id}",
+            )
+            edit_button.tooltip = "Rename column"
+            yield edit_button
+
+            delete_button = IconButton(
+                label=Text.from_markup(":wastebasket:"),
                 id=f"button_col_del_{self.column.column_id}",
-                variant="error",
             )
+            delete_button.tooltip = "Delete column"
+            yield delete_button
         yield AddRule(column=self.column)
 
+    async def watch_column_visible(self):
+        self.query_one(f"#button_col_vis_{self.column.column_id}", Button).toggle_class(
+            "shown"
+        )
+
     @on(Button.Pressed)
-    def trigger_column_delete(self, event: Button.Pressed):
-        if event.button.id:
-            self.post_message(self.Deleted(self))
+    def trigger_button_interaction(self, event: Button.Pressed):
+        interaction = event.button.id.split("_")[2]
+        self.post_message(self.Triggered(self, interaction=interaction))
 
 
 class FirstListItem(ListItem):
@@ -238,14 +276,22 @@ class ColumnSelector(ListView):
     BINDINGS = [
         Binding(key="j", action="cursor_down", show=False),
         Binding(key="k", action="cursor_up", show=False),
+        Binding(
+            key="J",
+            action="move_column_position('down')",
+            description="Move down",
+            show=True,
+        ),
+        Binding(
+            key="K",
+            action="move_column_position('up')",
+            description="Move up",
+            show=True,
+        ),
         Binding(key="enter,space", action="select_cursor", show=False),
-        Binding(key="d", action="delete_press", description="Delete Column", show=True),
-        Binding(
-            key="r", action="rename_column", description="Rename Column", show=True
-        ),
-        Binding(
-            key="n", action="addrule_press", description="Insert Column", show=True
-        ),
+        Binding(key="d", action="delete_press", description="Delete", show=True),
+        Binding(key="r", action="rename_column", description="Rename", show=True),
+        Binding(key="n", action="addrule_press", description="New Column", show=True),
     ]
     amount_visible: reactive[int] = reactive(0)
 
@@ -259,102 +305,85 @@ class ColumnSelector(ListView):
         ]
         super().__init__(*children, id="column_list", initial_index=0, *args, **kwargs)
 
-    # rename Column
-    def action_rename_column(self):
-        if not isinstance(self.highlighted_child, ColumnListItem):
-            return
+    # Actions
+    def action_cursor_down(self) -> None:
+        self.refresh_bindings()
+        return super().action_cursor_down()
 
-        async def modal_rename_column(
-            event_col_name: tuple[Column, str] | None,
-        ):
-            if event_col_name:
-                column, new_column_name = event_col_name
-                update_column_name_db(
-                    column_id=column.column_id,
-                    new_column_name=new_column_name,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
+    def action_cursor_up(self) -> None:
+        self.refresh_bindings()
+        return super().action_cursor_up()
 
-                # Update state and Widgets
-                self.app.update_column_list()
-                await self.clear()
-                await self.extend(
-                    [FirstListItem()]
-                    + [ColumnListItem(column=column) for column in self.app.column_list]
-                )
-                await self.app.screen.query_one(StatusColumnSelector).recompose()
-                self.app.screen.query_one(
-                    StatusColumnSelector
-                ).get_select_widget_values()
-                # Trigger Update on tab Switch
-                self.app.needs_refresh = True
-
-                self.index = column.position
-
-                # self.notify(
-                #     title="Columns Updated",
-                #     message=f"Column [blue]{column_name}[/] renamed to [blue]{new_column_name}[/]",
-                #     timeout=1,
-                # )
-
-        self.app.push_screen(
-            ModalUpdateColumnScreen(column=self.highlighted_child.column),
-            callback=modal_rename_column,
+    async def action_move_column_position(self, direction: Literal["up", "down"]):
+        await self.move_column_position(
+            column_list_item=self.highlighted_child, direction=direction
         )
 
-    # New Column
+    def action_rename_column(self):
+        self.rename_column(self.highlighted_child)
+
     def action_addrule_press(self):
         if self.highlighted_child is None:
             return
         self.highlighted_child.query_one(AddRule).query_one(Button).press()
 
-    @on(AddRule.Pressed)
-    def add_new_column(self, event: AddRule.Pressed):
-        async def modal_add_new_column(
-            event_col_name: tuple[AddRule.Pressed, str] | None,
-        ):
-            if event_col_name:
-                event, column_name = event_col_name
-                update_column_positions_db(
-                    board_id=self.app.active_board.board_id,
-                    new_position=event.addrule.position,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-                create_new_column_db(
-                    board_id=self.app.active_board.board_id,
-                    position=event.addrule.position + 1,
-                    name=column_name,
-                    visible=True,
-                    database=self.app.config.backend.sqlite_settings.database_path,
-                )
-                self.app.update_column_list()
-                await self.clear()
-                await self.extend(
-                    [FirstListItem()]
-                    + [ColumnListItem(column=column) for column in self.app.column_list]
-                )
-                # Update dependent Widgets
-                await self.app.screen.query_one(BoardColumnsInView).recompose()
-                await self.app.screen.query_one(StatusColumnSelector).recompose()
-                self.app.screen.query_one(
-                    StatusColumnSelector
-                ).get_select_widget_values()
-                self.index = event.addrule.position + 1
-                self.amount_visible += 1
+    async def action_delete_press(self):
+        self.delete_column(self.highlighted_child)
 
-        self.app.push_screen(
-            ModalUpdateColumnScreen(event=event), callback=modal_add_new_column
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action in ["rename_column", "delete_press"]:
+            return self.index != 0
+        if "up" in parameters:
+            return (self.index is not None) and (self.index > 1)
+        if "down" in parameters:
+            return self.index not in [0, len(self.app.column_list)]
+        return True
+
+    @work()
+    async def rename_column(self, column_list_item: ColumnListItem):
+        column_name = await self.app.push_screen(
+            ModalUpdateColumnScreen(column=column_list_item.column),
+            wait_for_dismiss=True,
+        )
+        if column_name is None:
+            return
+
+        self.app.backend.update_column_name(
+            column_id=column_list_item.column.column_id,
+            new_name=column_name,
         )
 
-    # Delete Column
-    def action_delete_press(self):
-        if isinstance(self.highlighted_child, ColumnListItem):
-            self.highlighted_child.query_one(Button).press()
+        # Update state and Widgets
+        await self.update_columns()
+        await self.update_dependent_widgets()
 
-    @on(ColumnListItem.Deleted)
+        self.app.needs_refresh = True
+        self.index = column_list_item.column.position
+
+    @on(AddRule.Pressed)
     @work()
-    async def delete_column(self, event: ColumnListItem.Deleted):
-        column = event.column_list_item.column
+    async def add_new_column(self, event: AddRule.Pressed):
+        column_name = await self.app.push_screen(
+            ModalUpdateColumnScreen(event=event), wait_for_dismiss=True
+        )
+        if column_name is None:
+            return
+
+        self.app.backend.create_new_column(
+            board_id=self.app.active_board.board_id,
+            position=event.addrule.position + 1,
+            name=column_name,
+        )
+
+        await self.update_columns()
+        await self.update_dependent_widgets()
+
+        self.index = event.addrule.position + 1
+        self.amount_visible += 1
+
+    @work()
+    async def delete_column(self, column_list_item: ColumnListItem):
+        column = column_list_item.column
         if (
             len(
                 [task for task in self.app.task_list if task.column == column.column_id]
@@ -371,31 +400,27 @@ class ColumnSelector(ListView):
         if not confirm_deletion:
             return
 
-        column_id = event.column_list_item.column.column_id
-        column_name = event.column_list_item.column.name
-
-        delete_column_db(
-            column_id=column_id,
-            database=self.app.config.backend.sqlite_settings.database_path,
+        deleted_column = self.app.backend.delete_column(
+            column_id=column_list_item.column.column_id,
+            position=column_list_item.column.position,
+            board_id=self.app.active_board.board_id,
         )
-        self.app.update_column_list()
-        if event.column_list_item.column.visible:
+
+        await self.update_columns()
+        await self.update_dependent_widgets()
+
+        if column_list_item.column.visible:
             self.amount_visible -= 1
         else:
             self.watch_amount_visible()
 
-        # Remove ListItem
-        await event.column_list_item.remove()
-        # Update dependent Widgets
-        await self.app.screen.query_one(StatusColumnSelector).recompose()
-        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
-        await self.app.screen.query_one(BoardColumnsInView).recompose()
-
         self.notify(
             title="Columns Updated",
-            message=f"Column [blue]{column_name}[/] deleted",
+            message=f"Column [blue]{deleted_column.name}[/] deleted",
             timeout=2,
         )
+        self.index = column_list_item.column.position - 1
+        self.app.needs_refresh = True
 
     def send_error_notify(self, column_name: str):
         self.notify(
@@ -405,30 +430,81 @@ class ColumnSelector(ListView):
             severity="error",
         )
 
+    async def update_columns(self):
+        self.app.update_column_list()
+        await self.clear()
+        await self.extend(
+            [FirstListItem()]
+            + [ColumnListItem(column=column) for column in self.app.column_list]
+        )
+
+    async def update_dependent_widgets(self):
+        await self.app.screen.query_one(StatusColumnSelector).recompose()
+        self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
+        await self.app.screen.query_one(BoardColumnsInView).recompose()
+
     def watch_amount_visible(self):
         self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/]"
 
     @on(ListView.Selected)
     def on_space_key(self, event: ListView.Selected):
-        if isinstance(event.list_view.highlighted_child, FirstListItem):
+        if isinstance(event.item, FirstListItem):
             self.action_addrule_press()
         else:
-            if event.list_view.highlighted_child:
-                event.list_view.highlighted_child.query_one(Switch).toggle()
+            self.change_column_visibility(event.item)
 
-    @on(Switch.Changed)
-    def update_visibility(self, event: Switch.Changed):
-        if event.switch.id is None:
-            return
-        self.amount_visible += 1 if event.value else -1
-        column_id = int(event.switch.id.split("_")[-1])
-        update_column_visibility_db(
-            column_id=column_id,
-            visible=event.value,
+    def change_column_visibility(self, column_list_item: ColumnListItem):
+        column_list_item.column_visible = not column_list_item.column_visible
+        self.amount_visible += 1 if column_list_item.column_visible else -1
+
+        self.app.backend.update_column_visibility(
+            column_id=column_list_item.column.column_id,
+            visible=column_list_item.column_visible,
+        )
+        self.app.update_column_list()
+        self.app.needs_refresh = True
+
+    async def move_column_position(
+        self, column_list_item: ColumnListItem, direction: Literal["up", "down"]
+    ):
+        modifier = 1 if direction == "down" else -1
+        old_position = column_list_item.column.position
+        new_position = old_position + modifier
+        other_column_id = self.children[new_position].column.column_id
+        # Update New Position
+        switch_column_positions_db(
+            current_column_id=column_list_item.column.column_id,
+            other_column_id=other_column_id,
+            old_position=old_position,
+            new_position=new_position,
             database=self.app.config.backend.sqlite_settings.database_path,
         )
+        # Update state and Widgets
+        await self.update_columns()
+        # Trigger Update on tab Switch
+        self.app.needs_refresh = True
+        self.index = new_position
+        self.focus()
 
-        self.app.update_column_list()
+    @on(ColumnListItem.Triggered)
+    async def handle_button_events(self, event: ColumnListItem.Triggered):
+        match event.interaction:
+            case "del":
+                self.delete_column(event.column_list_item)
+            case "vis":
+                self.change_column_visibility(event.column_list_item)
+            case "rename":
+                self.rename_column(event.column_list_item)
+            case "up":
+                await self.move_column_position(
+                    column_list_item=event.column_list_item, direction="up"
+                )
+            case "down":
+                await self.move_column_position(
+                    column_list_item=event.column_list_item, direction="down"
+                )
+            case _:
+                return
 
 
 class StatusColumnSelector(Vertical):
@@ -450,7 +526,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                # value=self.app.active_board.reset_column or BLANK,
+                value=self.app.active_board.reset_column or Select.BLANK,
                 prompt="No reset column",
                 id="select_reset",
             )
@@ -465,7 +541,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                # value=self.app.active_board.start_column or BLANK,
+                value=self.app.active_board.start_column or Select.BLANK,
                 prompt="No start column",
                 id="select_start",
             )
@@ -478,7 +554,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                # value=self.app.active_board.finish_column or BLANK,
+                value=self.app.active_board.finish_column or Select.BLANK,
                 prompt="No finish column",
                 id="select_finish",
             )

@@ -451,3 +451,82 @@ async def test_status_update_task_in_start_column(test_app: KanbanTui):
         assert (
             pilot.app.focused.task_.creation_date == pilot.app.focused.task_.start_date
         )
+
+
+async def test_column_position_change_down(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        await pilot.press("ctrl+o")
+        await pilot.press("c")
+        assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
+
+        await pilot.press("j")
+
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.name
+            == "Ready"
+        )
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.position
+            == 1
+        )
+
+        # Move Ready Column from position 1 -> 2
+        await pilot.press("J")
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.name
+            == "Ready"
+        )
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.position
+            == 2
+        )
+
+
+async def test_column_position_change_up(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        await pilot.press("ctrl+o")
+        await pilot.press("c")
+        assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
+
+        # Go to Doing Item
+        await pilot.press(*"jj")
+
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.name
+            == "Doing"
+        )
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.position
+            == 2
+        )
+
+        # Move Doing Column from position 2 -> 1
+        await pilot.press("K")
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.name
+            == "Doing"
+        )
+        assert (
+            pilot.app.screen.query_exactly_one(
+                ColumnSelector
+            ).highlighted_child.column.position
+            == 1
+        )

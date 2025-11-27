@@ -669,7 +669,7 @@ def create_new_column_db(
     board_id: int,
     visible: bool = True,
     database: str = DATABASE_FILE.as_posix(),
-):
+) -> Column:
     transaction_str_cols = """
     INSERT INTO columns
     VALUES (
@@ -678,19 +678,31 @@ def create_new_column_db(
         :visible,
         :position,
         :board_id
-        );"""
+        )
+        RETURNING *
+        ;"""
     column_dict = {
         "name": name,
         "visible": visible,
         "position": position,
         "board_id": board_id,
     }
+    update_other_positions_str = """
+    UPDATE columns
+    SET
+        position = position + 1
+    WHERE
+        board_id = :board_id
+        AND position >= :position
+    ;
+    """
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = column_factory
         try:
-            con.execute(transaction_str_cols, column_dict)
+            con.execute(update_other_positions_str, column_dict)
+            new_column = con.execute(transaction_str_cols, column_dict).fetchone()
             con.commit()
-            return 0
+            return new_column
         except sqlite3.Error as e:
             con.rollback()
             raise e
@@ -989,25 +1001,42 @@ def update_column_visibility_db(
             raise e
 
 
-def update_column_positions_db(
-    board_id: int, new_position: int, database: str = DATABASE_FILE.as_posix()
-) -> str | int:
-    update_column_position_dict = {"board_id": board_id, "new_position": new_position}
+def switch_column_positions_db(
+    current_column_id: int,
+    other_column_id: int,
+    old_position: int,
+    new_position: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> int:
+    update_column_position_dict = {
+        "current_column_id": current_column_id,
+        "other_column_id": other_column_id,
+        "old_position": old_position,
+        "new_position": new_position,
+    }
 
-    transaction_str = """
+    old_position_transaction_str = """
     UPDATE columns
     SET
-        position = position + 1
+        position = :old_position
     WHERE
-        board_id = :board_id
-        AND position > :new_position
+        column_id = :other_column_id
+    ;
+    """
+    new_position_transaction_str = """
+    UPDATE columns
+    SET
+        position = :new_position
+    WHERE
+        column_id = :current_column_id
     ;
     """
 
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            con.execute(transaction_str, update_column_position_dict)
+            con.execute(old_position_transaction_str, update_column_position_dict)
+            con.execute(new_position_transaction_str, update_column_position_dict)
             con.commit()
             return 0
         except sqlite3.Error as e:
@@ -1016,9 +1045,9 @@ def update_column_positions_db(
 
 
 def update_column_name_db(
-    column_id: int, new_column_name: str, database: str = DATABASE_FILE.as_posix()
+    column_id: int, new_name: str, database: str = DATABASE_FILE.as_posix()
 ) -> str | int:
-    update_column_name_dict = {"column_id": column_id, "new_name": new_column_name}
+    update_column_name_dict = {"column_id": column_id, "new_name": new_name}
 
     transaction_str = """
     UPDATE columns
@@ -1080,18 +1109,37 @@ def update_task_entry_db(
 
 
 def delete_column_db(
-    column_id: int, database: str = DATABASE_FILE.as_posix()
-) -> int | str:
+    column_id: int,
+    position: int,
+    board_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Column:
     delete_str = """
     DELETE FROM columns
-    WHERE column_id = ?
+    WHERE column_id = :column_id
+    RETURNING *
     """
+    update_other_positions_str = """
+    UPDATE columns
+    SET
+        position = position - 1
+    WHERE
+        board_id = :board_id
+        AND position > :position
+    ;
+    """
+    parameter_dict = {
+        "column_id": column_id,
+        "position": position,
+        "board_id": board_id,
+    }
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = column_factory
         try:
-            con.execute(delete_str, (column_id,))
+            deleted_column = con.execute(delete_str, parameter_dict).fetchone()
+            con.execute(update_other_positions_str, parameter_dict)
             con.commit()
-            return 0
+            return deleted_column
         except sqlite3.Error as e:
             con.rollback()
             raise e
