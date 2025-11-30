@@ -606,3 +606,6 @@ async def test_column_selector_updates_on_board_change(test_app: KanbanTui):
         # Go to test_column2
         await pilot.press("j")
         assert pilot.app.focused.highlighted_child.column.name == "test_column2"
+
+        # Columns in View also updates
+        assert pilot.app.screen.query_one("#select_columns_in_view").value == 1
