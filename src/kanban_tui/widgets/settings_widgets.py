@@ -481,6 +481,7 @@ class ColumnSelector(ListView):
         )
         # Update state and Widgets
         await self.update_columns()
+        await self.update_dependent_widgets()
         # Trigger Update on tab Switch
         self.app.needs_refresh = True
         self.index = new_position
@@ -605,6 +606,8 @@ class StatusColumnSelector(Vertical):
 
 
 class SettingsView(Vertical):
+    app: "KanbanTui"
+
     def compose(self) -> Iterable[Widget]:
         yield DataBasePathInput(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
