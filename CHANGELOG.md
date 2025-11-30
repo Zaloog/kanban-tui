@@ -2,7 +2,8 @@
 
 ## v0.10.1 (unreleased)
 ### Fixed
-- Fixed bug, that status column selects do not update, when the column order is changed
+- Fixed bug, that column.status_update selection values do not update, when the column order is changed
+- Fixed bug, that ColumnSelector is not updated, when the active board is changed
 
 ## v0.10.0
 ### Added
