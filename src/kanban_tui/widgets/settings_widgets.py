@@ -82,22 +82,31 @@ class BoardColumnsInView(Horizontal):
 
     def on_mount(self):
         self.border_title = "board.columns_in_view"
+        self.set_initial_select_value()
 
     def compose(self) -> Iterable[Widget]:
         yield Label("Columns in view")
         with self.prevent(Select.Changed):
             column_select = VimSelect.from_values(
                 [i + 1 for i in range(len(self.app.column_list))],
-                value=self.app.config.board.columns_in_view,
                 id="select_columns_in_view",
                 allow_blank=False,
             )
-            column_select.jump_mode = "focus"
-            yield column_select
+        column_select.jump_mode = "focus"
+        yield column_select
 
     @on(Select.Changed)
     def update_config(self, event: Select.Changed):
         self.app.config.set_columns_in_view(event.select.value)
+
+    def set_initial_select_value(self):
+        select = self.query_one(Select)
+        amount_cols = len(self.app.column_list)
+        if self.app.config.board.columns_in_view > amount_cols:
+            select.value = amount_cols
+        else:
+            with self.prevent(Select.Changed):
+                select.value = self.app.config.board.columns_in_view
 
 
 class TaskAlwaysExpandedSwitch(Horizontal):

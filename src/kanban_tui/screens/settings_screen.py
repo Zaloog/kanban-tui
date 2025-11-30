@@ -2,6 +2,8 @@ from typing import Iterable
 
 from textual import on
 from textual.binding import Binding
+from textual.events import ScreenResume
+from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Header, Input, Switch, Button, Select
 from textual.screen import Screen
@@ -12,6 +14,8 @@ from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 
 
 class SettingsScreen(Screen):
+    needs_refresh: reactive[bool] = reactive(False, init=False)
+
     BINDINGS = [Binding("ctrl+o", "show_overlay", "Jump", priority=True)]
 
     def compose(self) -> Iterable[Widget]:
@@ -33,8 +37,14 @@ class SettingsScreen(Screen):
     @on(Switch.Changed)
     @on(Button.Pressed)
     @on(Select.Changed)
-    def config_changes(self):
+    def config_changes(self, event):
         self.app.needs_refresh = True
+
+    @on(ScreenResume)
+    def update_settings(self):
+        if self.needs_refresh:
+            self.query_one(SettingsView).refresh(recompose=True)
+            self.needs_refresh = False
 
     def action_show_overlay(self) -> None:
         self.query_one(Jumper).show()

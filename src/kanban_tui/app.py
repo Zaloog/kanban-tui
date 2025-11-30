@@ -141,12 +141,15 @@ class KanbanTui(App[str | None]):
     def watch_board_list(self):
         self.active_board = self.backend.active_board
 
-    def watch_active_board(self):
+    def watch_active_board(self, old_board: Board | None, new_board: Board):
         if self.active_board:
             self.app.config.set_active_board(
                 new_active_board_id=self.active_board.board_id
             )
         self.update_column_list()
+        # If updating Board, refresh setting screen
+        if old_board:
+            self.get_screen("settings", SettingsScreen).needs_refresh = True
 
     def watch_column_list(self):
         self.update_task_list()
@@ -169,10 +172,9 @@ class KanbanTui(App[str | None]):
 
     def action_refresh(self):
         self.update_board_list()
-        self.watch_active_board()
         self.watch_column_list()
         # used a worker here, so no await
-        self.screen.load_kanban_board()
+        self.get_screen("board", BoardScreen).load_kanban_board()
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()
