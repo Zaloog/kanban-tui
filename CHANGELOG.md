@@ -1,9 +1,9 @@
 # Changelog
 
-## v0.10.1 (unreleased)
+## v0.10.1
 ### Fixed
 - Fixed bug, that column.status_update selection values do not update, when the column order is changed
-- Fixed bug, that ColumnSelector is not updated, when the active board is changed
+- Fixed bug, that SettingsScreen widgets were not updated, when the active board is changed
 
 ## v0.10.0
 ### Added
