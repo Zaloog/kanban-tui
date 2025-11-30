@@ -530,3 +530,82 @@ async def test_column_position_change_up(test_app: KanbanTui):
             ).highlighted_child.column.position
             == 1
         )
+
+
+# Part 1 test for https://github.com/Zaloog/kanban-tui/issues/58
+async def test_column_position_change_updates_status_values(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+
+        await pilot.press("ctrl+o")
+        await pilot.press("c")
+        assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
+
+        # Go to Doing Item
+        await pilot.press(*"jj")
+
+        # Move Doing Column from position 2 -> 1
+        await pilot.press("K")
+
+        # get Dropdown value at position 1, which should be "Doing at this point"
+        assert (
+            (
+                pilot.app.screen.query_exactly_one(StatusColumnSelector)
+                .query_one("#select_reset", Select)
+                ._options[1][0]
+                ._text[0]
+            )
+            == "Doing"
+        )
+
+
+# Part 2 test for https://github.com/Zaloog/kanban-tui/issues/58
+async def test_column_selector_updates_on_board_change(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # Go to Setting Screen to initially load the widgets
+        await pilot.press("ctrl+l")
+
+        # go back to BoardScreen and create a new board
+        await pilot.press("ctrl+j")
+        await pilot.press("B")
+
+        # Open Board Creation Screen
+        await pilot.press("n")
+
+        # Enter new Icon
+        await pilot.press(*"bug")
+
+        # Enter new board name
+        await pilot.click("#input_board_name")
+        await pilot.press(*"Test Board")
+
+        # Add Custom Columns
+        # CustomList visible after switch press
+        await pilot.click("#switch_use_default_columns")
+
+        # Focus input
+        await pilot.press("tab")
+        await pilot.press(*"test_column")
+        # next column input
+        await pilot.press("tab", "tab")
+        await pilot.press(*"test_column2")
+        # delete last column input
+        await pilot.press("shift+tab", "shift+tab", "delete")
+
+        # save board
+        await pilot.click("#btn_continue_new_board")
+        # Click to activate new Board
+        await pilot.press("j", "enter")
+
+        # Move to Setting Screen
+        await pilot.press("ctrl+l")
+        await pilot.press("ctrl+o")
+        await pilot.press("c")
+        assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
+
+        # Go to test_column2
+        await pilot.press("j")
+        assert pilot.app.focused.highlighted_child.column.name == "test_column2"
+
+        # Columns in View also updates
+        assert pilot.app.screen.query_one("#select_columns_in_view").value == 1

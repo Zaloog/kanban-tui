@@ -1,6 +1,11 @@
 # Changelog
 
-## v0.9.1 (unreleased)
+## v0.10.1 (unreleased)
+### Fixed
+- Fixed bug, that column.status_update selection values do not update, when the column order is changed
+- Fixed bug, that ColumnSelector is not updated, when the active board is changed
+
+## v0.10.0
 ### Added
 - Added option to change the column order via the SettingScreen
 - Reworked the ColumnListView UI
