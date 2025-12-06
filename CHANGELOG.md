@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.2
+### Fixed
+- Fixed visual bug to display dates in modal task screen
+
 ## v0.10.1
 ### Fixed
 - Fixed bug, that column.status_update selection values do not update, when the column order is changed
