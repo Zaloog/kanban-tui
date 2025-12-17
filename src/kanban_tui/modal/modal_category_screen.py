@@ -62,7 +62,7 @@ class CategoryListItem(ListItem):
     app: "KanbanTui"
 
     def __init__(self, category: Category) -> None:
-        self.category = category
+        self.category: Category = category
         super().__init__(id=f"listitem_category_{self.category.category_id}")
 
     def compose(self) -> Iterable[Widget]:
@@ -73,7 +73,7 @@ class CategoryListItem(ListItem):
             yield color_label
 
 
-class ModalCategoryManageScreen(ModalScreen):
+class ModalCategoryManageScreen(ModalScreen[int | None]):
     BINDINGS = [
         Binding(key="escape", action="close_category_management", description="Close"),
         Binding(key="e", action="edit", description="Edit", show=True, priority=True),
@@ -84,7 +84,7 @@ class ModalCategoryManageScreen(ModalScreen):
 
     app: "KanbanTui"
 
-    def __init__(self, current_category_id: Category | None, *args, **kwargs) -> None:
+    def __init__(self, current_category_id: int | None, *args, **kwargs) -> None:
         self.current_category_id = current_category_id
         super().__init__(*args, **kwargs)
 
@@ -106,10 +106,10 @@ class ModalCategoryManageScreen(ModalScreen):
                 return False
         return True
 
-    def action_edit(self):
+    async def action_edit(self):
         hightlighted_item = self.query_one(CategoryList).highlighted_child
         if hightlighted_item:
-            self.app.push_screen(
+            await self.app.push_screen(
                 screen=ModalNewCategoryScreen(category=hightlighted_item.category),
                 callback=self.query_one(CategoryList).populate_widget,
             )
@@ -212,7 +212,7 @@ class NameInputContainer(Horizontal):
             self.add_class("invalid")
 
 
-class ModalNewCategoryScreen(ModalScreen):
+class ModalNewCategoryScreen(ModalScreen[int | None]):
     BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
     app: "KanbanTui"
 

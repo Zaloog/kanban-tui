@@ -146,14 +146,15 @@ ModalTaskEditScreen {
     border-title-align:center;
     content-align:center middle;
 
-
     TaskAdditionalInfos {
       height: auto;
-      Label{
-          padding: 1 0 0 0;
-      }
       Switch{
           width:1fr;
+      }
+      TaskDueDateSelector{
+        Label{
+            padding: 1 0 0 0;
+        }
       }
       CustomDateSelect{
           height:3;
