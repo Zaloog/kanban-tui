@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from kanban_tui.backends.auth import AuthSettings
 from kanban_tui.backends.base import Backend
 from kanban_tui.classes.board import Board
+from kanban_tui.classes.category import Category
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
 from kanban_tui.config import JiraBackendSettings
@@ -27,6 +28,9 @@ class JiraBackend(Backend):
 
     # Queries
     def get_boards(self) -> list[Board]:
+        return []
+
+    def get_all_categories(self) -> list[Category]:
         return []
 
     def get_board_infos(self) -> list[Board]:

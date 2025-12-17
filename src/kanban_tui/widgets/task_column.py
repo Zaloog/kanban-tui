@@ -1,4 +1,7 @@
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from kanban_tui.app import KanbanTui
 
 from rich.text import Text
 from textual.reactive import reactive
@@ -11,12 +14,15 @@ from kanban_tui.classes.task import Task
 
 
 class Column(Vertical):
+    app: "KanbanTui"
     task_amount: reactive[int] = reactive(0)
     task_list: list[Task]
 
-    def __init__(self, title: str, id_num: int, task_list: list[Task] = []) -> None:
+    def __init__(
+        self, title: str, id_num: int, task_list: list[Task] | None = None
+    ) -> None:
         self.title = title
-        self.task_list = task_list
+        self.task_list = task_list or []
         super().__init__(id=f"column_{id_num}")
         self.can_focus: bool = False
         self.styles.width = f"{1 / self.app.config.board.columns_in_view * 100:.2f}%"
