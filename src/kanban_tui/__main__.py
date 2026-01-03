@@ -4,6 +4,7 @@ import click
 from rich.console import Console
 
 from kanban_tui.app import KanbanTui
+from kanban_tui.cli import board
 from kanban_tui.config import Backends
 from kanban_tui.utils import create_demo_tasks, build_info_table
 from kanban_tui.constants import (
@@ -42,8 +43,14 @@ def cli(ctx, web: bool):
                 database_path=DATABASE_FILE.as_posix(),
             )
             app.run()
+        elif ctx.invoked_subcommand == "demo":
+            print("demo")
         else:
-            pass
+            app = KanbanTui(
+                config_path=CONFIG_FILE.as_posix(),
+                database_path=DATABASE_FILE.as_posix(),
+            )
+            ctx.obj = app
 
 
 @cli.command("demo")
@@ -117,15 +124,12 @@ def delete_config_and_database(confirm: bool):
 
 
 @cli.command("auth")
-def enter_auth_only_mode():
+@click.pass_obj
+def enter_auth_only_mode(app: KanbanTui):
     """
     Open authentication screen only (requires `jira` backend selected)
     """
-    app = KanbanTui(
-        config_path=CONFIG_FILE.as_posix(),
-        database_path=DATABASE_FILE.as_posix(),
-        auth_only=True,
-    )
+    app.auth_only = True
     if app.config.backend.mode != Backends.JIRA:
         Console().print(f"Currently using [blue]{app.config.backend.mode}[/] backend.")
         Console().print(
@@ -136,8 +140,6 @@ def enter_auth_only_mode():
     api_key = app.run()
     if api_key:
         Console().print(f"Api key detected under [green]{AUTH_FILE}[/].")
-    else:
-        Console().print(f"No api key found under [green]{AUTH_FILE}[/].")
 
 
 @cli.command("info")
@@ -147,6 +149,9 @@ def show_file_infos():
     """
     table = build_info_table()
     Console().print(table)
+
+
+cli.add_command(board)
 
 
 if __name__ == "__main__":

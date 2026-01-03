@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.3 (unreleased)
+### Added
+- Added CLI interface to manage boards
+
 ## v0.10.2
 ### Fixed
 - Fixed visual bug to display dates in modal task screen
