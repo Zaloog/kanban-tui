@@ -27,7 +27,7 @@ Expand for more detailed information
 </details>
 <details><summary>Following the XDG basedir convention</summary>
 
-kanban-tui utilizes [xdg-base-dirs] `user_config_dir` to save
+kanban-tui utilizes [pydantic-settings] and [xdg-base-dirs] `user_config_dir` to save
 the config file and `user_data_dir` for the sqlite database.
 You can get an overview of all file locations with `uvx kanban-tui info`
 </details>
@@ -207,6 +207,7 @@ Also check the [Changelog] for new updates.
 [plotext]: https://github.com/piccolomo/plotext
 [textual-plotext]: https://github.com/Textualize/textual-plotext
 [xdg-base-dirs]: https://github.com/srstevenson/xdg-base-dirs
+[pydantic-settings]: https://pypi.org/project/pydantic-settings/
 
 <!-- external Links Others -->
 [XDG]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
