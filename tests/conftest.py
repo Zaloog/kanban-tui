@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
+from datetime import datetime
 
 import pytest
+from freezegun import freeze_time
 
 from kanban_tui.constants import AUTH_NAME, CONFIG_NAME, DATABASE_NAME
 from kanban_tui.config import Settings, init_config
@@ -66,10 +68,11 @@ def empty_app(test_config_path, test_database_path, test_config):
 def no_task_app(test_config_path, test_database_path, test_config):
     os.environ["TEXTUAL_ANIMATION"] = "none"
     app = KanbanTui(config_path=test_config_path, database_path=test_database_path)
-    app.backend.create_new_board(
-        name="Kanban Board",
-        icon=":sparkles:",
-    )
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        app.backend.create_new_board(
+            name="Kanban Board",
+            icon=":sparkles:",
+        )
     yield app
 
 
@@ -80,38 +83,39 @@ def test_app(no_task_app: KanbanTui):
     no_task_app.backend.create_new_category(name="green", color="#00FF00")
     no_task_app.backend.create_new_category(name="blue", color="#0000FF")
 
-    no_task_app.backend.create_new_task(
-        title="Task_ready_0",
-        description="Hallo",
-        category=1,
-        column=1,
-    )
-    no_task_app.backend.create_new_task(
-        title="Task_ready_1",
-        description="Hallo",
-        category=3,
-        column=1,
-    )
-    no_task_app.backend.create_new_task(
-        title="Task_ready_2",
-        description="Hallo",
-        category=None,
-        column=1,
-    )
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        no_task_app.backend.create_new_task(
+            title="Task_ready_0",
+            description="Hallo",
+            category=1,
+            column=1,
+        )
+        no_task_app.backend.create_new_task(
+            title="Task_ready_1",
+            description="Hallo",
+            category=3,
+            column=1,
+        )
+        no_task_app.backend.create_new_task(
+            title="Task_ready_2",
+            description="Hallo",
+            category=None,
+            column=1,
+        )
 
-    # Doing, 1 Task
-    no_task_app.backend.create_new_task(
-        title="Task_doing_0",
-        description="Hallo",
-        category=2,
-        column=2,
-    )
-    # Done, 1 Task
-    no_task_app.backend.create_new_task(
-        title="Task_done_0",
-        description="Hallo",
-        category=1,
-        column=3,
-    )
+        # Doing, 1 Task
+        no_task_app.backend.create_new_task(
+            title="Task_doing_0",
+            description="Hallo",
+            category=2,
+            column=2,
+        )
+        # Done, 1 Task
+        no_task_app.backend.create_new_task(
+            title="Task_done_0",
+            description="Hallo",
+            category=1,
+            column=3,
+        )
 
     yield no_task_app
