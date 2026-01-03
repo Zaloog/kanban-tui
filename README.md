@@ -29,6 +29,7 @@ Expand for more detailed information
 
 kanban-tui utilizes [xdg-base-dirs] `user_config_dir` to save
 the config file and `user_data_dir` for the sqlite database.
+You can get an overview of all file locations with `uvx kanban-tui info`
 </details>
 
 </details>
@@ -36,7 +37,7 @@ the config file and `user_data_dir` for the sqlite database.
 
 kanban-tui comes with four default columns
 (`Ready`, `Doing`, `Done`, `Archive`) but can be customized to your needs.
-More columns can be created via the `Settings`-Tab. Also the visibility of columns can be toggled.
+More columns can be created via the `Settings`-Tab. Also the visibility and order of columns can be adjusted.
 Deletion of existing columns is only possible, if no task is present in the column you want to delete.
 </details>
 
@@ -45,14 +46,14 @@ Deletion of existing columns is only possible, if no task is present in the colu
 
 With version v0.4.0 kanban-tui allows the creation of multiple boards.
 Use `B` on the `Kanban Board`-Tab to get an overview over all Boards including
-the amount of columns, tasks and the closest Due Date.
-Each Board starts with the default columns, but the columns are individual for each board.
+the amount of columns, tasks and the earliest Due Date.
 </details>
 
 </details>
 <details><summary>Task Management</summary>
 
 When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or `move (H, L)` tasks between columns.
+Movement between columns also supports drag and drop via mouse.
 </details>
 
 </details>
@@ -151,6 +152,9 @@ uv tool install 'kanban-tui[web]'
 
 
 ## Usage
+kanban-tui now also supports the `kanban-tui` entrypoint besides `ktui`.
+This was added to support easier installation via [uv]'s `uvx` command.
+
 ### Normal Mode
 Starts `kanban-tui` with a starting board. The application can be closed by pressing `ctrl+q`.
 Pass the `--web` flag and follow the shown link to open `kanban-tui` in your browser.
