@@ -32,3 +32,10 @@ def test_board_list(test_app):
     result = runner.invoke(cli, args=["board", "list"])
     assert result.exit_code == 0
     assert board_output == result.output
+
+
+def test_task_list(test_app):
+    runner = CliRunner()
+    result = runner.invoke(cli, args=["task", "list"])
+    assert result.exit_code == 0
+    assert board_output == result.output
