@@ -4,6 +4,9 @@
 ### Added
 - Added CLI interface to manage boards
 
+### Fixed
+- Fixed missing refresh, when new column is added
+
 ## v0.10.2
 ### Fixed
 - Fixed visual bug to display dates in modal task screen
