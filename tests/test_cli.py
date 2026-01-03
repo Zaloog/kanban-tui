@@ -27,9 +27,8 @@ def test_clear():
     assert result.exit_code == 0
 
 
-def test_board(test_app):
+def test_board_list(test_app):
     runner = CliRunner()
     result = runner.invoke(cli, args=["board", "list"])
-    print(result.output)
     assert result.exit_code == 0
     assert board_output == result.output
