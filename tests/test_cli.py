@@ -95,7 +95,7 @@ def test_board_delete_abort(test_app):
     runner = CliRunner()
     # create board first
     runner.invoke(cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"])
-    result = runner.invoke(cli, args=["board", "delete", "2"], input="n")
+    result = runner.invoke(cli, args=["board", "delete", "2"], input="n", obj=test_app)
     assert result.exit_code == 1
     assert (
         result.output
@@ -107,7 +107,9 @@ def test_board_delete_abort(test_app):
 def test_board_delete_success_no_confirm(test_app):
     runner = CliRunner()
     # create board first
-    runner.invoke(cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"])
+    runner.invoke(
+        cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"], obj=test_app
+    )
     result = runner.invoke(
         cli,
         args=["board", "delete", "2", "--no-confirm"],
