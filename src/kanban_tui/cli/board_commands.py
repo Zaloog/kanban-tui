@@ -80,8 +80,36 @@ def create_board(
 
 @board.command("delete")
 @click.pass_obj
-def delete_board(app: KanbanTui):
+@click.argument("board_id", type=click.INT)
+@click.option(
+    "--no-confirm",
+    default=False,
+    is_flag=True,
+    type=click.BOOL,
+    help="Dont ask for confirmation to delete",
+)
+def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
     """
     Deletes a board
     """
-    # TODO
+    boards = app.backend.get_boards()
+    if board_id == app.backend.active_board.board_id:
+        Console().print("[red]Active board can not be deleted.[/]")
+        return
+    if boards:
+        for board in boards:
+            if board.board_id == board_id:
+                if not no_confirm:
+                    click.confirm(
+                        f"Do you want to delete the board with {board_id=} ", abort=True
+                    )
+                app.backend.delete_board(board_id)
+                Console().print(
+                    f"Deleted board {board.name} with board_id: {board_id}."
+                )
+                # TODO Delete
+                # TODO Confirm
+                return
+        Console().print(f"[red]There is no board with {board_id=}[/].")
+    else:
+        Console().print("No boards created yet.")

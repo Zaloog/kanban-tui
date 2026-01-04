@@ -1220,9 +1220,7 @@ def update_board_entry_db(
             raise e
 
 
-def delete_board_db(
-    board_id: int, database: str = DATABASE_FILE.as_posix()
-) -> int | str:
+def delete_board_db(board_id: int, database: str = DATABASE_FILE.as_posix()) -> int:
     delete_board_str = """
     DELETE FROM boards
     WHERE board_id = ?
