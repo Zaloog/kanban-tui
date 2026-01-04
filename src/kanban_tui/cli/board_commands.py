@@ -92,10 +92,10 @@ def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
     """
     Deletes a board
     """
-    boards = app.backend.get_boards()
     if board_id == app.backend.active_board.board_id:
         Console().print("[red]Active board can not be deleted.[/]")
         return
+    boards = app.backend.get_boards()
     if boards:
         for board in boards:
             if board.board_id == board_id:
@@ -107,8 +107,6 @@ def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
                 Console().print(
                     f"Deleted board {board.name} with board_id: {board_id}."
                 )
-                # TODO Delete
-                # TODO Confirm
                 return
         Console().print(f"[red]There is no board with {board_id=}[/].")
     else:

@@ -101,7 +101,7 @@ def test_board_delete_abort(test_app):
         result.output
         == "Do you want to delete the board with board_id=2  [y/N]: n\nAborted!\n"
     )
-    assert len(test_app.backend.get_boards()) == 1
+    assert len(test_app.backend.get_boards()) == 2
 
 
 def test_board_delete_success_no_confirm(test_app):
