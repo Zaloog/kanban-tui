@@ -554,7 +554,7 @@ def create_new_board_db(
     icon: str | None = None,
     column_dict: dict[str, bool] | None = None,
     database: str = DATABASE_FILE.as_posix(),
-) -> str | int:
+) -> Board:
     if column_dict is None:
         column_dict = DEFAULT_COLUMN_DICT
     board_dict = {
@@ -573,7 +573,7 @@ def create_new_board_db(
         NULL,
         NULL
         )
-        RETURNING board_id
+        RETURNING *
         ;"""
 
     transaction_str_cols = """
@@ -586,10 +586,10 @@ def create_new_board_db(
         :board_id
         );"""
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = board_factory
         try:
             # create Board
-            (created_board_id,) = con.execute(
+            created_board = con.execute(
                 transaction_str,
                 board_dict,
             ).fetchone()
@@ -602,11 +602,11 @@ def create_new_board_db(
                     "name": column_name,
                     "visible": visibility,
                     "position": position,
-                    "board_id": created_board_id,
+                    "board_id": created_board.board_id,
                 }
                 con.execute(transaction_str_cols, transaction_column_dict)
             con.commit()
-            return created_board_id
+            return created_board
         except sqlite3.Error as e:
             con.rollback()
             raise e

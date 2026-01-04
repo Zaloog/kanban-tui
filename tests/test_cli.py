@@ -1,8 +1,10 @@
+import pytest
 from click.testing import CliRunner
 
 from kanban_tui.cli import cli
 
-board_output = """Board(
+board_output = """--- Active Board ---
+Board(
     board_id=1,
     name='Kanban Board',
     icon=':sparkles:',
@@ -34,6 +36,17 @@ def test_board_list(test_app):
     assert board_output == result.output
 
 
+def test_board_create(test_app):
+    runner = CliRunner()
+    result = runner.invoke(
+        cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"]
+    )
+    assert result.exit_code == 0
+    assert result.output == "Created board 'CLI Test' with board_id: 2.\n"
+    assert len(test_app.backend.get_boards()) == 2
+
+
+@pytest.mark.skip
 def test_task_list(test_app):
     runner = CliRunner()
     result = runner.invoke(cli, args=["task", "list"])

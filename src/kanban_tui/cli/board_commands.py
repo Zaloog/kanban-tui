@@ -29,6 +29,8 @@ def list_boards(app: KanbanTui):
     boards = app.backend.get_boards()
     if boards:
         for board in boards:
+            if board == app.backend.active_board:
+                Console().print("[red]--- Active Board ---[/]")
             Console().print(board)
     else:
         Console().print("No boards created yet.")
@@ -36,11 +38,44 @@ def list_boards(app: KanbanTui):
 
 @board.command("create")
 @click.pass_obj
-def create_board(app: KanbanTui):
+@click.argument("name", type=click.STRING)
+@click.option(
+    "--icon",
+    default="",
+    show_default=True,
+    type=click.STRING,
+    help="Icon to use for the board (example: `:books:`)",
+)
+@click.option(
+    "--set-active",
+    default=False,
+    is_flag=True,
+    type=click.BOOL,
+    help="Set the created board as active",
+)
+@click.option(
+    "-c",
+    "--columns",
+    default=None,
+    type=click.STRING,
+    multiple=True,
+    help="Columns to add to the board [default: Ready, Doing, Done, Archive]",
+)
+def create_board(
+    app: KanbanTui, name: str, icon: str, columns: tuple[str], set_active: bool
+):
     """
     Creates a new board
     """
-    # TODO
+    column_dict = None
+    if columns:
+        column_dict = {column: True for column in columns}
+    new_board = app.backend.create_new_board(
+        name=name, icon=icon, column_dict=column_dict
+    )
+    if set_active:
+        app.config.set_active_board(new_active_board_id=new_board.board_id)
+    Console().print(f"Created board {name} with board_id: {new_board.board_id}.")
 
 
 @board.command("delete")

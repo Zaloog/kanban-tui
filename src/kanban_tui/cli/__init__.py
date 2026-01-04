@@ -17,7 +17,11 @@ from kanban_tui.constants import (
 
 
 @click.group(
-    context_settings={"ignore_unknown_options": True}, invoke_without_command=True
+    context_settings={
+        "ignore_unknown_options": True,
+        "help_option_names": ["-h", "--help"],
+    },
+    invoke_without_command=True,
 )
 @click.version_option(prog_name="kanban-tui")
 @click.option("--web", is_flag=True, default=False, help="Host app locally")

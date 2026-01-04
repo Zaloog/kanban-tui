@@ -66,8 +66,8 @@ class SqliteBackend(Backend):
         name: str,
         icon: str | None = None,
         column_dict: dict[str, bool] | None = None,
-    ):
-        create_new_board_db(
+    ) -> Board:
+        return create_new_board_db(
             name=name,
             icon=icon,
             column_dict=column_dict,
