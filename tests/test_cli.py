@@ -92,7 +92,7 @@ def test_board_delete_success(test_app):
 
 
 def test_board_delete_abort(test_app):
-    runner = CliRunner()
+    runner = CliRunner(catch_exceptions=False)
     # create board first
     runner.invoke(cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"])
     result = runner.invoke(cli, args=["board", "delete", "2"], input="n", obj=test_app)
