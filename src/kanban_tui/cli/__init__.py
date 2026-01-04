@@ -1,6 +1,7 @@
 """CLI entry-point for kanban-tui"""
 
 import os
+from collections import OrderedDict
 
 from kanban_tui.cli.column_commands import column
 from kanban_tui.cli.task_commands import task
@@ -18,7 +19,49 @@ from kanban_tui.constants import (
 )
 
 
+# Enables Custom Help Interface
+class OrderedGroup(click.Group):
+    def __init__(self, name=None, commands=None, **attrs):
+        super(OrderedGroup, self).__init__(name, commands, **attrs)
+        self.commands = commands or OrderedDict()
+
+    def list_commands(self, ctx):
+        return self.commands
+
+    def format_commands(self, ctx, formatter):
+        super().get_usage(ctx)
+
+        HELP_LIMIT_LEN = 120
+        formatter.write_paragraph()
+        with formatter.section("General Commands"):
+            formatter.write_text(
+                f"{self.commands['info'].name}\t\t{self.commands['info'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+            formatter.write_text(
+                f"{self.commands['clear'].name}\t\t{self.commands['clear'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+            formatter.write_text(
+                f"{self.commands['demo'].name}\t\t{self.commands['demo'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+
+        with formatter.section("CLI Interface Commands"):
+            formatter.write_text(
+                f"{self.commands['board'].name}\t\t{self.commands['board'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+            formatter.write_text(
+                f"{self.commands['column'].name}\t\t{self.commands['column'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+            formatter.write_text(
+                f"{self.commands['task'].name}\t\t{self.commands['task'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+        with formatter.section("Not fully supported"):
+            formatter.write_text(
+                f"{self.commands['auth'].name}\t\t{self.commands['auth'].get_short_help_str(HELP_LIMIT_LEN)}"
+            )
+
+
 @click.group(
+    cls=OrderedGroup,
     context_settings={
         "ignore_unknown_options": True,
         "help_option_names": ["-h", "--help"],
