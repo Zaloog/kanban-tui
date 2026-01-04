@@ -31,92 +31,116 @@ def test_clear():
 
 def test_board_list(test_app):
     runner = CliRunner()
-    result = runner.invoke(cli, args=["board", "list"])
-    assert result.exit_code == 0
-    assert board_output == result.output
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "list"], obj=test_app)
+        assert result.exit_code == 0
+        assert board_output == result.output
 
 
 def test_board_create(test_app):
     runner = CliRunner()
-    result = runner.invoke(
-        cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"]
-    )
-    assert result.exit_code == 0
-    assert result.output == "Created board 'CLI Test' with board_id: 2.\n"
-    assert len(test_app.backend.get_boards()) == 2
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == "Created board 'CLI Test' with board_id: 2.\n"
+        assert len(test_app.backend.get_boards()) == 2
 
 
 def test_board_delete_fail_active_board(test_app):
     runner = CliRunner()
     # Attempting to delete the active board is not allowed
-    result = runner.invoke(
-        cli,
-        args=[
-            "board",
-            "delete",
-            "1",
-        ],
-        input="y",
-    )
-    assert result.exit_code == 0
-    assert result.output == "Active board can not be deleted.\n"
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "board",
+                "delete",
+                "1",
+            ],
+            input="y",
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == "Active board can not be deleted.\n"
 
 
 def test_board_delete_fail_wrong_id(test_app):
     runner = CliRunner()
     # Attempting to delete the active board is not allowed
-    result = runner.invoke(
-        cli,
-        args=[
-            "board",
-            "delete",
-            "12",
-        ],
-        input="y",
-    )
-    assert result.exit_code == 0
-    assert result.output == "There is no board with board_id=12.\n"
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "board",
+                "delete",
+                "12",
+            ],
+            input="y",
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == "There is no board with board_id=12.\n"
 
 
 def test_board_delete_success(test_app):
     runner = CliRunner()
     # create board first
-    runner.invoke(cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"])
-    result = runner.invoke(cli, args=["board", "delete", "2"], input="y")
-    assert result.exit_code == 0
-    assert (
-        result.output
-        == "Do you want to delete the board with board_id=2  [y/N]: y\nDeleted board 'CLI Test' with board_id: 2.\n"
-    )
-    assert len(test_app.backend.get_boards()) == 1
+    with runner.isolated_filesystem():
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli, args=["board", "delete", "2"], input="y", obj=test_app
+        )
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == "Do you want to delete the board with board_id=2  [y/N]: y\nDeleted board 'CLI Test' with board_id: 2.\n"
+        )
+        assert len(test_app.backend.get_boards()) == 1
 
 
 def test_board_delete_abort(test_app):
-    runner = CliRunner(catch_exceptions=False)
+    runner = CliRunner()
     # create board first
-    runner.invoke(cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"])
-    result = runner.invoke(cli, args=["board", "delete", "2"], input="n", obj=test_app)
-    assert result.exit_code == 1
-    assert (
-        result.output
-        == "Do you want to delete the board with board_id=2  [y/N]: n\nAborted!\n"
-    )
-    assert len(test_app.backend.get_boards()) == 2
+    with runner.isolated_filesystem():
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli, args=["board", "delete", "2"], input="n", obj=test_app
+        )
+        assert result.exit_code == 1
+        assert (
+            result.output
+            == "Do you want to delete the board with board_id=2  [y/N]: n\nAborted!\n"
+        )
+        assert len(test_app.backend.get_boards()) == 2
 
 
 def test_board_delete_success_no_confirm(test_app):
     runner = CliRunner()
     # create board first
-    runner.invoke(
-        cli, args=["board", "create", "'CLI Test'", "--icon", ":books:"], obj=test_app
-    )
-    result = runner.invoke(
-        cli,
-        args=["board", "delete", "2", "--no-confirm"],
-    )
-    assert result.exit_code == 0
-    assert result.output == "Deleted board 'CLI Test' with board_id: 2.\n"
-    assert len(test_app.backend.get_boards()) == 1
+    with runner.isolated_filesystem():
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli, args=["board", "delete", "2", "--no-confirm"], obj=test_app
+        )
+        assert result.exit_code == 0
+        assert result.output == "Deleted board 'CLI Test' with board_id: 2.\n"
+        assert len(test_app.backend.get_boards()) == 1
 
 
 @pytest.mark.skip

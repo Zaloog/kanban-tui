@@ -1,5 +1,7 @@
 """CLI entry-point for kanban-tui"""
 
+import os
+
 from kanban_tui.cli.column_commands import column
 from kanban_tui.cli.task_commands import task
 
@@ -47,12 +49,14 @@ def cli(ctx, web: bool):
                 database_path=DATABASE_FILE.as_posix(),
             )
             app.run()
-        elif ctx.invoked_subcommand == "demo":
-            print("demo")
+        elif ctx.invoked_subcommand in ["demo", "info", "clear"]:
+            pass
         else:
             app = KanbanTui(
-                config_path=CONFIG_FILE.as_posix(),
-                database_path=DATABASE_FILE.as_posix(),
+                config_path=os.getenv("KANBAN_TUI_CONFIG_FILE", CONFIG_FILE.as_posix()),
+                database_path=os.getenv(
+                    "KANBAN_TUI_DATABASE_FILE", DATABASE_FILE.as_posix()
+                ),
             )
             ctx.obj = app
 
