@@ -18,6 +18,22 @@ from kanban_tui.constants import (
     DATABASE_FILE,
 )
 
+COMMAND_DICT = {
+    "General Commands": [
+        "demo",
+        "info",
+        "clear",
+    ],
+    "CLI Interface Commands": [
+        "board",
+        "column",
+        "task",
+    ],
+    # "Not yet implemented": [
+    #     "auth",
+    # ],
+}
+
 
 # Enables Custom Help Interface
 class OrderedGroup(click.Group):
@@ -33,31 +49,13 @@ class OrderedGroup(click.Group):
 
         HELP_LIMIT_LEN = 120
         formatter.write_paragraph()
-        with formatter.section("General Commands"):
-            formatter.write_text(
-                f"{self.commands['info'].name}\t\t{self.commands['info'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
-            formatter.write_text(
-                f"{self.commands['clear'].name}\t\t{self.commands['clear'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
-            formatter.write_text(
-                f"{self.commands['demo'].name}\t\t{self.commands['demo'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
-
-        with formatter.section("CLI Interface Commands"):
-            formatter.write_text(
-                f"{self.commands['board'].name}\t\t{self.commands['board'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
-            formatter.write_text(
-                f"{self.commands['column'].name}\t\t{self.commands['column'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
-            formatter.write_text(
-                f"{self.commands['task'].name}\t\t{self.commands['task'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
-        with formatter.section("Not fully supported"):
-            formatter.write_text(
-                f"{self.commands['auth'].name}\t\t{self.commands['auth'].get_short_help_str(HELP_LIMIT_LEN)}"
-            )
+        for section, commands in COMMAND_DICT.items():
+            with formatter.section(section):
+                for command in commands:
+                    formatter.write_text(
+                        f"{self.commands[command].name}\t\t"
+                        f"{self.commands[command].get_short_help_str(HELP_LIMIT_LEN)}"
+                    )
 
 
 @click.group(
@@ -105,12 +103,12 @@ def cli(ctx, web: bool):
 
 
 cli.add_command(demo)
-cli.add_command(auth)
 cli.add_command(info)
 cli.add_command(clear)
 cli.add_command(board)
 cli.add_command(task)
 cli.add_command(column)
+cli.add_command(auth)
 
 
 if __name__ == "__main__":
