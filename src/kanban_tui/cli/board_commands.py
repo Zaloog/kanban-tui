@@ -14,9 +14,11 @@ def board(app: KanbanTui):
     Commands to manage boards via the CLI
     """
     if app.config.backend.mode != Backends.SQLITE:
-        Console().print(f"Currently using [blue]{app.config.backend.mode}[/] backend.")
-        Console().print(
-            "Please change the backend to [blue]jira[/] before using the [green]`auth`[/] command."
+        raise click.exceptions.UsageError(
+            f"""
+            Currently using `{app.config.backend.mode}` backend.
+            Please change the backend to `{Backends.SQLITE}` before using the `board` command.
+            """
         )
 
 
@@ -27,13 +29,13 @@ def list_boards(app: KanbanTui):
     List all boards
     """
     boards = app.backend.get_boards()
-    if boards:
+    if not boards:
+        Console().print("No boards created yet.")
+    else:
         for board in boards:
             if board == app.backend.active_board:
                 Console().print("[red]--- Active Board ---[/]")
             Console().print(board)
-    else:
-        Console().print("No boards created yet.")
 
 
 @board.command("create")
@@ -75,7 +77,8 @@ def create_board(
     )
     if set_active:
         app.config.set_active_board(new_active_board_id=new_board.board_id)
-    Console().print(f"Created board {name} with board_id: {new_board.board_id}.")
+    board_id = new_board.board_id
+    Console().print(f"Created board {name} with {board_id = }.")
 
 
 @board.command("delete")
@@ -92,22 +95,39 @@ def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
     """
     Deletes a board
     """
-    if board_id == app.backend.active_board.board_id:
-        Console().print("[red]Active board can not be deleted.[/]")
-        return
     boards = app.backend.get_boards()
-    if boards:
-        for board in boards:
-            if board.board_id == board_id:
-                if not no_confirm:
-                    click.confirm(
-                        f"Do you want to delete the board with {board_id=} ", abort=True
-                    )
-                app.backend.delete_board(board_id)
-                Console().print(
-                    f"Deleted board {board.name} with board_id: {board_id}."
-                )
-                return
-        Console().print(f"[red]There is no board with {board_id=}[/].")
+
+    if not boards:
+        Console().print("[red]No boards created yet.[/]")
+    elif board_id == app.backend.active_board.board_id:
+        Console().print("[red]Active board can not be deleted.[/]")
+    elif board_id in [board.board_id for board in boards]:
+        if not no_confirm:
+            click.confirm(
+                f"Do you want to delete the board with {board_id = } ", abort=True
+            )
+        app.backend.delete_board(board_id)
+        Console().print(f"Deleted board with {board_id = }.")
+
     else:
-        Console().print("No boards created yet.")
+        Console().print(f"[red]There is no board with {board_id = }[/].")
+
+
+@board.command("activate")
+@click.pass_obj
+@click.argument("board_id", type=click.INT)
+def activate_board(app: KanbanTui, board_id: int):
+    """
+    Sets a board to active
+    """
+    boards = app.backend.get_boards()
+
+    if not boards:
+        Console().print("[red]No boards created yet.[/]")
+    elif board_id == app.backend.active_board.board_id:
+        Console().print("[yellow]Board is already active.[/]")
+    elif board_id in [board.board_id for board in boards]:
+        app.config.set_active_board(new_active_board_id=board_id)
+        Console().print(f"Board with {board_id = } is set as active board.")
+    else:
+        Console().print(f"[red]There is no board with {board_id = }[/].")

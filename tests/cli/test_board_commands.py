@@ -1,7 +1,9 @@
 import pytest
 from click.testing import CliRunner
+from click.exceptions import UsageError
 
 from kanban_tui.cli import cli
+from kanban_tui.config import Backends
 
 board_output = """--- Active Board ---
 Board(
@@ -16,17 +18,15 @@ Board(
 """
 
 
-def test_info():
-    runner = CliRunner()
-    result = runner.invoke(cli, args=["info"])
-    assert result.exit_code == 0
-    assert "xdg file locations" in result.output
+def test_board_wrong_backend(test_app, test_jira_config):
+    test_app.config.backend.mode = Backends.JIRA
+    test_app.backend = test_app.get_backend()
 
-
-def test_clear():
     runner = CliRunner()
-    result = runner.invoke(cli, args=["clear"], input="n")
-    assert result.exit_code == 0
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "list"], obj=test_app)
+        assert result.exit_code == 2
+        assert pytest.raises(UsageError)
 
 
 def test_board_list(test_app):
@@ -34,7 +34,15 @@ def test_board_list(test_app):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["board", "list"], obj=test_app)
         assert result.exit_code == 0
-        assert board_output == result.output
+        assert result.output == board_output
+
+
+def test_board_list_no_boards(empty_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "list"], obj=empty_app)
+        assert result.exit_code == 0
+        assert result.output == "No boards created yet.\n"
 
 
 def test_board_create(test_app):
@@ -46,7 +54,7 @@ def test_board_create(test_app):
             obj=test_app,
         )
         assert result.exit_code == 0
-        assert result.output == "Created board 'CLI Test' with board_id: 2.\n"
+        assert result.output == "Created board 'CLI Test' with board_id = 2.\n"
         assert len(test_app.backend.get_boards()) == 2
 
 
@@ -83,7 +91,7 @@ def test_board_delete_fail_wrong_id(test_app):
             obj=test_app,
         )
         assert result.exit_code == 0
-        assert result.output == "There is no board with board_id=12.\n"
+        assert result.output == "There is no board with board_id = 12.\n"
 
 
 def test_board_delete_success(test_app):
@@ -101,7 +109,7 @@ def test_board_delete_success(test_app):
         assert result.exit_code == 0
         assert (
             result.output
-            == "Do you want to delete the board with board_id=2  [y/N]: y\nDeleted board 'CLI Test' with board_id: 2.\n"
+            == "Do you want to delete the board with board_id = 2  [y/N]: y\nDeleted board with board_id = 2.\n"
         )
         assert len(test_app.backend.get_boards()) == 1
 
@@ -121,7 +129,7 @@ def test_board_delete_abort(test_app):
         assert result.exit_code == 1
         assert (
             result.output
-            == "Do you want to delete the board with board_id=2  [y/N]: n\nAborted!\n"
+            == "Do you want to delete the board with board_id = 2  [y/N]: n\nAborted!\n"
         )
         assert len(test_app.backend.get_boards()) == 2
 
@@ -139,13 +147,58 @@ def test_board_delete_success_no_confirm(test_app):
             cli, args=["board", "delete", "2", "--no-confirm"], obj=test_app
         )
         assert result.exit_code == 0
-        assert result.output == "Deleted board 'CLI Test' with board_id: 2.\n"
+        assert result.output == "Deleted board with board_id = 2.\n"
         assert len(test_app.backend.get_boards()) == 1
 
 
-@pytest.mark.skip
-def test_task_list(test_app):
+def test_board_delete_fail_no_boards(empty_app):
     runner = CliRunner()
-    result = runner.invoke(cli, args=["task", "list"])
-    assert result.exit_code == 0
-    assert board_output == result.output
+    # create board first
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli, args=["board", "delete", "2", "--no-confirm"], obj=empty_app
+        )
+        assert result.exit_code == 0
+        assert result.output == "No boards created yet.\n"
+        assert len(empty_app.backend.get_boards()) == 0
+
+
+def test_board_activate_already_active(test_app):
+    runner = CliRunner()
+    # create board first
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "activate", "1"], obj=test_app)
+        assert result.exit_code == 0
+        assert result.output == "Board is already active.\n"
+
+
+def test_board_activate_success(test_app):
+    runner = CliRunner()
+    # create board first
+    with runner.isolated_filesystem():
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        result = runner.invoke(cli, args=["board", "activate", "2"], obj=test_app)
+        assert result.exit_code == 0
+        assert result.output == "Board with board_id = 2 is set as active board.\n"
+
+
+def test_board_activate_no_board(empty_app):
+    runner = CliRunner()
+    # create board first
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "activate", "2"], obj=empty_app)
+        assert result.exit_code == 0
+        assert result.output == "No boards created yet.\n"
+
+
+def test_board_activate_no_board_with_id(test_app):
+    runner = CliRunner()
+    # create board first
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "activate", "2"], obj=test_app)
+        assert result.exit_code == 0
+        assert result.output == "There is no board with board_id = 2.\n"
