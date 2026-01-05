@@ -14,9 +14,11 @@ def task(app: KanbanTui):
     Commands to manage boards via the CLI
     """
     if app.config.backend.mode != Backends.SQLITE:
-        Console().print(f"Currently using [blue]{app.config.backend.mode}[/] backend.")
-        Console().print(
-            "Please change the backend to [blue]jira[/] before using the [green]`auth`[/] command."
+        raise click.exceptions.UsageError(
+            f"""
+            Currently using `{app.config.backend.mode}` backend.
+            Please change the backend to `{Backends.SQLITE}` before using the `task` command.
+            """
         )
 
 
@@ -36,6 +38,7 @@ def list_boards(app: KanbanTui):
 
 @task.command("create")
 @click.pass_obj
+@click.argument("title", type=click.STRING)
 def create_task(app: KanbanTui):
     """
     Creates a new task
@@ -43,8 +46,19 @@ def create_task(app: KanbanTui):
     # TODO
 
 
+@task.command("update")
+@click.pass_obj
+@click.argument("task_id", type=click.INT)
+def update_task(app: KanbanTui):
+    """
+    Updates a task
+    """
+    # TODO
+
+
 @task.command("delete")
 @click.pass_obj
+@click.argument("task_id", type=click.INT)
 def delete_task(app: KanbanTui):
     """
     Deletes a task

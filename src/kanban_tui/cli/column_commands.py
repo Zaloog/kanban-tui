@@ -14,9 +14,11 @@ def column(app: KanbanTui):
     Commands to manage columns via the CLI
     """
     if app.config.backend.mode != Backends.SQLITE:
-        Console().print(f"Currently using [blue]{app.config.backend.mode}[/] backend.")
-        Console().print(
-            "Please change the backend to [blue]jira[/] before using the [green]`auth`[/] command."
+        raise click.exceptions.UsageError(
+            f"""
+            Currently using `{app.config.backend.mode}` backend.
+            Please change the backend to `{Backends.SQLITE}` before using the `column` command.
+            """
         )
 
 

@@ -18,13 +18,13 @@ Board(
 """
 
 
-def test_board_wrong_backend(test_app, test_jira_config):
+def test_column_wrong_backend(test_app, test_jira_config):
     test_app.config.backend.mode = Backends.JIRA
     test_app.backend = test_app.get_backend()
 
     runner = CliRunner()
     with runner.isolated_filesystem():
-        result = runner.invoke(cli, args=["board", "list"], obj=test_app)
+        result = runner.invoke(cli, args=["column", "list"], obj=test_app)
         assert result.exit_code == 2
         assert pytest.raises(UsageError)
 

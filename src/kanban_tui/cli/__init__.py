@@ -12,7 +12,7 @@ from rich.console import Console
 from kanban_tui.app import KanbanTui
 from kanban_tui.cli.board_commands import board
 from kanban_tui.cli.demo_commands import demo
-from kanban_tui.cli.util_commands import info, clear, auth
+from kanban_tui.cli.general_commands import info, clear, auth
 from kanban_tui.constants import (
     CONFIG_FILE,
     DATABASE_FILE,
