@@ -64,7 +64,11 @@ def list_boards(app: KanbanTui):
     help="Columns to add to the board [default: Ready, Doing, Done, Archive]",
 )
 def create_board(
-    app: KanbanTui, name: str, icon: str, columns: tuple[str], set_active: bool
+    app: KanbanTui,
+    name: str,
+    icon: str | None,
+    columns: tuple[str] | None,
+    set_active: bool,
 ):
     """
     Creates a new board
@@ -78,7 +82,7 @@ def create_board(
     if set_active:
         app.config.set_active_board(new_active_board_id=new_board.board_id)
     board_id = new_board.board_id
-    Console().print(f"Created board {name} with {board_id = }.")
+    Console().print(f"Created board `{name}` with {board_id = }.")
 
 
 @board.command("delete")

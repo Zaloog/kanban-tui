@@ -50,11 +50,11 @@ def test_board_create(test_app):
     with runner.isolated_filesystem():
         result = runner.invoke(
             cli,
-            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            args=["board", "create", "CLI Test", "--icon", ":books:"],
             obj=test_app,
         )
         assert result.exit_code == 0
-        assert result.output == "Created board 'CLI Test' with board_id = 2.\n"
+        assert result.output == "Created board `CLI Test` with board_id = 2.\n"
         assert len(test_app.backend.get_boards()) == 2
 
 
@@ -100,7 +100,7 @@ def test_board_delete_success(test_app):
     with runner.isolated_filesystem():
         runner.invoke(
             cli,
-            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            args=["board", "create", "CLI Test", "--icon", ":books:"],
             obj=test_app,
         )
         result = runner.invoke(

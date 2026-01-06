@@ -105,8 +105,7 @@ def test_task_list_no_task(no_task_app):
         assert result.output == "No tasks created yet.\n"
 
 
-@pytest.mark.skip
-def test_task_create(test_app):
+def test_task_create_minimal(test_app):
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
@@ -114,15 +113,60 @@ def test_task_create(test_app):
             args=[
                 "task",
                 "create",
-                "'CLI Test Task'",
-                "--description",
-                "Make this test pass",
+                "CLI Test Task",
             ],
             obj=test_app,
         )
         assert result.exit_code == 0
-        assert result.output == "Created Task 'CLI Test Task' with task_id = 2.\n"
+        assert result.output == "Created task `CLI Test Task` with task_id = 6.\n"
         assert len(test_app.backend.get_tasks_on_active_board()) == 6
+
+
+@pytest.mark.parametrize(
+    "title,description,due_date",
+    [
+        ("CLI Test Task", None, None),
+        ("CLI Test Task", "Easy Description", None),
+        (
+            "CLI Test Task",
+            """# MarkdownEasy Description
+            - Subtask 1
+            - Subtask 2
+            """,
+            None,
+        ),
+        ("CLI Test Task", None, "2026-01-01"),
+    ],
+)
+def test_task_create_all_options(
+    test_app, title: str, description: str | None, due_date: str | None
+):
+    runner = CliRunner()
+    all_args = ["task", "create", title]
+    if description:
+        all_args.extend(["--description", description])
+    if due_date:
+        all_args.extend(["--due-date", due_date])
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=all_args,
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == f"Created task `{title}` with task_id = 6.\n"
+
+        tasks = test_app.backend.get_tasks_on_active_board()
+        assert len(tasks) == 6
+
+        new_task = tasks[-1]
+        assert new_task.title == title
+        assert new_task.description == description
+
+        if due_date:
+            assert new_task.due_date.strftime("%Y-%m-%d") == due_date
+        else:
+            assert new_task.due_date is due_date
 
 
 def test_task_delete_fail_wrong_id(test_app):

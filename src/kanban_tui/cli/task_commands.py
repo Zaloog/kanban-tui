@@ -1,5 +1,7 @@
 """CLI commands for kanban-tui task management"""
 
+import datetime
+
 import click
 from rich.console import Console
 
@@ -41,15 +43,42 @@ def list_tasks(app: KanbanTui):
 @click.argument("title", type=click.STRING)
 @click.option(
     "--description",
-    default=False,
     type=click.STRING,
     help="The task description",
 )
-def create_task(app: KanbanTui, title: str, description: str):
+@click.option(
+    "--column",
+    default=None,
+    type=click.INT,
+    help="Column to put the task into [default: left most visible column]",
+)
+@click.option(
+    "--due-date",
+    default=None,
+    type=click.DateTime(),
+    help="Task due date (format `%Y-%m-%d`)",
+)
+def create_task(
+    app: KanbanTui,
+    title: str,
+    description: str,
+    column: int,
+    due_date: datetime.datetime,
+):
     """
     Creates a new task
     """
-    # TODO
+    first_visible_column = next(
+        column for column in app.backend.get_columns() if column.visible
+    ).column_id
+    new_task = app.backend.create_new_task(
+        title=title,
+        description=description,
+        column=column or first_visible_column,
+        due_date=due_date,
+    )
+    task_id = new_task.task_id
+    Console().print(f"Created task `{title}` with {task_id = }.")
 
 
 @task.command("update")
