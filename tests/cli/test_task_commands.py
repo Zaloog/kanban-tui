@@ -171,7 +171,6 @@ def test_task_create_all_options(
 
 def test_task_delete_fail_wrong_id(test_app):
     runner = CliRunner()
-    # Attempting to delete the active board is not allowed
     with runner.isolated_filesystem():
         result = runner.invoke(
             cli,
@@ -201,7 +200,7 @@ def test_task_delete_success(test_app):
         assert len(test_app.backend.get_tasks_on_active_board()) == 4
 
 
-def test_board_delete_abort(test_app):
+def test_task_delete_abort(test_app):
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
@@ -215,7 +214,7 @@ def test_board_delete_abort(test_app):
         assert len(test_app.backend.get_tasks_on_active_board()) == 5
 
 
-def test_board_delete_success_no_confirm(test_app):
+def test_task_delete_success_no_confirm(test_app):
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(
@@ -228,7 +227,6 @@ def test_board_delete_success_no_confirm(test_app):
 
 def test_task_delete_fail_no_tasks(no_task_app):
     runner = CliRunner()
-    # create board first
     with runner.isolated_filesystem():
         result = runner.invoke(
             cli, args=["task", "delete", "2", "--no-confirm"], obj=no_task_app
@@ -238,42 +236,6 @@ def test_task_delete_fail_no_tasks(no_task_app):
         assert len(no_task_app.backend.get_tasks_on_active_board()) == 0
 
 
-def test_board_activate_already_active(test_app):
-    runner = CliRunner()
-    # create board first
-    with runner.isolated_filesystem():
-        result = runner.invoke(cli, args=["board", "activate", "1"], obj=test_app)
-        assert result.exit_code == 0
-        assert result.output == "Board is already active.\n"
-
-
-def test_board_activate_success(test_app):
-    runner = CliRunner()
-    # create board first
-    with runner.isolated_filesystem():
-        runner.invoke(
-            cli,
-            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
-            obj=test_app,
-        )
-        result = runner.invoke(cli, args=["board", "activate", "2"], obj=test_app)
-        assert result.exit_code == 0
-        assert result.output == "Board with board_id = 2 is set as active board.\n"
-
-
-def test_board_activate_no_board(empty_app):
-    runner = CliRunner()
-    # create board first
-    with runner.isolated_filesystem():
-        result = runner.invoke(cli, args=["board", "activate", "2"], obj=empty_app)
-        assert result.exit_code == 0
-        assert result.output == "No boards created yet.\n"
-
-
-def test_board_activate_no_board_with_id(test_app):
-    runner = CliRunner()
-    # create board first
-    with runner.isolated_filesystem():
-        result = runner.invoke(cli, args=["board", "activate", "2"], obj=test_app)
-        assert result.exit_code == 0
-        assert result.output == "There is no board with board_id = 2.\n"
+def test_task_update(test_app):
+    ...
+    # TODO
