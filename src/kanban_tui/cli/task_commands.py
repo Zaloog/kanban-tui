@@ -134,13 +134,13 @@ def move_task(app: KanbanTui, task_id: int, target_column: int):
     """
     Moves a task to another column
     """
-    return
-
-    _old_task = app.backend.get_task_by_id(task_id=task_id)
-    _moved_task = app.backend.update_task_entry(
-        task_id=task_id,
+    old_task = app.backend.get_task_by_id(task_id=task_id)
+    old_task.column = target_column
+    moved_task = app.backend.update_task_status(new_task=old_task)
+    Console().print(
+        f"Moved task with {task_id = } from column {old_task.column} to {moved_task.column} ."
     )
-    Console().print(f"Updated task with {task_id = }.")
+    # TODO Test, Validate Columns, Warn + confirm if moving to other board
 
 
 @task.command("delete")

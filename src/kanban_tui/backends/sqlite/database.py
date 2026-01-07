@@ -968,9 +968,7 @@ def get_task_by_id_db(
 
 
 # After column Movement
-def update_task_status_db(
-    task: Task, database: str = DATABASE_FILE.as_posix()
-) -> int | str:
+def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> Task:
     new_start_date_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
@@ -983,13 +981,14 @@ def update_task_status_db(
         finish_date = :finish_date,
         column = :column
     WHERE task_id = :task_id
+    RETURNING *;
     """
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
-            con.execute(transaction_str, new_start_date_dict)
+            moved_task = con.execute(transaction_str, new_start_date_dict).fetchone()
             con.commit()
-            return 0
+            return moved_task
         except sqlite3.Error as e:
             con.rollback()
             raise e
