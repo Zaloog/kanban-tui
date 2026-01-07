@@ -22,6 +22,7 @@ from kanban_tui.backends.sqlite.database import (
     get_all_tasks_on_board_db,
     get_all_columns_on_board_db,
     get_category_by_id_db,
+    get_task_by_id_db,
     init_new_db,
     update_board_entry_db,
     update_column_name_db,
@@ -158,6 +159,10 @@ class SqliteBackend(Backend):
             category_id=category_id, database=self.database_path
         )
         return category
+
+    def get_task_by_id(self, task_id: int) -> Task:
+        task = get_task_by_id_db(task_id=task_id, database=self.database_path)
+        return task
 
     # Column Management
     def update_column_visibility(self, column_id: int, visible: bool):

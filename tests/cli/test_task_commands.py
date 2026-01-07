@@ -232,10 +232,70 @@ def test_task_delete_fail_no_tasks(no_task_app):
             cli, args=["task", "delete", "2", "--no-confirm"], obj=no_task_app
         )
         assert result.exit_code == 0
-        assert result.output == "No tasks created yet.\n"
+        assert result.output == "There is no task with task_id = 2.\n"
         assert len(no_task_app.backend.get_tasks_on_active_board()) == 0
 
 
-def test_task_update(test_app):
-    ...
-    # TODO
+def test_task_update_no_fields(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["task", "update", "2"], obj=test_app)
+        assert result.exit_code == 0
+        assert result.output == "No fields to update provided.\n"
+
+
+@pytest.mark.parametrize(
+    "title,description,due_date",
+    [
+        ("CLI Test Task", None, None),
+        ("CLI Test Task", "Easy Description", None),
+        (
+            "CLI Test Task",
+            """# MarkdownEasy Description
+            - Subtask 1
+            - Subtask 2
+            """,
+            None,
+        ),
+        ("CLI Test Task", None, "2026-01-01"),
+    ],
+)
+def test_task_update_all_options(
+    test_app, title: str, description: str | None, due_date: str | None
+):
+    runner = CliRunner()
+    task_id = 1
+    old_task = test_app.backend.get_task_by_id(task_id=task_id)
+    all_args = ["task", "update", f"{task_id}"]
+    if title:
+        all_args.extend(["--title", title])
+    if description:
+        all_args.extend(["--description", description])
+    if due_date:
+        all_args.extend(["--due-date", due_date])
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=all_args,
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == f"Updated task with {task_id = }.\n"
+
+        updated_task = test_app.backend.get_task_by_id(task_id=task_id)
+
+        if title:
+            assert updated_task.title == title
+        else:
+            assert updated_task.title is old_task.title
+
+        if description:
+            assert updated_task.description == description
+        else:
+            assert updated_task.description == old_task.description
+
+        if due_date:
+            assert updated_task.due_date.strftime("%Y-%m-%d") == due_date
+        else:
+            assert updated_task.due_date is old_task.due_date

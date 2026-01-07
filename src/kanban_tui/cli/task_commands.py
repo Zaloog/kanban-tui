@@ -84,11 +84,63 @@ def create_task(
 @task.command("update")
 @click.pass_obj
 @click.argument("task_id", type=click.INT)
-def update_task(app: KanbanTui):
+@click.option(
+    "--title",
+    default=None,
+    type=click.STRING,
+    help="The task title",
+)
+@click.option(
+    "--description",
+    default=None,
+    type=click.STRING,
+    help="The task description",
+)
+@click.option(
+    "--due-date",
+    default=None,
+    type=click.DateTime(),
+    help="Task due date (format `%Y-%m-%d`)",
+)
+def update_task(
+    app: KanbanTui,
+    task_id: int,
+    title: str | None,
+    description: str | None,
+    due_date: datetime.datetime | None,
+):
     """
     Updates a task
     """
-    # TODO
+    old_task = app.backend.get_task_by_id(task_id=task_id)
+    if all((title is None, description is None, due_date is None)):
+        Console().print("No fields to update provided.")
+    else:
+        _updated_task = app.backend.update_task_entry(
+            task_id=task_id,
+            title=title or old_task.title,
+            description=description or old_task.description,
+            category=None,
+            due_date=due_date or old_task.due_date,
+        )
+        Console().print(f"Updated task with {task_id = }.")
+
+
+@task.command("move")
+@click.pass_obj
+@click.argument("task_id", type=click.INT)
+@click.argument("target_column", type=click.INT)
+def move_task(app: KanbanTui, task_id: int, target_column: int):
+    """
+    Moves a task to another column
+    """
+    return
+
+    _old_task = app.backend.get_task_by_id(task_id=task_id)
+    _moved_task = app.backend.update_task_entry(
+        task_id=task_id,
+    )
+    Console().print(f"Updated task with {task_id = }.")
 
 
 @task.command("delete")
@@ -105,11 +157,9 @@ def delete_task(app: KanbanTui, task_id: int, no_confirm: bool):
     """
     Deletes a task
     """
-    tasks = app.backend.get_tasks_on_active_board()
+    task = app.backend.get_task_by_id(task_id=task_id)
 
-    if not tasks:
-        Console().print("[red]No tasks created yet.[/]")
-    elif task_id in [task.task_id for task in tasks]:
+    if task:
         if not no_confirm:
             click.confirm(
                 f"Do you want to delete the task with {task_id = } ", abort=True
@@ -119,4 +169,3 @@ def delete_task(app: KanbanTui, task_id: int, no_confirm: bool):
 
     else:
         Console().print(f"[red]There is no task with {task_id = }[/].")
-    # TODO

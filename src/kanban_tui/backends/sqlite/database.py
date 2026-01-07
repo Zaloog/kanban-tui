@@ -944,6 +944,29 @@ def get_category_by_id_db(
             raise (e)
 
 
+def get_task_by_id_db(
+    task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Task:
+    query_str = """
+    SELECT *
+    FROM tasks
+    WHERE task_id = :task_id
+    ;
+    """
+    task_id_dict = {"task_id": task_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            task = con.execute(query_str, task_id_dict).fetchone()
+            con.commit()
+            return task
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
 # After column Movement
 def update_task_status_db(
     task: Task, database: str = DATABASE_FILE.as_posix()
