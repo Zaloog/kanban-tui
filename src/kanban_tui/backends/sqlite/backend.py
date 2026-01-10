@@ -105,7 +105,6 @@ class SqliteBackend(Backend):
             column=column,
             category=category,
             due_date=due_date,
-            board_id=self.settings.active_board_id,
             database=self.database_path,
         )
 

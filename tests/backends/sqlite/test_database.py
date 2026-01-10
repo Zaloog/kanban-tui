@@ -78,8 +78,8 @@ def test_board_info_factory(test_app, test_database_path):
     COUNT(DISTINCT c.column_id) AS amount_columns,
     MIN(t.due_date) AS next_due
     FROM boards b
-    LEFT JOIN tasks t ON b.board_id = t.board_id
     LEFT JOIN columns c ON b.board_id = c.board_id
+    LEFT JOIN tasks t ON c.column_id = t.column
     GROUP BY b.board_id;
     """
     with create_connection(database=test_database_path) as con:

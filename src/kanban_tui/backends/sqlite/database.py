@@ -82,8 +82,6 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     start_date DATETIME,
     finish_date DATETIME,
     due_date DATETIME,
-    board_id INTEGER,
-    FOREIGN KEY (board_id) REFERENCES boards(board_id),
     FOREIGN KEY (column) REFERENCES columns(column_id),
     FOREIGN KEY (category) REFERENCES categories(category_id),
     CHECK (title <> "")
@@ -614,7 +612,6 @@ def create_new_board_db(
 
 def create_new_task_db(
     title: str,
-    board_id: int,
     column: int,
     category: int | None = None,
     description: str | None = None,
@@ -632,7 +629,6 @@ def create_new_task_db(
         "category": category,
         "due_date": due_date,
         "description": description,
-        "board_id": board_id,
     }
 
     transaction_str = """
@@ -646,8 +642,7 @@ def create_new_task_db(
         :creation_date,
         :start_date,
         :finish_date,
-        :due_date,
-        :board_id
+        :due_date
         )
         RETURNING *
         ;"""
@@ -807,8 +802,10 @@ def get_all_tasks_on_board_db(
 
     query_str = """
     SELECT *
-    FROM tasks
-    WHERE board_id = :board_id ;
+    FROM tasks t
+    LEFT JOIN columns c ON c.column_id = t.column
+    LEFT JOIN boards b ON b.board_id = c.board_id
+    WHERE b.board_id = :board_id ;
     """
 
     with create_connection(database=database) as con:
@@ -1273,7 +1270,11 @@ def delete_board_db(board_id: int, database: str = DATABASE_FILE.as_posix()) -> 
 
     delete_task_str = """
     DELETE FROM tasks
-    WHERE board_id = ?
+    WHERE task_id in (
+        SELECT t.task_id FROM tasks t
+        INNER JOIN columns c ON c.column_id = t.column
+        WHERE c.board_id = ?
+    )
     """
 
     delete_column_str = """
@@ -1303,8 +1304,8 @@ def get_board_info_dict(
     COUNT(DISTINCT c.column_id) AS amount_columns,
     MIN(t.due_date) AS next_due
     FROM boards b
-    LEFT JOIN tasks t ON b.board_id = t.board_id
     LEFT JOIN columns c ON b.board_id = c.board_id
+    LEFT JOIN tasks t ON c.column_id = t.column
     GROUP BY b.board_id;
     """
 
