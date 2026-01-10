@@ -60,7 +60,7 @@ def list_tasks(app: KanbanTui):
 @click.option(
     "--due-date",
     default=None,
-    type=click.DateTime(),
+    type=click.DateTime(formats=["%Y-%m-%d"]),
     help="Task due date (format `%Y-%m-%d`)",
 )
 def create_task(
@@ -104,7 +104,7 @@ def create_task(
 @click.option(
     "--due-date",
     default=None,
-    type=click.DateTime(),
+    type=click.DateTime(formats=["%Y-%m-%d"]),
     help="Task due date (format `%Y-%m-%d`)",
 )
 def update_task(

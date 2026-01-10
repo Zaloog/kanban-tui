@@ -31,3 +31,10 @@ DEMO_DATABASE_FILE = DATA_DIR / "demo_kanban_tui.db"
 AUTH_NAME = "authentication.toml"
 AUTH_DIR = _create_kanban_tui_auth_dir(CONFIG_DIR)
 AUTH_FILE = AUTH_DIR / AUTH_NAME
+
+CLAUDE_SKILLS_NAME = "SKILL.md"
+CLAUDE_SKILL_LOCAL_DIR = Path.cwd() / ".claude" / "skills" / "kanban-tui"
+CLAUDE_SKILL_LOCAL_FILE = CLAUDE_SKILL_LOCAL_DIR / CLAUDE_SKILLS_NAME
+
+CLAUDE_SKILL_GLOBAL_DIR = Path.home() / ".claude" / "skills" / "kanban-tui"
+CLAUDE_SKILL_GLOBAL_FILE = CLAUDE_SKILL_GLOBAL_DIR / CLAUDE_SKILLS_NAME
