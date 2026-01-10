@@ -1,4 +1,6 @@
 import pytest
+from datetime import datetime
+from freezegun import freeze_time
 from click.testing import CliRunner
 from click.exceptions import UsageError
 
@@ -16,7 +18,7 @@ TEST_TASK_OUTPUT = """Task(
     due_date=None,
     description='Hallo',
     days_left=None,
-    days_since_creation=-86,
+    days_since_creation=0,
     finished=False
 )
 Task(
@@ -30,7 +32,7 @@ Task(
     due_date=None,
     description='Hallo',
     days_left=None,
-    days_since_creation=-86,
+    days_since_creation=0,
     finished=False
 )
 Task(
@@ -44,7 +46,7 @@ Task(
     due_date=None,
     description='Hallo',
     days_left=None,
-    days_since_creation=-86,
+    days_since_creation=0,
     finished=False
 )
 Task(
@@ -58,7 +60,7 @@ Task(
     due_date=None,
     description='Hallo',
     days_left=None,
-    days_since_creation=-86,
+    days_since_creation=0,
     finished=False
 )
 Task(
@@ -72,7 +74,7 @@ Task(
     due_date=None,
     description='Hallo',
     days_left=None,
-    days_since_creation=-86,
+    days_since_creation=0,
     finished=False
 )
 """
@@ -90,11 +92,17 @@ def test_task_wrong_backend(test_app, test_jira_config):
 
 
 def test_task_list(test_app):
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(cli, args=["task", "list"], obj=test_app)
-        assert result.exit_code == 0
-        assert result.output == TEST_TASK_OUTPUT
+    # Use freezing here to keep days_since_creation the same
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(cli, args=["task", "list"], obj=test_app)
+            assert result.exit_code == 0
+            # Replace __repr__ shows the FakeDatetime on creation, use a replace here to make the assert correct
+            assert (
+                result.output.replace("FakeDatetime", "datetime.datetime")
+                == TEST_TASK_OUTPUT
+            )
 
 
 def test_task_list_no_task(no_task_app):
@@ -299,3 +307,10 @@ def test_task_update_all_options(
             assert updated_task.due_date.strftime("%Y-%m-%d") == due_date
         else:
             assert updated_task.due_date is old_task.due_date
+
+
+def test_task_move_success(): ...
+def test_task_move_fail_wrong_task_id(): ...
+def test_task_move_fail_wrong_column_id(): ...
+def test_task_move_confirm_column_not_active_board(): ...
+def test_task_move_abort_column_not_active_board(): ...

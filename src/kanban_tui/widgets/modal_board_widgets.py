@@ -95,14 +95,14 @@ class CustomColumnList(VerticalScroll):
     app: "KanbanTui"
     can_focus = False
 
-    def on_mount(self):
-        self.mount(NewColumnItem())
+    async def on_mount(self):
+        await self.mount(NewColumnItem())
         self.display = False
 
     @on(Input.Changed)
-    def add_new_empty_column(self, event: Input.Changed):
+    async def add_new_empty_column(self, event: Input.Changed):
         if event.input.value and self.children[-1].column_name:
-            self.mount(NewColumnItem())
+            await self.mount(NewColumnItem())
             self.scroll_down(animate=False)
         if (not event.input.value) & (not self.children[-1].column_name):
             self.remove_children(self.children[-1:])
