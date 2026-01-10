@@ -30,6 +30,11 @@ def list_tasks(app: KanbanTui):
     """
     List all tasks on active board
     """
+    boards = app.backend.get_boards()
+    if not boards:
+        Console().print("No boards created yet.")
+        return
+
     tasks = app.backend.get_tasks_on_active_board()
     if tasks:
         for task in tasks:

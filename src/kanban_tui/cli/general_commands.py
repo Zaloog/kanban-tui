@@ -1,5 +1,8 @@
 """CLI commands for deleting the db, authentication and showing xdg file locations"""
 
+import os
+from pathlib import Path
+
 import click
 from rich.console import Console
 
@@ -26,12 +29,14 @@ def clear(confirm: bool):
     Deletes database and config
     """
     if confirm:
-        CONFIG_FILE.unlink(missing_ok=True)
-        DATABASE_FILE.unlink(missing_ok=True)
-        Console().print(f"Config under {CONFIG_FILE}  deleted [green]successfully[/]")
-        Console().print(
-            f"Database under {DATABASE_FILE}  deleted [green]successfully[/]"
-        )
+        conf_path_str = os.getenv("KANBAN_TUI_CONFIG_FILE", CONFIG_FILE.as_posix())
+        Path(conf_path_str).unlink(missing_ok=True)
+
+        db_path_str = os.getenv("KANBAN_TUI_DATABASE_FILE", DATABASE_FILE.as_posix())
+        Path(db_path_str).unlink(missing_ok=True)
+
+        Console().print(f"Config under {conf_path_str} deleted [green]successfully[/]")
+        Console().print(f"Database under {db_path_str} deleted [green]successfully[/]")
 
 
 @click.command("auth")
@@ -42,11 +47,12 @@ def auth(app: KanbanTui):
     """
     app.auth_only = True
     if app.config.backend.mode != Backends.JIRA:
-        Console().print(f"Currently using [blue]{app.config.backend.mode}[/] backend.")
-        Console().print(
-            "Please change the backend to [blue]jira[/] before using the [green]`auth`[/] command."
+        raise click.exceptions.UsageError(
+            f"""
+            Currently using `{app.config.backend.mode}` backend.
+            Please change the backend to `jira` before using the `board` command.
+            """
         )
-        return
 
     api_key = app.run()
     if api_key:

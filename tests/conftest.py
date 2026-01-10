@@ -31,6 +31,7 @@ def test_database_path(test_file_location: Path) -> Generator[str, None, None]:
 def test_auth_path(test_file_location: Path) -> Generator[str, None, None]:
     directory = test_file_location / "auth"
     directory.mkdir(exist_ok=True)
+
     yield (directory / AUTH_NAME).as_posix()
 
 
@@ -40,6 +41,7 @@ def test_config(
     test_config_path: str, test_database_path: str
 ) -> Generator[Settings, None, None]:
     os.environ["KANBAN_TUI_CONFIG_FILE"] = test_config_path
+    os.environ["KANBAN_TUI_DATABASE_FILE"] = test_database_path
     init_config(config_path=test_config_path, database=test_database_path)
 
     cfg = Settings()

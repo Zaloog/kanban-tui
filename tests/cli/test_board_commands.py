@@ -58,6 +58,31 @@ def test_board_create(test_app):
         assert len(test_app.backend.get_boards()) == 2
 
 
+def test_board_create_custom_columns(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "board",
+                "create",
+                "CLI Test",
+                "--icon",
+                ":books:",
+                "-c",
+                "TestCol1",
+                "-c",
+                "TestCol2",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == "Created board `CLI Test` with board_id = 2.\n"
+        assert len(test_app.backend.get_boards()) == 2
+        assert test_app.backend.get_column_by_id(5).name == "TestCol1"
+        assert test_app.backend.get_column_by_id(6).name == "TestCol2"
+
+
 def test_board_delete_fail_active_board(test_app):
     runner = CliRunner()
     # Attempting to delete the active board is not allowed

@@ -105,6 +105,14 @@ def test_task_list(test_app):
             )
 
 
+def test_task_list_no_board(empty_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["task", "list"], obj=empty_app)
+        assert result.exit_code == 0
+        assert result.output == "No boards created yet.\n"
+
+
 def test_task_list_no_task(no_task_app):
     runner = CliRunner()
     with runner.isolated_filesystem():

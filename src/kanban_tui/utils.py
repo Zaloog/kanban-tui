@@ -15,7 +15,7 @@ from kanban_tui.backends.sqlite.database import (
     init_new_db,
     create_new_board_db,
 )
-from kanban_tui.config import Settings, init_config
+from kanban_tui.config import init_config
 from kanban_tui.constants import (
     AUTH_FILE,
     CONFIG_FILE,
@@ -389,8 +389,6 @@ def calculate_work_on_time(
 def create_demo_tasks(database_path: str, config_path: str):
     init_config(config_path=config_path, database=database_path)
 
-    cfg = Settings()
-
     init_new_db(database=database_path)
 
     # Create new categories
@@ -417,7 +415,6 @@ def create_demo_tasks(database_path: str, config_path: str):
         category=2,
         column=1,
         due_date=datetime.now().replace(microsecond=0),
-        board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
     create_new_task_db(
@@ -426,7 +423,6 @@ def create_demo_tasks(database_path: str, config_path: str):
         category=3,
         column=1,
         due_date=datetime.now().replace(microsecond=0) + timedelta(days=1),
-        board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
     create_new_task_db(
@@ -435,7 +431,6 @@ def create_demo_tasks(database_path: str, config_path: str):
         category=None,
         column=1,
         due_date=datetime.now().replace(microsecond=0) + timedelta(days=3),
-        board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
 
@@ -446,7 +441,6 @@ def create_demo_tasks(database_path: str, config_path: str):
         category=2,
         column=2,
         start_date=datetime.now(),
-        board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
     # Done
@@ -457,7 +451,6 @@ def create_demo_tasks(database_path: str, config_path: str):
         column=3,
         start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
         finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
-        board_id=cfg.backend.sqlite_settings.active_board_id,
         database=database_path,
     )
     # Archive
@@ -469,7 +462,6 @@ def create_demo_tasks(database_path: str, config_path: str):
             column=4,
             start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
             finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
-            board_id=cfg.backend.sqlite_settings.active_board_id,
             database=database_path,
         )
     for day in range(20, 25):
@@ -480,7 +472,6 @@ def create_demo_tasks(database_path: str, config_path: str):
             column=4,
             start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
             finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
-            board_id=cfg.backend.sqlite_settings.active_board_id,
             database=database_path,
         )
 

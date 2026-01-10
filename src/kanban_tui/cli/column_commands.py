@@ -28,27 +28,11 @@ def list_columns(app: KanbanTui):
     """
     List all columns on active board
     """
-    tasks = app.backend.get_columns()
-    if tasks:
-        for task in tasks:
-            Console().print(task)
-    else:
-        Console().print("No tasks created yet.")
+    boards = app.backend.get_boards()
+    if not boards:
+        Console().print("No boards created yet.")
+        return
 
-
-@column.command("create")
-@click.pass_obj
-def create_column(app: KanbanTui):
-    """
-    Creates a new column
-    """
-    # TODO
-
-
-@column.command("delete")
-@click.pass_obj
-def delete_column(app: KanbanTui):
-    """
-    Deletes a column
-    """
-    # TODO
+    columns = app.backend.get_columns()
+    for column in columns:
+        Console().print(column)
