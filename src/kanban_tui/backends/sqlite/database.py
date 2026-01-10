@@ -947,7 +947,7 @@ def get_category_by_id_db(
 def get_task_by_id_db(
     task_id: int,
     database: str = DATABASE_FILE.as_posix(),
-) -> Task:
+) -> Task | None:
     query_str = """
     SELECT *
     FROM tasks
@@ -962,6 +962,29 @@ def get_task_by_id_db(
             task = con.execute(query_str, task_id_dict).fetchone()
             con.commit()
             return task
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
+def get_column_by_id_db(
+    column_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Column | None:
+    query_str = """
+    SELECT *
+    FROM columns
+    WHERE column_id = :column_id
+    ;
+    """
+    column_id_dict = {"column_id": column_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = column_factory
+        try:
+            column = con.execute(query_str, column_id_dict).fetchone()
+            con.commit()
+            return column
         except sqlite3.Error as e:
             con.rollback()
             raise (e)

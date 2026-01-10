@@ -134,13 +134,33 @@ def move_task(app: KanbanTui, task_id: int, target_column: int):
     """
     Moves a task to another column
     """
-    old_task = app.backend.get_task_by_id(task_id=task_id)
-    old_task.column = target_column
-    moved_task = app.backend.update_task_status(new_task=old_task)
-    Console().print(
-        f"Moved task with {task_id = } from column {old_task.column} to {moved_task.column} ."
-    )
-    # TODO Test, Validate Columns, Warn + confirm if moving to other board
+    task = app.backend.get_task_by_id(task_id=task_id)
+    new_column = app.backend.get_column_by_id(column_id=target_column)
+    if not task:
+        Console().print(f"[red]There is no task with {task_id = }.[/]")
+    elif not new_column:
+        Console().print(f"[red]There is no column with column_id = {target_column}.[/]")
+    elif task.column == target_column:
+        Console().print(
+            f"[yellow]Task with {task_id = } is already in column {target_column}.[/]"
+        )
+    else:
+        # Validate if task/column are on active board and ask for further confirmation if not
+        active_board = app.backend.active_board
+        old_column = app.backend.get_column_by_id(column_id=task.column)
+        if active_board.board_id != old_column.board_id:
+            click.confirm(
+                "Task is not on the active board, still continue?", abort=True
+            )
+        if active_board.board_id != new_column.board_id:
+            click.confirm(
+                "Target column is not on the active board, still continue?", abort=True
+            )
+        task.column = target_column
+        moved_task = app.backend.update_task_status(new_task=task)
+        Console().print(
+            f"Moved task with {task_id = } from column {old_column.column_id} to {moved_task.column}."
+        )
 
 
 @task.command("delete")

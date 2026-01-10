@@ -108,7 +108,7 @@ def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
     elif board_id in [board.board_id for board in boards]:
         if not no_confirm:
             click.confirm(
-                f"Do you want to delete the board with {board_id = } ", abort=True
+                f"Do you want to delete the board with {board_id = }?", abort=True
             )
         app.backend.delete_board(board_id)
         Console().print(f"Deleted board with {board_id = }.")

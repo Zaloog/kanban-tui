@@ -309,8 +309,166 @@ def test_task_update_all_options(
             assert updated_task.due_date is old_task.due_date
 
 
-def test_task_move_success(): ...
-def test_task_move_fail_wrong_task_id(): ...
-def test_task_move_fail_wrong_column_id(): ...
-def test_task_move_confirm_column_not_active_board(): ...
-def test_task_move_abort_column_not_active_board(): ...
+def test_task_move_success(test_app):
+    runner = CliRunner()
+    task_id = 1
+    target_column = 2
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == f"Moved task with {task_id = } from column 1 to 2.\n"
+
+    moved_task = test_app.backend.get_task_by_id(task_id=task_id)
+    assert moved_task.column == target_column
+
+
+def test_task_move_fail_task_already_in_column(test_app):
+    runner = CliRunner()
+    task_id = 1
+    target_column = 1
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == f"Task with {task_id = } is already in column {target_column}.\n"
+        )
+
+
+def test_task_move_fail_wrong_task_id(test_app):
+    runner = CliRunner()
+    task_id = 10
+    target_column = 1
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == f"There is no task with {task_id = }.\n"
+
+
+def test_task_move_fail_wrong_column_id(test_app):
+    runner = CliRunner()
+    task_id = 1
+    target_column = 10
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert (
+            result.output == f"There is no column with column_id = {target_column}.\n"
+        )
+
+
+def test_task_move_confirm_column_not_active_board(test_app):
+    runner = CliRunner()
+    task_id = 1
+    # column is on new board
+    target_column = 6
+
+    with runner.isolated_filesystem():
+        # create 2nd board first
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            input="y",
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == f"Target column is not on the active board, still continue? [y/N]: y\nMoved task with {task_id = } from column 1 to 6.\n"
+        )
+
+
+def test_task_move_confirm_task_not_active_board(test_app):
+    runner = CliRunner()
+    task_id = 6
+    # column is on new board
+    target_column = 1
+
+    with runner.isolated_filesystem():
+        # create 2nd board, activate and create a task there first
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:", "--set-active"],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Task on other Board",
+            ],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli,
+            args=[
+                "board",
+                "activate",
+                "1",
+            ],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            input="y",
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == f"Task is not on the active board, still continue? [y/N]: y\nMoved task with {task_id = } from column 5 to 1.\n"
+        )
+        assert test_app.backend.get_tasks_on_active_board()[-1].task_id == 6
+
+
+def test_task_move_abort_column_not_active_board(test_app):
+    runner = CliRunner()
+    task_id = 1
+    # column is on new board
+    target_column = 6
+
+    with runner.isolated_filesystem():
+        # create 2nd board first
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            input="n",
+            obj=test_app,
+        )
+        assert result.exit_code == 1
+        assert (
+            result.output
+            == "Target column is not on the active board, still continue? [y/N]: n\nAborted!\n"
+        )

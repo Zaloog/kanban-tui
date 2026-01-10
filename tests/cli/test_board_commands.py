@@ -109,7 +109,7 @@ def test_board_delete_success(test_app):
         assert result.exit_code == 0
         assert (
             result.output
-            == "Do you want to delete the board with board_id = 2  [y/N]: y\nDeleted board with board_id = 2.\n"
+            == "Do you want to delete the board with board_id = 2? [y/N]: y\nDeleted board with board_id = 2.\n"
         )
         assert len(test_app.backend.get_boards()) == 1
 
@@ -129,7 +129,7 @@ def test_board_delete_abort(test_app):
         assert result.exit_code == 1
         assert (
             result.output
-            == "Do you want to delete the board with board_id = 2  [y/N]: n\nAborted!\n"
+            == "Do you want to delete the board with board_id = 2? [y/N]: n\nAborted!\n"
         )
         assert len(test_app.backend.get_boards()) == 2
 
