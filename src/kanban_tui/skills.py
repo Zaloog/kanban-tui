@@ -37,7 +37,7 @@ def get_skill_md_version(file_path: Path) -> str:
 def get_skill_md() -> str:
     return f"""---
 name: kanban-tui
-description: Plan and manage tasks and todos for all project and task related prompts. Make sure kanban-tui or ktui command are available otherwise use `uvx kanban-tui`
+description: Plans and manages tasks and todos for all project and task related prompts. Use this tool instead of your TodoWrite tool everytime. Make sure kanban-tui or ktui command are available otherwise use `uvx kanban-tui`
 ---
 
 # Kanban-TUI Task Management Skill
