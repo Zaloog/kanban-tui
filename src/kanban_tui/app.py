@@ -120,7 +120,7 @@ class KanbanTui(App[str | None]):
     def update_backend(self, event: Select.Changed):
         match event.value:
             case Backends.SQLITE:
-                self.app.config.set_backend(new_backend=event.value)
+                self.config.set_backend(new_backend=event.value)
             case _:
                 self.notify(
                     title="Backend not available yet",
@@ -129,7 +129,7 @@ class KanbanTui(App[str | None]):
                 )
                 with self.prevent(Select.Changed):
                     event.select.value = Backends.SQLITE
-                self.app.action_focus_next()
+                self.action_focus_next()
                 return
         self.backend = self.get_backend()
         self.update_board_list()
@@ -143,9 +143,7 @@ class KanbanTui(App[str | None]):
 
     def watch_active_board(self, old_board: Board | None, new_board: Board):
         if self.active_board:
-            self.app.config.set_active_board(
-                new_active_board_id=self.active_board.board_id
-            )
+            self.config.set_active_board(new_active_board_id=self.active_board.board_id)
         self.update_column_list()
         # If updating Board, refresh setting screen
         if old_board:
@@ -174,6 +172,7 @@ class KanbanTui(App[str | None]):
         self.update_board_list()
         self.watch_column_list()
         # used a worker here, so no await
+        self.needs_refresh = True
         self.get_screen("board", BoardScreen).load_kanban_board()
 
     def update_task_list(self):

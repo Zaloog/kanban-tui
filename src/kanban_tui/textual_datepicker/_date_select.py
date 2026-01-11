@@ -119,11 +119,11 @@ class DateSelect(Widget):
 
         return text
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         if self.dialog is None:
             self.dialog = DatePickerDialog()
             self.dialog.target = self
-            self.app.screen.query_one(self.picker_mount).mount(self.dialog)
+            await self.app.screen.query_one(self.picker_mount).mount(self.dialog)
 
     def on_key(self, event: events.Key) -> None:
         if event.key == "enter":

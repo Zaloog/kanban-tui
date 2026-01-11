@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.0 (unreleased)
+### Added
+- Added CLI interface to manage boards/tasks/columns
+- Added `skills` command to create `SKILL.md` file for claude
+
+### Fixed
+- Fixed missing refresh, when new column is added
+
 ## v0.10.2
 ### Fixed
 - Fixed visual bug to display dates in modal task screen

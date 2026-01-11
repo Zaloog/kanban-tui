@@ -389,6 +389,7 @@ class ColumnSelector(ListView):
 
         self.index = event.addrule.position + 1
         self.amount_visible += 1
+        self.app.needs_refresh = True
 
     @work()
     async def delete_column(self, column_list_item: ColumnListItem):

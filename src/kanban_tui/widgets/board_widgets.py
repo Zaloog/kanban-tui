@@ -66,7 +66,9 @@ class KanbanBoard(HorizontalScroll):
             ModalBoardOverviewScreen(), callback=self.populate_board
         )
 
-    async def place_new_task(self, task: Task):
+    async def place_new_task(self, task: Task | None) -> None:
+        if not task:
+            return
         await self.query(Column)[0].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()

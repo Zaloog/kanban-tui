@@ -82,8 +82,6 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     start_date DATETIME,
     finish_date DATETIME,
     due_date DATETIME,
-    board_id INTEGER,
-    FOREIGN KEY (board_id) REFERENCES boards(board_id),
     FOREIGN KEY (column) REFERENCES columns(column_id),
     FOREIGN KEY (category) REFERENCES categories(category_id),
     CHECK (title <> "")
@@ -554,7 +552,7 @@ def create_new_board_db(
     icon: str | None = None,
     column_dict: dict[str, bool] | None = None,
     database: str = DATABASE_FILE.as_posix(),
-) -> str | int:
+) -> Board:
     if column_dict is None:
         column_dict = DEFAULT_COLUMN_DICT
     board_dict = {
@@ -573,7 +571,7 @@ def create_new_board_db(
         NULL,
         NULL
         )
-        RETURNING board_id
+        RETURNING *
         ;"""
 
     transaction_str_cols = """
@@ -586,10 +584,10 @@ def create_new_board_db(
         :board_id
         );"""
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = board_factory
         try:
             # create Board
-            (created_board_id,) = con.execute(
+            created_board = con.execute(
                 transaction_str,
                 board_dict,
             ).fetchone()
@@ -602,11 +600,11 @@ def create_new_board_db(
                     "name": column_name,
                     "visible": visibility,
                     "position": position,
-                    "board_id": created_board_id,
+                    "board_id": created_board.board_id,
                 }
                 con.execute(transaction_str_cols, transaction_column_dict)
             con.commit()
-            return created_board_id
+            return created_board
         except sqlite3.Error as e:
             con.rollback()
             raise e
@@ -614,7 +612,6 @@ def create_new_board_db(
 
 def create_new_task_db(
     title: str,
-    board_id: int,
     column: int,
     category: int | None = None,
     description: str | None = None,
@@ -632,7 +629,6 @@ def create_new_task_db(
         "category": category,
         "due_date": due_date,
         "description": description,
-        "board_id": board_id,
     }
 
     transaction_str = """
@@ -646,8 +642,7 @@ def create_new_task_db(
         :creation_date,
         :start_date,
         :finish_date,
-        :due_date,
-        :board_id
+        :due_date
         )
         RETURNING *
         ;"""
@@ -807,8 +802,10 @@ def get_all_tasks_on_board_db(
 
     query_str = """
     SELECT *
-    FROM tasks
-    WHERE board_id = :board_id ;
+    FROM tasks t
+    LEFT JOIN columns c ON c.column_id = t.column
+    LEFT JOIN boards b ON b.board_id = c.board_id
+    WHERE b.board_id = :board_id ;
     """
 
     with create_connection(database=database) as con:
@@ -944,10 +941,54 @@ def get_category_by_id_db(
             raise (e)
 
 
+def get_task_by_id_db(
+    task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Task | None:
+    query_str = """
+    SELECT *
+    FROM tasks
+    WHERE task_id = :task_id
+    ;
+    """
+    task_id_dict = {"task_id": task_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            task = con.execute(query_str, task_id_dict).fetchone()
+            con.commit()
+            return task
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
+def get_column_by_id_db(
+    column_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Column | None:
+    query_str = """
+    SELECT *
+    FROM columns
+    WHERE column_id = :column_id
+    ;
+    """
+    column_id_dict = {"column_id": column_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = column_factory
+        try:
+            column = con.execute(query_str, column_id_dict).fetchone()
+            con.commit()
+            return column
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
 # After column Movement
-def update_task_status_db(
-    task: Task, database: str = DATABASE_FILE.as_posix()
-) -> int | str:
+def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> Task:
     new_start_date_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
@@ -960,13 +1001,14 @@ def update_task_status_db(
         finish_date = :finish_date,
         column = :column
     WHERE task_id = :task_id
+    RETURNING *;
     """
     with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = task_factory
         try:
-            con.execute(transaction_str, new_start_date_dict)
+            moved_task = con.execute(transaction_str, new_start_date_dict).fetchone()
             con.commit()
-            return 0
+            return moved_task
         except sqlite3.Error as e:
             con.rollback()
             raise e
@@ -1220,9 +1262,7 @@ def update_board_entry_db(
             raise e
 
 
-def delete_board_db(
-    board_id: int, database: str = DATABASE_FILE.as_posix()
-) -> int | str:
+def delete_board_db(board_id: int, database: str = DATABASE_FILE.as_posix()) -> int:
     delete_board_str = """
     DELETE FROM boards
     WHERE board_id = ?
@@ -1230,7 +1270,11 @@ def delete_board_db(
 
     delete_task_str = """
     DELETE FROM tasks
-    WHERE board_id = ?
+    WHERE task_id in (
+        SELECT t.task_id FROM tasks t
+        INNER JOIN columns c ON c.column_id = t.column
+        WHERE c.board_id = ?
+    )
     """
 
     delete_column_str = """
@@ -1260,8 +1304,8 @@ def get_board_info_dict(
     COUNT(DISTINCT c.column_id) AS amount_columns,
     MIN(t.due_date) AS next_due
     FROM boards b
-    LEFT JOIN tasks t ON b.board_id = t.board_id
     LEFT JOIN columns c ON b.board_id = c.board_id
+    LEFT JOIN tasks t ON c.column_id = t.column
     GROUP BY b.board_id;
     """
 
