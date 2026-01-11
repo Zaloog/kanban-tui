@@ -9,7 +9,7 @@
 # kanban-tui
 
 kanban-tui is a customizable task manager in the terminal.
-Now also supporting agentic use (check the [skill command](#create-or-update-agent-skill.md-file) for more infos).
+Now also supporting agentic usage (check the [skill command](#create-or-update-agent-skillmd-file) for more infos).
 
 <!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
 
