@@ -12,8 +12,9 @@ from kanban_tui.constants import (
 
 SKILLS_MD = """---
 name: kanban-tui
-description: Skill to use for any kind of task or project management and planning. Make sure kanban-tui or ktui command are available
+description: Plan and manage tasks and todos for project management and planning. Make sure kanban-tui or ktui command are available otherwise use `uvx kanban-tui`
 ---
+
 # Kanban-TUI Task Management Skill
 
 ## Description

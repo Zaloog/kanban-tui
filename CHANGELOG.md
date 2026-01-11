@@ -1,8 +1,9 @@
 # Changelog
 
-## v0.10.3 (unreleased)
+## v0.11.0 (unreleased)
 ### Added
-- Added CLI interface to manage boards
+- Added CLI interface to manage boards/tasks/columns
+- Added `skills` command to create `SKILL.md` file for claude
 
 ### Fixed
 - Fixed missing refresh, when new column is added
