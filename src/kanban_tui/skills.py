@@ -65,8 +65,8 @@ Use this skill proactively for:
 # List all boards
 ktui board list
 
-# Create new board
-ktui board create "Board Name" --icon ":emoji:" --set-active
+# Create new board (when not providing any --column argument, default Columns: Ready, Doing, Done, Archive will be used)
+ktui board create "Board Name" --icon ":emoji:" --set-active --column "First Column" --column "Second Column"
 
 # Activate a board
 ktui board activate BOARD_ID
@@ -109,7 +109,8 @@ When starting work that requires task tracking:
 
 ```bash
 # Create and activate project board
-ktui board create "Project Name" --icon ":gear:" --set-active
+# Use muliple `--column` arguments for custom columns
+ktui board create "Project Name" --icon ":EMOJI_CODE:" --set-active
 
 # Check default columns (Ready, Doing, Done, Archive)
 ktui column list
@@ -119,7 +120,7 @@ ktui column list
 Break down work into specific, actionable tasks:
 
 ```bash
-# Add tasks to Ready column (typically column_id=1 or first visible)
+# Add tasks to Ready column (defaults to column_id=1 or first visible if --column not provided)
 ktui task create "Task 1" --description "Details" --column READY_COLUMN_ID
 ktui task create "Task 2" --description "Details" --column READY_COLUMN_ID
 
@@ -153,7 +154,7 @@ ktui task list
 
 ### Task Management
 1. **Create Specific Tasks**: Break complex work into clear, actionable items
-2. **Use Descriptions**: Add context about what needs to be done
+2. **Use Descriptions**: Add context about what needs to be done, markdown is supported
 3. **One Active Task**: Keep only 1-2 tasks in Doing column at a time
 4. **Immediate Updates**: Move tasks as soon as status changes
 5. **Complete First**: Finish current tasks before starting new ones
@@ -201,11 +202,11 @@ ktui task create "Write auth middleware" --column 5
 ktui task create "Add tests for auth flow" --column 5
 
 # Start first task
-ktui task move 1 --column 6  # Move to Doing
+ktui task move 1 6  # Move to Doing
 
 # Complete and move to next
-ktui task move 1 --column 7  # Move to Done
-ktui task move 2 --column 6  # Start next task
+ktui task move 1 7  # Move to Done
+ktui task move 2 6  # Start next task
 ```
 
 ### Example 2: Bug Fix with Investigation
@@ -281,7 +282,7 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 | List columns | `ktui column list` |
 | Create task | `ktui task create "Title" --column ID` |
 | List tasks | `ktui task list` |
-| Move task | `ktui task move TASK_ID --column ID` |
+| Move task | `ktui task move TASK_ID COLUMN_ID` |
 | Update task | `ktui task update TASK_ID --title "New"` |
 | Delete task | `ktui task delete TASK_ID` |
 
@@ -292,6 +293,6 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 - Archive column is typically hidden by default
 - Default columns: Ready, Doing, Done, Archive
 
-<!-- This Section is for kanban-tui to check the version of this skill and update it if needed the agent can ignore it -->
+<!-- This Section is for the `kanban-tui skill update`-command to check if this SKILL.md version matches the tool version and update it if needed, the agent can ignore it -->
 <!-- Version: {get_version()} -->
 """

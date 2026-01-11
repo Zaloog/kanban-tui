@@ -57,7 +57,7 @@ def update_skill():
     for locality, file_path in file_path_dict.items():
         if not file_path.exists():
             Console().print(
-                "No local [blue]SKILL.md[/] file present, use [yellow]`kanban-tui skill init`[/] to create one."
+                f"No {locality} [blue]SKILL.md[/] file present, use [yellow]`kanban-tui skill init`[/] to create one."
             )
             continue
         current_version = get_skill_md_version(file_path=file_path)
@@ -72,7 +72,7 @@ def update_skill():
             else "[red](versions dont match)[/]"
         )
         Console().print(
-            f"Found local [blue]SKILL.md[/] file with version [blue]{current_version}[/] {up_to_date_str}."
+            f"Found {locality} [blue]SKILL.md[/] file with version [blue]{current_version}[/] {up_to_date_str}."
         )
 
     if len(file_version_dict) > 0:
