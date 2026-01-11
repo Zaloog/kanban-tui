@@ -9,7 +9,7 @@
 # kanban-tui
 
 kanban-tui is a customizable task manager in the terminal.
-Now also supporting agentic use (check the [skill command](create-or-update-agent-skill.md-file) for more infos).
+Now also supporting agentic use (check the [skill command](#create-or-update-agent-skill.md-file) for more infos).
 
 <!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
 
@@ -182,7 +182,7 @@ ktui clear
 ```
 
 ### Create or Update Agent SKILL.md File
-With version v0.11.0 kanban-tui offers a [CLI Interface](cli-interface-to-manage-tasks) to manage tasks, boards and columns.
+With version v0.11.0 kanban-tui offers a [CLI Interface](#cli-interface-to-manage-tasks) to manage tasks, boards and columns.
 This is targeted mainly for agentic e.g. via [Claude][claude-code] use, because references will be made only by ids, but some commands
 are also ergonomic for human use (e.g. task creation).
 
