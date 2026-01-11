@@ -1,14 +1,19 @@
+from pathlib import Path
+import os
+
 import click
 from rich.console import Console
 
 from kanban_tui.constants import (
-    CLAUDE_SKILL_LOCAL_FILE,
     CLAUDE_SKILL_LOCAL_DIR,
-    CLAUDE_SKILL_GLOBAL_FILE,
     CLAUDE_SKILL_GLOBAL_DIR,
+    CLAUDE_SKILL_NAME,
 )
 
-SKILLS_MD = """
+SKILLS_MD = """---
+name: kanban-tui
+description: Skill to use for any kind of task or project management and planning. Make sure kanban-tui or ktui command are available
+---
 # Kanban-TUI Task Management Skill
 
 ## Description
@@ -260,28 +265,31 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 - Task IDs are unique across all boards
 - Archive column is typically hidden by default
 - Default columns: Ready, Doing, Done, Archive
-
 """
 
 
-@click.group()
-def skills(create_global: bool):
+@click.group(invoke_without_command=True)
+def skills():
     """
     Creates SKILL.md file in dedicated folder
     """
-    file_path = CLAUDE_SKILL_LOCAL_FILE
-    folder_path = CLAUDE_SKILL_LOCAL_DIR
+    global_folder_path = os.getenv(
+        "CLAUDE_CODE_CONFIG_DIR", CLAUDE_SKILL_GLOBAL_DIR.as_posix()
+    )
+    global_file_path = Path(global_folder_path) / CLAUDE_SKILL_NAME
+    folder_path = os.getenv("KANBAN_TUI_LOCAL_SKILL", CLAUDE_SKILL_LOCAL_DIR.as_posix())
+    file_path = Path(folder_path) / CLAUDE_SKILL_NAME
     if click.confirm(
-        f"Create SKILL.md in global skills folder under {CLAUDE_SKILL_GLOBAL_FILE}?"
+        f"Create SKILL.md in global skills folder under {global_file_path}?"
     ):
-        file_path = CLAUDE_SKILL_GLOBAL_FILE
-        folder_path = CLAUDE_SKILL_GLOBAL_DIR
+        folder_path = global_folder_path
+        file_path = global_file_path
 
-    folder_path.mkdir(parents=True, exist_ok=True)
+    Path(folder_path).mkdir(parents=True, exist_ok=True)
 
     if file_path.exists():
-        Console().print(f"Skills file under {file_path} already exists")
+        Console().print(f"SKILL.md file under {file_path} already exists.")
     else:
         file_path.touch()
         file_path.write_text(SKILLS_MD)
-        Console().print(f"Skills file created under [green]{file_path}[/].")
+        Console().print(f"SKILL.md file created under [green]{file_path}[/].")
