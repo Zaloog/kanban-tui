@@ -12,7 +12,7 @@ from rich.console import Console
 from kanban_tui.app import KanbanTui
 from kanban_tui.cli.board_commands import board
 from kanban_tui.cli.demo_commands import demo
-from kanban_tui.cli.skills_commands import skills
+from kanban_tui.cli.skills_commands import skill
 from kanban_tui.cli.general_commands import info, clear, auth
 from kanban_tui.constants import (
     CONFIG_FILE,
@@ -24,7 +24,7 @@ COMMAND_DICT = {
         "demo",
         "info",
         "clear",
-        "skills",
+        "skill",
     ],
     "CLI Interface Commands": [
         "board",
@@ -111,7 +111,7 @@ cli.add_command(board)
 cli.add_command(task)
 cli.add_command(column)
 cli.add_command(auth)
-cli.add_command(skills)
+cli.add_command(skill)
 
 
 if __name__ == "__main__":
