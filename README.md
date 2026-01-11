@@ -9,6 +9,7 @@
 # kanban-tui
 
 kanban-tui is a customizable task manager in the terminal.
+Now also supporting agentic use (check the [skill command](create-or-update-agent-skill.md-file) for more infos).
 
 <!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
 
@@ -67,7 +68,6 @@ erDiagram
     tasks }|--|| audits: updates
     tasks {
         INTEGER task_id PK
-        INTEGER board_id FK
         INTEGER column FK
         INTEGER category FK
         TEXT title
@@ -181,9 +181,29 @@ delete your current database and configuration file.
 ktui clear
 ```
 
-### Show Location of Data and Config Files
+### Create or Update Agent SKILL.md File
+With version v0.11.0 kanban-tui offers a [CLI Interface](cli-interface-to-manage-tasks) to manage tasks, boards and columns.
+This is targeted mainly for agentic e.g. via [Claude][claude-code] use, because references will be made only by ids, but some commands
+are also ergonomic for human use (e.g. task creation).
+
+```bash
+ktui skill init/update
+```
+
+### CLI Interface to manage Tasks
+The commands to manage tasks, boards and columns via the CLI are all build up similarly. For detailed overview of arguments
+and options please use the `--help` command.
+Note that not every functionality is supported yet (e.g. category management, column customisation).
+
+```bash
+ktui task list/create/update/move/delete
+ktui board list/create/delete/activate
+ktui columns list
+```
+
+### Show Location of Data, Config and Skill Files
 `kanban-tui` follows the [XDG] basedir-spec and uses the [xdg-base-dirs] package to get the locations for data and config files.
-You can use this command to check where the files are, that `kanban-tui` creates on your system.
+You can use this command to check where the files are located, that `kanban-tui` creates on your system.
 
 ```bash
 ktui info
@@ -212,3 +232,4 @@ Also check the [Changelog] for new updates.
 <!-- external Links Others -->
 [XDG]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 [uv]: https://docs.astral.sh/uv
+[claude-code]: https://code.claude.com/docs/en/overview

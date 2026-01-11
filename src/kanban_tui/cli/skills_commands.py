@@ -45,39 +45,49 @@ def update_skill():
     """
     Update SKILL.md to current tool version
     """
-    current_version = get_version()
-    Console().print(f"Current tool version [green]v{current_version}[/].")
+    current_tool_version = get_version()
+    Console().print(f"Current tool version [blue]{current_tool_version}[/].")
 
-    local_file = get_skill_local_path()
-    if local_file.exists():
-        current_local_version = get_skill_md_version(local_file)
-        local_is_up_to_date = current_version < current_local_version
-        local_up_to_date_str = (
+    file_version_dict = {}
+    file_path_dict = {
+        "local": get_skill_local_path(),
+        "global": get_skill_global_path(),
+    }
+
+    for locality, file_path in file_path_dict.items():
+        if not file_path.exists():
+            Console().print(
+                "No local [blue]SKILL.md[/] file present, use [yellow]`kanban-tui skill init`[/] to create one."
+            )
+            continue
+        current_version = get_skill_md_version(file_path=file_path)
+        is_up_to_date = current_version == current_tool_version
+
+        if not is_up_to_date:
+            file_version_dict[locality] = current_version
+
+        up_to_date_str = (
             "[green](up to date)[/]"
-            if local_is_up_to_date
-            else "[red](newer version available)[/]"
+            if is_up_to_date
+            else "[red](versions dont match)[/]"
         )
         Console().print(
-            f"Found local [blue]SKILL.md[/] file with version [blue]v{current_local_version}[/] {local_up_to_date_str}."
-        )
-    else:
-        Console().print(
-            "No local [blue]SKILL.md[/] file present, use [yellow]`kanban-tui skill init`[/] to create one"
+            f"Found local [blue]SKILL.md[/] file with version [blue]{current_version}[/] {up_to_date_str}."
         )
 
-    global_file = get_skill_global_path()
-    if global_file.exists():
-        current_global_version = get_skill_md_version(global_file)
-        global_is_up_to_date = current_version < current_global_version
-        global_up_to_date_str = (
-            "[green](up to date)[/]"
-            if global_is_up_to_date
-            else "[red](newer version available)[/]"
+    if len(file_version_dict) > 0:
+        confirm_str = "and the".join(
+            [
+                f"{locality} file {version}"
+                for locality, version in file_version_dict.items()
+            ]
         )
-        Console().print(
-            f"Found global [blue]SKILL.md[/] file with version [blue]v{current_global_version}[/] {global_up_to_date_str}."
-        )
-    else:
-        Console().print(
-            "No global [blue]SKILL.md[/] file present, use [yellow]`kanban-tui skill init`[/] to create one"
-        )
+        if click.confirm(
+            f"Do you want to update the {confirm_str} to the current tool version?"
+        ):
+            for locality in file_version_dict.keys():
+                file_path = file_path_dict[locality]
+                file_path.write_text(get_skill_md())
+                Console().print(
+                    f"Updated {locality} [blue]SKILL.md[/] file to current tool version [blue]{current_tool_version}[/]."
+                )

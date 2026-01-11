@@ -3,10 +3,15 @@
 ## v0.11.0 (unreleased)
 ### Added
 - Added CLI interface to manage boards/tasks/columns
-- Added `skills` command to create `SKILL.md` file for claude
+- Added `skill init` command to create `SKILL.md` files for claude
+- Added `skill update` command to update `SKILL.md` files to current used tool version
+- Added `skill files` location to `info` command output table
 
 ### Fixed
 - Fixed missing refresh, when new column is added
+
+### Changed
+- Removed board_id column from tasks table. No change in functionality.
 
 ## v0.10.2
 ### Fixed

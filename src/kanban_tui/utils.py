@@ -1,4 +1,5 @@
 from __future__ import annotations
+from kanban_tui.skills import get_skill_local_path, get_skill_global_path
 import os
 import re
 from pathlib import Path
@@ -507,7 +508,9 @@ def create_xdg_table_string(path: Path) -> str:
 
 
 def build_info_table() -> Table:
-    table = Table(title="[yellow]kanban-tui[/] xdg file locations", show_header=False)
+    table = Table(
+        title="[yellow]kanban-tui[/] xdg file and skill locations", show_header=False
+    )
 
     # Config Paths
     table.add_row("[blue]config files[/]", end_section=True)
@@ -537,6 +540,19 @@ def build_info_table() -> Table:
         "Normal",
         create_xdg_table_string(Path(os.getenv("KANBAN_TUI_AUTH_FILE", AUTH_FILE))),
     )
-    table.add_row(auth_table)
+    table.add_row(auth_table, end_section=True)
+
+    # Skills Paths
+    table.add_row("[blue]skill files[/]", end_section=True)
+    skill_table = Table(show_header=False, show_edge=False)
+    skill_table.add_row(
+        "Local",
+        create_xdg_table_string(get_skill_local_path()),
+    )
+    skill_table.add_row(
+        "Global",
+        create_xdg_table_string(get_skill_global_path()),
+    )
+    table.add_row(skill_table)
 
     return table

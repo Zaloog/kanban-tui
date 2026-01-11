@@ -24,7 +24,7 @@ COMMAND_DICT = {
         "demo",
         "info",
         "clear",
-        "skills",
+        "skill",
     ],
     "CLI Interface Commands": [
         "board",

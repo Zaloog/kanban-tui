@@ -10,7 +10,7 @@ from kanban_tui.constants import (
 
 
 def get_version() -> str:
-    return version("kanban-tui")
+    return f"v{version('kanban-tui')}"
 
 
 def get_skill_local_path() -> Path:

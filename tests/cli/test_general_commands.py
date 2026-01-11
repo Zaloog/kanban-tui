@@ -14,7 +14,7 @@ def test_info():
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["info"])
         assert result.exit_code == 0
-        assert "xdg file locations" in result.output
+        assert "xdg file and skill locations" in result.output
 
 
 def test_auth_wrong_backend(test_app, test_database_path):
