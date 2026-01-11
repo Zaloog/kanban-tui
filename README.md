@@ -14,7 +14,7 @@ Now also supporting agentic usage (check the [skill command](#create-or-update-a
 <!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
 
 ## Demo GIF
-![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/demo.gif)
+![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/docs/demo.gif)
 
 If you want to test `kanban-tui` you can directly run this demo yourself with the help of [uv] using `uvx` with
 
