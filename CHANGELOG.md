@@ -1,6 +1,8 @@
 # Changelog
 
-## v0.11.1 (unreleased)
+## v0.11.2 (unreleased)
+
+## v0.11.1
 ### Fixed
 - Used proper "utf-8" encoding when Writing SKILL.md file
 
