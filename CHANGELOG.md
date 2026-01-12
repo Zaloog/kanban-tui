@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.11.0 (unreleased)
+## v0.11.1 (unreleased)
+### Fixed
+- Used proper "utf-8" encoding when Writing SKILL.md file
+
+## v0.11.0
 ### Added
 - Added CLI interface to manage boards/tasks/columns
 - Added `skill init` command to create `SKILL.md` files for claude

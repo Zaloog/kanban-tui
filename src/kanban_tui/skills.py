@@ -28,7 +28,7 @@ def get_skill_global_path() -> Path:
 
 
 def get_skill_md_version(file_path: Path) -> str:
-    skill_content = file_path.read_text()
+    skill_content = file_path.read_text(encoding="utf-8")
     version_line = skill_content.splitlines()[-1]
     version = version_line.split(" ")[2]
     return version

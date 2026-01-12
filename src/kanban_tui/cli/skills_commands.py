@@ -36,7 +36,7 @@ def init_skill():
         Console().print(f"SKILL.md file under {file_path} already exists.")
     else:
         file_path.touch()
-        file_path.write_text(get_skill_md())
+        file_path.write_text(get_skill_md(), encoding="utf-8")
         Console().print(f"SKILL.md file created under [green]{file_path}[/].")
 
 
