@@ -133,7 +133,7 @@ class SuspendableTextArea(TextArea):
             with self.app.suspend():
                 result = subprocess.run(args=[editor, temp_path.as_posix()], text=True)
 
-            if result == 0 and temp_path.exists():
+            if result.returncode == 0 and temp_path.exists():
                 content = temp_path.read_text(encoding="utf-8")
                 return content
             else:
