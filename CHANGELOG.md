@@ -1,10 +1,15 @@
 # Changelog
 
-## v0.11.2 (unreleased)
+## v0.12.0 (unreleased)
+### Added
+- Added functionality to suspend app and edit task description in `$EDITOR` (default: `vim`),
+will show notification, if command is not available
+
 
 ## v0.11.1
 ### Fixed
 - Used proper "utf-8" encoding when Writing SKILL.md file
+
 
 ## v0.11.0
 ### Added
@@ -19,19 +24,23 @@
 ### Changed
 - Removed board_id column from tasks table. No change in functionality.
 
+
 ## v0.10.2
 ### Fixed
 - Fixed visual bug to display dates in modal task screen
+
 
 ## v0.10.1
 ### Fixed
 - Fixed bug, that column.status_update selection values do not update, when the column order is changed
 - Fixed bug, that SettingsScreen widgets were not updated, when the active board is changed
 
+
 ## v0.10.0
 ### Added
 - Added option to change the column order via the SettingScreen
 - Reworked the ColumnListView UI
+
 
 ## v0.9.0
 ### Added
@@ -62,27 +71,35 @@ to finish column. The creation_date is used in that case, instead of the start_d
 - XDG dirs are now under `~/.local/share/kanban_tui` for data and `~/.config/kanban_tui` for configs
 - Reworked UI
 
+
 ## v0.8.2
 - Fix Bugs and make `kanban-tui` compatible with `textual` 6.X
+
 
 ## v0.8.1
 - Fix Config initialization for mac port which uses pydantic v1.X
 
+
 ## v0.8.0
 - Add theme to config value to make it persistant after closing the app
 
+
 ## v0.7.4
 - Move back to use hatchling as build backend
+
 
 ## v0.7.3
 - Removed pendulum dependency and change to python native datetime
 - Move to uv build backend
 
+
 ## v0.7.2
 - Add fixed textual_datepicker to repo cause no longer maintained and not compatible with textual 3.X
 
+
 ## v0.7.1
 - Fix crashes due to new textual major version. `app.query` -> `app.screen.query`
+
 
 ## v0.7.0
 - Added better column management
@@ -93,6 +110,7 @@ to finish column. The creation_date is used in that case, instead of the start_d
 - Added new audit table log to OverView tab
 - Added shortcuts to tab headers
 - Fixed Bug, that allowed duplicate column names
+
 
 ## v0.6.4
 - Fix emoji of boardname in border title

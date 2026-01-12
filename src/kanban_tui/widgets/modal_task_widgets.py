@@ -1,3 +1,8 @@
+import subprocess
+from shutil import which
+import os
+import tempfile
+from pathlib import Path
 from datetime import datetime
 from typing import Iterable, TYPE_CHECKING
 
@@ -7,6 +12,7 @@ if TYPE_CHECKING:
 
 from rich.text import Text
 from textual import on
+from textual.binding import Binding
 from textual.events import DescendantBlur, DescendantFocus
 from textual.reactive import reactive
 from textual.widget import Widget
@@ -28,13 +34,12 @@ from kanban_tui.widgets.custom_widgets import VimSelect
 
 
 class TaskTitleInput(Input):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__(
             id="input_title",
             validators=Length(minimum=1, failure_description="Enter a valid title"),
             valid_empty=False,
             placeholder="enter a task title",
-            *args,
             **kwargs,
         )
 
@@ -62,12 +67,11 @@ class TaskDescription(VerticalScroll):
         self.preview.can_focus = True
         yield self.preview
 
-        self.editor = TextArea(self.text, classes="description-widgets")
+        self.editor = SuspendableTextArea(self.text, classes="description-widgets")
         self.editor.display = False
         yield self.editor
 
     def on_mount(self):
-        self.border = "$success"
         self.border_title = "Description"
 
     @on(DescendantFocus)
@@ -93,6 +97,66 @@ class TaskDescription(VerticalScroll):
         )
 
 
+class SuspendableTextArea(TextArea):
+    BINDINGS = [
+        Binding(key="ctrl+g", action="suspend_to_editor", description="$EDITOR")
+    ]
+
+    def action_suspend_to_editor(self):
+        edited_text = self._suspend_and_go_to_editor_if_set()
+        if edited_text:
+            self.text = edited_text
+
+    def _suspend_and_go_to_editor_if_set(self) -> str | None:
+        editor = os.getenv("EDITOR", "vim")
+        if not which(editor):
+            self.notify(
+                title=f"{editor} not found",
+                message=f"[$warning]{editor}[/] is not available in your [$warning]$PATH[/], set [$success]$EDITOR[/] to use.",
+                severity="warning",
+            )
+            return None
+
+        with tempfile.NamedTemporaryFile(
+            mode="w+",
+            encoding="utf-8",
+            prefix="kanban-tui-",
+            suffix=".md",
+            delete=False,
+        ) as tf:
+            temp_path = Path(tf.name)
+
+            # Prefill the file with current description
+            if self.text:
+                tf.write(self.text)
+        try:
+            with self.app.suspend():
+                result = subprocess.run(args=[editor, temp_path.as_posix()], text=True)
+
+            if result == 0 and temp_path.exists():
+                content = temp_path.read_text(encoding="utf-8")
+                return content
+            else:
+                return None
+        except Exception as e:
+            self.notify(
+                title="Error occured during editing",
+                message=f"message: {e}",
+                severity="error",
+            )
+
+        finally:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except (OSError, PermissionError) as e:
+                self.notify(
+                    title="Error occured during deletion of temporary file",
+                    message=f"message: {e}",
+                    severity="error",
+                )
+            return None
+
+
 class TaskCategorySelector(Horizontal):
     def compose(self):
         yield CategorySelector()
@@ -103,7 +167,7 @@ class TaskCategorySelector(Horizontal):
 
 class TaskDueDateSelector(Horizontal):
     app: "KanbanTui"
-    due_date: reactive[datetime] = reactive(None)
+    due_date: reactive[datetime | None] = reactive(None)
 
     def compose(self):
         yield Label("has a due Date:")
