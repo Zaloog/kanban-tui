@@ -167,11 +167,11 @@ ktui task list
 
 ### Task Naming
 Use imperative verbs for clarity:
-- ✅ "Implement authentication feature"
-- ✅ "Fix login bug"
-- ✅ "Write unit tests for API"
-- ❌ "Authentication" (too vague)
-- ❌ "Working on tests" (status, not action)
+- [✓] "Implement authentication feature"
+- [✓] "Fix login bug"
+- [✓] "Write unit tests for API"
+- [X] "Authentication" (too vague)
+- [X] "Working on tests" (status, not action)
 
 ### Task Completion
 Only move to Done when:
