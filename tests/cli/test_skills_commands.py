@@ -20,7 +20,7 @@ def test_skill_local_creation(tmp_path: Path):
             output
             == f"Create SKILL.md in global skills folder under {get_skill_global_path()}? [y/N]: nSKILL.md file created under {file_path}."
         )
-        assert file_path.read_text() == get_skill_md()
+        assert file_path.read_text(encoding="utf8") == get_skill_md()
 
 
 def test_skill_local_creation_already_exists(tmp_path: Path):
@@ -51,7 +51,7 @@ def test_skill_global_creation(tmp_path: Path):
             output
             == f"Create SKILL.md in global skills folder under {file_path}? [y/N]: ySKILL.md file created under {file_path}."
         )
-        assert file_path.read_text() == get_skill_md()
+        assert file_path.read_text(encoding="utf8") == get_skill_md()
 
 
 def test_skill_global_creation_already_exists(tmp_path: Path):
