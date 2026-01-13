@@ -180,7 +180,6 @@ class ColorInputContainer(Horizontal):
 
     def on_mount(self):
         self.border_title = "Color"
-        self.check_validation(event=Input.Changed)
 
     @on(Input.Changed)
     def check_validation(self, event: Input.Changed):
@@ -273,7 +272,10 @@ class ModalNewCategoryScreen(ModalScreen[int | None]):
 
     @on(Input.Changed)
     def check_if_all_input_fields_are_valid(self, event: Input.Changed):
-        all_valid = all([input.is_valid for input in self.query(Input).results()])
+        all_valid = all(
+            [input.is_valid and input.value for input in self.query(Input).results()]
+        )
+
         self.query_exactly_one(
             "#btn_continue_new_category", Button
         ).disabled = not all_valid
