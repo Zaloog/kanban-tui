@@ -9,7 +9,7 @@
 # kanban-tui
 
 kanban-tui is a customizable task manager in the terminal.
-Now also supporting agentic usage (check the [skill command](#create-or-update-agent-skillmd-file) for more infos).
+Now also usable in Co-op with your agents (check the [skill command](#create-or-update-agent-skillmd-file) for more infos).
 
 <!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
 
@@ -116,12 +116,13 @@ erDiagram
 </details>
 
 </details>
-<details><summary>Visual Summary</summary>
+<details><summary>Visual Summary and Audit Table</summary>
 
 To give you an overview over the amount of tasks you `created`, `started` or `finished`, kanban-tui
 provides an `Overview`-Tab to show you a bar-chart on a `monthly`, `weekly` or `daily` scale.
 It also can be changed to a stacked bar chart per category.
 This feature is powered by the [plotext] library with help of [textual-plotext].
+There is also an audit table, which tracks the creation/update/deletion of tasks/boards and columns.
 </details>
 
 ## Installation
@@ -156,7 +157,7 @@ kanban-tui now also supports the `kanban-tui` entrypoint besides `ktui`.
 This was added to support easier installation via [uv]'s `uvx` command.
 
 ### Normal Mode
-Starts `kanban-tui` with a starting board. The application can be closed by pressing `ctrl+q`.
+Start `kanban-tui` with by just running the tool without any command. The application can be closed by pressing `ctrl+q`.
 Pass the `--web` flag and follow the shown link to open `kanban-tui` in your browser.
 ```bash
 ktui
@@ -183,7 +184,7 @@ ktui clear
 
 ### Create or Update Agent SKILL.md File
 With version v0.11.0 kanban-tui offers a [CLI Interface](#cli-interface-to-manage-tasks) to manage tasks, boards and columns.
-This is targeted mainly for agentic e.g. via [Claude][claude-code] use, because references will be made only by ids, but some commands
+This is targeted mainly for agentic use e.g. via [Claude][claude-code], because references will be made only by ids, but some commands
 are also ergonomic for human use (e.g. task creation).
 
 ```bash
