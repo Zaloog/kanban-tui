@@ -38,15 +38,7 @@ async def test_modal_category_create_new(test_app: KanbanTui):
         await pilot.click("#btn_create_category")
 
         assert isinstance(pilot.app.screen, ModalNewCategoryScreen)
-        # Using .renderable might fail if it's not exposed, trying .renderable -> .renderable.
-        # But wait, existing test uses .content. Let's try .renderable -> .renderable.
-        # If .content works in other tests, I'll use it.
-        # For now, let's skip checking the label text if unsure, OR use str(label.renderable) if valid.
-        # But 'Label' object has no attribute 'renderable'.
-        # Let's inspect the widget content in a robust way?
-        # assert "Create new category" in str(pilot.app.screen.query_one("#label_header", Label))
 
-        # Initial state: button disabled (empty inputs)
         assert pilot.app.screen.query_one("#btn_continue_new_category", Button).disabled
 
         # Enter Name
