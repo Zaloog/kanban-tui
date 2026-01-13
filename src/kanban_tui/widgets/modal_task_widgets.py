@@ -107,7 +107,7 @@ class SuspendableTextArea(TextArea):
         if edited_text:
             self.text = edited_text
 
-    def _suspend_and_go_to_editor_if_set(self) -> str | None:
+    def _suspend_and_go_to_editor_if_set(self) -> str | None:  # type: ignore[return]
         editor = os.getenv("EDITOR", "vim")
         if not which(editor):
             self.notify(
@@ -154,7 +154,6 @@ class SuspendableTextArea(TextArea):
                     message=f"message: {e}",
                     severity="error",
                 )
-            return None
 
 
 class TaskCategorySelector(Horizontal):
