@@ -1,9 +1,13 @@
 # Changelog
 
-## v0.12.0 (unreleased)
+## v0.12.0
 ### Added
 - Added functionality to suspend app and edit task description in `$EDITOR` (default: `vim`),
 will show notification, if command is not available
+
+### Fixed
+- Fixed validation issue, in category creation, where the button would be enabled with an empty
+name/color input.
 
 
 ## v0.11.1
