@@ -42,7 +42,7 @@ def task(app: KanbanTui):
     type=click.INT,
     help="show only tasks in this column",
 )
-def list_tasks(app: KanbanTui, json: bool, column: None | tuple[int]):
+def list_tasks(app: KanbanTui, json: bool, column: None | int):
     """
     List all tasks on active board
     """
