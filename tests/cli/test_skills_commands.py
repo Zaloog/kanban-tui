@@ -67,3 +67,39 @@ def test_skill_global_creation_already_exists(tmp_path: Path):
             output
             == f"Create SKILL.md in global skills folder under {file_path}? [y/N]: ySKILL.md file under {file_path} already exists."
         )
+
+
+def test_skill_delete_no_present(tmp_path: Path):
+    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+    os.environ["KANBAN_TUI_LOCAL_SKILL"] = tmp_path.as_posix()
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["skill", "delete"], input="n")
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == "No SKILL.md files found in global and local skills folder.\n"
+        )
+
+
+def test_skill_delete_both(tmp_path: Path):
+    os.environ["KANBAN_TUI_LOCAL_SKILL"] = (tmp_path / "local").as_posix()
+    local_file_path = get_skill_local_path()
+    local_file_path.parent.mkdir()
+    local_file_path.touch()
+
+    os.environ["CLAUDE_CODE_CONFIG_DIR"] = (tmp_path / "global").as_posix()
+    global_file_path = get_skill_global_path()
+    global_file_path.parent.mkdir()
+    global_file_path.touch()
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["skill", "delete"], input="y")
+        assert result.exit_code == 0
+        output = result.output.replace("\n", "")
+        assert (
+            output
+            == "Delete all kanban-tui SKILL.md files and the kanban-tui folder? [y/N]: y"
+            f"Local Skill under {local_file_path} deleted successfully."
+            f"Global Skill under {global_file_path} deleted successfully."
+        )

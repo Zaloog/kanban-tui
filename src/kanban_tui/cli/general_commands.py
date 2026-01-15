@@ -35,8 +35,8 @@ def clear(confirm: bool):
         db_path_str = os.getenv("KANBAN_TUI_DATABASE_FILE", DATABASE_FILE.as_posix())
         Path(db_path_str).unlink(missing_ok=True)
 
-        Console().print(f"Config under {conf_path_str} deleted [green]successfully[/]")
-        Console().print(f"Database under {db_path_str} deleted [green]successfully[/]")
+        Console().print(f"Config under {conf_path_str} deleted [green]successfully[/].")
+        Console().print(f"Database under {db_path_str} deleted [green]successfully[/].")
 
 
 @click.command("auth")
