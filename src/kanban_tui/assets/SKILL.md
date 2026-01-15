@@ -325,4 +325,4 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 - Use `--json` flag for machine-readable output
 
 <!-- This Section is for the `kanban-tui skill update`-command to check if this SKILL.md version matches the tool version and update it if needed, the agent can ignore it -->
-<!-- Version: v0.13.0 -->
+<!-- Version: KANBAN_TUI_VERSION -->
