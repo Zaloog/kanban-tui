@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.0 (unreleased)
+### Added
+- Added a `--json` flag to `board/task/column list` commands, e.g. `ktui board list --json`
+
 ## v0.12.0
 ### Added
 - Added functionality to suspend app and edit task description in `$EDITOR` (default: `vim`),

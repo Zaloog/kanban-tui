@@ -5,7 +5,7 @@ from click.exceptions import UsageError
 from kanban_tui.cli import cli
 from kanban_tui.config import Backends
 
-BOARD_OUTPUT = """--- Active Board ---
+BOARD_OUTPUT = """--- Active Board has board_id = 1 ---
 Board(
     board_id=1,
     name='Kanban Board',
@@ -15,6 +15,17 @@ Board(
     start_column=None,
     finish_column=None
 )
+"""
+
+BOARD_OUTPUT_JSON = """--- Active Board has board_id = 1 ---
+[
+    {
+        'board_id': 1,
+        'name': 'Kanban Board',
+        'icon': ':sparkles:',
+        'creation_date': '2026-04-02T13:03:07'
+    }
+]
 """
 
 
@@ -35,6 +46,14 @@ def test_board_list(test_app):
         result = runner.invoke(cli, args=["board", "list"], obj=test_app)
         assert result.exit_code == 0
         assert result.output == BOARD_OUTPUT
+
+
+def test_board_list_json(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["board", "list", "--json"], obj=test_app)
+        assert result.exit_code == 0
+        assert result.output == BOARD_OUTPUT_JSON
 
 
 def test_board_list_no_boards(empty_app):
