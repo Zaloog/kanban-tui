@@ -5,7 +5,7 @@ from click.exceptions import UsageError
 from kanban_tui.cli import cli
 from kanban_tui.config import Backends
 
-BOARD_OUTPUT = """--- Active Board ---
+BOARD_OUTPUT = """--- Active Board has board_id = 1 ---
 Board(
     board_id=1,
     name='Kanban Board',
@@ -17,13 +17,15 @@ Board(
 )
 """
 
-BOARD_OUTPUT_JSON = """--- Active Board ---
-{
-    "board_id": 1,
-    "name": "Kanban Board",
-    "icon": "✨",
-    "creation_date": "2026-04-02T13:03:07"
-}
+BOARD_OUTPUT_JSON = """--- Active Board has board_id = 1 ---
+[
+    {
+        'board_id': 1,
+        'name': 'Kanban Board',
+        'icon': ':sparkles:',
+        'creation_date': '2026-04-02T13:03:07'
+    }
+]
 """
 
 

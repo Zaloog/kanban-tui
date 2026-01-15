@@ -1,11 +1,14 @@
 """CLI commands for kanban-tui task management"""
 
+from pydantic import TypeAdapter
+
 import datetime
 
 import click
 from rich.console import Console
 
 from kanban_tui.app import KanbanTui
+from kanban_tui.classes.task import Task
 from kanban_tui.config import Backends
 
 
@@ -43,11 +46,16 @@ def list_tasks(app: KanbanTui, json: bool):
         return
 
     tasks = app.backend.get_tasks_on_active_board()
-    if tasks:
-        for task in tasks:
-            Console().print(task.to_json() if json else task)
-    else:
+    if not tasks:
         Console().print("No tasks created yet.")
+    else:
+        if json:
+            task_list = TypeAdapter(list[Task])
+            json_str = task_list.dump_python(tasks, exclude_none=True, mode="json")
+            Console().print(json_str)
+        else:
+            for task in tasks:
+                Console().print(task)
 
 
 @task.command("create")

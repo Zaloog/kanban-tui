@@ -11,34 +11,36 @@ Column(column_id=3, name='Done', visible=True, position=3, board_id=1)
 Column(column_id=4, name='Archive', visible=False, position=4, board_id=1)
 """
 
-COLUMN_OUTPUT_JSON = """{
-    "column_id": 1,
-    "name": "Ready",
-    "visible": true,
-    "position": 1,
-    "board_id": 1
-}
-{
-    "column_id": 2,
-    "name": "Doing",
-    "visible": true,
-    "position": 2,
-    "board_id": 1
-}
-{
-    "column_id": 3,
-    "name": "Done",
-    "visible": true,
-    "position": 3,
-    "board_id": 1
-}
-{
-    "column_id": 4,
-    "name": "Archive",
-    "visible": false,
-    "position": 4,
-    "board_id": 1
-}
+COLUMN_OUTPUT_JSON = """[
+    {
+        'column_id': 1,
+        'name': 'Ready',
+        'visible': True,
+        'position': 1,
+        'board_id': 1
+    },
+    {
+        'column_id': 2,
+        'name': 'Doing',
+        'visible': True,
+        'position': 2,
+        'board_id': 1
+    },
+    {
+        'column_id': 3,
+        'name': 'Done',
+        'visible': True,
+        'position': 3,
+        'board_id': 1
+    },
+    {
+        'column_id': 4,
+        'name': 'Archive',
+        'visible': False,
+        'position': 4,
+        'board_id': 1
+    }
+]
 """
 
 

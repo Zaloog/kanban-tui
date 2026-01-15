@@ -1,9 +1,11 @@
 """CLI commands for kanban-tui board management"""
 
 import click
+from pydantic import TypeAdapter
 from rich.console import Console
 
 from kanban_tui.app import KanbanTui
+from kanban_tui.classes.board import Board
 from kanban_tui.config import Backends
 
 
@@ -39,10 +41,17 @@ def list_boards(app: KanbanTui, json: bool):
     if not boards:
         Console().print("No boards created yet.")
     else:
-        for board in boards:
-            if board == app.backend.active_board:
-                Console().print("[red]--- Active Board ---[/]")
-            Console().print(board.to_json() if json else board)
+        active_board_id = app.backend.active_board.board_id
+        Console().print(
+            f"[red]--- Active Board has board_id = {active_board_id} ---[/]"
+        )
+        if json:
+            board_list = TypeAdapter(list[Board])
+            json_str = board_list.dump_python(boards, exclude_none=True, mode="json")
+            Console().print(json_str)
+        else:
+            for board in boards:
+                Console().print(board)
 
 
 @board.command("create")

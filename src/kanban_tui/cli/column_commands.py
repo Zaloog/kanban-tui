@@ -1,9 +1,11 @@
 """CLI commands for kanban-tui column management"""
 
 import click
+from pydantic import TypeAdapter
 from rich.console import Console
 
 from kanban_tui.app import KanbanTui
+from kanban_tui.classes.column import Column
 from kanban_tui.config import Backends
 
 
@@ -41,5 +43,10 @@ def list_columns(app: KanbanTui, json: bool):
         return
 
     columns = app.backend.get_columns()
-    for column in columns:
-        Console().print(column.to_json() if json else column)
+    if json:
+        column_list = TypeAdapter(list[Column])
+        json_str = column_list.dump_python(columns, exclude_none=True, mode="json")
+        Console().print(json_str)
+    else:
+        for column in columns:
+            Console().print(column)
