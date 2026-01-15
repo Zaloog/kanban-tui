@@ -28,8 +28,11 @@ Use this skill proactively for:
 # List all boards
 ktui board list
 
-# Create new board (when not providing any --column argument, default Columns: Ready, Doing, Done, Archive will be used)
-ktui board create "Board Name" --icon ":emoji:" --set-active --column "First Column" --column "Second Column"
+# List all boards (JSON format for programmatic use)
+ktui board list --json
+
+# Create new board (when not providing any -c/--columns argument, default Columns: Ready, Doing, Done, Archive will be used)
+ktui board create "Board Name" --icon ":emoji:" --set-active -c "First Column" -c "Second Column"
 
 # Activate a board
 ktui board activate BOARD_ID
@@ -42,6 +45,12 @@ ktui board delete BOARD_ID
 ```bash
 # List columns on active board
 ktui column list
+
+# List columns (JSON format)
+ktui column list --json
+
+# List columns for a specific board
+ktui column list --board BOARD_ID
 ```
 
 ### Task Management
@@ -55,14 +64,57 @@ ktui task create "Task Title" --description "Details" --column COLUMN_ID --due-d
 # List all tasks
 ktui task list
 
+# List all tasks (JSON format for programmatic use)
+ktui task list --json
+
+# List tasks in a specific column
+ktui task list --column COLUMN_ID
+
 # Move task to different column
 ktui task move TASK_ID COLUMN_ID
 
 # Update task
 ktui task update TASK_ID --title "New Title" --description "New details"
 
-# Delete task
+# Delete task (with confirmation prompt)
 ktui task delete TASK_ID
+
+# Delete task (skip confirmation)
+ktui task delete TASK_ID --no-confirm
+```
+
+### Skill Management
+```bash
+# Initialize SKILL.md in dedicated folder
+ktui skill init
+
+# Update SKILL.md to current tool version
+ktui skill update
+
+# Delete global and local SKILL.md files
+ktui skill delete
+```
+
+## JSON Output Format
+Use `--json` flag for machine-readable output. The JSON format provides:
+- Valid JSON with double quotes
+- ISO 8601 datetime strings
+- Lowercase booleans (`true`/`false`)
+- Only populated fields (null values omitted)
+
+Example output:
+```json
+[
+    {
+        "task_id": 1,
+        "title": "Implement feature",
+        "column": 5,
+        "creation_date": "2026-01-11T22:53:12",
+        "description": "Feature details",
+        "days_since_creation": 3,
+        "finished": false
+    }
+]
 ```
 
 ## Workflow
@@ -72,7 +124,7 @@ When starting work that requires task tracking:
 
 ```bash
 # Create and activate project board
-# Use muliple `--column` arguments for custom columns
+# Use multiple `-c` arguments for custom columns
 ktui board create "Project Name" --icon ":EMOJI_CODE:" --set-active
 
 # Check default columns (Ready, Doing, Done, Archive)
@@ -83,7 +135,7 @@ ktui column list
 Break down work into specific, actionable tasks:
 
 ```bash
-# Add tasks to Ready column (defaults to column_id=1 or first visible if --column not provided)
+# Add tasks to Ready column (defaults to left-most visible column if --column not provided)
 ktui task create "Task 1" --description "Details" --column READY_COLUMN_ID
 ktui task create "Task 2" --description "Details" --column READY_COLUMN_ID
 
@@ -111,6 +163,12 @@ Regularly check progress:
 ```bash
 # View all tasks and their status
 ktui task list
+
+# View tasks in JSON format for parsing
+ktui task list --json
+
+# View only tasks in a specific column
+ktui task list --column COLUMN_ID
 ```
 
 ## Best Practices
@@ -130,11 +188,11 @@ ktui task list
 
 ### Task Naming
 Use imperative verbs for clarity:
-- ✅ "Implement authentication feature"
-- ✅ "Fix login bug"
-- ✅ "Write unit tests for API"
-- ❌ "Authentication" (too vague)
-- ❌ "Working on tests" (status, not action)
+- "Implement authentication feature"
+- "Fix login bug"
+- "Write unit tests for API"
+- ~~"Authentication"~~ (too vague)
+- ~~"Working on tests"~~ (status, not action)
 
 ### Task Completion
 Only move to Done when:
@@ -229,6 +287,9 @@ ktui task list
 ```bash
 # Get correct column IDs
 ktui column list
+
+# Or for a specific board
+ktui column list --board BOARD_ID
 ```
 
 ### Task in wrong column
@@ -242,12 +303,18 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 | Action | Command |
 |--------|---------|
 | Create board | `ktui board create "Name" --set-active` |
+| List boards | `ktui board list` |
+| List boards (JSON) | `ktui board list --json` |
 | List columns | `ktui column list` |
+| List columns (JSON) | `ktui column list --json` |
 | Create task | `ktui task create "Title" --column ID` |
 | List tasks | `ktui task list` |
+| List tasks (JSON) | `ktui task list --json` |
+| Filter tasks by column | `ktui task list --column ID` |
 | Move task | `ktui task move TASK_ID COLUMN_ID` |
 | Update task | `ktui task update TASK_ID --title "New"` |
 | Delete task | `ktui task delete TASK_ID` |
+| Delete task (no confirm) | `ktui task delete TASK_ID --no-confirm` |
 
 ## Notes
 - Always use CLI commands, never launch interactive TUI
@@ -255,6 +322,7 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 - Task IDs are unique across all boards
 - Archive column is typically hidden by default
 - Default columns: Ready, Doing, Done, Archive
+- Use `--json` flag for machine-readable output
 
 <!-- This Section is for the `kanban-tui skill update`-command to check if this SKILL.md version matches the tool version and update it if needed, the agent can ignore it -->
-<!-- Version: KANBAN_TUI_VERSION -->
+<!-- Version: v0.13.0 -->
