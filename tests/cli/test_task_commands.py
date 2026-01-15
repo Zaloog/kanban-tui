@@ -132,6 +132,20 @@ TEST_TASK_OUTPUT_JSON = """[
 ]
 """
 
+SINGLE_TASK_JSON = """[
+    {
+        "task_id": 4,
+        "title": "Task_doing_0",
+        "column": 2,
+        "creation_date": "2026-04-02T13:03:07",
+        "category": 2,
+        "description": "Hallo",
+        "days_since_creation": 0,
+        "finished": false
+    }
+]
+"""
+
 
 def test_task_wrong_backend(test_app, test_jira_config):
     test_app.config.backend.mode = Backends.JIRA
@@ -165,11 +179,31 @@ def test_task_list_json(test_app):
         with runner.isolated_filesystem():
             result = runner.invoke(cli, args=["task", "list", "--json"], obj=test_app)
             assert result.exit_code == 0
-            # Replace __repr__ shows the FakeDatetime on creation, use a replace here to make the assert correct
-            assert (
-                result.output.replace("FakeDatetime", "datetime.datetime")
-                == TEST_TASK_OUTPUT_JSON
+            assert result.output == TEST_TASK_OUTPUT_JSON
+
+
+def test_task_list_json_filter(test_app):
+    # Use freezing here to keep days_since_creation the same
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                cli, args=["task", "list", "--json", "--column", "2"], obj=test_app
             )
+            assert result.exit_code == 0
+            assert result.output == SINGLE_TASK_JSON
+
+
+def test_task_list_json_filter_no_task_in_column(test_app):
+    # Use freezing here to keep days_since_creation the same
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                cli, args=["task", "list", "--json", "--column", "4"], obj=test_app
+            )
+            assert result.exit_code == 0
+            assert result.output == "No tasks in column with column_id = 4.\n"
 
 
 def test_task_list_no_board(empty_app):

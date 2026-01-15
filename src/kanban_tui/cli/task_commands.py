@@ -36,7 +36,13 @@ def task(app: KanbanTui):
     type=click.BOOL,
     help="use JSON format",
 )
-def list_tasks(app: KanbanTui, json: bool):
+@click.option(
+    "--column",
+    default=None,
+    type=click.INT,
+    help="show only tasks in this column",
+)
+def list_tasks(app: KanbanTui, json: bool, column: None | tuple[int]):
     """
     List all tasks on active board
     """
@@ -45,9 +51,16 @@ def list_tasks(app: KanbanTui, json: bool):
         Console().print("No boards created yet.")
         return
 
-    tasks = app.backend.get_tasks_on_active_board()
-    if not tasks:
+    if column:
+        tasks = app.backend.get_tasks_by_column(column_id=column)
+    else:
+        tasks = app.backend.get_tasks_on_active_board()
+
+    if not tasks and column:
+        Console().print(f"No tasks in column with column_id = {column}.")
+    elif not tasks:
         Console().print("No tasks created yet.")
+
     else:
         if json:
             task_list = TypeAdapter(list[Task])
