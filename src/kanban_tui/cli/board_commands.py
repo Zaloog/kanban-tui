@@ -24,7 +24,14 @@ def board(app: KanbanTui):
 
 @board.command("list")
 @click.pass_obj
-def list_boards(app: KanbanTui):
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+    help="use JSON format",
+)
+def list_boards(app: KanbanTui, json: bool):
     """
     List all boards
     """
@@ -35,7 +42,7 @@ def list_boards(app: KanbanTui):
         for board in boards:
             if board == app.backend.active_board:
                 Console().print("[red]--- Active Board ---[/]")
-            Console().print(board)
+            Console().print(board.to_json() if json else board)
 
 
 @board.command("create")

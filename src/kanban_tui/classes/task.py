@@ -45,6 +45,9 @@ class Task(BaseModel):
             self.start_date = self.creation_date
         self.finish_date = datetime.now().replace(microsecond=0)
 
+    def to_json(self) -> str:
+        return self.model_dump_json(indent=4, exclude_none=True, ensure_ascii=True)
+
     def update_task_status(
         self, new_column: int, update_column_dict: dict[str, int | None]
     ):

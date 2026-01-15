@@ -26,7 +26,14 @@ def task(app: KanbanTui):
 
 @task.command("list")
 @click.pass_obj
-def list_tasks(app: KanbanTui):
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+    help="use JSON format",
+)
+def list_tasks(app: KanbanTui, json: bool):
     """
     List all tasks on active board
     """
@@ -38,7 +45,7 @@ def list_tasks(app: KanbanTui):
     tasks = app.backend.get_tasks_on_active_board()
     if tasks:
         for task in tasks:
-            Console().print(task)
+            Console().print(task.to_json() if json else task)
     else:
         Console().print("No tasks created yet.")
 

@@ -5,10 +5,40 @@ from click.exceptions import UsageError
 from kanban_tui.cli import cli
 from kanban_tui.config import Backends
 
-BOARD_OUTPUT = """Column(column_id=1, name='Ready', visible=True, position=1, board_id=1)
+COLUMN_OUTPUT = """Column(column_id=1, name='Ready', visible=True, position=1, board_id=1)
 Column(column_id=2, name='Doing', visible=True, position=2, board_id=1)
 Column(column_id=3, name='Done', visible=True, position=3, board_id=1)
 Column(column_id=4, name='Archive', visible=False, position=4, board_id=1)
+"""
+
+COLUMN_OUTPUT_JSON = """{
+    "column_id": 1,
+    "name": "Ready",
+    "visible": true,
+    "position": 1,
+    "board_id": 1
+}
+{
+    "column_id": 2,
+    "name": "Doing",
+    "visible": true,
+    "position": 2,
+    "board_id": 1
+}
+{
+    "column_id": 3,
+    "name": "Done",
+    "visible": true,
+    "position": 3,
+    "board_id": 1
+}
+{
+    "column_id": 4,
+    "name": "Archive",
+    "visible": false,
+    "position": 4,
+    "board_id": 1
+}
 """
 
 
@@ -28,7 +58,15 @@ def test_column_list(test_app):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["column", "list"], obj=test_app)
         assert result.exit_code == 0
-        assert result.output == BOARD_OUTPUT
+        assert result.output == COLUMN_OUTPUT
+
+
+def test_column_list_json(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["column", "list", "--json"], obj=test_app)
+        assert result.exit_code == 0
+        assert result.output == COLUMN_OUTPUT_JSON
 
 
 def test_column_list_no_board(empty_app):

@@ -24,7 +24,14 @@ def column(app: KanbanTui):
 
 @column.command("list")
 @click.pass_obj
-def list_columns(app: KanbanTui):
+@click.option(
+    "--json",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+    help="use JSON format",
+)
+def list_columns(app: KanbanTui, json: bool):
     """
     List all columns on active board
     """
@@ -35,4 +42,4 @@ def list_columns(app: KanbanTui):
 
     columns = app.backend.get_columns()
     for column in columns:
-        Console().print(column)
+        Console().print(column.to_json() if json else column)

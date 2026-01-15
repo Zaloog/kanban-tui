@@ -12,6 +12,9 @@ class Board(BaseModel):
     start_column: int | None = None
     finish_column: int | None = None
 
+    def to_json(self) -> str:
+        return self.model_dump_json(indent=4, exclude_none=True, ensure_ascii=True)
+
     @property
     def full_name(self):
         return f"{self.icon} {self.name}"
