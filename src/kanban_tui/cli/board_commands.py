@@ -47,7 +47,9 @@ def list_boards(app: KanbanTui, json: bool):
         )
         if json:
             board_list = TypeAdapter(list[Board])
-            json_str = board_list.dump_python(boards, exclude_none=True, mode="json")
+            json_str = board_list.dump_json(boards, indent=4, exclude_none=True).decode(
+                "utf-8"
+            )
             Console().print(json_str)
         else:
             for board in boards:

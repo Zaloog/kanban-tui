@@ -45,7 +45,9 @@ def list_columns(app: KanbanTui, json: bool):
     columns = app.backend.get_columns()
     if json:
         column_list = TypeAdapter(list[Column])
-        json_str = column_list.dump_python(columns, exclude_none=True, mode="json")
+        json_str = column_list.dump_json(columns, indent=4, exclude_none=True).decode(
+            "utf-8"
+        )
         Console().print(json_str)
     else:
         for column in columns:

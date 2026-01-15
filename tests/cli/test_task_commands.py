@@ -81,53 +81,53 @@ Task(
 
 TEST_TASK_OUTPUT_JSON = """[
     {
-        'task_id': 1,
-        'title': 'Task_ready_0',
-        'column': 1,
-        'creation_date': '2026-04-02T13:03:07',
-        'category': 1,
-        'description': 'Hallo',
-        'days_since_creation': 0,
-        'finished': False
+        "task_id": 1,
+        "title": "Task_ready_0",
+        "column": 1,
+        "creation_date": "2026-04-02T13:03:07",
+        "category": 1,
+        "description": "Hallo",
+        "days_since_creation": 0,
+        "finished": false
     },
     {
-        'task_id': 2,
-        'title': 'Task_ready_1',
-        'column': 1,
-        'creation_date': '2026-04-02T13:03:07',
-        'category': 3,
-        'description': 'Hallo',
-        'days_since_creation': 0,
-        'finished': False
+        "task_id": 2,
+        "title": "Task_ready_1",
+        "column": 1,
+        "creation_date": "2026-04-02T13:03:07",
+        "category": 3,
+        "description": "Hallo",
+        "days_since_creation": 0,
+        "finished": false
     },
     {
-        'task_id': 3,
-        'title': 'Task_ready_2',
-        'column': 1,
-        'creation_date': '2026-04-02T13:03:07',
-        'description': 'Hallo',
-        'days_since_creation': 0,
-        'finished': False
+        "task_id": 3,
+        "title": "Task_ready_2",
+        "column": 1,
+        "creation_date": "2026-04-02T13:03:07",
+        "description": "Hallo",
+        "days_since_creation": 0,
+        "finished": false
     },
     {
-        'task_id': 4,
-        'title': 'Task_doing_0',
-        'column': 2,
-        'creation_date': '2026-04-02T13:03:07',
-        'category': 2,
-        'description': 'Hallo',
-        'days_since_creation': 0,
-        'finished': False
+        "task_id": 4,
+        "title": "Task_doing_0",
+        "column": 2,
+        "creation_date": "2026-04-02T13:03:07",
+        "category": 2,
+        "description": "Hallo",
+        "days_since_creation": 0,
+        "finished": false
     },
     {
-        'task_id': 5,
-        'title': 'Task_done_0',
-        'column': 3,
-        'creation_date': '2026-04-02T13:03:07',
-        'category': 1,
-        'description': 'Hallo',
-        'days_since_creation': 0,
-        'finished': False
+        "task_id": 5,
+        "title": "Task_done_0",
+        "column": 3,
+        "creation_date": "2026-04-02T13:03:07",
+        "category": 1,
+        "description": "Hallo",
+        "days_since_creation": 0,
+        "finished": false
     }
 ]
 """

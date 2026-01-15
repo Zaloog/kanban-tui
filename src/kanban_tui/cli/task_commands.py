@@ -51,7 +51,9 @@ def list_tasks(app: KanbanTui, json: bool):
     else:
         if json:
             task_list = TypeAdapter(list[Task])
-            json_str = task_list.dump_python(tasks, exclude_none=True, mode="json")
+            json_str = task_list.dump_json(tasks, indent=4, exclude_none=True).decode(
+                "utf-8"
+            )
             Console().print(json_str)
         else:
             for task in tasks:

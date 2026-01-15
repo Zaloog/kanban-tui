@@ -20,10 +20,10 @@ Board(
 BOARD_OUTPUT_JSON = """--- Active Board has board_id = 1 ---
 [
     {
-        'board_id': 1,
-        'name': 'Kanban Board',
-        'icon': ':sparkles:',
-        'creation_date': '2026-04-02T13:03:07'
+        "board_id": 1,
+        "name": "Kanban Board",
+        "icon": "✨",
+        "creation_date": "2026-04-02T13:03:07"
     }
 ]
 """
