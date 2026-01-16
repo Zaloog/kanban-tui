@@ -3,6 +3,8 @@
 ## v0.13.0 (unreleased)
 ### Added
 - Added a `--json` flag to `board/task/column list` commands, e.g. `ktui board list --json`
+- Added a `--board/column` filter to `ktui task list`
+- Added a `--board` filter to `ktui column list`
 - Added `skill delete` command to delete the local and global `SKILL.md` files for kanban-tui and the kanban-tui
 folder
 
