@@ -15,10 +15,14 @@ def test_skill_local_creation(tmp_path: Path):
         result = runner.invoke(cli, args=["skill", "init"], input="n")
         assert result.exit_code == 0
         assert file_path.exists()
-        output = result.output.replace("\n", "")
-        assert (
-            output
-            == f"Create SKILL.md in global skills folder under {get_skill_global_path()}? [y/N]: nSKILL.md file created under {file_path}."
+        output = (
+            result.output.replace("\n", "")
+            .replace(str(file_path), "LOCAL_SKILL_PATH")
+            .replace(str(get_skill_global_path()), "GLOBAL_SKILL_PATH")
+        )
+        assert output == (
+            "Create SKILL.md in global skills folder under GLOBAL_SKILL_PATH? [y/N]: n"
+            "SKILL.md file created under LOCAL_SKILL_PATH."
         )
         assert file_path.read_text(encoding="utf-8") == get_skill_md()
 
@@ -31,10 +35,14 @@ def test_skill_local_creation_already_exists(tmp_path: Path):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["skill", "init"], input="n")
         assert result.exit_code == 0
-        output = result.output.replace("\n", "")
-        assert (
-            output
-            == f"Create SKILL.md in global skills folder under {get_skill_global_path()}? [y/N]: nSKILL.md file under {file_path} already exists."
+        output = (
+            result.output.replace("\n", "")
+            .replace(str(file_path), "LOCAL_SKILL_PATH")
+            .replace(str(get_skill_global_path()), "GLOBAL_SKILL_PATH")
+        )
+        assert output == (
+            "Create SKILL.md in global skills folder under GLOBAL_SKILL_PATH? [y/N]: n"
+            "SKILL.md file under LOCAL_SKILL_PATH already exists."
         )
 
 
@@ -46,10 +54,12 @@ def test_skill_global_creation(tmp_path: Path):
         result = runner.invoke(cli, args=["skill", "init"], input="y")
         assert result.exit_code == 0
         assert file_path.exists()
-        output = result.output.replace("\n", "")
-        assert (
-            output
-            == f"Create SKILL.md in global skills folder under {file_path}? [y/N]: ySKILL.md file created under {file_path}."
+        output = result.output.replace("\n", "").replace(
+            str(file_path), "GLOBAL_SKILL_PATH"
+        )
+        assert output == (
+            "Create SKILL.md in global skills folder under GLOBAL_SKILL_PATH? [y/N]: y"
+            "SKILL.md file created under GLOBAL_SKILL_PATH."
         )
         assert file_path.read_text(encoding="utf-8") == get_skill_md()
 
@@ -62,10 +72,12 @@ def test_skill_global_creation_already_exists(tmp_path: Path):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["skill", "init"], input="y")
         assert result.exit_code == 0
-        output = result.output.replace("\n", "")
-        assert (
-            output
-            == f"Create SKILL.md in global skills folder under {file_path}? [y/N]: ySKILL.md file under {file_path} already exists."
+        output = result.output.replace("\n", "").replace(
+            str(file_path), "GLOBAL_SKILL_PATH"
+        )
+        assert output == (
+            "Create SKILL.md in global skills folder under GLOBAL_SKILL_PATH? [y/N]: y"
+            "SKILL.md file under GLOBAL_SKILL_PATH already exists."
         )
 
 
