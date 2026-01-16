@@ -63,6 +63,12 @@ class SqliteBackend(Backend):
             board_id=self.active_board.board_id,
         )
 
+    def get_tasks_by_board(self, board_id: int) -> list[Task]:
+        return get_all_tasks_on_board_db(
+            database=self.database_path,
+            board_id=board_id,
+        )
+
     # Board Management
     def create_new_board(
         self,

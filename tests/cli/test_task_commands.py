@@ -194,16 +194,40 @@ def test_task_list_json_filter(test_app):
             assert result.output == SINGLE_TASK_JSON
 
 
-def test_task_list_json_filter_no_task_in_column(test_app):
+def test_task_list_filter_no_task_in_column(test_app):
     # Use freezing here to keep days_since_creation the same
     with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
         runner = CliRunner()
         with runner.isolated_filesystem():
             result = runner.invoke(
-                cli, args=["task", "list", "--json", "--column", "4"], obj=test_app
+                cli, args=["task", "list", "--column", "4"], obj=test_app
             )
             assert result.exit_code == 0
             assert result.output == "No tasks in column with column_id = 4.\n"
+
+
+def test_task_list_filter_board_(test_app):
+    # Use freezing here to keep days_since_creation the same
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                cli, args=["task", "list", "--board", "1", "--json"], obj=test_app
+            )
+            assert result.exit_code == 0
+            assert result.output == TEST_TASK_OUTPUT_JSON
+
+
+def test_task_list_filter_no_board_with_id(test_app):
+    # Use freezing here to keep days_since_creation the same
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(
+                cli, args=["task", "list", "--board", "4"], obj=test_app
+            )
+            assert result.exit_code == 0
+            assert result.output == "There is no board with board_id = 4.\n"
 
 
 def test_task_list_no_board(empty_app):
