@@ -98,8 +98,8 @@ def test_skill_delete_both(tmp_path: Path):
         assert result.exit_code == 0
         output = (
             result.output.replace("\n", "")
-            .replace(local_file_path.as_posix(), "LOCAL_SKILL_PATH")
-            .replace(global_file_path.as_posix(), "GLOBAL_SKILL_PATH")
+            .replace(str(local_file_path), "LOCAL_SKILL_PATH")
+            .replace(str(global_file_path), "GLOBAL_SKILL_PATH")
         )
         assert (
             output
@@ -107,3 +107,6 @@ def test_skill_delete_both(tmp_path: Path):
             "Local Skill under LOCAL_SKILL_PATH deleted successfully."
             "Global Skill under GLOBAL_SKILL_PATH deleted successfully."
         )
+
+        assert not local_file_path.exists()
+        assert not global_file_path.exists()
