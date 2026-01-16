@@ -23,6 +23,7 @@ from kanban_tui.backends.sqlite.database import (
     get_all_columns_on_board_db,
     get_category_by_id_db,
     get_task_by_id_db,
+    get_task_by_column_db,
     get_column_by_id_db,
     init_new_db,
     update_board_entry_db,
@@ -60,6 +61,12 @@ class SqliteBackend(Backend):
         return get_all_tasks_on_board_db(
             database=self.database_path,
             board_id=self.active_board.board_id,
+        )
+
+    def get_tasks_by_board(self, board_id: int) -> list[Task]:
+        return get_all_tasks_on_board_db(
+            database=self.database_path,
+            board_id=board_id,
         )
 
     # Board Management
@@ -163,6 +170,10 @@ class SqliteBackend(Backend):
     def get_task_by_id(self, task_id: int) -> Task | None:
         task = get_task_by_id_db(task_id=task_id, database=self.database_path)
         return task
+
+    def get_tasks_by_column(self, column_id: int) -> list[Task] | None:
+        tasks = get_task_by_column_db(column_id=column_id, database=self.database_path)
+        return tasks
 
     def get_column_by_id(self, column_id: int) -> Column | None:
         column = get_column_by_id_db(column_id=column_id, database=self.database_path)

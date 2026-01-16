@@ -40,6 +40,35 @@ def init_skill():
         Console().print(f"SKILL.md file created under [green]{file_path}[/].")
 
 
+@skill.command("delete")
+def delete_skill():
+    """
+    Deletes global and local SKILL.md file
+    """
+    local_file_path = get_skill_local_path()
+    global_file_path = get_skill_global_path()
+
+    # No files present
+    if not any((local_file_path.exists(), global_file_path.exists())):
+        Console().print("No SKILL.md files found in global and local skills folder.")
+        return
+
+    if click.confirm("Delete all kanban-tui SKILL.md files and the kanban-tui folder?"):
+        if local_file_path.exists():
+            local_file_path.unlink(missing_ok=True)
+            local_file_path.parent.rmdir()
+            Console().print(
+                f"Local Skill under {local_file_path} deleted [green]successfully[/]."
+            )
+
+        if global_file_path.exists():
+            global_file_path.unlink(missing_ok=True)
+            global_file_path.parent.rmdir()
+            Console().print(
+                f"Global Skill under {global_file_path} deleted [green]successfully[/]."
+            )
+
+
 @skill.command("update")
 def update_skill():
     """

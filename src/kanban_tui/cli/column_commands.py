@@ -33,7 +33,13 @@ def column(app: KanbanTui):
     type=click.BOOL,
     help="use JSON format",
 )
-def list_columns(app: KanbanTui, json: bool):
+@click.option(
+    "--board",
+    default=None,
+    type=click.INT,
+    help="show only columns on this board",
+)
+def list_columns(app: KanbanTui, json: bool, board: None | int):
     """
     List all columns on active board
     """
@@ -42,7 +48,10 @@ def list_columns(app: KanbanTui, json: bool):
         Console().print("No boards created yet.")
         return
 
-    columns = app.backend.get_columns()
+    columns = app.backend.get_columns(board_id=board)
+    if not columns:
+        Console().print(f"There is no board with board_id = {board}.")
+
     if json:
         column_list = TypeAdapter(list[Column])
         json_str = column_list.dump_json(columns, indent=4, exclude_none=True).decode(

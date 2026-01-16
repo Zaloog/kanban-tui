@@ -964,6 +964,29 @@ def get_task_by_id_db(
             raise (e)
 
 
+def get_task_by_column_db(
+    column_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[Task] | None:
+    query_str = """
+    SELECT *
+    FROM tasks
+    WHERE column = :column_id
+    ;
+    """
+    column_id_dict = {"column_id": column_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            task = con.execute(query_str, column_id_dict).fetchall()
+            con.commit()
+            return task
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
 def get_column_by_id_db(
     column_id: int,
     database: str = DATABASE_FILE.as_posix(),

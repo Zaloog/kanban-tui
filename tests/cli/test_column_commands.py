@@ -77,3 +77,13 @@ def test_column_list_no_board(empty_app):
         result = runner.invoke(cli, args=["column", "list"], obj=empty_app)
         assert result.exit_code == 0
         assert result.output == "No boards created yet.\n"
+
+
+def test_column_list_filter_no_board(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli, args=["column", "list", "--board", "2"], obj=test_app
+        )
+        assert result.exit_code == 0
+        assert result.output == "There is no board with board_id = 2.\n"

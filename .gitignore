@@ -16,6 +16,7 @@ wheels/
 *.ini
 todo.md
 .env
+.claude
 
 # mre for testing stuff
 mre.py
