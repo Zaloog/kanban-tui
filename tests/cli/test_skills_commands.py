@@ -96,10 +96,14 @@ def test_skill_delete_both(tmp_path: Path):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["skill", "delete"], input="y")
         assert result.exit_code == 0
-        output = result.output.replace("\n", "")
+        output = (
+            result.output.replace("\n", "")
+            .replace(local_file_path.as_posix(), "LOCAL_SKILL_PATH")
+            .replace(global_file_path.as_posix(), "GLOBAL_SKILL_PATH")
+        )
         assert (
             output
             == "Delete all kanban-tui SKILL.md files and the kanban-tui folder? [y/N]: y"
-            f"Local Skill under {local_file_path} deleted successfully."
-            f"Global Skill under {global_file_path} deleted successfully."
+            "Local Skill under LOCAL_SKILL_PATH deleted successfully."
+            "Global Skill under GLOBAL_SKILL_PATH deleted successfully."
         )
