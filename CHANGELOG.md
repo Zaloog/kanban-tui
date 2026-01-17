@@ -5,11 +5,14 @@
 - Added a `--json` flag to `board/task/column list` commands, e.g. `ktui board list --json`
 - Added a `--board/column` filter to `ktui task list`
 - Added a `--board` filter to `ktui column list`
-- Added `skill delete` command to delete the local and global `SKILL.md` files for kanban-tui and the kanban-tui
-folder
+- Added a `skill delete` command to delete the local and global `SKILL.md` files for kanban-tui
+and the parent kanban-tui folder
 
 ### Fixed
 - Show proper time for `Created at` Label when editing existing boards, instead of the current time
+- Make default description of tasks created without the `--description` option to `""` instead of `None`
+to no break editing tasks
+- Fix task query to get the correct `creation_date`
 
 ## v0.12.0
 ### Added

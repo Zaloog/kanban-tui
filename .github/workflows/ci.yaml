@@ -41,7 +41,7 @@ jobs:
   tests:
     needs: lint  # << This ensures tests only run if lint passes
     env:
-      COLUMNS: 150
+      COLUMNS: 180
     strategy:
       matrix:
         python-version:
