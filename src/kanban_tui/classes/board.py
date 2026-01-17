@@ -7,7 +7,7 @@ class Board(BaseModel):
     board_id: int
     name: str
     icon: str = ""
-    creation_date: datetime = datetime.now().replace(microsecond=0)
+    creation_date: datetime
     reset_column: int | None = None
     start_column: int | None = None
     finish_column: int | None = None

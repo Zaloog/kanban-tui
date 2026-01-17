@@ -47,7 +47,7 @@ class ModalTaskEditScreen(ModalScreen[Task]):
 
     def on_mount(self, event: Mount) -> None:
         self.query_one("#vertical_modal", Vertical).border_title = "Create Task"
-        if self.kanban_task:
+        if self.kanban_task is not None:
             self.query_one("#vertical_modal", Vertical).border_title = "Edit Task"
             self.read_values_from_task()
             self.query_one("#btn_continue", Button).label = "Edit Task"

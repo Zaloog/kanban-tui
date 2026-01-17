@@ -45,6 +45,9 @@ class ModalNewBoardScreen(ModalScreen):
             self.query_exactly_one(
                 "#input_board_icon", Input
             ).value = self.kanban_board.icon.strip(":")
+            self.query_exactly_one("#label_create_date", Label).update(
+                self.kanban_board.creation_date.isoformat(sep=" ")
+            )
 
         self.query_exactly_one("#input_board_icon", Input).border_title = "Icon"
         self.query_exactly_one("#input_board_name", Input).border_title = "Board Name"
@@ -116,7 +119,7 @@ class ModalNewBoardScreen(ModalScreen):
             if new_board_icon:
                 new_board_icon = f":{new_board_icon}:"
 
-            if self.query_exactly_one("#switch_use_default_columns").value:
+            if self.query_exactly_one("#switch_use_default_columns", Switch).value:
                 custom_columns_dict = None
             else:
                 custom_columns_dict = self.query_exactly_one(

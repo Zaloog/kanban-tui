@@ -200,6 +200,10 @@ async def test_modal_board_edit(test_app: KanbanTui):
             pilot.app.screen.query_exactly_one("#label_header", Label).content
             == "Edit Board"
         )
+        assert (
+            pilot.app.screen.query_exactly_one("#label_create_date", Label).content
+            == "2026-04-02 13:03:07"
+        )
 
         assert (
             pilot.app.screen.query_one("#input_board_name", Input).value

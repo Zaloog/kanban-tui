@@ -614,7 +614,7 @@ def create_new_task_db(
     title: str,
     column: int,
     category: int | None = None,
-    description: str | None = None,
+    description: str = "",
     start_date: datetime.datetime | None = None,
     finish_date: datetime.datetime | None = None,
     due_date: datetime.datetime | None = None,
@@ -801,7 +801,7 @@ def get_all_tasks_on_board_db(
     board_id_dict = {"board_id": board_id}
 
     query_str = """
-    SELECT *
+    SELECT t.*
     FROM tasks t
     LEFT JOIN columns c ON c.column_id = t.column
     LEFT JOIN boards b ON b.board_id = c.board_id

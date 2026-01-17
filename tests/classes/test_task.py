@@ -8,6 +8,7 @@ def test_Task():
         title="Test_Task",
         column=1,
         due_date=datetime.now() + timedelta(days=7),
+        creation_date=datetime.now(),
     )
 
     assert test_task.column == 1
@@ -33,6 +34,7 @@ def test_finished_Task():
         column=3,
         start_date=datetime.now() - timedelta(days=10),
         finish_date=datetime.now(),
+        creation_date=datetime.now(),
     )
 
     assert test_task_finished.column == 3
@@ -45,6 +47,7 @@ def test_move_Task():
         title="Test_Task",
         column=1,
         due_date=datetime.now() + timedelta(days=7),
+        creation_date=datetime.now(),
     )
 
     assert test_task_moved.start_date is None
