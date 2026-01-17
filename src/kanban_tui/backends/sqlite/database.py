@@ -614,7 +614,7 @@ def create_new_task_db(
     title: str,
     column: int,
     category: int | None = None,
-    description: str | None = None,
+    description: str = "",
     start_date: datetime.datetime | None = None,
     finish_date: datetime.datetime | None = None,
     due_date: datetime.datetime | None = None,

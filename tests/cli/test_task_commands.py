@@ -266,7 +266,7 @@ def test_task_create_minimal(test_app):
 @pytest.mark.parametrize(
     "title,description,due_date",
     [
-        ("CLI Test Task", None, None),
+        ("CLI Test Task", "", None),
         ("CLI Test Task", "Easy Description", None),
         (
             "CLI Test Task",
@@ -276,7 +276,7 @@ def test_task_create_minimal(test_app):
             """,
             None,
         ),
-        ("CLI Test Task", None, "2026-01-01"),
+        ("CLI Test Task", "", "2026-01-01"),
     ],
 )
 def test_task_create_all_options(

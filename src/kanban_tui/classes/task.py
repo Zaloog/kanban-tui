@@ -12,7 +12,7 @@ class Task(BaseModel):
     finish_date: datetime | None = None
     category: int | None = None
     due_date: datetime | None = None
-    description: str | None = None
+    description: str = ""
 
     def get_days_since_creation(self) -> int:
         return (

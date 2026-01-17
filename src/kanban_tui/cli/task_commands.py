@@ -89,6 +89,7 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
 @click.argument("title", type=click.STRING)
 @click.option(
     "--description",
+    default="",
     type=click.STRING,
     help="The task description",
 )
