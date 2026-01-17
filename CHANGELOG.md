@@ -8,6 +8,9 @@
 - Added `skill delete` command to delete the local and global `SKILL.md` files for kanban-tui and the kanban-tui
 folder
 
+### Fixed
+- Show proper time for `Created at` Label when editing existing boards, instead of the current time
+
 ## v0.12.0
 ### Added
 - Added functionality to suspend app and edit task description in `$EDITOR` (default: `vim`),
