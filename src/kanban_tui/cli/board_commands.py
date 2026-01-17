@@ -2,11 +2,11 @@
 
 import click
 from pydantic import TypeAdapter
-from rich.console import Console
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.classes.board import Board
 from kanban_tui.config import Backends
+from kanban_tui.utils import print_to_console
 
 
 @click.group()
@@ -39,10 +39,10 @@ def list_boards(app: KanbanTui, json: bool):
     """
     boards = app.backend.get_boards()
     if not boards:
-        Console().print("No boards created yet.")
+        print_to_console("No boards created yet.")
     else:
         active_board_id = app.backend.active_board.board_id
-        Console().print(
+        print_to_console(
             f"[red]--- Active Board has board_id = {active_board_id} ---[/]"
         )
         if json:
@@ -50,10 +50,10 @@ def list_boards(app: KanbanTui, json: bool):
             json_str = board_list.dump_json(boards, indent=4, exclude_none=True).decode(
                 "utf-8"
             )
-            Console().print(json_str)
+            print_to_console(json_str)
         else:
             for board in boards:
-                Console().print(board)
+                print_to_console(board)
 
 
 @board.command("create")
@@ -100,7 +100,7 @@ def create_board(
     if set_active:
         app.config.set_active_board(new_active_board_id=new_board.board_id)
     board_id = new_board.board_id
-    Console().print(f"Created board `{name}` with {board_id = }.")
+    print_to_console(f"Created board `{name}` with {board_id = }.")
 
 
 @board.command("delete")
@@ -120,19 +120,19 @@ def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
     boards = app.backend.get_boards()
 
     if not boards:
-        Console().print("[red]No boards created yet.[/]")
+        print_to_console("[red]No boards created yet.[/]")
     elif board_id == app.backend.active_board.board_id:
-        Console().print("[red]Active board can not be deleted.[/]")
+        print_to_console("[red]Active board can not be deleted.[/]")
     elif board_id in [board.board_id for board in boards]:
         if not no_confirm:
             click.confirm(
                 f"Do you want to delete the board with {board_id = }?", abort=True
             )
         app.backend.delete_board(board_id)
-        Console().print(f"Deleted board with {board_id = }.")
+        print_to_console(f"Deleted board with {board_id = }.")
 
     else:
-        Console().print(f"[red]There is no board with {board_id = }[/].")
+        print_to_console(f"[red]There is no board with {board_id = }[/].")
 
 
 @board.command("activate")
@@ -145,11 +145,11 @@ def activate_board(app: KanbanTui, board_id: int):
     boards = app.backend.get_boards()
 
     if not boards:
-        Console().print("[red]No boards created yet.[/]")
+        print_to_console("[red]No boards created yet.[/]")
     elif board_id == app.backend.active_board.board_id:
-        Console().print("[yellow]Board is already active.[/]")
+        print_to_console("[yellow]Board is already active.[/]")
     elif board_id in [board.board_id for board in boards]:
         app.config.set_active_board(new_active_board_id=board_id)
-        Console().print(f"Board with {board_id = } is set as active board.")
+        print_to_console(f"Board with {board_id = } is set as active board.")
     else:
-        Console().print(f"[red]There is no board with {board_id = }[/].")
+        print_to_console(f"[red]There is no board with {board_id = }[/].")

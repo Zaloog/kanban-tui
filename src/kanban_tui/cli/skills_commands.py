@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import click
-from rich.console import Console
 
+from kanban_tui.utils import print_to_console
 from kanban_tui.skills import (
     get_skill_md,
     get_skill_local_path,
@@ -33,11 +33,11 @@ def init_skill():
     Path(file_path.parent).mkdir(parents=True, exist_ok=True)
 
     if file_path.exists():
-        Console().print(f"SKILL.md file under {file_path} already exists.")
+        print_to_console(f"SKILL.md file under {file_path} already exists.")
     else:
         file_path.touch()
         file_path.write_text(get_skill_md(), encoding="utf-8")
-        Console().print(f"SKILL.md file created under [green]{file_path}[/].")
+        print_to_console(f"SKILL.md file created under [green]{file_path}[/].")
 
 
 @skill.command("delete")
@@ -50,21 +50,21 @@ def delete_skill():
 
     # No files present
     if not any((local_file_path.exists(), global_file_path.exists())):
-        Console().print("No SKILL.md files found in global and local skills folder.")
+        print_to_console("No SKILL.md files found in global and local skills folder.")
         return
 
     if click.confirm("Delete all kanban-tui SKILL.md files and the kanban-tui folder?"):
         if local_file_path.exists():
             local_file_path.unlink(missing_ok=True)
             local_file_path.parent.rmdir()
-            Console().print(
+            print_to_console(
                 f"Local Skill under {local_file_path} deleted [green]successfully[/]."
             )
 
         if global_file_path.exists():
             global_file_path.unlink(missing_ok=True)
             global_file_path.parent.rmdir()
-            Console().print(
+            print_to_console(
                 f"Global Skill under {global_file_path} deleted [green]successfully[/]."
             )
 
@@ -75,7 +75,7 @@ def update_skill():
     Update SKILL.md to current tool version
     """
     current_tool_version = get_version()
-    Console().print(f"Current tool version [blue]{current_tool_version}[/].")
+    print_to_console(f"Current tool version [blue]{current_tool_version}[/].")
 
     file_version_dict = {}
     file_path_dict = {
@@ -85,7 +85,7 @@ def update_skill():
 
     for locality, file_path in file_path_dict.items():
         if not file_path.exists():
-            Console().print(
+            print_to_console(
                 f"No {locality} [blue]SKILL.md[/] file present, use [yellow]`kanban-tui skill init`[/] to create one."
             )
             continue
@@ -100,7 +100,7 @@ def update_skill():
             if is_up_to_date
             else "[red](versions dont match)[/]"
         )
-        Console().print(
+        print_to_console(
             f"Found {locality} [blue]SKILL.md[/] file with version [blue]{current_version}[/] {up_to_date_str}."
         )
 
@@ -117,6 +117,6 @@ def update_skill():
             for locality in file_version_dict.keys():
                 file_path = file_path_dict[locality]
                 file_path.write_text(get_skill_md())
-                Console().print(
+                print_to_console(
                     f"Updated {locality} [blue]SKILL.md[/] file to current tool version [blue]{current_tool_version}[/]."
                 )

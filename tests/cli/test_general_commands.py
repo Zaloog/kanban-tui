@@ -6,7 +6,10 @@ from click.exceptions import UsageError
 
 from kanban_tui.cli import cli
 
-DELETION_OUTPUT = """"""
+CLEAR_OUTPUT = """Are you sure you want to delete the db and config? [y/N]: y
+Config under TEST_CONFIG_PATH deleted successfully.
+Database under TEST_DB_PATH deleted successfully.
+"""
 
 
 def test_info():
@@ -38,15 +41,9 @@ def test_clear_success(test_app, test_config_path, test_database_path):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["clear"], input="y", obj=test_app)
         assert result.exit_code == 0
-        output = (
-            result.output.replace("\n", "")
-            .replace(test_config_path, "TEST_CONFIG_PATH")
-            .replace(test_database_path, "TEST_DB_PATH")
+        output = result.output.replace(test_config_path, "TEST_CONFIG_PATH").replace(
+            test_database_path, "TEST_DB_PATH"
         )
-        assert output == (
-            "Are you sure you want to delete the db and config? [y/N]: y"
-            "Config under TEST_CONFIG_PATH deleted successfully."
-            "Database under TEST_DB_PATH deletedsuccessfully."
-        )
+        assert output == CLEAR_OUTPUT
         assert not Path(test_config_path).exists()
         assert not Path(test_database_path).exists()
