@@ -7,13 +7,13 @@ from kanban_tui.cli.column_commands import column
 from kanban_tui.cli.task_commands import task
 
 import click
-from rich.console import Console
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.cli.board_commands import board
 from kanban_tui.cli.demo_commands import demo
 from kanban_tui.cli.skills_commands import skill
 from kanban_tui.cli.general_commands import info, clear, auth
+from kanban_tui.utils import print_to_console
 from kanban_tui.constants import (
     CONFIG_FILE,
     DATABASE_FILE,
@@ -76,8 +76,8 @@ def cli(ctx, web: bool):
         try:
             from textual_serve.server import Server
         except ModuleNotFoundError:
-            Console().print("[yellow]textual-serve[/] dependency not found.")
-            Console().print(
+            print_to_console("[yellow]textual-serve[/] dependency not found.")
+            print_to_console(
                 "Please install [yellow]kanban-tui\\[web][/] to add web support."
             )
             return

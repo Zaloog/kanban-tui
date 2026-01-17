@@ -5,11 +5,11 @@ from pydantic import TypeAdapter
 import datetime
 
 import click
-from rich.console import Console
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.classes.task import Task
 from kanban_tui.config import Backends
+from kanban_tui.utils import print_to_console
 
 
 @click.group()
@@ -54,7 +54,7 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
     """
     boards = app.backend.get_boards()
     if not boards:
-        Console().print("No boards created yet.")
+        print_to_console("No boards created yet.")
         return
 
     if column:
@@ -66,11 +66,11 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
         tasks = app.backend.get_tasks_on_active_board()
 
     if not tasks and column:
-        Console().print(f"No tasks in column with column_id = {column}.")
+        print_to_console(f"No tasks in column with column_id = {column}.")
     elif board and not board_present:
-        Console().print(f"There is no board with board_id = {board}.")
+        print_to_console(f"There is no board with board_id = {board}.")
     elif not tasks:
-        Console().print("No tasks created yet.")
+        print_to_console("No tasks created yet.")
 
     else:
         if json:
@@ -78,10 +78,10 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
             json_str = task_list.dump_json(tasks, indent=4, exclude_none=True).decode(
                 "utf-8"
             )
-            Console().print(json_str)
+            print_to_console(json_str)
         else:
             for task in tasks:
-                Console().print(task)
+                print_to_console(task)
 
 
 @task.command("create")
@@ -125,7 +125,7 @@ def create_task(
         due_date=due_date,
     )
     task_id = new_task.task_id
-    Console().print(f"Created task `{title}` with {task_id = }.")
+    print_to_console(f"Created task `{title}` with {task_id = }.")
 
 
 @task.command("update")
@@ -161,7 +161,7 @@ def update_task(
     """
     old_task = app.backend.get_task_by_id(task_id=task_id)
     if all((title is None, description is None, due_date is None)):
-        Console().print("No fields to update provided.")
+        print_to_console("No fields to update provided.")
     else:
         _updated_task = app.backend.update_task_entry(
             task_id=task_id,
@@ -170,7 +170,7 @@ def update_task(
             category=None,
             due_date=due_date or old_task.due_date,
         )
-        Console().print(f"Updated task with {task_id = }.")
+        print_to_console(f"Updated task with {task_id = }.")
 
 
 @task.command("move")
@@ -184,11 +184,13 @@ def move_task(app: KanbanTui, task_id: int, target_column: int):
     task = app.backend.get_task_by_id(task_id=task_id)
     new_column = app.backend.get_column_by_id(column_id=target_column)
     if not task:
-        Console().print(f"[red]There is no task with {task_id = }.[/]")
+        print_to_console(f"[red]There is no task with {task_id = }.[/]")
     elif not new_column:
-        Console().print(f"[red]There is no column with column_id = {target_column}.[/]")
+        print_to_console(
+            f"[red]There is no column with column_id = {target_column}.[/]"
+        )
     elif task.column == target_column:
-        Console().print(
+        print_to_console(
             f"[yellow]Task with {task_id = } is already in column {target_column}.[/]"
         )
     else:
@@ -205,7 +207,7 @@ def move_task(app: KanbanTui, task_id: int, target_column: int):
             )
         task.column = target_column
         moved_task = app.backend.update_task_status(new_task=task)
-        Console().print(
+        print_to_console(
             f"Moved task with {task_id = } from column {old_column.column_id} to {moved_task.column}."
         )
 
@@ -232,7 +234,7 @@ def delete_task(app: KanbanTui, task_id: int, no_confirm: bool):
                 f"Do you want to delete the task with {task_id = } ", abort=True
             )
         app.backend.delete_task(task_id)
-        Console().print(f"Deleted task with {task_id = }.")
+        print_to_console(f"Deleted task with {task_id = }.")
 
     else:
-        Console().print(f"[red]There is no task with {task_id = }[/].")
+        print_to_console(f"[red]There is no task with {task_id = }[/].")

@@ -4,11 +4,11 @@ import os
 from pathlib import Path
 
 import click
-from rich.console import Console
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.config import Backends
 from kanban_tui.utils import build_info_table
+from kanban_tui.utils import print_to_console
 from kanban_tui.constants import (
     AUTH_FILE,
     CONFIG_FILE,
@@ -35,8 +35,12 @@ def clear(confirm: bool):
         db_path_str = os.getenv("KANBAN_TUI_DATABASE_FILE", DATABASE_FILE.as_posix())
         Path(db_path_str).unlink(missing_ok=True)
 
-        Console().print(f"Config under {conf_path_str} deleted [green]successfully[/].")
-        Console().print(f"Database under {db_path_str} deleted [green]successfully[/].")
+        print_to_console(
+            f"Config under {conf_path_str} deleted [green]successfully[/]."
+        )
+        print_to_console(
+            f"Database under {db_path_str} deleted [green]successfully[/]."
+        )
 
 
 @click.command("auth")
@@ -56,7 +60,7 @@ def auth(app: KanbanTui):
 
     api_key = app.run()
     if api_key:
-        Console().print(f"Api key detected under [green]{AUTH_FILE}[/].")
+        print_to_console(f"Api key detected under [green]{AUTH_FILE}[/].")
 
 
 @click.command("info")
@@ -65,4 +69,4 @@ def info():
     Displays location of config/data/auth xdg path files
     """
     table = build_info_table()
-    Console().print(table)
+    print_to_console(table)

@@ -3,14 +3,13 @@
 import os
 
 import click
-from rich.console import Console
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.constants import (
     DEMO_CONFIG_FILE,
     DEMO_DATABASE_FILE,
 )
-from kanban_tui.utils import create_demo_tasks
+from kanban_tui.utils import create_demo_tasks, print_to_console
 
 
 @click.command()
@@ -38,8 +37,8 @@ def demo(clean: bool, keep: bool, web: bool):
         try:
             from textual_serve.server import Server
         except ModuleNotFoundError:
-            Console().print("[yellow]textual-serve[/] dependency not found.")
-            Console().print(
+            print_to_console("[yellow]textual-serve[/] dependency not found.")
+            print_to_console(
                 "Please install [yellow]kanban-tui\\[web][/] to add web support."
             )
             return

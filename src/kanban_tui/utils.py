@@ -9,6 +9,7 @@ from dateutil.rrule import rrule, MONTHLY, WEEKLY, DAILY
 from functools import lru_cache
 
 from rich.table import Table
+from rich.console import Console, RenderableType
 
 from kanban_tui.backends.sqlite.database import (
     create_new_category_db,
@@ -556,3 +557,7 @@ def build_info_table() -> Table:
     table.add_row(skill_table)
 
     return table
+
+
+def print_to_console(text: RenderableType):
+    Console(soft_wrap=True, width=150).print(text, no_wrap=False, width=150)
