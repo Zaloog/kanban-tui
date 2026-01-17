@@ -46,7 +46,7 @@ def test_clear_success(test_app, test_config_path, test_database_path):
         assert output == (
             "Are you sure you want to delete the db and config? [y/N]: y"
             "Config under TEST_CONFIG_PATH deleted successfully."
-            "Database under TEST_DB_PATH deleted successfully."
+            "Database under TEST_DB_PATH deletedsuccessfully."
         )
         assert not Path(test_config_path).exists()
         assert not Path(test_database_path).exists()

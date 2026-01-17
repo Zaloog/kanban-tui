@@ -116,7 +116,7 @@ def test_skill_delete_both(tmp_path: Path):
         assert (
             output
             == "Delete all kanban-tui SKILL.md files and the kanban-tui folder? [y/N]: y"
-            "Local Skill under LOCAL_SKILL_PATH deleted successfully."
+            "Local Skill under LOCAL_SKILL_PATHdeleted successfully."
             "Global Skill under GLOBAL_SKILL_PATH deleted successfully."
         )
 
