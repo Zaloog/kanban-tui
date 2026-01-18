@@ -17,6 +17,8 @@ from kanban_tui.utils import print_to_console
 from kanban_tui.constants import (
     CONFIG_FILE,
     DATABASE_FILE,
+    DEMO_CONFIG_FILE,
+    DEMO_DATABASE_FILE,
 )
 
 COMMAND_DICT = {
@@ -92,7 +94,15 @@ def cli(ctx, web: bool):
                 database_path=DATABASE_FILE.as_posix(),
             )
             app.run()
-        elif ctx.invoked_subcommand in ["demo", "info", "clear"]:
+        elif ctx.invoked_subcommand == "demo":
+            os.environ["KANBAN_TUI_CONFIG_FILE"] = DEMO_CONFIG_FILE.as_posix()
+            app = KanbanTui(
+                config_path=DEMO_CONFIG_FILE.as_posix(),
+                database_path=DEMO_DATABASE_FILE.as_posix(),
+                demo_mode=True,
+            )
+            ctx.obj = app
+        elif ctx.invoked_subcommand in ["info", "clear"]:
             pass
         else:
             app = KanbanTui(

@@ -86,7 +86,7 @@ def get_schema_version(database: str = DATABASE_FILE.as_posix()) -> int:
 
 
 def run_migrations(database: str = DATABASE_FILE.as_posix()):
-    current_version = get_schema_version()
+    current_version = get_schema_version(database)
 
     if current_version >= CURRENT_SCHEMA_VERSION:
         return
@@ -579,11 +579,10 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
             con.commit()
 
             # con.executescript(indexes_creation_str)
+            run_migrations(database)
         except sqlite3.Error as e:
             raise e
             con.rollback()
-
-    run_migrations(database)
 
 
 # Audit Tables
