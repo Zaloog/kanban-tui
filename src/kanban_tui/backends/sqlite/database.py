@@ -38,6 +38,7 @@ def create_connection(
     database: str = DATABASE_FILE.as_posix(),
 ) -> Generator[sqlite3.Connection, None, None]:
     con = sqlite3.connect(database=Path(database), detect_types=sqlite3.PARSE_DECLTYPES)
+    con.execute("PRAGMA foreign_keys = ON")
     yield con
     con.close()
 
@@ -147,9 +148,9 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     reset_column INTEGER DEFAULT NULL,
     start_column INTEGER DEFAULT NULL,
     finish_column INTEGER DEFAULT NULL,
-    FOREIGN KEY (reset_column) REFERENCES columns(column_id),
-    FOREIGN KEY (start_column) REFERENCES columns(column_id),
-    FOREIGN KEY (finish_column) REFERENCES columns(column_id),
+    FOREIGN KEY (reset_column) REFERENCES columns(column_id) ON DELETE SET NULL,
+    FOREIGN KEY (start_column) REFERENCES columns(column_id) ON DELETE SET NULL,
+    FOREIGN KEY (finish_column) REFERENCES columns(column_id) ON DELETE SET NULL,
     CHECK (name <> "")
     );
     """
@@ -633,7 +634,9 @@ def create_new_board_db(
         :visible,
         :position,
         :board_id
-        );"""
+        )
+        RETURNING column_id
+        ;"""
     with create_connection(database=database) as con:
         con.row_factory = board_factory
         try:
@@ -643,7 +646,9 @@ def create_new_board_db(
                 board_dict,
             ).fetchone()
 
-            # create Columns
+            # create Columns and track column IDs
+            column_ids = []
+            con.row_factory = sqlite3.Row  # Switch to Row factory to get column_id
             for position, (column_name, visibility) in enumerate(
                 column_dict.items(), start=1
             ):
@@ -653,7 +658,34 @@ def create_new_board_db(
                     "position": position,
                     "board_id": created_board.board_id,
                 }
-                con.execute(transaction_str_cols, transaction_column_dict)
+                result = con.execute(transaction_str_cols, transaction_column_dict)
+                column_id = result.fetchone()[0]
+                column_ids.append(column_id)
+
+            # Set default status columns if using default column layout
+            # DEFAULT_COLUMN_DICT = {"Ready": True, "Doing": True, "Done": True, "Archive": False}
+            if column_dict == DEFAULT_COLUMN_DICT:
+                update_status_columns_str = """
+                UPDATE boards
+                SET
+                    reset_column = :reset_column,
+                    start_column = :start_column,
+                    finish_column = :finish_column
+                WHERE board_id = :board_id
+                """
+                status_columns_dict = {
+                    "board_id": created_board.board_id,
+                    "reset_column": column_ids[0],  # Ready
+                    "start_column": column_ids[1],  # Doing
+                    "finish_column": column_ids[2],  # Done
+                }
+                con.execute(update_status_columns_str, status_columns_dict)
+
+                # Update the created_board object to reflect the changes
+                created_board.reset_column = status_columns_dict["reset_column"]
+                created_board.start_column = status_columns_dict["start_column"]
+                created_board.finish_column = status_columns_dict["finish_column"]
+
             con.commit()
             return created_board
         except sqlite3.Error as e:
@@ -1397,9 +1429,13 @@ def delete_board_db(board_id: int, database: str = DATABASE_FILE.as_posix()) -> 
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            con.execute(delete_board_str, (board_id,))
+            # Delete in correct order to respect foreign key constraints:
+            # 1. Tasks (reference columns)
+            # 2. Columns (reference board)
+            # 3. Board
             con.execute(delete_task_str, (board_id,))
             con.execute(delete_column_str, (board_id,))
+            con.execute(delete_board_str, (board_id,))
             con.commit()
             return 0
         except sqlite3.Error as e:

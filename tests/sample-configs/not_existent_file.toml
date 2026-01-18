@@ -1,2 +1,3 @@
 [jira]
 api_key = ""
+cert_path = ""

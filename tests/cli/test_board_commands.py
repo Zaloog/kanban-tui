@@ -11,9 +11,9 @@ Board(
     name='Kanban Board',
     icon=':sparkles:',
     creation_date=datetime.datetime(2026, 4, 2, 13, 3, 7),
-    reset_column=None,
-    start_column=None,
-    finish_column=None
+    reset_column=1,
+    start_column=2,
+    finish_column=3
 )
 """
 
@@ -23,7 +23,10 @@ BOARD_OUTPUT_JSON = """--- Active Board has board_id = 1 ---
         "board_id": 1,
         "name": "Kanban Board",
         "icon": "✨",
-        "creation_date": "2026-04-02T13:03:07"
+        "creation_date": "2026-04-02T13:03:07",
+        "reset_column": 1,
+        "start_column": 2,
+        "finish_column": 3
     }
 ]
 """

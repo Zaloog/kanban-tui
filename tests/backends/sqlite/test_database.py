@@ -124,3 +124,45 @@ def test_get_category_db(test_app, test_database_path, category_id, name, color)
     )
     assert category.name == name
     assert category.color == color
+
+
+def test_create_board_sets_default_status_columns(test_database_path):
+    """Test that creating a board with default columns automatically sets status columns"""
+    init_new_db(database=test_database_path)
+
+    # Create board with default column layout
+    new_board = create_new_board_db(
+        name="Test Board", icon=":rocket:", database=test_database_path
+    )
+
+    # Verify status columns are set
+    assert new_board.reset_column is not None
+    assert new_board.start_column is not None
+    assert new_board.finish_column is not None
+
+    # Verify they point to the correct columns (Ready, Doing, Done)
+    boards = get_all_boards_db(database=test_database_path)
+    created_board = [b for b in boards if b.board_id == new_board.board_id][0]
+
+    assert created_board.reset_column == new_board.reset_column
+    assert created_board.start_column == new_board.start_column
+    assert created_board.finish_column == new_board.finish_column
+
+
+def test_create_board_with_custom_columns_no_status_columns(test_database_path):
+    """Test that custom column layouts don't automatically set status columns"""
+    init_new_db(database=test_database_path)
+
+    # Create board with custom columns
+    custom_columns = {"Backlog": True, "In Progress": True, "Review": True}
+    new_board = create_new_board_db(
+        name="Custom Board",
+        icon=":gear:",
+        column_dict=custom_columns,
+        database=test_database_path,
+    )
+
+    # Verify status columns are NOT set
+    assert new_board.reset_column is None
+    assert new_board.start_column is None
+    assert new_board.finish_column is None
