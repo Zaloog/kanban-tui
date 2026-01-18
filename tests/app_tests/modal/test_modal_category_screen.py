@@ -33,9 +33,11 @@ async def test_modal_category_create_new(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         # Click "New Category"
         await pilot.click("#btn_create_category")
+        await pilot.pause()
 
         assert isinstance(pilot.app.screen, ModalNewCategoryScreen)
 
@@ -43,10 +45,12 @@ async def test_modal_category_create_new(test_app: KanbanTui):
 
         # Enter Name
         await pilot.click("#input_category_name")
+        await pilot.pause()
         await pilot.press(*"Test Category")
 
         # Enter Color
         await pilot.click("#input_category_color")
+        await pilot.pause()
         await pilot.press(*"cyan")
 
         # Button should be enabled now
@@ -56,6 +60,7 @@ async def test_modal_category_create_new(test_app: KanbanTui):
 
         # Click Create
         await pilot.click("#btn_continue_new_category")
+        await pilot.pause()
 
         # Should return to Manage Screen
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)

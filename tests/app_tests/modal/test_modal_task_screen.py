@@ -216,25 +216,33 @@ async def test_task_category_deletion(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
 
         await pilot.press("tab")
         await pilot.press("tab")
+        await pilot.pause()
         assert isinstance(pilot.app.focused, CategorySelector)
 
         # open selector dropdown
         await pilot.press("enter")
+        await pilot.pause()
         # go up from current category and select add/edit category
         await pilot.press("k")
         await pilot.press("enter")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
         # delete category of current task and go back to task screen
         await pilot.press("d")
+        await pilot.pause()
         # confirm deletion
         await pilot.press("enter")
+        await pilot.pause()
         await pilot.press("escape")
+        await pilot.pause()
         # go back to board screen
         await pilot.press("escape")
+        await pilot.pause()
         # check if category is None
         assert pilot.app.focused.task_.category is None
 

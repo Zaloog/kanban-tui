@@ -107,6 +107,7 @@ async def test_board_columns_in_view(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert not pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         assert pilot.app.config.board.columns_in_view == 3
         assert (
