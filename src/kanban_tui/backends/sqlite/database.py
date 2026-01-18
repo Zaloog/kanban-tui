@@ -1,3 +1,8 @@
+from kanban_tui.backends.sqlite.migrations import (
+    CURRENT_SCHEMA_VERSION,
+    apply_migration_v1_to_v2,
+    increment_schema_version,
+)
 import sqlite3
 from pathlib import Path
 from typing import Any, Generator, Sequence
@@ -67,8 +72,43 @@ def board_info_factory(cursor, row):
     return {k: v for k, v in zip(fields, row)}
 
 
+def get_schema_version(database: str = DATABASE_FILE.as_posix()) -> int:
+    """Get current schema version from database"""
+    with create_connection(database=database) as con:
+        try:
+            result = con.execute(
+                "SELECT version FROM schema_versions ORDER BY version DESC LIMIT 1"
+            ).fetchone()
+            return result[0] if result else 1
+        except sqlite3.OperationalError:
+            # schema_version table doesn't exist = version 1 (legacy database)
+            return 1
+
+
+def run_migrations(database: str = DATABASE_FILE.as_posix()):
+    current_version = get_schema_version()
+
+    if current_version >= CURRENT_SCHEMA_VERSION:
+        return
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            # first migration to v2
+            if current_version < 2:
+                apply_migration_v1_to_v2(con)
+                increment_schema_version(con, 2)
+
+            con.commit()
+
+        except sqlite3.Error as e:
+            raise e
+            con.rollback()
+
+
 def init_new_db(database: str = DATABASE_FILE.as_posix()):
     if Path(database).exists():
+        run_migrations(database)
         return
 
     task_table_creation_str = """
@@ -540,8 +580,10 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
 
             # con.executescript(indexes_creation_str)
         except sqlite3.Error as e:
-            con.rollback()
             raise e
+            con.rollback()
+
+    run_migrations(database)
 
 
 # Audit Tables
