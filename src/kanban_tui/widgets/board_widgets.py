@@ -198,12 +198,34 @@ class KanbanBoard(HorizontalScroll):
         # here, which will raise an exception, because the column
         # field in the database has a NOT NULL constraint
 
+        # Determine the target column
+        target_column = event.new_column if event else self.target_column
+
+        # Check if the task can move to the target column (dependency validation)
+        can_move, reason = self.selected_task.can_move_to_column(
+            target_column=target_column,
+            start_column=self.app.active_board.start_column,
+            backend=self.app.backend,
+        )
+
+        if not can_move:
+            # Reset app focus and show notification
+            self.app.app_focus = True
+            self.target_column = None
+            self.app.notify(
+                title="Movement Blocked",
+                message=reason,
+                severity="warning",
+                timeout=5,
+            )
+            return
+
         await self.query_one(
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)
 
         # Handles both movement modes
-        self.selected_task.column = event.new_column if event else self.target_column
+        self.selected_task.column = target_column
 
         self.app.backend.update_task_status(new_task=self.selected_task)
 
