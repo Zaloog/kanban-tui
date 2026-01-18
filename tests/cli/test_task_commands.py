@@ -17,9 +17,13 @@ TEST_TASK_OUTPUT = """Task(
     category=1,
     due_date=None,
     description='Hallo',
+    blocked_by=[],
+    blocking=[],
     days_left=None,
     days_since_creation=0,
-    finished=False
+    finished=False,
+    is_blocked=False,
+    has_dependents=False
 )
 Task(
     task_id=2,
@@ -31,9 +35,13 @@ Task(
     category=3,
     due_date=None,
     description='Hallo',
+    blocked_by=[],
+    blocking=[],
     days_left=None,
     days_since_creation=0,
-    finished=False
+    finished=False,
+    is_blocked=False,
+    has_dependents=False
 )
 Task(
     task_id=3,
@@ -45,9 +53,13 @@ Task(
     category=None,
     due_date=None,
     description='Hallo',
+    blocked_by=[],
+    blocking=[],
     days_left=None,
     days_since_creation=0,
-    finished=False
+    finished=False,
+    is_blocked=False,
+    has_dependents=False
 )
 Task(
     task_id=4,
@@ -59,9 +71,13 @@ Task(
     category=2,
     due_date=None,
     description='Hallo',
+    blocked_by=[],
+    blocking=[],
     days_left=None,
     days_since_creation=0,
-    finished=False
+    finished=False,
+    is_blocked=False,
+    has_dependents=False
 )
 Task(
     task_id=5,
@@ -73,9 +89,13 @@ Task(
     category=1,
     due_date=None,
     description='Hallo',
+    blocked_by=[],
+    blocking=[],
     days_left=None,
     days_since_creation=0,
-    finished=False
+    finished=False,
+    is_blocked=False,
+    has_dependents=False
 )
 """
 
@@ -87,8 +107,12 @@ TEST_TASK_OUTPUT_JSON = """[
         "creation_date": "2026-04-02T13:03:07",
         "category": 1,
         "description": "Hallo",
+        "blocked_by": [],
+        "blocking": [],
         "days_since_creation": 0,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
     },
     {
         "task_id": 2,
@@ -97,8 +121,12 @@ TEST_TASK_OUTPUT_JSON = """[
         "creation_date": "2026-04-02T13:03:07",
         "category": 3,
         "description": "Hallo",
+        "blocked_by": [],
+        "blocking": [],
         "days_since_creation": 0,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
     },
     {
         "task_id": 3,
@@ -106,8 +134,12 @@ TEST_TASK_OUTPUT_JSON = """[
         "column": 1,
         "creation_date": "2026-04-02T13:03:07",
         "description": "Hallo",
+        "blocked_by": [],
+        "blocking": [],
         "days_since_creation": 0,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
     },
     {
         "task_id": 4,
@@ -116,8 +148,12 @@ TEST_TASK_OUTPUT_JSON = """[
         "creation_date": "2026-04-02T13:03:07",
         "category": 2,
         "description": "Hallo",
+        "blocked_by": [],
+        "blocking": [],
         "days_since_creation": 0,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
     },
     {
         "task_id": 5,
@@ -126,8 +162,12 @@ TEST_TASK_OUTPUT_JSON = """[
         "creation_date": "2026-04-02T13:03:07",
         "category": 1,
         "description": "Hallo",
+        "blocked_by": [],
+        "blocking": [],
         "days_since_creation": 0,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
     }
 ]
 """
@@ -140,8 +180,12 @@ SINGLE_TASK_JSON = """[
         "creation_date": "2026-04-02T13:03:07",
         "category": 2,
         "description": "Hallo",
+        "blocked_by": [],
+        "blocking": [],
         "days_since_creation": 0,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
     }
 ]
 """
@@ -601,7 +645,326 @@ def test_task_move_abort_column_not_active_board(test_app):
             obj=test_app,
         )
         assert result.exit_code == 1
-        assert (
-            result.output
-            == "Target column is not on the active board, still continue? [y/N]: n\nAborted!\n"
+        expected_output = (
+            "Target column is not on the active board, still continue? [y/N]: n\n"
+            "Aborted!\n"
         )
+        assert result.output == expected_output
+
+
+# Task Dependency Tests
+
+
+def test_task_create_with_single_dependency(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Dependent Task",
+                "--depends-on",
+                "1",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Created task `Dependent Task` with task_id = 6.
+Added dependency: task 6 depends on task 1.
+"""
+        assert result.output == expected_output
+
+        # Verify the dependency was created
+        new_task = test_app.backend.get_task_by_id(task_id=6)
+        assert new_task.blocked_by == [1]
+
+        # Verify the blocking task knows about it
+        blocking_task = test_app.backend.get_task_by_id(task_id=1)
+        assert 6 in blocking_task.blocking
+
+
+def test_task_create_with_multiple_dependencies(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Multi-Dependent Task",
+                "--depends-on",
+                "1",
+                "--depends-on",
+                "2",
+                "--depends-on",
+                "3",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Created task `Multi-Dependent Task` with task_id = 6.
+Added dependency: task 6 depends on task 1.
+Added dependency: task 6 depends on task 2.
+Added dependency: task 6 depends on task 3.
+"""
+        assert result.output == expected_output
+
+        # Verify all dependencies were created
+        new_task = test_app.backend.get_task_by_id(task_id=6)
+        assert sorted(new_task.blocked_by) == [1, 2, 3]
+
+
+def test_task_create_with_nonexistent_dependency(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Task with Bad Dependency",
+                "--depends-on",
+                "999",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Created task `Task with Bad Dependency` with task_id = 6.
+Task 999 does not exist, skipping dependency.
+"""
+        assert result.output == expected_output
+
+        # Verify the task was created but without the dependency
+        new_task = test_app.backend.get_task_by_id(task_id=6)
+        assert new_task.blocked_by == []
+
+
+def test_task_create_with_mixed_valid_invalid_dependencies(test_app):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Mixed Dependencies Task",
+                "--depends-on",
+                "1",
+                "--depends-on",
+                "999",
+                "--depends-on",
+                "2",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Created task `Mixed Dependencies Task` with task_id = 6.
+Added dependency: task 6 depends on task 1.
+Task 999 does not exist, skipping dependency.
+Added dependency: task 6 depends on task 2.
+"""
+        assert result.output == expected_output
+
+        # Verify only valid dependencies were created
+        new_task = test_app.backend.get_task_by_id(task_id=6)
+        assert sorted(new_task.blocked_by) == [1, 2]
+
+
+def test_task_create_with_circular_dependency_direct(test_app):
+    """Test creating a task that would create a direct circular dependency"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # First create task 6
+        runner.invoke(
+            cli,
+            args=["task", "create", "Task 6"],
+            obj=test_app,
+        )
+
+        # Make task 1 depend on task 6
+        test_app.backend.create_task_dependency(task_id=1, depends_on_task_id=6)
+
+        # Now try to create task 7 that depends on task 1
+        runner.invoke(
+            cli,
+            args=["task", "create", "Task 7", "--depends-on", "1"],
+            obj=test_app,
+        )
+
+        # Create task 8 that depends on task 7
+        result = runner.invoke(
+            cli,
+            args=["task", "create", "Task 8", "--depends-on", "7"],
+            obj=test_app,
+        )
+        # This should succeed
+        assert result.exit_code == 0
+
+        # Check that creating 6 -> 8 would create a cycle (8 -> 7 -> 1 -> 6)
+        from kanban_tui.backends.sqlite.database import would_create_cycle
+
+        assert would_create_cycle(6, 8, test_app.backend.database_path)
+
+
+def test_task_create_with_circular_dependency_indirect(test_app):
+    """Test creating a task that would create an indirect circular dependency"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create a chain: task 6 -> task 1 -> task 2
+        runner.invoke(
+            cli, args=["task", "create", "Task 6", "--depends-on", "1"], obj=test_app
+        )
+        test_app.backend.create_task_dependency(task_id=1, depends_on_task_id=2)
+
+        # Now try to make task 2 depend on task 6 (would create cycle: 6 -> 1 -> 2 -> 6)
+        result = runner.invoke(
+            cli,
+            args=["task", "create", "Task 7", "--depends-on", "6"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+
+        # Verify using backend that 2 -> 6 would create a cycle
+        from kanban_tui.backends.sqlite.database import would_create_cycle
+
+        assert would_create_cycle(2, 6, test_app.backend.database_path)
+
+
+def test_task_create_self_dependency_prevented(test_app):
+    """Test that a task cannot depend on itself"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create task 6 first
+        result = runner.invoke(
+            cli,
+            args=["task", "create", "Self-dependent Task"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+
+        # Try to make it depend on itself via backend
+        from kanban_tui.backends.sqlite.database import would_create_cycle
+
+        assert would_create_cycle(6, 6, test_app.backend.database_path)
+
+
+def test_task_create_duplicate_dependency(test_app):
+    """Test that duplicate dependencies are handled gracefully"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create first task with dependency on task 1
+        result = runner.invoke(
+            cli,
+            args=["task", "create", "Task 6", "--depends-on", "1"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Created task `Task 6` with task_id = 6.
+Added dependency: task 6 depends on task 1.
+"""
+        assert result.output == expected_output
+
+        # Verify the dependency was created
+        task_deps = test_app.backend.get_task_dependencies(task_id=6)
+        assert task_deps == [1]
+
+        # Try to create a task with duplicate dependency flags
+        result2 = runner.invoke(
+            cli,
+            args=["task", "create", "Task 7", "--depends-on", "1", "--depends-on", "1"],
+            obj=test_app,
+        )
+        assert result2.exit_code == 0
+        # Should only add the dependency once
+        expected_output2 = """Created task `Task 7` with task_id = 7.
+Added dependency: task 7 depends on task 1.
+Task 7 already depends on task 1.
+"""
+        assert result2.output == expected_output2
+
+
+def test_task_dependencies_persist_in_json_output(test_app):
+    """Test that dependencies appear in JSON output"""
+    runner = CliRunner()
+    with freeze_time(datetime(year=2026, month=4, day=2, hour=13, minute=3, second=7)):
+        with runner.isolated_filesystem():
+            # Create a task with dependencies
+            runner.invoke(
+                cli,
+                args=[
+                    "task",
+                    "create",
+                    "Dependent Task",
+                    "--depends-on",
+                    "1",
+                    "--depends-on",
+                    "2",
+                ],
+                obj=test_app,
+            )
+
+            # Get JSON output
+            result = runner.invoke(cli, args=["task", "list", "--json"], obj=test_app)
+            assert result.exit_code == 0
+
+            import json
+
+            tasks = json.loads(result.output)
+
+            # Find the newly created task
+            new_task = [t for t in tasks if t["task_id"] == 6][0]
+            assert sorted(new_task["blocked_by"]) == [1, 2]
+            assert new_task["is_blocked"]
+
+            # Check that task 1 shows it's blocking task 6
+            task_1 = [t for t in tasks if t["task_id"] == 1][0]
+            assert 6 in task_1["blocking"]
+            assert task_1["has_dependents"]
+
+
+def test_task_with_dependencies_computed_fields(test_app):
+    """Test that is_blocked and has_dependents computed fields work correctly"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create a task with dependencies
+        runner.invoke(
+            cli,
+            args=["task", "create", "Blocked Task", "--depends-on", "1"],
+            obj=test_app,
+        )
+
+        # Get the task and verify computed fields
+        blocked_task = test_app.backend.get_task_by_id(task_id=6)
+        assert blocked_task.is_blocked
+        assert blocked_task.has_dependents
+
+        blocking_task = test_app.backend.get_task_by_id(task_id=1)
+        assert not blocking_task.is_blocked
+        assert blocking_task.has_dependents
+
+
+def test_task_create_with_circular_dependency_error_message(test_app):
+    """Test that circular dependencies are properly detected"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create task 6 that depends on task 1
+        runner.invoke(
+            cli, args=["task", "create", "Task 6", "--depends-on", "1"], obj=test_app
+        )
+
+        # Try to create task 7 that depends on task 1 (which depends on 6)
+        runner.invoke(
+            cli, args=["task", "create", "Task 7", "--depends-on", "1"], obj=test_app
+        )
+
+        # Now manually check if creating 1 -> 6 would create a cycle
+        # (since 6 already depends on 1, making 1 depend on 6 would be circular)
+        from kanban_tui.backends.sqlite.database import would_create_cycle
+
+        would_cycle = would_create_cycle(1, 6, test_app.backend.database_path)
+        assert would_cycle
+
+        # Also verify that the backend raises ValueError when attempting this
+        with pytest.raises(ValueError, match="would create a circular dependency"):
+            test_app.backend.create_task_dependency(task_id=1, depends_on_task_id=6)

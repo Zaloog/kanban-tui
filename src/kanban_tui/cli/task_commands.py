@@ -75,9 +75,9 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
     else:
         if json:
             task_list = TypeAdapter(list[Task])
-            json_str = task_list.dump_json(tasks, indent=4, exclude_none=True).decode(
-                "utf-8"
-            )
+            json_str = task_list.dump_json(
+                tasks, indent=4, exclude_none=True, exclude_defaults=True
+            ).decode("utf-8")
             print_to_console(json_str)
         else:
             for task in tasks:
@@ -105,12 +105,19 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
     type=click.DateTime(formats=["%Y-%m-%d"]),
     help="Task due date (format `%Y-%m-%d`)",
 )
+@click.option(
+    "--depends-on",
+    multiple=True,
+    type=click.INT,
+    help="Task ID(s) this task depends on (can be used multiple times)",
+)
 def create_task(
     app: KanbanTui,
     title: str,
     description: str,
     column: int,
     due_date: datetime.datetime,
+    depends_on: tuple[int, ...],
 ):
     """
     Creates a new task
@@ -126,6 +133,45 @@ def create_task(
     )
     task_id = new_task.task_id
     print_to_console(f"Created task `{title}` with {task_id = }.")
+
+    # Add dependencies if specified
+    if depends_on:
+        for depends_on_task_id in depends_on:
+            # Check if dependency task exists
+            dep_task = app.backend.get_task_by_id(task_id=depends_on_task_id)
+            if not dep_task:
+                print_to_console(
+                    f"[yellow]Task {depends_on_task_id} does not exist, skipping dependency.[/]"
+                )
+                continue
+
+            # Check if dependency already exists
+            existing_deps = app.backend.get_task_dependencies(task_id=task_id)
+            if depends_on_task_id in existing_deps:
+                print_to_console(
+                    f"[yellow]Task {task_id} already depends on task {depends_on_task_id}.[/]"
+                )
+                continue
+
+            # Check if this would create a circular dependency
+            from kanban_tui.backends.sqlite.database import would_create_cycle
+
+            if would_create_cycle(
+                task_id, depends_on_task_id, app.backend.database_path
+            ):
+                print_to_console(
+                    f"[red]Cannot add dependency: would create circular dependency with task {depends_on_task_id}.[/]"
+                )
+                continue
+
+            # All checks passed, create the dependency
+            app.backend.create_task_dependency(
+                task_id=task_id,
+                depends_on_task_id=depends_on_task_id,
+            )
+            print_to_console(
+                f"[green]Added dependency: task {task_id} depends on task {depends_on_task_id}.[/]"
+            )
 
 
 @task.command("update")

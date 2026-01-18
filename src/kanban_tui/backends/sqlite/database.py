@@ -43,8 +43,18 @@ def create_connection(
 
 
 def task_factory(cursor, row):
+    import json
+
     fields = [column[0] for column in cursor.description]
-    return Task(**{k: v for k, v in zip(fields, row)})
+    data = dict(zip(fields, row))
+
+    # Parse JSON arrays for dependency fields
+    if "blocked_by" in data and isinstance(data["blocked_by"], str):
+        data["blocked_by"] = json.loads(data["blocked_by"])
+    if "blocking" in data and isinstance(data["blocking"], str):
+        data["blocking"] = json.loads(data["blocking"])
+
+    return Task(**data)
 
 
 def board_factory(cursor, row):
@@ -842,7 +852,20 @@ def get_all_tasks_on_board_db(
     board_id_dict = {"board_id": board_id}
 
     query_str = """
-    SELECT t.*
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
     FROM tasks t
     LEFT JOIN columns c ON c.column_id = t.column
     LEFT JOIN boards b ON b.board_id = c.board_id
@@ -987,9 +1010,22 @@ def get_task_by_id_db(
     database: str = DATABASE_FILE.as_posix(),
 ) -> Task | None:
     query_str = """
-    SELECT *
-    FROM tasks
-    WHERE task_id = :task_id
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.task_id = :task_id
     ;
     """
     task_id_dict = {"task_id": task_id}
@@ -1010,9 +1046,22 @@ def get_task_by_column_db(
     database: str = DATABASE_FILE.as_posix(),
 ) -> list[Task] | None:
     query_str = """
-    SELECT *
-    FROM tasks
-    WHERE column = :column_id
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.column = :column_id
     ;
     """
     column_id_dict = {"column_id": column_id}
@@ -1422,3 +1471,173 @@ def get_filtered_events_db(
         except sqlite3.Error as e:
             con.rollback()
             raise Exception(e)
+
+
+# Task Dependencies Management
+
+
+def create_task_dependency_db(
+    task_id: int,
+    depends_on_task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> int:
+    dependency_dict = {
+        "task_id": task_id,
+        "depends_on_task_id": depends_on_task_id,
+    }
+
+    # Check for circular dependencies before inserting
+    if would_create_cycle(task_id, depends_on_task_id, database):
+        raise ValueError(
+            f"Creating dependency from task {task_id} to task {depends_on_task_id} "
+            "would create a circular dependency"
+        )
+
+    transaction_str = """
+    INSERT INTO dependencies
+    VALUES (
+        NULL,
+        :task_id,
+        :depends_on_task_id
+    )
+    RETURNING dependency_id
+    ;"""
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            result = con.execute(transaction_str, dependency_dict).fetchone()
+            con.commit()
+            return result[0]
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def delete_task_dependency_db(
+    task_id: int,
+    depends_on_task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> int:
+    dependency_dict = {
+        "task_id": task_id,
+        "depends_on_task_id": depends_on_task_id,
+    }
+
+    delete_str = """
+    DELETE FROM dependencies
+    WHERE task_id = :task_id AND depends_on_task_id = :depends_on_task_id
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(delete_str, dependency_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def get_task_dependencies_db(
+    task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[int]:
+    query_str = """
+    SELECT depends_on_task_id
+    FROM dependencies
+    WHERE task_id = :task_id
+    ORDER BY depends_on_task_id
+    ;
+    """
+    task_id_dict = {"task_id": task_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            results = con.execute(query_str, task_id_dict).fetchall()
+            con.commit()
+            return [row[0] for row in results]
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def get_dependent_tasks_db(
+    task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[int]:
+    query_str = """
+    SELECT task_id
+    FROM dependencies
+    WHERE depends_on_task_id = :task_id
+    ORDER BY task_id
+    ;
+    """
+    task_id_dict = {"task_id": task_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            results = con.execute(query_str, task_id_dict).fetchall()
+            con.commit()
+            return [row[0] for row in results]
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def would_create_cycle(
+    task_id: int,
+    depends_on_task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> bool:
+    # Self-dependency is always a cycle
+    if task_id == depends_on_task_id:
+        return True
+
+    # Check if depends_on_task_id eventually depends on task_id
+    # If so, creating task_id -> depends_on_task_id would create a cycle
+    visited = set()
+    stack = [depends_on_task_id]
+
+    while stack:
+        current = stack.pop()
+        if current == task_id:
+            return True
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        # Get all tasks that current depends on
+        dependencies = get_task_dependencies_db(current, database)
+        stack.extend(dependencies)
+
+    return False
+
+
+def get_blocked_tasks_db(
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[Task]:
+    query_str = """
+    SELECT DISTINCT t.*
+    FROM tasks t
+    INNER JOIN dependencies d ON t.task_id = d.task_id
+    INNER JOIN tasks blocking_task ON d.depends_on_task_id = blocking_task.task_id
+    WHERE blocking_task.finish_date IS NULL
+    ORDER BY t.task_id
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            tasks = con.execute(query_str).fetchall()
+            con.commit()
+            return tasks
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e

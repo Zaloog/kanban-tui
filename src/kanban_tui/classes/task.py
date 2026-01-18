@@ -13,6 +13,8 @@ class Task(BaseModel):
     category: int | None = None
     due_date: datetime | None = None
     description: str = ""
+    blocked_by: list[int] = []  # Task IDs this task depends on
+    blocking: list[int] = []  # Task IDs that depend on this task
 
     def get_days_since_creation(self) -> int:
         return (
@@ -80,3 +82,15 @@ class Task(BaseModel):
     @property
     def finished(self) -> bool:
         return bool(self.finish_date)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def is_blocked(self) -> bool:
+        """Returns True if this task has any dependencies (regardless of their status)."""
+        return len(self.blocked_by) > 0
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def has_dependents(self) -> bool:
+        """Returns True if any other tasks depend on this one."""
+        return len(self.blocking) > 0

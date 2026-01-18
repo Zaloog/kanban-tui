@@ -35,6 +35,11 @@ from kanban_tui.backends.sqlite.database import (
     get_board_info_dict,
     get_ordered_tasks_db,
     get_filtered_events_db,
+    create_task_dependency_db,
+    delete_task_dependency_db,
+    get_task_dependencies_db,
+    get_dependent_tasks_db,
+    get_blocked_tasks_db,
 )
 
 
@@ -236,3 +241,72 @@ class SqliteBackend(Backend):
     @property
     def database_path(self) -> str:
         return self.settings.database_path
+
+    # Task Dependencies Management
+    def create_task_dependency(self, task_id: int, depends_on_task_id: int) -> int:
+        """Create a dependency between tasks.
+
+        Args:
+            task_id: The task that depends on another
+            depends_on_task_id: The task it depends on
+
+        Returns:
+            dependency_id: The ID of the created dependency
+        """
+        return create_task_dependency_db(
+            task_id=task_id,
+            depends_on_task_id=depends_on_task_id,
+            database=self.database_path,
+        )
+
+    def delete_task_dependency(self, task_id: int, depends_on_task_id: int) -> int:
+        """Delete a dependency between tasks.
+
+        Args:
+            task_id: The dependent task
+            depends_on_task_id: The task it depends on
+
+        Returns:
+            0 on success
+        """
+        return delete_task_dependency_db(
+            task_id=task_id,
+            depends_on_task_id=depends_on_task_id,
+            database=self.database_path,
+        )
+
+    def get_task_dependencies(self, task_id: int) -> list[int]:
+        """Get all tasks that the given task depends on.
+
+        Args:
+            task_id: The task ID
+
+        Returns:
+            List of task IDs this task depends on
+        """
+        return get_task_dependencies_db(
+            task_id=task_id,
+            database=self.database_path,
+        )
+
+    def get_dependent_tasks(self, task_id: int) -> list[int]:
+        """Get all tasks that depend on the given task.
+
+        Args:
+            task_id: The task ID
+
+        Returns:
+            List of task IDs that depend on this task
+        """
+        return get_dependent_tasks_db(
+            task_id=task_id,
+            database=self.database_path,
+        )
+
+    def get_blocked_tasks(self) -> list[Task]:
+        """Get all tasks blocked by unfinished dependencies.
+
+        Returns:
+            List of blocked tasks
+        """
+        return get_blocked_tasks_db(database=self.database_path)
