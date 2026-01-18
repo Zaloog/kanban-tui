@@ -61,6 +61,12 @@ ktui task create "Task Title" --description "Task details" --column COLUMN_ID
 # Create task with due date
 ktui task create "Task Title" --description "Details" --column COLUMN_ID --due-date 2026-12-31
 
+# Create task with dependencies
+ktui task create "Task Title" --depends-on TASK_ID
+
+# Create task with multiple dependencies
+ktui task create "Task Title" --depends-on TASK_ID1 --depends-on TASK_ID2 --depends-on TASK_ID3
+
 # List all tasks
 ktui task list
 
@@ -69,6 +75,12 @@ ktui task list --json
 
 # List tasks in a specific column
 ktui task list --column COLUMN_ID
+
+# List only actionable tasks (not blocked by unfinished dependencies)
+ktui task list --actionable
+
+# List actionable tasks in JSON format
+ktui task list --actionable --json
 
 # Move task to different column
 ktui task move TASK_ID COLUMN_ID
@@ -100,9 +112,10 @@ Use `--json` flag for machine-readable output. The JSON format provides:
 - Valid JSON with double quotes
 - ISO 8601 datetime strings
 - Lowercase booleans (`true`/`false`)
-- Only populated fields (null values omitted)
+- Only populated fields (null values and default values omitted)
+- Computed fields always included (`days_since_creation`, `finished`, `is_blocked`, `has_dependents`)
 
-Example output:
+Example output without dependencies:
 ```json
 [
     {
@@ -112,7 +125,37 @@ Example output:
         "creation_date": "2026-01-11T22:53:12",
         "description": "Feature details",
         "days_since_creation": 3,
-        "finished": false
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": false
+    }
+]
+```
+
+Example output with dependencies:
+```json
+[
+    {
+        "task_id": 2,
+        "title": "Dependent task",
+        "column": 5,
+        "creation_date": "2026-01-11T22:55:00",
+        "blocked_by": [1],
+        "days_since_creation": 3,
+        "finished": false,
+        "is_blocked": true,
+        "has_dependents": false
+    },
+    {
+        "task_id": 1,
+        "title": "Implement feature",
+        "column": 7,
+        "creation_date": "2026-01-11T22:53:12",
+        "blocking": [2],
+        "days_since_creation": 3,
+        "finished": false,
+        "is_blocked": false,
+        "has_dependents": true
     }
 ]
 ```
@@ -179,6 +222,9 @@ ktui task list --column COLUMN_ID
 3. **One Active Task**: Keep only 1-2 tasks in Doing column at a time
 4. **Immediate Updates**: Move tasks as soon as status changes
 5. **Complete First**: Finish current tasks before starting new ones
+6. **Use Dependencies**: Link tasks that have ordering requirements using `--depends-on`
+7. **Check Dependencies**: Review `blocked_by` and `blocking` fields in JSON output to understand task relationships
+8. **Focus on Actionable**: Use `--actionable` flag to see only tasks you can work on (not blocked)
 
 ### Task States
 - **Ready**: Not yet started, planned work
@@ -253,6 +299,34 @@ ktui task create "Write tests for auth forms" --column 5
 ktui task create "Update documentation" --column 5
 ```
 
+### Example 4: Tasks with Dependencies
+```bash
+# Create foundational task first
+ktui task create "Set up database schema" --column 5
+# Assume task_id=1
+
+# Create tasks that depend on the foundation
+ktui task create "Implement user model" --depends-on 1 --column 5
+ktui task create "Implement auth endpoints" --depends-on 1 --column 5
+# Assume task_id=2 and 3
+
+# Create task depending on multiple tasks
+ktui task create "Write integration tests" --depends-on 2 --depends-on 3 --column 5
+
+# View dependencies in JSON format
+ktui task list --json
+# Shows blocked_by and blocking arrays
+
+# See only actionable tasks (not blocked by unfinished dependencies)
+ktui task list --actionable
+# Shows task 1 (no dependencies) but not tasks 2, 3, or 4 (blocked)
+
+# After completing task 1, check actionable tasks
+ktui task move 1 7  # Move to Done
+ktui task list --actionable
+# Now shows tasks 2 and 3 (task 1 is finished)
+```
+
 ## Integration with Claude Code
 
 ### When to Use vs TodoWrite
@@ -308,8 +382,12 @@ ktui task move TASK_ID CORRECT_COLUMN_ID
 | List columns | `ktui column list` |
 | List columns (JSON) | `ktui column list --json` |
 | Create task | `ktui task create "Title" --column ID` |
+| Create task with dependencies | `ktui task create "Title" --depends-on ID` |
+| Create task with multiple deps | `ktui task create "Title" --depends-on ID1 --depends-on ID2` |
 | List tasks | `ktui task list` |
 | List tasks (JSON) | `ktui task list --json` |
+| List actionable tasks | `ktui task list --actionable` |
+| List actionable tasks (JSON) | `ktui task list --actionable --json` |
 | Filter tasks by column | `ktui task list --column ID` |
 | Move task | `ktui task move TASK_ID COLUMN_ID` |
 | Update task | `ktui task update TASK_ID --title "New"` |

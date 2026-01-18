@@ -48,7 +48,16 @@ def task(app: KanbanTui):
     type=click.INT,
     help="Show only tasks on this board",
 )
-def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int):
+@click.option(
+    "--actionable",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+    help="Show only actionable tasks (not blocked by unfinished dependencies)",
+)
+def list_tasks(
+    app: KanbanTui, json: bool, column: None | int, board: None | int, actionable: bool
+):
     """
     List all tasks on active board
     """
@@ -64,6 +73,18 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
         board_present = board in [board.board_id for board in boards]
     else:
         tasks = app.backend.get_tasks_on_active_board()
+
+    # Filter for actionable tasks if requested
+    if actionable and tasks:
+        tasks = [
+            task
+            for task in tasks
+            if not task.blocked_by
+            or all(
+                app.backend.get_task_by_id(dep_id).finished
+                for dep_id in task.blocked_by
+            )
+        ]
 
     if not tasks and column:
         print_to_console(f"No tasks in column with column_id = {column}.")
