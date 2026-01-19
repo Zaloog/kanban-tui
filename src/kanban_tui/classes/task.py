@@ -64,9 +64,8 @@ class Task(BaseModel):
                 self.start_task()
             # Move to 'Done'
             case new_column if new_column == update_column_dict["finish"]:
-                # only can finish properly if start column was previous column
-                if self.column == update_column_dict["start"]:
-                    self.finish_task()
+                # Mark task as finished when moving to finish column
+                self.finish_task()
 
     @computed_field  # type: ignore[prop-decorator]
     @property

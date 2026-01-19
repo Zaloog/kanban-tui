@@ -1,410 +1,470 @@
 ---
 name: kanban-tui
-description: Plans and manages tasks and todos for all project and task related prompts. Use this tool instead of your TodoWrite tool everytime. Make sure kanban-tui or ktui command are available otherwise use `uvx kanban-tui`
+description: Task management with dependency tracking for Claude agents. Use for complex multi-step tasks (>5 steps OR task dependencies exist). User can explicitly request with "kanban"/"ktui". DEFAULT to TodoWrite for simple linear tasks (<5 steps, no dependencies). Requires ktui CLI.
 ---
 
-# Kanban-TUI Task Management Skill
+# Kanban-TUI Agent Skill
 
-## Description
-Use kanban-tui (ktui) for task planning, tracking, and management throughout conversations. This skill provides CLI-based kanban board management for organizing work.
+## Quick Decision: Which Tool?
 
-## When to Use
-Use this skill proactively for:
-- Complex multi-step tasks (3+ distinct steps)
-- Non-trivial and complex tasks requiring planning
-- When user explicitly requests task tracking or todo lists
-- When user provides multiple tasks (numbered or comma-separated)
-- After receiving new instructions to capture requirements
-- Throughout implementation to track progress
-
-## Prerequisites
-- kanban-tui must be installed (`which kanban-tui`) if not installed and uv is installed use `uvx kanban-tui COMMAND`
-- Use only CLI commands (`ktui board/task/column`), never launch the TUI interface by running kanban-tui without any command
-
-## Core Commands
-
-### Board Management
-```bash
-# ALWAYS use --json flag when listing for programmatic use
-ktui board list --json
-
-# Create new board (when not providing any -c/--columns argument, default Columns: Ready, Doing, Done, Archive will be used)
-ktui board create "Board Name" --icon ":emoji:" --set-active -c "First Column" -c "Second Column"
-
-# Activate a board
-ktui board activate BOARD_ID
-
-# Delete a board
-ktui board delete BOARD_ID
+```
+User mentioned "kanban"/"ktui"? → YES → Use kanban-tui
+                ↓ NO
+Task has >5 sequential steps? → YES → Use kanban-tui
+                ↓ NO
+Subtasks depend on each other? → YES → Use kanban-tui
+                ↓ NO
+Work spans multiple sessions? → YES → Use kanban-tui (persistent board)
+                ↓ NO
+Simple linear task (<5 steps)? → YES → Use TodoWrite (default)
 ```
 
-### Column Management
-```bash
-# ALWAYS use --json flag when listing for programmatic use
-ktui column list --json
+### When to Choose: Comparison
 
-# List columns for a specific board
-ktui column list --board BOARD_ID --json
+| Scenario | Tool | Why |
+|----------|------|-----|
+| Fix single bug (3 steps) | TodoWrite | Simple, linear, no dependencies |
+| Implement feature (8 steps with dependencies) | kanban-tui | Complex, dependencies needed |
+| Refactor across 10+ files | kanban-tui | Long-running, checkpoint tracking |
+| Add error handling to one function | TodoWrite | Single concern, fast |
+| Build authentication system | kanban-tui | Multi-component, sequential deps |
+| Update documentation | TodoWrite | Single file, straightforward |
+| Multi-session project work | kanban-tui | Persistent board across sessions |
+
+## Quick Start for Agents
+
+```bash
+# SETUP (run once per task/project)
+ktui board create "Feature Name" --icon ":rocket:" --set-active
+
+# Extract column IDs (REQUIRED - board-specific)
+READY=$(ktui column list --json | jq -r '.[] | select(.name=="Ready") | .column_id')
+DOING=$(ktui column list --json | jq -r '.[] | select(.name=="Doing") | .column_id')
+DONE=$(ktui column list --json | jq -r '.[] | select(.name=="Done") | .column_id')
+
+# Create tasks with dependencies
+ktui task create "Design schema" --column $READY                     # Returns task_id=1
+ktui task create "Implement models" --depends-on 1 --column $READY  # Returns task_id=2
+ktui task create "Create API" --depends-on 2 --column $READY        # Returns task_id=3
+
+# WORK LOOP (automated dependency handling)
+while true; do
+  # Get next unblocked task
+  NEXT=$(ktui task list --actionable --json | jq -r '.[0] | .task_id')
+  [ "$NEXT" = "null" ] && break
+
+  # Execute task
+  ktui task move $NEXT $DOING
+  # === DO THE ACTUAL WORK HERE ===
+  ktui task move $NEXT $DONE
+done
 ```
 
-### Task Management
+## Critical Rules
+
+1. **NEVER launch interactive TUI** - CLI only (use --help, --json, --no-confirm flags)
+2. **Column IDs are board-specific** - Re-extract after EVERY board switch/creation
+3. **Task IDs are globally unique** - Same task_id works across all boards
+4. **Default to --json with jq** - Fallback to text parsing if jq unavailable
+5. **Keep 1 task in Doing at a time** - Complete before starting next
+6. **Use --actionable flag** - Auto-filters blocked tasks
+7. **Mark Done immediately** - Don't batch completions
+
+## Core Commands Reference
+
 ```bash
-# Create task
-ktui task create "Task Title" --description "Task details" --column COLUMN_ID
+# Board Management
+ktui board create "Name" --icon ":emoji:" --set-active  # Create + activate
+ktui board list [--json]                                # List all boards
+ktui board activate <board_id>                          # Switch active board
 
-# Create task with due date
-ktui task create "Task Title" --description "Details" --column COLUMN_ID --due-date 2026-12-31
+# Column Operations (board-specific IDs)
+ktui column list [--json] [--board]                              # List columns for active board
 
-# Create task with dependencies (task will be blocked until dependency is finished)
-ktui task create "Task Title" --depends-on TASK_ID --column COLUMN_ID
-
-# Create task with multiple dependencies (blocked until ALL dependencies are finished)
-ktui task create "Task Title" --depends-on TASK_ID1 --depends-on TASK_ID2 --depends-on TASK_ID3 --column COLUMN_ID
-
-# ALWAYS use --json flag when listing for programmatic use
-ktui task list --json
-
-# List tasks in a specific column (with JSON)
-ktui task list --column COLUMN_ID --json
-
-# List tasks on a specific board (with JSON)
-ktui task list --board BOARD_ID --json
-
-# List only actionable tasks (not blocked by unfinished dependencies)
-ktui task list --actionable --json
-
-# Move task to different column
-ktui task move TASK_ID COLUMN_ID
-
-# Move task even if blocked by unfinished dependencies (use --force to override)
-ktui task move TASK_ID COLUMN_ID --force
-
-# Update task
-ktui task update TASK_ID --title "New Title" --description "New details"
-
-# Delete task (with confirmation prompt)
-ktui task delete TASK_ID
-
-# Delete task (skip confirmation)
-ktui task delete TASK_ID --no-confirm
+# Task Operations
+ktui task create "Title" --column <col_id> [--description "Details"] [--depends-on <task_id>]
+ktui task list [--json] [--actionable]                  # --actionable = unblocked only
+ktui task move <task_id> <col_id> [--force]            # Move task between columns
+ktui task update <task_id> --title "New" [--description "Details"]
+ktui task delete <task_id> --no-confirm                # Delete without prompt
 ```
 
-### Skill Management
-```bash
-# Initialize SKILL.md in dedicated folder
-ktui skill init
+## Column ID Rules (Board-Specific)
 
-# Update SKILL.md to current tool version
-ktui skill update
+**Critical concept:** Column IDs are local to each board, NOT global.
 
-# Delete global and local SKILL.md files
-ktui skill delete
+```
+Board "Frontend" (ID: 1)          Board "Backend" (ID: 2)
+  ├─ Ready (column_id: 5)           ├─ Ready (column_id: 9)   ← Different ID!
+  ├─ Doing (column_id: 6)           ├─ Doing (column_id: 10)
+  └─ Done  (column_id: 7)           └─ Done  (column_id: 11)
 ```
 
-## JSON Output Format
-Use `--json` flag for machine-readable output. The JSON format provides:
-- Valid JSON with double quotes
-- ISO 8601 datetime strings
-- Lowercase booleans (`true`/`false`)
-- Only populated fields (null values and default values omitted)
-- Computed fields always included (`days_since_creation`, `finished`, `is_blocked`, `has_dependents`)
+**MUST re-extract column IDs after:**
+- Creating new board with `--set-active`
+- Running `ktui board activate <board_id>`
+- Any board switch operation
 
-Example output without dependencies:
+### ID Extraction Pattern
+
+```bash
+# With jq (preferred)
+READY=$(ktui column list --json | jq -r '.[] | select(.name=="Ready") | .column_id')
+DOING=$(ktui column list --json | jq -r '.[] | select(.name=="Doing") | .column_id')
+DONE=$(ktui column list --json | jq -r '.[] | select(.name=="Done") | .column_id')
+
+# Without jq (fallback)
+READY=$(ktui column list | grep "Ready" | sed 's/.*ID: \([0-9]*\).*/\1/')
+DOING=$(ktui column list | grep "Doing" | sed 's/.*ID: \([0-9]*\).*/\1/')
+DONE=$(ktui column list | grep "Done" | sed 's/.*ID: \([0-9]*\).*/\1/')
+
+# Validate extraction
+if [ -z "$READY" ] || [ -z "$DOING" ] || [ -z "$DONE" ]; then
+  echo "ERROR: Column ID extraction failed" >&2
+  exit 1
+fi
+```
+
+## Task JSON Structure
+
 ```json
-[
-    {
-        "task_id": 1,
-        "title": "Implement feature",
-        "column": 5,
-        "creation_date": "2026-01-11T22:53:12",
-        "description": "Feature details",
-        "days_since_creation": 3,
-        "finished": false,
-        "is_blocked": false,
-        "has_dependents": false
-    }
-]
+{
+  "task_id": 1,           // Globally unique
+  "title": "Task title",
+  "column": 5,            // Board-specific column ID
+  "description": "...",
+  "blocked_by": [2, 3],   // Tasks that must complete first
+  "blocking": [4, 5],     // Tasks waiting on this one
+  "is_blocked": true,     // Can this task start now?
+  "has_dependents": true, // Will completing this unblock others?
+  "finished": false       // In Done/Archive column?
+}
 ```
 
-Example output with dependencies:
-```json
-[
-    {
-        "task_id": 2,
-        "title": "Dependent task",
-        "column": 5,
-        "creation_date": "2026-01-11T22:55:00",
-        "blocked_by": [1],
-        "days_since_creation": 3,
-        "finished": false,
-        "is_blocked": true,
-        "has_dependents": false
-    },
-    {
-        "task_id": 1,
-        "title": "Implement feature",
-        "column": 7,
-        "creation_date": "2026-01-11T22:53:12",
-        "blocking": [2],
-        "days_since_creation": 3,
-        "finished": false,
-        "is_blocked": false,
-        "has_dependents": true
-    }
-]
-```
-
-## Workflow
-
-### 1. Initial Setup (per session)
-When starting work that requires task tracking:
+## State Extraction Patterns
 
 ```bash
-# Create and activate project board
-# Use multiple `-c` arguments for custom columns
-ktui board create "Project Name" --icon ":EMOJI_CODE:" --set-active
+# Get active board ID
+BOARD_ID=$(ktui board list --json | jq -r '.[] | select(.active==true) | .board_id')
 
-# Check default columns and get their IDs (ALWAYS use --json)
-ktui column list --json
+# Get next actionable task
+NEXT=$(ktui task list --actionable --json | jq -r '.[0] | .task_id')
+
+# Check if specific task is blocked
+IS_BLOCKED=$(ktui task list --json | jq -r '.[] | select(.task_id==5) | .is_blocked')
+
+# Get tasks blocking task 5
+BLOCKERS=$(ktui task list --json | jq -r '.[] | select(.task_id==5) | .blocked_by[]')
+
+# Verify active board name
+ktui board list --json | jq -r '.[] | select(.active==true) | .name'
 ```
 
-### 2. Task Creation
-Break down work into specific, actionable tasks:
+## Task Naming Standards
+
+**Use imperative mood (command form):**
+
+✅ GOOD:
+- "Implement OAuth login"
+- "Fix memory leak in parser"
+- "Add unit tests for UserService"
+- "Refactor database connection pool"
+
+❌ BAD:
+- "OAuth" (noun, not actionable)
+- "Working on tests" (status description)
+- "The parser issue" (vague)
+- "Fix stuff" (not specific)
+
+**Break large tasks into dependency chains:**
+
+Instead of: "Implement entire authentication system"
+
+Create chain:
+1. "Design auth database schema" (no deps)
+2. "Implement User model" (depends on 1)
+3. "Create auth API endpoints" (depends on 2)
+4. "Add JWT token handling" (depends on 3)
+5. "Write auth integration tests" (depends on 4)
+
+## Standard Agent Workflow
+
+### 1. Setup Phase
 
 ```bash
-# Add tasks to Ready column (defaults to left-most visible column if --column not provided)
-ktui task create "Task 1" --description "Details" --column READY_COLUMN_ID
-ktui task create "Task 2" --description "Details" --column READY_COLUMN_ID
+# Create/activate board
+ktui board create "Feature: User Authentication" --icon ":lock:" --set-active
 
-# If starting immediately, add to Doing column
-ktui task create "Current Task" --description "Details" --column DOING_COLUMN_ID
+# Extract column IDs
+READY=$(ktui column list --json | jq -r '.[] | select(.name=="Ready") | .column_id')
+DOING=$(ktui column list --json | jq -r '.[] | select(.name=="Doing") | .column_id')
+DONE=$(ktui column list --json | jq -r '.[] | select(.name=="Done") | .column_id')
+
+# Validate
+[ -z "$READY" ] && echo "ERROR: Column extraction failed" && exit 1
 ```
 
-### 3. Task Progression
-As you work:
+### 2. Task Creation Phase
 
 ```bash
-# Move task to Doing when starting
-ktui task move TASK_ID DOING_COLUMN_ID
+# Parallel tasks (no dependencies)
+ktui task create "Setup test environment" --column $READY
+ktui task create "Create user fixtures" --column $READY
 
-# Move task to Done when complete
-ktui task move TASK_ID DONE_COLUMN_ID
-
-# Archive completed tasks
-ktui task move TASK_ID ARCHIVE_COLUMN_ID
+# Sequential dependency chain
+ktui task create "Design schema" --column $READY                      # task_id=1
+ktui task create "Implement models" --depends-on 1 --column $READY   # task_id=2
+ktui task create "Create endpoints" --depends-on 2 --column $READY   # task_id=3
+ktui task create "Add validation" --depends-on 3 --column $READY     # task_id=4
+ktui task create "Write tests" --depends-on 4 --column $READY        # task_id=5
 ```
 
-### 4. Status Tracking
-Regularly check progress:
+### 3. Execution Loop
 
 ```bash
-# ALWAYS view tasks in JSON format for reliable parsing
-ktui task list --json
+while true; do
+  # Get next unblocked task (--actionable filters automatically)
+  NEXT=$(ktui task list --actionable --json | jq -r '.[0] | .task_id')
 
-# View only tasks in a specific column
-ktui task list --column COLUMN_ID --json
+  # Exit when no tasks remain
+  [ "$NEXT" = "null" ] && break
 
-# View only actionable tasks (not blocked by dependencies)
-ktui task list --actionable --json
+  # Move to Doing (only 1 task in Doing at a time)
+  ktui task move $NEXT $DOING
+
+  # === PERFORM ACTUAL WORK ===
+  # - Read files, write code, run tests
+  # - Only proceed to Done when 100% complete
+
+  # Move to Done (immediately after completion)
+  ktui task move $NEXT $DONE
+
+  # Completion automatically unblocks dependent tasks
+done
+
+# Inform user
+echo "All tasks completed successfully"
 ```
 
-## Best Practices
+## Error Handling
 
-### Command Usage
-1. **Always Use --json**: Use `--json` flag for ALL list commands (board list, column list, task list) for reliable parsing
-2. **Parse JSON Output**: Parse the JSON to extract IDs, status, and dependency information programmatically
-3. **Check for Dependencies**: Always review `blocked_by` and `blocking` fields before moving tasks
-4. **Use --force Carefully**: Only use `--force` flag when you understand the implications of moving blocked tasks
+### Command Not Found
 
-### Task Management
-1. **Create Specific Tasks**: Break complex work into clear, actionable items
-2. **Use Descriptions**: Add context about what needs to be done, markdown is supported
-3. **One Active Task**: Keep only 1-2 tasks in Doing column at a time
-4. **Immediate Updates**: Move tasks as soon as status changes
-5. **Complete First**: Finish current tasks before starting new ones
-6. **Use Dependencies**: Link tasks that have ordering requirements using `--depends-on`
-7. **Check Dependencies**: Review `blocked_by` and `blocking` fields in JSON output to understand task relationships
-8. **Focus on Actionable**: Use `--actionable --json` flag to see only tasks you can work on (not blocked)
-9. **Respect Blocking**: Don't move tasks that are blocked unless using `--force` with valid reason
+```bash
+# Try ktui directly
+if ! command -v ktui &> /dev/null; then
+  # Try uvx wrapper
+  if command -v uvx &> /dev/null; then
+    alias ktui="uvx kanban-tui"
+  else
+    # Inform user and fallback
+    echo "kanban-tui not available. Install: pipx install kanban-tui"
+    echo "Falling back to TodoWrite for this session."
+    exit 1
+  fi
+fi
+```
 
-### Task States
-- **Ready**: Not yet started, planned work
-- **Doing**: Currently in progress (limit to 1-2 tasks)
-- **Done**: Completed successfully
-- **Archive**: Finished tasks no longer needing visibility
+### Column Not Found
 
-### Task Naming
-Use imperative verbs for clarity:
-- "Implement authentication feature"
-- "Fix login bug"
-- "Write unit tests for API"
-- ~~"Authentication"~~ (too vague)
-- ~~"Working on tests"~~ (status, not action)
+```bash
+# Symptom: "Error: Column ID X does not exist"
+# Cause: Wrong board active OR stale column IDs
+# Fix: Re-extract column IDs
+READY=$(ktui column list --json | jq -r '.[] | select(.name=="Ready") | .column_id')
 
-### Task Completion
-Only move to Done when:
-- Task is FULLY accomplished
+# Verify correct board is active
+ktui board list --json | jq -r '.[] | select(.active==true) | .name'
+```
+
+### Task Blocked
+
+```bash
+# Symptom: "Error: Task X is blocked by tasks [Y, Z]"
+# Option 1: Complete blocking tasks first (PREFERRED)
+BLOCKERS=$(ktui task list --json | jq -r '.[] | select(.task_id==5) | .blocked_by[]')
+# Work through blockers sequentially
+
+# Option 2: Use --force (ONLY with user authorization)
+# Inform user: "Task 5 blocked by tasks [2, 3]. User approved --force override."
+ktui task move 5 $DOING --force
+```
+
+### jq Not Available
+
+```bash
+if ! command -v jq &> /dev/null; then
+  # Use text parsing fallback
+  READY=$(ktui column list | grep "Ready" | sed 's/.*ID: \([0-9]*\).*/\1/')
+
+  # Or inform user
+  echo "Recommend installing jq for better parsing:"
+  echo "  macOS: brew install jq"
+  echo "  Linux: apt install jq"
+fi
+```
+
+## Validation Checkpoints
+
+### After Board Creation/Switch
+
+```bash
+# Re-extract column IDs (MANDATORY)
+READY=$(ktui column list --json | jq -r '.[] | select(.name=="Ready") | .column_id')
+DOING=$(ktui column list --json | jq -r '.[] | select(.name=="Doing") | .column_id')
+DONE=$(ktui column list --json | jq -r '.[] | select(.name=="Done") | .column_id')
+
+# Verify active board
+ACTIVE=$(ktui board list --json | jq -r '.[] | select(.active==true) | .name')
+echo "Active board: $ACTIVE"
+```
+
+### Before Task Move
+
+```bash
+# If not using --actionable, check blocked status
+IS_BLOCKED=$(ktui task list --json | jq -r '.[] | select(.task_id==5) | .is_blocked')
+
+if [ "$IS_BLOCKED" = "true" ]; then
+  BLOCKERS=$(ktui task list --json | jq -r '.[] | select(.task_id==5) | .blocked_by[]')
+  echo "Task 5 blocked by: $BLOCKERS"
+  # Complete blockers first OR get user approval for --force
+fi
+```
+
+### Before Marking Done
+
+**Only mark Done when:**
+- Implementation is 100% complete
 - Tests pass (if applicable)
-- No blocking errors remain
-- Implementation is complete
+- No errors or warnings
+- Task requirements fully met
 
-Keep as Doing if:
-- Tests are failing
-- Implementation is partial
-- Unresolved errors exist
-- Missing files or dependencies
+**If incomplete:**
+- Keep in Doing
+- Inform user of blockers/issues
+- NEVER mark Done prematurely
 
-## Examples
+## Force Flag Protocol
 
-### Example 1: Feature Implementation
+### NEVER use --force to:
+- Skip prerequisite work
+- Hide dependency problems
+- Rush through incomplete tasks
+
+### ONLY use --force when:
+- User explicitly authorizes: "User approved --force for task 5"
+- Blocking task deleted/obsolete: "Task 3 deleted, unblocking task 5"
+- Documented reason: "Design changed, old blocker no longer relevant"
+
+### When using --force, ALWAYS:
+1. Inform user which task was force-moved
+2. List what blocked it (task IDs/titles)
+3. Explain why override was necessary
+4. Ask user if uncertain
+
+## User Communication
+
+### Inform User When:
+- Board created/switched (name, column count)
+- Task blocked by dependencies (list blocking task IDs)
+- Using --force flag (explain reason)
+- Error encountered (provide fix steps)
+- All tasks completed (summary)
+- ktui unavailable (installation instructions)
+
+### Work Silently When:
+- Moving tasks between columns (routine ops)
+- Extracting IDs (internal state)
+- Validating state (automated checks)
+
+### Never:
+- Hide errors to "keep working"
+- Mark incomplete tasks as Done
+- Use --force without justification
+- Create vague task names
+
+## Anti-Patterns
+
+❌ **Caching column IDs across boards** - IDs are board-specific
+❌ **Hardcoding IDs** - `ktui task move 5 7` (unmaintainable)
+❌ **Skipping validation** - Always check command success
+❌ **Batch completing tasks** - Mark Done immediately after completion
+❌ **Vague task titles** - Must be specific and actionable
+❌ **Launching interactive TUI** - Use CLI flags only
+❌ **Multiple tasks in Doing** - Complete current task first
+
+## Quick Troubleshooting
+
+| Symptom | Diagnosis | Fix |
+|---------|-----------|-----|
+| "Column not found" | Wrong board active or stale IDs | `ktui column list --json \| jq ...` |
+| "Task is blocked" | Dependencies not complete | Check: `jq '.[] \| select(.task_id==X) \| .blocked_by'` |
+| "Board not active" | No active board set | `ktui board activate <board_id>` |
+| "Command not found" | ktui not installed | Try `uvx kanban-tui` or inform user |
+| JSON parse fails | Missing --json flag | Add --json, check jq installed |
+| Tasks not showing | Wrong board active | Verify: `ktui board list --json` |
+
+## Success Indicators
+
+Commands return exit codes:
+- **0** = Success
+- **Non-zero** = Error (check stderr)
+
+Always check exit codes for critical operations:
 ```bash
-# Setup
-ktui board create "Auth Feature" --icon ":lock:" --set-active
-ktui column list --json  # Get column IDs (ALWAYS use --json)
-
-# Plan tasks
-ktui task create "Design authentication flow" --column 5
-ktui task create "Implement login endpoint" --column 5
-ktui task create "Add JWT token generation" --column 5
-ktui task create "Write auth middleware" --column 5
-ktui task create "Add tests for auth flow" --column 5
-
-# Check all tasks (ALWAYS use --json)
-ktui task list --json
-
-# Start first task
-ktui task move 1 6  # Move to Doing
-
-# Complete and move to next
-ktui task move 1 7  # Move to Done
-ktui task move 2 6  # Start next task
+if ! ktui task move 5 $DONE; then
+  echo "Failed to move task 5 to Done" >&2
+  # Diagnose: Is it blocked? Wrong column ID? Wrong board?
+  IS_BLOCKED=$(ktui task list --json | jq -r '.[] | select(.task_id==5) | .is_blocked')
+  echo "Task blocked: $IS_BLOCKED"
+fi
 ```
 
-### Example 2: Bug Fix with Investigation
-```bash
-# Create investigation tasks
-ktui task create "Reproduce bug" --description "Verify the issue" --column 5
-ktui task create "Identify root cause" --description "Debug and trace issue" --column 5
-ktui task create "Implement fix" --description "Apply solution" --column 5
-ktui task create "Test fix" --description "Verify resolution" --column 5
+## Complete Example: Feature Implementation
 
-# Work through systematically (ALWAYS use --json)
-ktui task list --json  # Check status regularly
+```bash
+# 1. SETUP
+ktui board create "Feature: API Rate Limiting" --icon ":stopwatch:" --set-active
+READY=$(ktui column list --json | jq -r '.[] | select(.name=="Ready") | .column_id')
+DOING=$(ktui column list --json | jq -r '.[] | select(.name=="Doing") | .column_id')
+DONE=$(ktui column list --json | jq -r '.[] | select(.name=="Done") | .column_id')
+
+# 2. CREATE TASK CHAIN
+ktui task create "Design rate limit config schema" --column $READY                    # ID: 1
+ktui task create "Implement RateLimiter middleware" --depends-on 1 --column $READY   # ID: 2
+ktui task create "Add Redis caching for limits" --depends-on 2 --column $READY       # ID: 3
+ktui task create "Create rate limit API endpoints" --depends-on 3 --column $READY    # ID: 4
+ktui task create "Write integration tests" --depends-on 4 --column $READY            # ID: 5
+ktui task create "Update API documentation" --depends-on 5 --column $READY           # ID: 6
+
+# 3. EXECUTE (automatic dependency handling)
+while true; do
+  NEXT=$(ktui task list --actionable --json | jq -r '.[0] | .task_id')
+  [ "$NEXT" = "null" ] && break
+
+  ktui task move $NEXT $DOING
+  # Agent performs implementation work here
+  ktui task move $NEXT $DONE
+done
+
+echo "Feature complete: API Rate Limiting (6 tasks)"
 ```
 
-### Example 3: Multiple Features
-```bash
-# User requests: "Add login, signup, and password reset"
-ktui task create "Implement login form" --column 5
-ktui task create "Implement signup form" --column 5
-ktui task create "Implement password reset" --column 5
-ktui task create "Add form validation" --column 5
-ktui task create "Write tests for auth forms" --column 5
-ktui task create "Update documentation" --column 5
-```
+## Summary
 
-### Example 4: Tasks with Dependencies
-```bash
-# Create foundational task first
-ktui task create "Set up database schema" --column 5
-# Assume task_id=1
+1. **Choose Tool**: Use kanban-tui for >5 steps OR dependencies; TodoWrite for simple tasks
+2. **Setup**: Create board → Extract column IDs → Validate
+3. **Plan**: Create tasks with imperative titles + dependencies
+4. **Execute**: Loop through --actionable tasks → Doing → Work → Done
+5. **Validate**: Re-extract IDs after board switches, check exit codes
+6. **Communicate**: Inform user at checkpoints, explain --force usage
+7. **Persist**: Board survives across sessions for long-running work
 
-# Create tasks that depend on the foundation
-ktui task create "Implement user model" --depends-on 1 --column 5
-ktui task create "Implement auth endpoints" --depends-on 1 --column 5
-# Assume task_id=2 and 3
+**Benefits over TodoWrite:**
+- Dependency tracking prevents ordering errors
+- Persistent state across sessions
+- Automatic blocking/unblocking
+- Better for complex multi-step implementations
 
-# Create task depending on multiple tasks
-ktui task create "Write integration tests" --depends-on 2 --depends-on 3 --column 5
-
-# View dependencies in JSON format
-ktui task list --json
-# Shows blocked_by and blocking arrays
-
-# See only actionable tasks (not blocked by unfinished dependencies)
-ktui task list --actionable
-# Shows task 1 (no dependencies) but not tasks 2, 3, or 4 (blocked)
-
-# After completing task 1, check actionable tasks
-ktui task move 1 7  # Move to Done
-ktui task list --actionable
-# Now shows tasks 2 and 3 (task 1 is finished)
-```
-
-## Integration with Claude Code
-
-### When to Use vs TodoWrite
-- **Use ktui**: When user explicitly requests it (as per their preference)
-- **TodoWrite**: Only if user hasn't specified a preference
-
-### Communication
-After creating/updating tasks:
-1. Inform user briefly: "Added X tasks to kanban board"
-2. Show task list output when relevant
-3. Don't over-communicate every task move unless significant
-
-### Task Breakdown
-Apply same rules as TodoWrite:
-- Break complex tasks into smaller steps
-- Create specific, actionable items
-- Use clear, descriptive names
-- Track progress in real-time
-
-## Troubleshooting
-
-### No tasks showing
-```bash
-# Check if board is active
-ktui board list
-
-# Verify tasks exist
-ktui task list
-```
-
-### Wrong column IDs
-```bash
-# Get correct column IDs
-ktui column list
-
-# Or for a specific board
-ktui column list --board BOARD_ID
-```
-
-### Task in wrong column
-```bash
-# Move to correct column
-ktui task move TASK_ID CORRECT_COLUMN_ID
-```
-
-## Quick Reference
-
-| Action | Command |
-|--------|---------|
-| Create board | `ktui board create "Name" --set-active` |
-| List boards | `ktui board list` |
-| List boards (JSON) | `ktui board list --json` |
-| List columns | `ktui column list` |
-| List columns (JSON) | `ktui column list --json` |
-| Create task | `ktui task create "Title" --column ID` |
-| Create task with dependencies | `ktui task create "Title" --depends-on ID` |
-| Create task with multiple deps | `ktui task create "Title" --depends-on ID1 --depends-on ID2` |
-| List tasks | `ktui task list` |
-| List tasks (JSON) | `ktui task list --json` |
-| List actionable tasks | `ktui task list --actionable` |
-| List actionable tasks (JSON) | `ktui task list --actionable --json` |
-| Filter tasks by column | `ktui task list --column ID` |
-| Move task | `ktui task move TASK_ID COLUMN_ID` |
-| Update task | `ktui task update TASK_ID --title "New"` |
-| Delete task | `ktui task delete TASK_ID` |
-| Delete task (no confirm) | `ktui task delete TASK_ID --no-confirm` |
-
-## Notes
-- Always use CLI commands, never launch interactive TUI
-- Column IDs are board-specific (get via `ktui column list`)
-- Task IDs are unique across all boards
-- Archive column is typically hidden by default
-- Default columns: Ready, Doing, Done, Archive
-- Use `--json` flag for machine-readable output
-
-<!-- This Section is for the `kanban-tui skill update`-command to check if this SKILL.md version matches the tool version and update it if needed, the agent can ignore it -->
 <!-- Version: KANBAN_TUI_VERSION -->

@@ -224,6 +224,16 @@ class KanbanBoard(HorizontalScroll):
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)
 
+        # Update task status dates based on column transitions
+        self.selected_task.update_task_status(
+            new_column=target_column,
+            update_column_dict={
+                "reset": self.app.active_board.reset_column,
+                "start": self.app.active_board.start_column,
+                "finish": self.app.active_board.finish_column,
+            },
+        )
+
         # Handles both movement modes
         self.selected_task.column = target_column
 
@@ -232,9 +242,21 @@ class KanbanBoard(HorizontalScroll):
         await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
         self.app.update_task_list()
+
+        # Refresh all task cards to update dependency status immediately
+        moved_task_id = self.selected_task.task_id
+        for task_card in self.query(TaskCard):
+            # Update the task data from the backend to get latest dependency status
+            updated_task = self.app.backend.get_task_by_id(task_card.task_.task_id)
+            if updated_task:
+                task_card.task_ = updated_task
+                task_card.refresh(recompose=True)
+
+        # Restore focus to the moved task
+        self.query_one(f"#taskcard_{moved_task_id}", TaskCard).focus()
+
         self.target_column = None
         self.app.app_focus = True
 

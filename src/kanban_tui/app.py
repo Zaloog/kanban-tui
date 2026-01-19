@@ -81,6 +81,7 @@ class KanbanTui(App[str | None]):
 
     @work()
     async def on_mount(self) -> None:
+        # self.set_interval(10, self.action_refresh)
         self.theme = self.config.board.theme
 
         if self.auth_only:
