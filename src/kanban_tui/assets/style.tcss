@@ -81,10 +81,10 @@ TaskCard {
 TaskCard:focus {
         border: tall $success;
         border-title-color:$success;
-        border-title-background:black;
+        border-title-background:$background;
         border-title-align:center;
         border-subtitle-color:$error;
-        border-subtitle-background:black;
+        border-subtitle-background:$background;
         border-subtitle-align:center;
 }
 
@@ -372,7 +372,7 @@ BoardListItem{
     }
     Rule{
         height:auto;
-        color:black;
+        color:$surface;
     }
 }
 #horizontal_custom_columns Switch{
@@ -512,12 +512,12 @@ FilterOverlay {
     }
     Button {
         height:1fr;
-        color:green;
+        color:$success;
     }
 }
 
 #tabbed_content_boards {
-    border:green;
+    border:$success;
 }
 
 SettingsView{
@@ -750,7 +750,7 @@ AddRule Button{
 
 
     &:focus-within {
-        border:yellow;
+        border:$warning;
     }
 }
 
