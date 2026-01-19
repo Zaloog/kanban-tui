@@ -1,5 +1,4 @@
 from __future__ import annotations
-from rich.console import RenderableType
 from typing import TYPE_CHECKING, Literal
 
 from kanban_tui.config import MovementModes
@@ -115,6 +114,7 @@ class TaskCard(Vertical):
         else:
             self.styles.background = self.app.config.task.default_color
         self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
+        self.description.display = self.app.config.task.always_expanded
 
     # Remove those, cause it messes with tab selection
     # @on(Enter)
@@ -208,71 +208,15 @@ class TaskCard(Vertical):
 
             if unfinished_deps:
                 count = len(unfinished_deps)
-                parts.append(f":exclamation_mark: blocked ({count})")
+                parts.append(f":lock: blocked ({count})")
             else:
-                parts.append(":white_check_mark:")
+                parts.append(":unlocked: not blocked")
         elif self.task_.blocking:
-            parts.append(f":lock: blocking ({len(self.task_.blocking)})")
+            parts.append(f":exclamation_mark: blocking ({len(self.task_.blocking)})")
         else:
             parts.append(":white_check_mark: no dependencies")
 
         return Text.from_markup("  ".join(parts))
-
-    def get_due_date_str(self) -> RenderableType:
-        match self.task_.days_left:
-            case 0:
-                return Text.from_markup(
-                    f":hourglass_done: due date: {self.task_.days_left} days left"
-                )
-            case 1:
-                return Text.from_markup(
-                    f":hourglass_not_done: due date: {self.task_.days_left} day left :face_screaming_in_fear:"
-                )
-            case None:
-                return Text.from_markup(":smiling_face_with_sunglasses: no due date")
-            case _:
-                return Text.from_markup(
-                    f":hourglass_not_done: due date: {self.task_.days_left} days left"
-                )
-
-    def get_creation_date_str(self) -> RenderableType:
-        creation_date_str = Text.from_markup(":calendar: created: ")
-        match self.task_.days_since_creation:
-            case 0:
-                creation_date_str += "today"
-                return creation_date_str
-            case 1:
-                creation_date_str += "yesterday"
-                return creation_date_str
-            case _:
-                creation_date_str += f"{self.task_.days_since_creation} days ago"
-                return creation_date_str
-
-    def get_dependency_status_str(self) -> str | Text:
-        """Return visual indicator for task dependency status."""
-        # Check if task has dependencies that are unfinished
-        if self.task_.blocked_by:
-            unfinished_deps = []
-            for dep_id in self.task_.blocked_by:
-                dep_task = self.app.backend.get_task_by_id(dep_id)
-                if dep_task and not dep_task.finished:
-                    unfinished_deps.append(dep_task)
-
-            if unfinished_deps:
-                count = len(unfinished_deps)
-                plural = "task" if count == 1 else "tasks"
-                return Text.from_markup(
-                    f":exclamation_mark: blocked by {count} unfinished {plural}"
-                )
-
-        # Check if task is blocking other tasks
-        if self.task_.blocking:
-            count = len(self.task_.blocking)
-            plural = "task" if count == 1 else "tasks"
-            return Text.from_markup(f":lock: blocking {count} {plural}")
-
-        # No dependency relationships
-        return Text.from_markup(":white_check_mark: no dependencies")
 
     @on(Click)
     def action_edit_task(self) -> None:
@@ -280,9 +224,10 @@ class TaskCard(Vertical):
             ModalTaskEditScreen(task=self.task_), callback=self.from_modal_update_task
         )
 
-    def from_modal_update_task(self, updated_task: Task) -> None:
-        self.task_ = updated_task
-        self.refresh(recompose=True)
+    def from_modal_update_task(self, updated_task: Task | None) -> None:
+        if updated_task:
+            self.task_ = updated_task
+            self.refresh(recompose=True)
 
     @work()
     async def action_show_blocking_tasks(self) -> None:
@@ -321,18 +266,6 @@ class TaskCard(Vertical):
 
         # Start flashing with 100ms intervals
         self.set_interval(0.1, toggle_flash, repeat=5)
-
-        # Show notification with blocking task info
-        # blocking_task_titles = [
-        #     f"#{card.task_.task_id} - {card.task_.title[:30]}"
-        #     for card in blocking_cards
-        # ]
-        # self.app.notify(
-        #     title="Blocked By",
-        #     message="\n".join(blocking_task_titles),
-        #     severity="warning",
-        #     timeout=4,
-        # )
 
     @work()
     async def action_delete_task(self) -> None:

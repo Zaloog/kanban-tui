@@ -1280,14 +1280,35 @@ def update_task_entry_db(
         category = :category,
         description = :description,
         due_date = :due_date
-    WHERE task_id = :task_id
-    RETURNING *;
+    WHERE task_id = :task_id;
+    """
+
+    # Query to get the updated task with dependencies
+    query_str = """
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.task_id = :task_id
+    ;
     """
 
     with create_connection(database=database) as con:
         con.row_factory = task_factory
         try:
-            (updated_task,) = con.execute(transaction_str, update_task_dict)
+            con.execute(transaction_str, update_task_dict)
+            updated_task = con.execute(query_str, {"task_id": task_id}).fetchone()
             con.commit()
             return updated_task
         except sqlite3.Error as e:

@@ -25,7 +25,7 @@ from kanban_tui.widgets.modal_task_widgets import (
 )
 
 
-class ModalTaskEditScreen(ModalScreen[Task]):
+class ModalTaskEditScreen(ModalScreen[Task | None]):
     app: "KanbanTui"
 
     BINDINGS = [
