@@ -14,7 +14,7 @@ from textual.binding import Binding
 from textual.events import Click
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Label, Markdown, Rule
+from textual.widgets import Label, Markdown
 from textual.message import Message
 
 
@@ -98,11 +98,7 @@ class TaskCard(Vertical):
 
     def compose(self) -> ComposeResult:
         yield Label(self.task_.title, classes="label-title")
-        yield Rule(classes="rules-taskinfo-separator")
-        yield Label(self.get_creation_date_str(), classes="label-infos")
-        yield Label(self.get_due_date_str(), classes="label-infos")
-        yield Label(self.get_dependency_status_str(), classes="label-infos")
-        yield Rule(classes="rules-taskinfo-separator")
+        yield Label(self.get_compact_metadata_str(), classes="label-metadata")
         self.description = Markdown(
             markdown=self.task_.description,
         )
@@ -138,15 +134,9 @@ class TaskCard(Vertical):
         self.expanded = False
 
     def watch_expanded(self):
-        # self.query_one(".label-title", Label).visible = not self.expanded
-        for label in self.query(".label-infos").results():
-            label.display = self.app.config.task.always_expanded or self.expanded
-        self.query_one(Markdown).display = (
-            self.app.config.task.always_expanded or self.expanded
-        )
-        self.query_one(".rules-taskinfo-separator", Rule).display = (
-            self.app.config.task.always_expanded or self.expanded
-        )
+        # Only toggle description visibility - single batch update
+        is_visible = self.app.config.task.always_expanded or self.expanded
+        self.description.display = is_visible
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         column_id_list = list(self.app.visible_column_dict.keys())
@@ -184,6 +174,49 @@ class TaskCard(Vertical):
         self.task_.update_task_status(
             new_column=new_column_id, update_column_dict=update_column_dict
         )
+
+    def get_compact_metadata_str(self) -> Text:
+        """Compact single-line metadata with icons."""
+        parts = []
+
+        # Creation date
+        days = self.task_.days_since_creation
+        if days == 0:
+            parts.append(":calendar: today")
+        elif days == 1:
+            parts.append(":calendar: 1d")
+        else:
+            parts.append(f":calendar: {days}d")
+
+        # Due date
+        if self.task_.days_left is None:
+            parts.append(":smiling_face_with_sunglasses: no due")
+        elif self.task_.days_left == 0:
+            parts.append(":hourglass_done: due now")
+        elif self.task_.days_left == 1:
+            parts.append(":hourglass_not_done: 1d :face_screaming_in_fear:")
+        else:
+            parts.append(f":hourglass_not_done: {self.task_.days_left}d")
+
+        # Dependencies
+        if self.task_.blocked_by:
+            unfinished_deps = []
+            for dep_id in self.task_.blocked_by:
+                dep_task = self.app.backend.get_task_by_id(dep_id)
+                if dep_task and not dep_task.finished:
+                    unfinished_deps.append(dep_task)
+
+            if unfinished_deps:
+                count = len(unfinished_deps)
+                parts.append(f":exclamation_mark: blocked ({count})")
+            else:
+                parts.append(":white_check_mark:")
+        elif self.task_.blocking:
+            parts.append(f":lock: blocking ({len(self.task_.blocking)})")
+        else:
+            parts.append(":white_check_mark:")
+
+        return Text.from_markup("  ".join(parts))
 
     def get_due_date_str(self) -> RenderableType:
         match self.task_.days_left:
@@ -228,13 +261,15 @@ class TaskCard(Vertical):
             if unfinished_deps:
                 count = len(unfinished_deps)
                 plural = "task" if count == 1 else "tasks"
-                return Text.from_markup(f"⚠️ blocked by {count} unfinished {plural}")
+                return Text.from_markup(
+                    f":exclamation_mark: blocked by {count} unfinished {plural}"
+                )
 
         # Check if task is blocking other tasks
         if self.task_.blocking:
             count = len(self.task_.blocking)
             plural = "task" if count == 1 else "tasks"
-            return Text.from_markup(f":link: blocking {count} {plural}")
+            return Text.from_markup(f":lock: blocking {count} {plural}")
 
         # No dependency relationships
         return Text.from_markup(":white_check_mark: no dependencies")
