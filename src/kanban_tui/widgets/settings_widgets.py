@@ -192,7 +192,7 @@ class RepositionButton(Button): ...
 
 class ColumnListItem(ListItem):
     app: "KanbanTui"
-    column_visible: reactive[bool] = reactive(True)
+    column_visible: reactive[bool] = reactive(True, init=False)
 
     class Triggered(Message):
         def __init__(
@@ -233,7 +233,7 @@ class ColumnListItem(ListItem):
             vis_button = IconButton(
                 label=Text.from_markup(":eye:"),
                 id=f"button_col_vis_{self.column.column_id}",
-                # classes="shown" if self.column_visible else None,
+                classes="shown" if self.column_visible else None,
             )
             vis_button.tooltip = "Toggle visibility"
             yield vis_button
@@ -253,10 +253,12 @@ class ColumnListItem(ListItem):
             yield delete_button
         yield AddRule(column=self.column)
 
-    async def watch_column_visible(self):
-        yield self.query_one(
-            f"#button_col_vis_{self.column.column_id}", Button
-        ).toggle_class("shown")
+    def watch_column_visible(self):
+        if not self.is_mounted:
+            return
+        self.query_one(f"#button_col_vis_{self.column.column_id}", Button).toggle_class(
+            "shown"
+        )
 
     @on(Button.Pressed)
     def trigger_button_interaction(self, event: Button.Pressed):
