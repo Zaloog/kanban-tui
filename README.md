@@ -58,6 +58,21 @@ Movement between columns also supports drag and drop via mouse.
 </details>
 
 </details>
+<details><summary>Task Dependencies</summary>
+
+Tasks can have dependencies on other tasks, creating a workflow where certain tasks must be completed before others can proceed.
+- **Add Dependencies**: When editing a task, use the dependency selector dropdown to add other tasks as dependencies
+- **Remove Dependencies**: Select a dependency in the table and press enter to remove it
+- **Blocking Prevention**: Tasks with unfinished dependencies cannot be moved to start/finish columns
+- **Circular Detection**: The system prevents circular dependencies (Task A depends on Task B, Task B depends on Task A)
+- **Visual Indicators**: Task cards show visual cues for dependency status:
+  - ⚠️ "Blocked by X unfinished tasks" - Task has dependencies that aren't finished yet
+  - 🔗 "Blocking Y tasks" - Other tasks depend on this one
+  - ✅ "No dependencies" - Task has no dependency relationships
+- **CLI Support**: Dependencies can be managed via the CLI with the `--depends-on` flag when creating tasks, or using the `--force` flag to override blocking when moving tasks
+</details>
+
+</details>
 <details><summary>Database Information</summary>
 The current database schema looks as follows.
 The Audit table is filled automatically based on triggers.
@@ -66,6 +81,8 @@ The Audit table is filled automatically based on triggers.
 erDiagram
     tasks }|--o| categories: have
     tasks }|--|| audits: updates
+    tasks ||--o{ task_dependencies: "blocks"
+    tasks ||--o{ task_dependencies: "blocked_by"
     tasks {
         INTEGER task_id PK
         INTEGER column FK
@@ -76,6 +93,10 @@ erDiagram
         DATETIME start_date
         DATETIME finish_date
         DATETIME due_date
+    }
+    task_dependencies {
+        INTEGER task_id FK
+        INTEGER depends_on_task_id FK
     }
     boards }|--o{ columns: contains
     boards }|--|| audits: updates

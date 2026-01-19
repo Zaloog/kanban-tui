@@ -58,8 +58,8 @@ class KanbanTui(App[str | None]):
         *args,
         **kwargs,
     ) -> None:
-        SETTINGS.set(Settings())
         init_config(config_path=config_path, database=database_path)
+        SETTINGS.set(Settings())
         super().__init__(*args, **kwargs)
         self.config = SETTINGS.get()
         self.demo_mode = demo_mode
@@ -81,6 +81,7 @@ class KanbanTui(App[str | None]):
 
     @work()
     async def on_mount(self) -> None:
+        # self.set_interval(10, self.action_refresh)
         self.theme = self.config.board.theme
 
         if self.auth_only:

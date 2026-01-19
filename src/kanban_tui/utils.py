@@ -1,4 +1,9 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from kanban_tui.app import KanbanTui
+
 from kanban_tui.skills import get_skill_local_path, get_skill_global_path
 import os
 import re
@@ -11,13 +16,6 @@ from functools import lru_cache
 from rich.table import Table
 from rich.console import Console, RenderableType
 
-from kanban_tui.backends.sqlite.database import (
-    create_new_category_db,
-    create_new_task_db,
-    init_new_db,
-    create_new_board_db,
-)
-from kanban_tui.config import init_config
 from kanban_tui.constants import (
     AUTH_FILE,
     CONFIG_FILE,
@@ -388,93 +386,68 @@ def calculate_work_on_time(
     return workon_time
 
 
-def create_demo_tasks(database_path: str, config_path: str):
-    init_config(config_path=config_path, database=database_path)
-
-    init_new_db(database=database_path)
-
-    # Create new categories
-    create_new_category_db(name="red", color="#8F0000", database=database_path)
-    create_new_category_db(name="green", color="#008F00", database=database_path)
-    create_new_category_db(name="blue", color="#00008F", database=database_path)
+def create_demo_tasks(app: "KanbanTui"):
+    app.backend.create_new_category(name="red", color="#8F0000")
+    app.backend.create_new_category(name="green", color="#008F00")
+    app.backend.create_new_category(name="blue", color="#00008F")
 
     # Create 5 Demo Boards
-    create_new_board_db(
-        name="Demo Board No1", icon=":construction:", database=database_path
-    )
-    create_new_board_db(
-        name="Demo Board No2", icon=":sparkles:", database=database_path
-    )
+    app.backend.create_new_board(name="Demo Board No1", icon=":construction:")
+    app.backend.create_new_board(name="Demo Board No2", icon=":sparkles:")
     for i in range(3, 6):
-        create_new_board_db(
-            name=f"Demo Board No{i}", icon=":sparkles:", database=database_path
-        )
+        app.backend.create_new_board(name=f"Demo Board No{i}", icon=":sparkles:")
 
     # Ready
-    create_new_task_db(
+    app.backend.create_new_task(
         title="Task_green_ready",
         description="First Task",
         category=2,
         column=1,
         due_date=datetime.now().replace(microsecond=0),
-        database=database_path,
     )
-    create_new_task_db(
+    app.backend.create_new_task(
         title="Task_blue_ready",
         description="Second Task",
         category=3,
         column=1,
         due_date=datetime.now().replace(microsecond=0) + timedelta(days=1),
-        database=database_path,
     )
-    create_new_task_db(
+    app.backend.create_new_task(
         title="Task_none_ready",
         description="Third Task",
         category=None,
         column=1,
         due_date=datetime.now().replace(microsecond=0) + timedelta(days=3),
-        database=database_path,
     )
 
     # Doing
-    create_new_task_db(
+    app.backend.create_new_task(
         title="Task_green_doing",
         description="Task I am working on",
         category=2,
         column=2,
-        start_date=datetime.now(),
-        database=database_path,
     )
     # Done
-    create_new_task_db(
+    app.backend.create_new_task(
         title="Task_red_done",
         description="Task Finished",
         category=1,
         column=3,
-        start_date=datetime(year=2024, month=3, day=16, hour=12, minute=30),
-        finish_date=datetime(year=2024, month=3, day=18, hour=12, minute=30),
-        database=database_path,
     )
     # Archive
     for month in range(5, 10):
-        create_new_task_db(
+        app.backend.create_new_task(
             title="Task_red_archive",
             description="Hallo",
             category=1,
             column=4,
-            start_date=datetime(year=2024, month=month, day=13, hour=12, minute=30),
-            finish_date=datetime(year=2024, month=month, day=14, hour=12, minute=30),
-            database=database_path,
         )
     for day in range(20, 25):
-        create_new_task_db(
+        app.backend.create_new_task(
             title="Task_red_archive",
             description="Hallo",
             category=1,
             column=4,
-            start_date=datetime(year=2024, month=8, day=day, hour=12, minute=30),
-            finish_date=datetime(year=2024, month=9, day=day, hour=12, minute=30),
-            database=database_path,
         )
 
 

@@ -16,7 +16,8 @@ async def test_overview_view_no_tasks(no_task_app: KanbanTui, test_database_path
         assert pilot.app.screen.query_one("#plot_widget").styles.width.value == 1
 
         await pilot.press("L")
-        assert pilot.app.screen.query_one("#datatable_logs").row_count == 5
+        # 1 board CREATE + 4 column CREATEs + 3 board UPDATEs (status columns) = 8
+        assert pilot.app.screen.query_one("#datatable_logs").row_count == 8
 
 
 async def test_overview_view(test_app: KanbanTui, test_database_path):
@@ -31,7 +32,8 @@ async def test_overview_view(test_app: KanbanTui, test_database_path):
         )
 
         await pilot.press("L")
-        assert pilot.app.screen.query_one("#datatable_logs").row_count == 10
+        # 1 board + 4 columns + 3 status updates + 5 tasks = 13
+        assert pilot.app.screen.query_one("#datatable_logs").row_count == 13
 
 
 async def test_overview_tab_switch(test_app: KanbanTui, test_database_path):
@@ -74,12 +76,12 @@ async def test_overview_plot_filter_values(test_app: KanbanTui, test_database_pa
 @pytest.mark.parametrize(
     "button_no, log_rows_visible",
     [
-        (0, 0),  # Create
-        (1, 10),  # Update
-        (2, 10),  # Delete
-        (3, 9),  # board
-        (4, 6),  # column
-        (5, 5),  # task
+        (0, 3),  # Create: 1 board + 4 columns + 5 tasks = 10
+        (1, 10),  # Update: 3 board status column updates = 3
+        (2, 13),  # Delete: 0
+        (3, 9),  # board: 1 CREATE + 3 UPDATEs = 4
+        (4, 9),  # column: 4 CREATEs = 4
+        (5, 8),  # task: 5 CREATEs = 5
     ],
 )
 async def test_overview_log_filter_values(
@@ -90,7 +92,7 @@ async def test_overview_log_filter_values(
         await pilot.pause()
 
         await pilot.press("L")
-        assert pilot.app.screen.query_one("#datatable_logs").row_count == 10
+        assert pilot.app.screen.query_one("#datatable_logs").row_count == 13
 
         await pilot.click(
             list(pilot.app.screen.query(LogFilterButton).results())[button_no]

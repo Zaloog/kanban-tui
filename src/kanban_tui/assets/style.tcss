@@ -17,7 +17,7 @@ KanbanTuiFooter {
   height: 1;
   dock: bottom;
   color: $footer-foreground;
-  background: red;
+  background:$primary-muted;
 
   Horizontal {
     width:90%;
@@ -43,10 +43,12 @@ KanbanTuiFooter {
     border:none;
     SelectOverlay {
       background:$primary-muted;
+      height: 3;
       content-align:center middle;
     }
   }
 }
+
 
 Column{
   height:1fr;
@@ -63,21 +65,26 @@ Column VerticalScroll {
         width: 1fr;
         height: 1fr;
         margin:0 2 0 0;
+        scrollbar-gutter: stable;
 }
 TaskCard {
-    width: 1fr;
-    height: auto;
-    min-height:5;
-    margin:0 0 1 0;
-    border: tall transparent;
+  width: 1fr;
+  height: auto;
+  min-height: 4;
+  margin: 0 0 1 0;
+  border: tall transparent;
+  transition: height 200ms linear;
+  &.blinking {
+    border: tall $warning;
+  }
 }
 TaskCard:focus {
         border: tall $success;
         border-title-color:$success;
-        border-title-background:black;
+        border-title-background:$background;
         border-title-align:center;
         border-subtitle-color:$error;
-        border-subtitle-background:black;
+        border-subtitle-background:$background;
         border-subtitle-align:center;
 }
 
@@ -90,6 +97,13 @@ TaskCard .label-title {
         &:hover {
             tint: 10%;
         }
+}
+TaskCard .label-metadata {
+        width: 1fr;
+        height: auto;
+        color: auto;
+        text-align: left;
+        padding: 0 1;
 }
 TaskCard .label-infos {
         width:1fr;
@@ -164,6 +178,31 @@ ModalTaskEditScreen {
         height:3;
         min-height:3;
         width:1fr;
+      }
+    }
+
+    TaskDependencyManager {
+      height: auto;
+
+      #add_dependency_section {
+        height: auto;
+        width: 1fr;
+
+        Label {
+          width: auto;
+          padding: 1 1 0 0;
+        }
+
+        DependencySelector {
+          height: auto;
+          width: 1fr;
+        }
+      }
+
+      #dependencies_table {
+        height: auto;
+        max-height: 10;
+        width: 1fr;
       }
     }
 
@@ -333,7 +372,7 @@ BoardListItem{
     }
     Rule{
         height:auto;
-        color:black;
+        color:$surface;
     }
 }
 #horizontal_custom_columns Switch{
@@ -473,12 +512,12 @@ FilterOverlay {
     }
     Button {
         height:1fr;
-        color:green;
+        color:$success;
     }
 }
 
 #tabbed_content_boards {
-    border:green;
+    border:$success;
 }
 
 SettingsView{
@@ -604,6 +643,7 @@ Switch.-on > .switch--slider {
     scrollbar-size-vertical: 1;
     scrollbar-color-active: $success;
     scrollbar-color-hover: $success;
+    scrollbar-gutter: stable;
 }
 
 Rule{
@@ -710,7 +750,7 @@ AddRule Button{
 
 
     &:focus-within {
-        border:yellow;
+        border:$warning;
     }
 }
 

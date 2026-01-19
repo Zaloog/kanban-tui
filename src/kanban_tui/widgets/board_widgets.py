@@ -198,21 +198,65 @@ class KanbanBoard(HorizontalScroll):
         # here, which will raise an exception, because the column
         # field in the database has a NOT NULL constraint
 
+        # Determine the target column
+        target_column = event.new_column if event else self.target_column
+
+        # Check if the task can move to the target column (dependency validation)
+        can_move, reason = self.selected_task.can_move_to_column(
+            target_column=target_column,
+            start_column=self.app.active_board.start_column,
+            backend=self.app.backend,
+        )
+
+        if not can_move:
+            # Reset app focus and show notification
+            self.app.app_focus = True
+            self.target_column = None
+            self.app.notify(
+                title="Movement Blocked",
+                message=reason,
+                severity="warning",
+                timeout=5,
+            )
+            return
+
         await self.query_one(
             f"#column_{self.selected_task.column}", Column
         ).remove_task(self.selected_task)
 
+        # Update task status dates based on column transitions
+        self.selected_task.update_task_status(
+            new_column=target_column,
+            update_column_dict={
+                "reset": self.app.active_board.reset_column,
+                "start": self.app.active_board.start_column,
+                "finish": self.app.active_board.finish_column,
+            },
+        )
+
         # Handles both movement modes
-        self.selected_task.column = event.new_column if event else self.target_column
+        self.selected_task.column = target_column
 
         self.app.backend.update_task_status(new_task=self.selected_task)
 
         await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
             self.selected_task
         )
-        self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
 
         self.app.update_task_list()
+
+        # Refresh all task cards to update dependency status immediately
+        moved_task_id = self.selected_task.task_id
+        for task_card in self.query(TaskCard):
+            # Update the task data from the backend to get latest dependency status
+            updated_task = self.app.backend.get_task_by_id(task_card.task_.task_id)
+            if updated_task:
+                task_card.task_ = updated_task
+                task_card.refresh(recompose=True)
+
+        # Restore focus to the moved task
+        self.query_one(f"#taskcard_{moved_task_id}", TaskCard).focus()
+
         self.target_column = None
         self.app.app_focus = True
 

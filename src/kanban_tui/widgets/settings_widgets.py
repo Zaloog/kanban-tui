@@ -192,7 +192,7 @@ class RepositionButton(Button): ...
 
 class ColumnListItem(ListItem):
     app: "KanbanTui"
-    column_visible: reactive[bool] = reactive(True)
+    column_visible: reactive[bool] = reactive(True, init=False)
 
     class Triggered(Message):
         def __init__(
@@ -233,7 +233,7 @@ class ColumnListItem(ListItem):
             vis_button = IconButton(
                 label=Text.from_markup(":eye:"),
                 id=f"button_col_vis_{self.column.column_id}",
-                # classes="shown" if self.column_visible else None,
+                classes="shown" if self.column_visible else None,
             )
             vis_button.tooltip = "Toggle visibility"
             yield vis_button
@@ -253,7 +253,9 @@ class ColumnListItem(ListItem):
             yield delete_button
         yield AddRule(column=self.column)
 
-    async def watch_column_visible(self):
+    def watch_column_visible(self):
+        if not self.is_mounted:
+            return
         self.query_one(f"#button_col_vis_{self.column.column_id}", Button).toggle_class(
             "shown"
         )
@@ -416,6 +418,7 @@ class ColumnSelector(ListView):
             board_id=self.app.active_board.board_id,
         )
 
+        self.app.update_board_list()
         await self.update_columns()
         await self.update_dependent_widgets()
 
@@ -522,10 +525,10 @@ class StatusColumnSelector(Vertical):
     app: "KanbanTui"
     """Widget to select the columns, which are used to update the start/finish dates on tasks"""
 
-    def on_mount(self):
+    async def on_mount(self):
         self.border_title = "column.status_update"
         with self.prevent(Select.Changed):
-            self.get_select_widget_values()
+            yield self.get_select_widget_values()
 
     def compose(self) -> Iterable[Widget]:
         with Horizontal(classes="setting-horizontal"):
@@ -598,21 +601,30 @@ class StatusColumnSelector(Vertical):
                     severity="warning",
                 )
 
-    def get_select_widget_values(self):
+    async def get_select_widget_values(self):
+        # Get valid column IDs
+        valid_column_ids = yield {col.column_id for col in self.app.column_list}
+
         if self.app.active_board.reset_column is not None:
-            self.query_exactly_one(
-                "#select_reset", Select
-            ).value = self.app.active_board.reset_column
+            # Only set if the column still exists
+            if self.app.active_board.reset_column in valid_column_ids:
+                self.query_exactly_one(
+                    "#select_reset", Select
+                ).value = self.app.active_board.reset_column
 
         if self.app.active_board.start_column is not None:
-            self.query_exactly_one(
-                "#select_start", Select
-            ).value = self.app.active_board.start_column
+            # Only set if the column still exists
+            if self.app.active_board.start_column in valid_column_ids:
+                self.query_exactly_one(
+                    "#select_start", Select
+                ).value = self.app.active_board.start_column
 
         if self.app.active_board.finish_column is not None:
-            self.query_exactly_one(
-                "#select_finish", Select
-            ).value = self.app.active_board.finish_column
+            # Only set if the column still exists
+            if self.app.active_board.finish_column in valid_column_ids:
+                self.query_exactly_one(
+                    "#select_finish", Select
+                ).value = self.app.active_board.finish_column
 
 
 class SettingsView(Vertical):

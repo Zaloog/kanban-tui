@@ -13,7 +13,7 @@ from textual.binding import Binding
 from textual.events import Click
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.widgets import Label, Markdown, Rule
+from textual.widgets import Label, Markdown
 from textual.message import Message
 
 
@@ -33,6 +33,7 @@ class TaskCard(Vertical):
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
         Binding("e", "edit_task", description="Edit", show=True),
         Binding("d", "delete_task", description="Delete", show=True),
+        Binding("i", "show_blocking_tasks", description="Show Deps", show=True),
         Binding(
             "L",
             "move_task('right')",
@@ -96,10 +97,7 @@ class TaskCard(Vertical):
 
     def compose(self) -> ComposeResult:
         yield Label(self.task_.title, classes="label-title")
-        yield Rule(classes="rules-taskinfo-separator")
-        yield Label(self.get_creation_date_str(), classes="label-infos")
-        yield Label(self.get_due_date_str(), classes="label-infos")
-        yield Rule(classes="rules-taskinfo-separator")
+        yield Label(self.get_compact_metadata_str(), classes="label-metadata")
         self.description = Markdown(
             markdown=self.task_.description,
         )
@@ -116,6 +114,7 @@ class TaskCard(Vertical):
         else:
             self.styles.background = self.app.config.task.default_color
         self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
+        self.description.display = self.app.config.task.always_expanded
 
     # Remove those, cause it messes with tab selection
     # @on(Enter)
@@ -135,15 +134,9 @@ class TaskCard(Vertical):
         self.expanded = False
 
     def watch_expanded(self):
-        # self.query_one(".label-title", Label).visible = not self.expanded
-        for label in self.query(".label-infos").results():
-            label.display = self.app.config.task.always_expanded or self.expanded
-        self.query_one(Markdown).display = (
-            self.app.config.task.always_expanded or self.expanded
-        )
-        self.query_one(".rules-taskinfo-separator", Rule).display = (
-            self.app.config.task.always_expanded or self.expanded
-        )
+        # Only toggle description visibility - single batch update
+        is_visible = self.app.config.task.always_expanded or self.expanded
+        self.description.display = is_visible
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         column_id_list = list(self.app.visible_column_dict.keys())
@@ -182,35 +175,48 @@ class TaskCard(Vertical):
             new_column=new_column_id, update_column_dict=update_column_dict
         )
 
-    def get_due_date_str(self) -> str:
-        match self.task_.days_left:
-            case 0:
-                return Text.from_markup(
-                    f":hourglass_done: due date: {self.task_.days_left} days left"
-                )
-            case 1:
-                return Text.from_markup(
-                    f":hourglass_not_done: due date: {self.task_.days_left} day left :face_screaming_in_fear:"
-                )
-            case None:
-                return Text.from_markup(":smiling_face_with_sunglasses: no due date")
-            case _:
-                return Text.from_markup(
-                    f":hourglass_not_done: due date: {self.task_.days_left} days left"
-                )
+    def get_compact_metadata_str(self) -> Text:
+        """Compact single-line metadata with icons."""
+        parts = []
 
-    def get_creation_date_str(self) -> str:
-        creation_date_str = Text.from_markup(":calendar: created: ")
-        match self.task_.days_since_creation:
-            case 0:
-                creation_date_str += "today"
-                return creation_date_str
-            case 1:
-                creation_date_str += "yesterday"
-                return creation_date_str
-            case _:
-                creation_date_str += f"{self.task_.days_since_creation} days ago"
-                return creation_date_str
+        # Creation date
+        days = self.task_.days_since_creation
+        if days == 0:
+            parts.append(":calendar: today")
+        elif days == 1:
+            parts.append(":calendar: 1d")
+        else:
+            parts.append(f":calendar: {days}d")
+
+        # Due date
+        if self.task_.days_left is None:
+            parts.append(":smiling_face_with_sunglasses: no due")
+        elif self.task_.days_left == 0:
+            parts.append(":hourglass_done: due now")
+        elif self.task_.days_left == 1:
+            parts.append(":hourglass_not_done: 1d :face_screaming_in_fear:")
+        else:
+            parts.append(f":hourglass_not_done: {self.task_.days_left}d")
+
+        # Dependencies
+        if self.task_.blocked_by:
+            unfinished_deps = []
+            for dep_id in self.task_.blocked_by:
+                dep_task = self.app.backend.get_task_by_id(dep_id)
+                if dep_task and not dep_task.finished:
+                    unfinished_deps.append(dep_task)
+
+            if unfinished_deps:
+                count = len(unfinished_deps)
+                parts.append(f":lock: blocked ({count})")
+            else:
+                parts.append(":unlocked: not blocked")
+        elif self.task_.blocking:
+            parts.append(f":exclamation_mark: blocking ({len(self.task_.blocking)})")
+        else:
+            parts.append(":white_check_mark: no dependencies")
+
+        return Text.from_markup("  ".join(parts))
 
     @on(Click)
     def action_edit_task(self) -> None:
@@ -218,9 +224,48 @@ class TaskCard(Vertical):
             ModalTaskEditScreen(task=self.task_), callback=self.from_modal_update_task
         )
 
-    def from_modal_update_task(self, updated_task: Task) -> None:
-        self.task_ = updated_task
-        self.refresh(recompose=True)
+    def from_modal_update_task(self, updated_task: Task | None) -> None:
+        if updated_task:
+            self.task_ = updated_task
+            self.refresh(recompose=True)
+
+    @work()
+    async def action_show_blocking_tasks(self) -> None:
+        """Show which tasks are blocking this task by flashing them."""
+        if not self.task_.blocked_by:
+            self.app.notify(
+                title="No Dependencies",
+                message="This task has no blocking dependencies",
+                severity="information",
+                timeout=2,
+            )
+            return
+
+        # Get all task cards on the board
+        board_screen = self.app.get_screen("board")
+        all_task_cards = board_screen.query(TaskCard).results()
+
+        # Find task cards that are blocking this task
+        blocking_cards = [
+            card
+            for card in all_task_cards
+            if card.task_.task_id in self.task_.blocked_by
+        ]
+
+        if not blocking_cards:
+            return
+
+        # Store original colors for each card
+        original_colors = {}
+        for card in blocking_cards:
+            original_colors[card] = card.styles.background
+
+        def toggle_flash():
+            for card in blocking_cards:
+                card.toggle_class("blinking")
+
+        # Start flashing with 100ms intervals
+        self.set_interval(0.1, toggle_flash, repeat=5)
 
     @work()
     async def action_delete_task(self) -> None:

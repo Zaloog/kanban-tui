@@ -1,3 +1,8 @@
+from kanban_tui.backends.sqlite.migrations import (
+    CURRENT_SCHEMA_VERSION,
+    apply_migration_v1_to_v2,
+    increment_schema_version,
+)
 import sqlite3
 from pathlib import Path
 from typing import Any, Generator, Sequence
@@ -33,13 +38,24 @@ def create_connection(
     database: str = DATABASE_FILE.as_posix(),
 ) -> Generator[sqlite3.Connection, None, None]:
     con = sqlite3.connect(database=Path(database), detect_types=sqlite3.PARSE_DECLTYPES)
+    con.execute("PRAGMA foreign_keys = ON")
     yield con
     con.close()
 
 
 def task_factory(cursor, row):
+    import json
+
     fields = [column[0] for column in cursor.description]
-    return Task(**{k: v for k, v in zip(fields, row)})
+    data = dict(zip(fields, row))
+
+    # Parse JSON arrays for dependency fields
+    if "blocked_by" in data and isinstance(data["blocked_by"], str):
+        data["blocked_by"] = json.loads(data["blocked_by"])
+    if "blocking" in data and isinstance(data["blocking"], str):
+        data["blocking"] = json.loads(data["blocking"])
+
+    return Task(**data)
 
 
 def board_factory(cursor, row):
@@ -67,8 +83,43 @@ def board_info_factory(cursor, row):
     return {k: v for k, v in zip(fields, row)}
 
 
+def get_schema_version(database: str = DATABASE_FILE.as_posix()) -> int:
+    """Get current schema version from database"""
+    with create_connection(database=database) as con:
+        try:
+            result = con.execute(
+                "SELECT version FROM schema_versions ORDER BY version DESC LIMIT 1"
+            ).fetchone()
+            return result[0] if result else 1
+        except sqlite3.OperationalError:
+            # schema_version table doesn't exist = version 1 (legacy database)
+            return 1
+
+
+def run_migrations(database: str = DATABASE_FILE.as_posix()):
+    current_version = get_schema_version(database)
+
+    if current_version >= CURRENT_SCHEMA_VERSION:
+        return
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            # first migration to v2
+            if current_version < 2:
+                apply_migration_v1_to_v2(con)
+                increment_schema_version(con, 2)
+
+            con.commit()
+
+        except sqlite3.Error as e:
+            raise e
+            con.rollback()
+
+
 def init_new_db(database: str = DATABASE_FILE.as_posix()):
     if Path(database).exists():
+        run_migrations(database)
         return
 
     task_table_creation_str = """
@@ -97,9 +148,9 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
     reset_column INTEGER DEFAULT NULL,
     start_column INTEGER DEFAULT NULL,
     finish_column INTEGER DEFAULT NULL,
-    FOREIGN KEY (reset_column) REFERENCES columns(column_id),
-    FOREIGN KEY (start_column) REFERENCES columns(column_id),
-    FOREIGN KEY (finish_column) REFERENCES columns(column_id),
+    FOREIGN KEY (reset_column) REFERENCES columns(column_id) ON DELETE SET NULL,
+    FOREIGN KEY (start_column) REFERENCES columns(column_id) ON DELETE SET NULL,
+    FOREIGN KEY (finish_column) REFERENCES columns(column_id) ON DELETE SET NULL,
     CHECK (name <> "")
     );
     """
@@ -539,9 +590,10 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
             con.commit()
 
             # con.executescript(indexes_creation_str)
+            run_migrations(database)
         except sqlite3.Error as e:
-            con.rollback()
             raise e
+            con.rollback()
 
 
 # Audit Tables
@@ -582,7 +634,9 @@ def create_new_board_db(
         :visible,
         :position,
         :board_id
-        );"""
+        )
+        RETURNING column_id
+        ;"""
     with create_connection(database=database) as con:
         con.row_factory = board_factory
         try:
@@ -592,7 +646,9 @@ def create_new_board_db(
                 board_dict,
             ).fetchone()
 
-            # create Columns
+            # create Columns and track column IDs
+            column_ids = []
+            con.row_factory = sqlite3.Row  # Switch to Row factory to get column_id
             for position, (column_name, visibility) in enumerate(
                 column_dict.items(), start=1
             ):
@@ -602,7 +658,34 @@ def create_new_board_db(
                     "position": position,
                     "board_id": created_board.board_id,
                 }
-                con.execute(transaction_str_cols, transaction_column_dict)
+                result = con.execute(transaction_str_cols, transaction_column_dict)
+                column_id = result.fetchone()[0]
+                column_ids.append(column_id)
+
+            # Set default status columns if using default column layout
+            # DEFAULT_COLUMN_DICT = {"Ready": True, "Doing": True, "Done": True, "Archive": False}
+            if column_dict == DEFAULT_COLUMN_DICT:
+                update_status_columns_str = """
+                UPDATE boards
+                SET
+                    reset_column = :reset_column,
+                    start_column = :start_column,
+                    finish_column = :finish_column
+                WHERE board_id = :board_id
+                """
+                status_columns_dict = {
+                    "board_id": created_board.board_id,
+                    "reset_column": column_ids[0],  # Ready
+                    "start_column": column_ids[1],  # Doing
+                    "finish_column": column_ids[2],  # Done
+                }
+                con.execute(update_status_columns_str, status_columns_dict)
+
+                # Update the created_board object to reflect the changes
+                created_board.reset_column = status_columns_dict["reset_column"]
+                created_board.start_column = status_columns_dict["start_column"]
+                created_board.finish_column = status_columns_dict["finish_column"]
+
             con.commit()
             return created_board
         except sqlite3.Error as e:
@@ -801,7 +884,20 @@ def get_all_tasks_on_board_db(
     board_id_dict = {"board_id": board_id}
 
     query_str = """
-    SELECT t.*
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
     FROM tasks t
     LEFT JOIN columns c ON c.column_id = t.column
     LEFT JOIN boards b ON b.board_id = c.board_id
@@ -946,9 +1042,22 @@ def get_task_by_id_db(
     database: str = DATABASE_FILE.as_posix(),
 ) -> Task | None:
     query_str = """
-    SELECT *
-    FROM tasks
-    WHERE task_id = :task_id
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.task_id = :task_id
     ;
     """
     task_id_dict = {"task_id": task_id}
@@ -969,9 +1078,22 @@ def get_task_by_column_db(
     database: str = DATABASE_FILE.as_posix(),
 ) -> list[Task] | None:
     query_str = """
-    SELECT *
-    FROM tasks
-    WHERE column = :column_id
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.column = :column_id
     ;
     """
     column_id_dict = {"column_id": column_id}
@@ -1158,14 +1280,35 @@ def update_task_entry_db(
         category = :category,
         description = :description,
         due_date = :due_date
-    WHERE task_id = :task_id
-    RETURNING *;
+    WHERE task_id = :task_id;
+    """
+
+    # Query to get the updated task with dependencies
+    query_str = """
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.task_id = :task_id
+    ;
     """
 
     with create_connection(database=database) as con:
         con.row_factory = task_factory
         try:
-            (updated_task,) = con.execute(transaction_str, update_task_dict)
+            con.execute(transaction_str, update_task_dict)
+            updated_task = con.execute(query_str, {"task_id": task_id}).fetchone()
             con.commit()
             return updated_task
         except sqlite3.Error as e:
@@ -1307,9 +1450,13 @@ def delete_board_db(board_id: int, database: str = DATABASE_FILE.as_posix()) -> 
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
-            con.execute(delete_board_str, (board_id,))
+            # Delete in correct order to respect foreign key constraints:
+            # 1. Tasks (reference columns)
+            # 2. Columns (reference board)
+            # 3. Board
             con.execute(delete_task_str, (board_id,))
             con.execute(delete_column_str, (board_id,))
+            con.execute(delete_board_str, (board_id,))
             con.commit()
             return 0
         except sqlite3.Error as e:
@@ -1381,3 +1528,173 @@ def get_filtered_events_db(
         except sqlite3.Error as e:
             con.rollback()
             raise Exception(e)
+
+
+# Task Dependencies Management
+
+
+def create_task_dependency_db(
+    task_id: int,
+    depends_on_task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> int:
+    dependency_dict = {
+        "task_id": task_id,
+        "depends_on_task_id": depends_on_task_id,
+    }
+
+    # Check for circular dependencies before inserting
+    if would_create_cycle(task_id, depends_on_task_id, database):
+        raise ValueError(
+            f"Creating dependency from task {task_id} to task {depends_on_task_id} "
+            "would create a circular dependency"
+        )
+
+    transaction_str = """
+    INSERT INTO dependencies
+    VALUES (
+        NULL,
+        :task_id,
+        :depends_on_task_id
+    )
+    RETURNING dependency_id
+    ;"""
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            result = con.execute(transaction_str, dependency_dict).fetchone()
+            con.commit()
+            return result[0]
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def delete_task_dependency_db(
+    task_id: int,
+    depends_on_task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> int:
+    dependency_dict = {
+        "task_id": task_id,
+        "depends_on_task_id": depends_on_task_id,
+    }
+
+    delete_str = """
+    DELETE FROM dependencies
+    WHERE task_id = :task_id AND depends_on_task_id = :depends_on_task_id
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            con.execute(delete_str, dependency_dict)
+            con.commit()
+            return 0
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def get_task_dependencies_db(
+    task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[int]:
+    query_str = """
+    SELECT depends_on_task_id
+    FROM dependencies
+    WHERE task_id = :task_id
+    ORDER BY depends_on_task_id
+    ;
+    """
+    task_id_dict = {"task_id": task_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            results = con.execute(query_str, task_id_dict).fetchall()
+            con.commit()
+            return [row[0] for row in results]
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def get_dependent_tasks_db(
+    task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[int]:
+    query_str = """
+    SELECT task_id
+    FROM dependencies
+    WHERE depends_on_task_id = :task_id
+    ORDER BY task_id
+    ;
+    """
+    task_id_dict = {"task_id": task_id}
+
+    with create_connection(database=database) as con:
+        con.row_factory = sqlite3.Row
+        try:
+            results = con.execute(query_str, task_id_dict).fetchall()
+            con.commit()
+            return [row[0] for row in results]
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def would_create_cycle(
+    task_id: int,
+    depends_on_task_id: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> bool:
+    # Self-dependency is always a cycle
+    if task_id == depends_on_task_id:
+        return True
+
+    # Check if depends_on_task_id eventually depends on task_id
+    # If so, creating task_id -> depends_on_task_id would create a cycle
+    visited = set()
+    stack = [depends_on_task_id]
+
+    while stack:
+        current = stack.pop()
+        if current == task_id:
+            return True
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        # Get all tasks that current depends on
+        dependencies = get_task_dependencies_db(current, database)
+        stack.extend(dependencies)
+
+    return False
+
+
+def get_blocked_tasks_db(
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[Task]:
+    query_str = """
+    SELECT DISTINCT t.*
+    FROM tasks t
+    INNER JOIN dependencies d ON t.task_id = d.task_id
+    INNER JOIN tasks blocking_task ON d.depends_on_task_id = blocking_task.task_id
+    WHERE blocking_task.finish_date IS NULL
+    ORDER BY t.task_id
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            tasks = con.execute(query_str).fetchall()
+            con.commit()
+            return tasks
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e

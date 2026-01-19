@@ -48,7 +48,16 @@ def task(app: KanbanTui):
     type=click.INT,
     help="Show only tasks on this board",
 )
-def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int):
+@click.option(
+    "--actionable",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+    help="Show only actionable tasks (not blocked by unfinished dependencies)",
+)
+def list_tasks(
+    app: KanbanTui, json: bool, column: None | int, board: None | int, actionable: bool
+):
     """
     List all tasks on active board
     """
@@ -65,6 +74,18 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
     else:
         tasks = app.backend.get_tasks_on_active_board()
 
+    # Filter for actionable tasks if requested
+    if actionable and tasks:
+        tasks = [
+            task
+            for task in tasks
+            if not task.blocked_by
+            or all(
+                app.backend.get_task_by_id(dep_id).finished
+                for dep_id in task.blocked_by
+            )
+        ]
+
     if not tasks and column:
         print_to_console(f"No tasks in column with column_id = {column}.")
     elif board and not board_present:
@@ -75,9 +96,9 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
     else:
         if json:
             task_list = TypeAdapter(list[Task])
-            json_str = task_list.dump_json(tasks, indent=4, exclude_none=True).decode(
-                "utf-8"
-            )
+            json_str = task_list.dump_json(
+                tasks, indent=4, exclude_none=True, exclude_defaults=True
+            ).decode("utf-8")
             print_to_console(json_str)
         else:
             for task in tasks:
@@ -105,12 +126,19 @@ def list_tasks(app: KanbanTui, json: bool, column: None | int, board: None | int
     type=click.DateTime(formats=["%Y-%m-%d"]),
     help="Task due date (format `%Y-%m-%d`)",
 )
+@click.option(
+    "--depends-on",
+    multiple=True,
+    type=click.INT,
+    help="Task ID(s) this task depends on (can be used multiple times)",
+)
 def create_task(
     app: KanbanTui,
     title: str,
     description: str,
     column: int,
     due_date: datetime.datetime,
+    depends_on: tuple[int, ...],
 ):
     """
     Creates a new task
@@ -126,6 +154,45 @@ def create_task(
     )
     task_id = new_task.task_id
     print_to_console(f"Created task `{title}` with {task_id = }.")
+
+    # Add dependencies if specified
+    if depends_on:
+        for depends_on_task_id in depends_on:
+            # Check if dependency task exists
+            dep_task = app.backend.get_task_by_id(task_id=depends_on_task_id)
+            if not dep_task:
+                print_to_console(
+                    f"[yellow]Task {depends_on_task_id} does not exist, skipping dependency.[/]"
+                )
+                continue
+
+            # Check if dependency already exists
+            existing_deps = app.backend.get_task_dependencies(task_id=task_id)
+            if depends_on_task_id in existing_deps:
+                print_to_console(
+                    f"[yellow]Task {task_id} already depends on task {depends_on_task_id}.[/]"
+                )
+                continue
+
+            # Check if this would create a circular dependency
+            from kanban_tui.backends.sqlite.database import would_create_cycle
+
+            if would_create_cycle(
+                task_id, depends_on_task_id, app.backend.database_path
+            ):
+                print_to_console(
+                    f"[red]Cannot add dependency: would create circular dependency with task {depends_on_task_id}.[/]"
+                )
+                continue
+
+            # All checks passed, create the dependency
+            app.backend.create_task_dependency(
+                task_id=task_id,
+                depends_on_task_id=depends_on_task_id,
+            )
+            print_to_console(
+                f"[green]Added dependency: task {task_id} depends on task {depends_on_task_id}.[/]"
+            )
 
 
 @task.command("update")
@@ -177,7 +244,14 @@ def update_task(
 @click.pass_obj
 @click.argument("task_id", type=click.INT)
 @click.argument("target_column", type=click.INT)
-def move_task(app: KanbanTui, task_id: int, target_column: int):
+@click.option(
+    "--force",
+    default=False,
+    is_flag=True,
+    type=click.BOOL,
+    help="Force move even if blocked by dependencies",
+)
+def move_task(app: KanbanTui, task_id: int, target_column: int, force: bool):
     """
     Moves a task to another column
     """
@@ -205,6 +279,28 @@ def move_task(app: KanbanTui, task_id: int, target_column: int):
             click.confirm(
                 "Target column is not on the active board, still continue?", abort=True
             )
+
+        # Check if task can move to target column (dependency validation)
+        if not force:
+            can_move, reason = task.can_move_to_column(
+                target_column=target_column,
+                start_column=active_board.start_column,
+                backend=app.backend,
+            )
+            if not can_move:
+                print_to_console(f"[red]Cannot move task: {reason}[/]")
+                print_to_console("[yellow]Use --force flag to override this check.[/]")
+                return
+
+        # Update task status dates based on column transitions
+        task.update_task_status(
+            new_column=target_column,
+            update_column_dict={
+                "reset": active_board.reset_column,
+                "start": active_board.start_column,
+                "finish": active_board.finish_column,
+            },
+        )
         task.column = target_column
         moved_task = app.backend.update_task_status(new_task=task)
         print_to_console(
