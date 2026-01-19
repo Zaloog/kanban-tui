@@ -25,10 +25,7 @@ Use this skill proactively for:
 
 ### Board Management
 ```bash
-# List all boards
-ktui board list
-
-# List all boards (JSON format for programmatic use)
+# ALWAYS use --json flag when listing for programmatic use
 ktui board list --json
 
 # Create new board (when not providing any -c/--columns argument, default Columns: Ready, Doing, Done, Archive will be used)
@@ -43,14 +40,11 @@ ktui board delete BOARD_ID
 
 ### Column Management
 ```bash
-# List columns on active board
-ktui column list
-
-# List columns (JSON format)
+# ALWAYS use --json flag when listing for programmatic use
 ktui column list --json
 
 # List columns for a specific board
-ktui column list --board BOARD_ID
+ktui column list --board BOARD_ID --json
 ```
 
 ### Task Management
@@ -61,29 +55,29 @@ ktui task create "Task Title" --description "Task details" --column COLUMN_ID
 # Create task with due date
 ktui task create "Task Title" --description "Details" --column COLUMN_ID --due-date 2026-12-31
 
-# Create task with dependencies
-ktui task create "Task Title" --depends-on TASK_ID
+# Create task with dependencies (task will be blocked until dependency is finished)
+ktui task create "Task Title" --depends-on TASK_ID --column COLUMN_ID
 
-# Create task with multiple dependencies
-ktui task create "Task Title" --depends-on TASK_ID1 --depends-on TASK_ID2 --depends-on TASK_ID3
+# Create task with multiple dependencies (blocked until ALL dependencies are finished)
+ktui task create "Task Title" --depends-on TASK_ID1 --depends-on TASK_ID2 --depends-on TASK_ID3 --column COLUMN_ID
 
-# List all tasks
-ktui task list
-
-# List all tasks (JSON format for programmatic use)
+# ALWAYS use --json flag when listing for programmatic use
 ktui task list --json
 
-# List tasks in a specific column
-ktui task list --column COLUMN_ID
+# List tasks in a specific column (with JSON)
+ktui task list --column COLUMN_ID --json
+
+# List tasks on a specific board (with JSON)
+ktui task list --board BOARD_ID --json
 
 # List only actionable tasks (not blocked by unfinished dependencies)
-ktui task list --actionable
-
-# List actionable tasks in JSON format
 ktui task list --actionable --json
 
 # Move task to different column
 ktui task move TASK_ID COLUMN_ID
+
+# Move task even if blocked by unfinished dependencies (use --force to override)
+ktui task move TASK_ID COLUMN_ID --force
 
 # Update task
 ktui task update TASK_ID --title "New Title" --description "New details"
@@ -170,8 +164,8 @@ When starting work that requires task tracking:
 # Use multiple `-c` arguments for custom columns
 ktui board create "Project Name" --icon ":EMOJI_CODE:" --set-active
 
-# Check default columns (Ready, Doing, Done, Archive)
-ktui column list
+# Check default columns and get their IDs (ALWAYS use --json)
+ktui column list --json
 ```
 
 ### 2. Task Creation
@@ -204,17 +198,23 @@ ktui task move TASK_ID ARCHIVE_COLUMN_ID
 Regularly check progress:
 
 ```bash
-# View all tasks and their status
-ktui task list
-
-# View tasks in JSON format for parsing
+# ALWAYS view tasks in JSON format for reliable parsing
 ktui task list --json
 
 # View only tasks in a specific column
-ktui task list --column COLUMN_ID
+ktui task list --column COLUMN_ID --json
+
+# View only actionable tasks (not blocked by dependencies)
+ktui task list --actionable --json
 ```
 
 ## Best Practices
+
+### Command Usage
+1. **Always Use --json**: Use `--json` flag for ALL list commands (board list, column list, task list) for reliable parsing
+2. **Parse JSON Output**: Parse the JSON to extract IDs, status, and dependency information programmatically
+3. **Check for Dependencies**: Always review `blocked_by` and `blocking` fields before moving tasks
+4. **Use --force Carefully**: Only use `--force` flag when you understand the implications of moving blocked tasks
 
 ### Task Management
 1. **Create Specific Tasks**: Break complex work into clear, actionable items
@@ -224,7 +224,8 @@ ktui task list --column COLUMN_ID
 5. **Complete First**: Finish current tasks before starting new ones
 6. **Use Dependencies**: Link tasks that have ordering requirements using `--depends-on`
 7. **Check Dependencies**: Review `blocked_by` and `blocking` fields in JSON output to understand task relationships
-8. **Focus on Actionable**: Use `--actionable` flag to see only tasks you can work on (not blocked)
+8. **Focus on Actionable**: Use `--actionable --json` flag to see only tasks you can work on (not blocked)
+9. **Respect Blocking**: Don't move tasks that are blocked unless using `--force` with valid reason
 
 ### Task States
 - **Ready**: Not yet started, planned work
@@ -259,7 +260,7 @@ Keep as Doing if:
 ```bash
 # Setup
 ktui board create "Auth Feature" --icon ":lock:" --set-active
-ktui column list  # Get column IDs
+ktui column list --json  # Get column IDs (ALWAYS use --json)
 
 # Plan tasks
 ktui task create "Design authentication flow" --column 5
@@ -267,6 +268,9 @@ ktui task create "Implement login endpoint" --column 5
 ktui task create "Add JWT token generation" --column 5
 ktui task create "Write auth middleware" --column 5
 ktui task create "Add tests for auth flow" --column 5
+
+# Check all tasks (ALWAYS use --json)
+ktui task list --json
 
 # Start first task
 ktui task move 1 6  # Move to Doing
@@ -284,8 +288,8 @@ ktui task create "Identify root cause" --description "Debug and trace issue" --c
 ktui task create "Implement fix" --description "Apply solution" --column 5
 ktui task create "Test fix" --description "Verify resolution" --column 5
 
-# Work through systematically
-ktui task list  # Check status regularly
+# Work through systematically (ALWAYS use --json)
+ktui task list --json  # Check status regularly
 ```
 
 ### Example 3: Multiple Features

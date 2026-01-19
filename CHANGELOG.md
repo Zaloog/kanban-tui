@@ -7,12 +7,21 @@
 - Added a `--board` filter to `ktui column list`
 - Added a `skill delete` command to delete the local and global `SKILL.md` files for kanban-tui
 and the parent kanban-tui folder
+- Added task dependency management:
+  - Tasks can now depend on other tasks, creating workflow dependencies
+  - Dependency selector widget in task edit screen with dropdown and table display
+  - Visual indicators on task cards showing blocked/blocking status
+  - Circular dependency prevention to avoid dependency loops
+  - Tasks with unfinished dependencies are blocked from moving to start/finish columns
+  - CLI support with `--depends-on` flag for task creation and `--force` flag to override blocking
+  - New `task_dependencies` table in database schema
 
 ### Fixed
 - Show proper time for `Created at` Label when editing existing boards, instead of the current time
 - Make default description of tasks created without the `--description` option to `""` instead of `None`
 to no break editing tasks
 - Fix task query to get the correct `creation_date`
+- Fixed foreign key constraint violation when deleting boards by correcting deletion order
 
 ## v0.12.0
 ### Added

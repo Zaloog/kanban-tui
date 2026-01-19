@@ -25,6 +25,7 @@ from textual.widgets import (
     Label,
     Switch,
     Button,
+    DataTable,
 )
 from textual.containers import Horizontal, Vertical, VerticalScroll
 
@@ -308,6 +309,192 @@ class FinishDateInfo(Vertical):
         self.border = "$success"
         self.border_title = "Finish Date"
         return super().compose()
+
+
+class TaskDependencyManager(Vertical):
+    """Widget for managing task dependencies with dropdown and table display."""
+
+    app: "KanbanTui"
+
+    def __init__(self, current_task_id: int | None = None, *args, **kwargs):
+        self.current_task_id = current_task_id
+        super().__init__(*args, **kwargs)
+
+    def compose(self) -> Iterable[Widget]:
+        # Add dependency section
+        with Horizontal(id="add_dependency_section"):
+            yield Label("Add Dependency:")
+            yield DependencySelector(current_task_id=self.current_task_id)
+
+        # Current dependencies table
+        from textual.widgets import DataTable
+
+        table = DataTable(id="dependencies_table")
+        table.add_columns("ID", "Title", "Status", "Action")
+        table.cursor_type = "row"
+        yield table
+
+    def on_mount(self):
+        self.border_title = "Task Dependencies"
+        self.refresh_dependencies_table()
+
+    def refresh_dependencies_table(self):
+        """Refresh the dependencies table with current data."""
+        if not self.current_task_id:
+            return
+
+        table = self.query_one("#dependencies_table", DataTable)
+        table.clear()
+
+        task = self.app.backend.get_task_by_id(self.current_task_id)
+        if not task or not task.blocked_by:
+            return
+
+        for dep_id in task.blocked_by:
+            dep_task = self.app.backend.get_task_by_id(dep_id)
+            if dep_task:
+                # Use proper Rich markup for status with emojis
+                if dep_task.finished:
+                    status = Text.from_markup("[green]:heavy_check_mark: Done[/]")
+                else:
+                    status = Text.from_markup("[yellow]:warning: Pending[/]")
+                table.add_row(
+                    f"#{dep_task.task_id}",
+                    dep_task.title[:30],  # Truncate long titles
+                    status,
+                    "Remove",
+                    key=str(dep_id),
+                )
+
+    def _refresh_board_task_cards(self):
+        """Refresh all task cards on the board screen to show updated dependency status."""
+        from kanban_tui.screens.board_screen import BoardScreen
+        from kanban_tui.widgets.task_card import TaskCard
+
+        # Get the board screen
+        board_screen = self.app.get_screen("board", BoardScreen)
+
+        # Find all task cards and refresh them with updated task data
+        for task_card in board_screen.query(TaskCard).results():
+            updated_task = self.app.backend.get_task_by_id(task_card.task_.task_id)
+            if updated_task:
+                task_card.task_ = updated_task
+                task_card.refresh(recompose=True)
+
+    @on(DataTable.RowSelected)
+    def remove_dependency(self, event: DataTable.RowSelected):
+        """Remove selected dependency when row is clicked."""
+        dep_id = int(event.row_key.value)
+        self.app.backend.delete_task_dependency(
+            task_id=self.current_task_id, depends_on_task_id=dep_id
+        )
+        self.refresh_dependencies_table()
+        # Refresh the selector options
+        self.query_one(DependencySelector).refresh_options()
+        # Update task list to reflect dependency changes
+        self.app.update_task_list()
+        # Refresh all task cards on the board to show updated dependency status
+        self._refresh_board_task_cards()
+
+
+class DependencySelector(VimSelect):
+    """Dropdown selector for adding task dependencies."""
+
+    app: "KanbanTui"
+
+    def __init__(self, current_task_id: int | None = None, *args, **kwargs):
+        self.current_task_id = current_task_id
+        options = self.get_available_tasks()
+        super().__init__(
+            options=options,
+            prompt="Select task to add as dependency",
+            allow_blank=True,
+            type_to_search=True,
+            id="dependency_selector",
+            *args,
+            **kwargs,
+        )
+
+    def watch_value(self, old_value, new_value):
+        """Handle task selection - add as dependency."""
+        if new_value == self.BLANK or not self.current_task_id:
+            return
+
+        # Check for circular dependency
+        from kanban_tui.backends.sqlite.database import would_create_cycle
+
+        if would_create_cycle(
+            self.current_task_id, new_value, self.app.backend.database_path
+        ):
+            self.app.notify(
+                title="Cannot Add Dependency",
+                message=f"Adding task #{new_value} would create a circular dependency",
+                severity="warning",
+                timeout=5,
+            )
+            self.value = self.BLANK
+            return
+
+        # Add dependency
+        try:
+            self.app.backend.create_task_dependency(
+                task_id=self.current_task_id, depends_on_task_id=new_value
+            )
+            self.app.notify(
+                title="Dependency Added",
+                message=f"Task now depends on #{new_value}",
+                severity="information",
+                timeout=3,
+            )
+            # Refresh table in parent widget
+            self.parent.parent.refresh_dependencies_table()
+            # Reset selector and refresh options
+            self.value = self.BLANK
+            self.refresh_options()
+            # Update task list and refresh all task cards
+            self.app.update_task_list()
+            self.parent.parent._refresh_board_task_cards()
+        except Exception as e:
+            self.app.notify(
+                title="Error Adding Dependency",
+                message=str(e),
+                severity="error",
+                timeout=5,
+            )
+
+    def refresh_options(self):
+        """Refresh the available tasks list."""
+        options = self.get_available_tasks()
+        self.set_options(options)
+
+    def get_available_tasks(self) -> list[tuple[str, int]]:
+        """Get list of tasks that can be added as dependencies."""
+        if not self.current_task_id:
+            return []
+
+        all_tasks = self.app.backend.get_tasks_on_active_board()
+        current_task = self.app.backend.get_task_by_id(self.current_task_id)
+
+        # Filter out invalid tasks
+        available_tasks = []
+        for task in all_tasks:
+            # Skip current task
+            if task.task_id == self.current_task_id:
+                continue
+
+            # Skip if already a dependency
+            if current_task and task.task_id in current_task.blocked_by:
+                continue
+
+            # Get column name for display
+            column = self.app.backend.get_column_by_id(task.column)
+            column_name = column.name if column else "Unknown"
+
+            # Format: "#ID - Title [Column]"
+            display_text = f"#{task.task_id} - {task.title[:40]} [{column_name}]"
+            available_tasks.append((display_text, task.task_id))
+
+        return available_tasks
 
 
 class ButtonRow(Horizontal):

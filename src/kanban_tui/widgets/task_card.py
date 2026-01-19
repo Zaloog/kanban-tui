@@ -1,4 +1,5 @@
 from __future__ import annotations
+from rich.console import RenderableType
 from typing import TYPE_CHECKING, Literal
 
 from kanban_tui.config import MovementModes
@@ -33,6 +34,7 @@ class TaskCard(Vertical):
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
         Binding("e", "edit_task", description="Edit", show=True),
         Binding("d", "delete_task", description="Delete", show=True),
+        Binding("i", "show_blocking_tasks", description="Show Deps", show=True),
         Binding(
             "L",
             "move_task('right')",
@@ -99,6 +101,7 @@ class TaskCard(Vertical):
         yield Rule(classes="rules-taskinfo-separator")
         yield Label(self.get_creation_date_str(), classes="label-infos")
         yield Label(self.get_due_date_str(), classes="label-infos")
+        yield Label(self.get_dependency_status_str(), classes="label-infos")
         yield Rule(classes="rules-taskinfo-separator")
         self.description = Markdown(
             markdown=self.task_.description,
@@ -182,7 +185,7 @@ class TaskCard(Vertical):
             new_column=new_column_id, update_column_dict=update_column_dict
         )
 
-    def get_due_date_str(self) -> str:
+    def get_due_date_str(self) -> RenderableType:
         match self.task_.days_left:
             case 0:
                 return Text.from_markup(
@@ -199,7 +202,7 @@ class TaskCard(Vertical):
                     f":hourglass_not_done: due date: {self.task_.days_left} days left"
                 )
 
-    def get_creation_date_str(self) -> str:
+    def get_creation_date_str(self) -> RenderableType:
         creation_date_str = Text.from_markup(":calendar: created: ")
         match self.task_.days_since_creation:
             case 0:
@@ -212,6 +215,30 @@ class TaskCard(Vertical):
                 creation_date_str += f"{self.task_.days_since_creation} days ago"
                 return creation_date_str
 
+    def get_dependency_status_str(self) -> str | Text:
+        """Return visual indicator for task dependency status."""
+        # Check if task has dependencies that are unfinished
+        if self.task_.blocked_by:
+            unfinished_deps = []
+            for dep_id in self.task_.blocked_by:
+                dep_task = self.app.backend.get_task_by_id(dep_id)
+                if dep_task and not dep_task.finished:
+                    unfinished_deps.append(dep_task)
+
+            if unfinished_deps:
+                count = len(unfinished_deps)
+                plural = "task" if count == 1 else "tasks"
+                return Text.from_markup(f"⚠️ blocked by {count} unfinished {plural}")
+
+        # Check if task is blocking other tasks
+        if self.task_.blocking:
+            count = len(self.task_.blocking)
+            plural = "task" if count == 1 else "tasks"
+            return Text.from_markup(f":link: blocking {count} {plural}")
+
+        # No dependency relationships
+        return Text.from_markup(":white_check_mark: no dependencies")
+
     @on(Click)
     def action_edit_task(self) -> None:
         self.app.push_screen(
@@ -221,6 +248,74 @@ class TaskCard(Vertical):
     def from_modal_update_task(self, updated_task: Task) -> None:
         self.task_ = updated_task
         self.refresh(recompose=True)
+
+    @work()
+    async def action_show_blocking_tasks(self) -> None:
+        """Show which tasks are blocking this task by flashing them."""
+        if not self.task_.blocked_by:
+            self.app.notify(
+                title="No Dependencies",
+                message="This task has no blocking dependencies",
+                severity="information",
+                timeout=2,
+            )
+            return
+
+        # Get all task cards on the board
+        board_screen = self.app.get_screen("board")
+        all_task_cards = board_screen.query(TaskCard).results()
+
+        # Find task cards that are blocking this task
+        blocking_cards = [
+            card
+            for card in all_task_cards
+            if card.task_.task_id in self.task_.blocked_by
+        ]
+
+        if not blocking_cards:
+            return
+
+        # Store original colors for each card
+        original_colors = {}
+        for card in blocking_cards:
+            original_colors[card] = card.styles.background
+
+        # Flash animation using set_interval
+        flash_count = [0]  # Use list to modify in closure
+
+        def toggle_flash():
+            for card in blocking_cards:
+                if flash_count[0] % 2 == 0:
+                    # Flash on - set to yellow
+                    card.styles.background = "yellow"
+                else:
+                    # Flash off - restore original color
+                    card.styles.background = original_colors[card]
+
+            flash_count[0] += 1
+
+            # Stop after 4 toggles (2 full flashes)
+            if flash_count[0] >= 4:
+                # Ensure all cards are back to original color
+                for card in blocking_cards:
+                    card.styles.background = original_colors[card]
+                return False  # Stop the interval
+            return True  # Continue the interval
+
+        # Start flashing with 200ms intervals
+        self.set_interval(0.2, toggle_flash)
+
+        # Show notification with blocking task info
+        blocking_task_titles = [
+            f"#{card.task_.task_id} - {card.task_.title[:30]}"
+            for card in blocking_cards
+        ]
+        self.app.notify(
+            title="Blocked By",
+            message="\n".join(blocking_task_titles),
+            severity="warning",
+            timeout=4,
+        )
 
     @work()
     async def action_delete_task(self) -> None:

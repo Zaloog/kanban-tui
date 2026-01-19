@@ -167,6 +167,31 @@ ModalTaskEditScreen {
       }
     }
 
+    TaskDependencyManager {
+      height: auto;
+
+      #add_dependency_section {
+        height: auto;
+        width: 1fr;
+
+        Label {
+          width: auto;
+          padding: 1 1 0 0;
+        }
+
+        DependencySelector {
+          height: auto;
+          width: 1fr;
+        }
+      }
+
+      #dependencies_table {
+        height: auto;
+        max-height: 10;
+        width: 1fr;
+      }
+    }
+
 
     ButtonRow {
       height: 3;

@@ -21,6 +21,7 @@ from kanban_tui.widgets.modal_task_widgets import (
     TaskTitleInput,
     CategorySelector,
     TaskDescription,
+    TaskDependencyManager,
 )
 
 
@@ -42,6 +43,11 @@ class ModalTaskEditScreen(ModalScreen[Task]):
                 yield TaskTitleInput()
                 yield TaskDescription(classes="task-field")
                 yield TaskAdditionalInfos()
+                # Only show dependency manager when editing existing task
+                if self.kanban_task is not None:
+                    yield TaskDependencyManager(
+                        current_task_id=self.kanban_task.task_id, classes="task-field"
+                    )
             yield ButtonRow(id="horizontal_buttons")
             yield Footer()
 
