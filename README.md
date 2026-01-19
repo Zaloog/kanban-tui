@@ -95,6 +95,7 @@ erDiagram
         DATETIME due_date
     }
     task_dependencies {
+        INTEGER dependency_id PK
         INTEGER task_id FK
         INTEGER depends_on_task_id FK
     }

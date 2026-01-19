@@ -13,7 +13,7 @@ and the parent kanban-tui folder
   - Visual indicators on task cards showing blocked/blocking status
   - Circular dependency prevention to avoid dependency loops
   - Tasks with unfinished dependencies are blocked from moving to start/finish columns
-  - CLI support with `--depends-on` flag for task creation and `--force` flag to override blocking
+  - CLI support with `--depends-on` flag for task creation
   - New `task_dependencies` table in database schema
 
 ### Fixed
