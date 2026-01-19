@@ -71,6 +71,9 @@ TaskCard {
   min-height:5;
   margin:0 0 1 0;
   border: tall transparent;
+  &.blinking {
+    border: tall $warning;
+  }
 }
 TaskCard:focus {
         border: tall $success;

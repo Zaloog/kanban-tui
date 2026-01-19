@@ -280,42 +280,24 @@ class TaskCard(Vertical):
         for card in blocking_cards:
             original_colors[card] = card.styles.background
 
-        # Flash animation using set_interval
-        flash_count = [0]  # Use list to modify in closure
-
         def toggle_flash():
             for card in blocking_cards:
-                if flash_count[0] % 2 == 0:
-                    # Flash on - set to yellow
-                    card.styles.background = "yellow"
-                else:
-                    # Flash off - restore original color
-                    card.styles.background = original_colors[card]
+                card.toggle_class("blinking")
 
-            flash_count[0] += 1
-
-            # Stop after 4 toggles (2 full flashes)
-            if flash_count[0] >= 4:
-                # Ensure all cards are back to original color
-                for card in blocking_cards:
-                    card.styles.background = original_colors[card]
-                return False  # Stop the interval
-            return True  # Continue the interval
-
-        # Start flashing with 200ms intervals
-        self.set_interval(0.2, toggle_flash)
+        # Start flashing with 100ms intervals
+        self.set_interval(0.1, toggle_flash, repeat=5)
 
         # Show notification with blocking task info
-        blocking_task_titles = [
-            f"#{card.task_.task_id} - {card.task_.title[:30]}"
-            for card in blocking_cards
-        ]
-        self.app.notify(
-            title="Blocked By",
-            message="\n".join(blocking_task_titles),
-            severity="warning",
-            timeout=4,
-        )
+        # blocking_task_titles = [
+        #     f"#{card.task_.task_id} - {card.task_.title[:30]}"
+        #     for card in blocking_cards
+        # ]
+        # self.app.notify(
+        #     title="Blocked By",
+        #     message="\n".join(blocking_task_titles),
+        #     severity="warning",
+        #     timeout=4,
+        # )
 
     @work()
     async def action_delete_task(self) -> None:
