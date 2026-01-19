@@ -214,7 +214,7 @@ class TaskCard(Vertical):
         elif self.task_.blocking:
             parts.append(f":lock: blocking ({len(self.task_.blocking)})")
         else:
-            parts.append(":white_check_mark:")
+            parts.append(":white_check_mark: no dependencies")
 
         return Text.from_markup("  ".join(parts))
 
