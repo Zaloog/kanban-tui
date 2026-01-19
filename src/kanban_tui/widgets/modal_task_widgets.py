@@ -368,18 +368,7 @@ class TaskDependencyManager(Vertical):
 
     def _refresh_board_task_cards(self):
         """Refresh all task cards on the board screen to show updated dependency status."""
-        from kanban_tui.screens.board_screen import BoardScreen
-        from kanban_tui.widgets.task_card import TaskCard
-
-        # Get the board screen
-        board_screen = self.app.get_screen("board", BoardScreen)
-
-        # Find all task cards and refresh them with updated task data
-        for task_card in board_screen.query(TaskCard).results():
-            updated_task = self.app.backend.get_task_by_id(task_card.task_.task_id)
-            if updated_task:
-                task_card.task_ = updated_task
-                task_card.refresh(recompose=True)
+        self.app.needs_refresh = True
 
     @on(DataTable.RowSelected)
     def remove_dependency(self, event: DataTable.RowSelected):

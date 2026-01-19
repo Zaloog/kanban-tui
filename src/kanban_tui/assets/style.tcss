@@ -48,6 +48,7 @@ KanbanTuiFooter {
   }
 }
 
+
 Column{
   height:1fr;
   width:1fr;
@@ -65,11 +66,11 @@ Column VerticalScroll {
         margin:0 2 0 0;
 }
 TaskCard {
-    width: 1fr;
-    height: auto;
-    min-height:5;
-    margin:0 0 1 0;
-    border: tall transparent;
+  width: 1fr;
+  height: auto;
+  min-height:5;
+  margin:0 0 1 0;
+  border: tall transparent;
 }
 TaskCard:focus {
         border: tall $success;
