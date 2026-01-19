@@ -244,14 +244,7 @@ def update_task(
 @click.pass_obj
 @click.argument("task_id", type=click.INT)
 @click.argument("target_column", type=click.INT)
-@click.option(
-    "--force",
-    default=False,
-    is_flag=True,
-    type=click.BOOL,
-    help="Force move even if blocked by dependencies",
-)
-def move_task(app: KanbanTui, task_id: int, target_column: int, force: bool):
+def move_task(app: KanbanTui, task_id: int, target_column: int):
     """
     Moves a task to another column
     """
@@ -281,16 +274,14 @@ def move_task(app: KanbanTui, task_id: int, target_column: int, force: bool):
             )
 
         # Check if task can move to target column (dependency validation)
-        if not force:
-            can_move, reason = task.can_move_to_column(
-                target_column=target_column,
-                start_column=active_board.start_column,
-                backend=app.backend,
-            )
-            if not can_move:
-                print_to_console(f"[red]Cannot move task: {reason}[/]")
-                print_to_console("[yellow]Use --force flag to override this check.[/]")
-                return
+        can_move, reason = task.can_move_to_column(
+            target_column=target_column,
+            start_column=active_board.start_column,
+            backend=app.backend,
+        )
+        if not can_move:
+            print_to_console(f"[red]Cannot move task: {reason}[/]")
+            return
 
         # Update task status dates based on column transitions
         task.update_task_status(

@@ -666,47 +666,12 @@ def test_task_move_blocked_by_dependency(test_app):
         )
 
         assert result.exit_code == 0
-        expected_output = (
-            "Cannot move task: Task is blocked by unfinished dependencies: #6 'Task A'\n"
-            "Use --force flag to override this check.\n"
-        )
+        expected_output = "Cannot move task: Task is blocked by unfinished dependencies: #6 'Task A'\n"
         assert result.output == expected_output
 
         # Verify task B is still in original column
         task_b = test_app.backend.get_task_by_id(task_id=7)
         assert task_b.column == 1  # Still in Ready column
-
-
-def test_task_move_blocked_by_dependency_force(test_app):
-    """Test that --force flag allows moving blocked tasks."""
-    runner = CliRunner()
-
-    with runner.isolated_filesystem():
-        # Create two tasks: task A (id=6) and task B (id=7)
-        runner.invoke(
-            cli,
-            args=["task", "create", "Task A"],
-            obj=test_app,
-        )
-        runner.invoke(
-            cli,
-            args=["task", "create", "Task B", "--depends-on", "6"],
-            obj=test_app,
-        )
-
-        # Force move task B to start column despite unfinished dependency
-        result = runner.invoke(
-            cli,
-            args=["task", "move", "7", "2", "--force"],
-            obj=test_app,
-        )
-
-        assert result.exit_code == 0
-        assert result.output == "Moved task with task_id = 7 from column 1 to 2.\n"
-
-        # Verify task B was moved
-        task_b = test_app.backend.get_task_by_id(task_id=7)
-        assert task_b.column == 2  # Moved to Doing column
 
 
 def test_task_move_not_blocked_when_dependency_finished(test_app):
