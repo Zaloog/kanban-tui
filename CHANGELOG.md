@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.0 (unreleased)
+## v0.13.0
 ### Added
 - Added a `--json` flag to `board/task/column list` commands, e.g. `ktui board list --json`
 - Added a `--board/column` filter to `ktui task list`
