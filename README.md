@@ -8,22 +8,20 @@
 
 # kanban-tui
 
-kanban-tui is a customizable task manager in the terminal.
-Now also usable in Co-op with your agents (check the [skill command](#create-or-update-agent-skillmd-file) for more infos).
+A customizable terminal-based task manager powered by [Textual][textual].
+Now also usable in co-op mode with AI agents (check the [CLI interface](#cli-interface) for more info).
 
-<!-- ![board_image](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/images/image_kanbanboard.png) -->
-
-## Demo GIF
+## Demo
 ![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/docs/demo.gif)
 
-If you want to test `kanban-tui` you can directly run this demo yourself with the help of [uv] using `uvx` with
+Try `kanban-tui` instantly without installation:
 
 ```bash
 uvx kanban-tui demo
 ```
 
 ## Features
-Expand for more detailed information
+- Expand for detailed information
 
 </details>
 <details><summary>Following the XDG basedir convention</summary>
@@ -152,8 +150,7 @@ There is also an audit table, which tracks the creation/update/deletion of tasks
 You can install `kanban-tui` with one of the following options:
 
 ```bash
-# not recommended
-pip install kanban-tui
+uv tool install kanban-tui
 ```
 
 ```bash
@@ -161,8 +158,10 @@ pipx install kanban-tui
 ```
 
 ```bash
-uv tool install kanban-tui
+# not recommended
+pip install kanban-tui
 ```
+
 I recommend using [pipx] or [uv] to install CLI Tools into an isolated environment.
 
 To be able to use `kanban-tui` in your browser with the `--web`-flag, the optional dependency
@@ -210,7 +209,7 @@ This is targeted mainly for agentic use e.g. via [Claude][claude-code], because 
 are also ergonomic for human use (e.g. task creation).
 
 ```bash
-ktui skill init/update
+ktui skill init/update/delete
 ```
 
 ### CLI Interface to manage Tasks
