@@ -15,6 +15,7 @@ and the parent kanban-tui folder
   - Tasks with unfinished dependencies are blocked from moving to start/finish columns
   - CLI support with `--depends-on` flag for task creation
   - New `task_dependencies` table in database schema
+- Added automatic database migrations
 
 ### Fixed
 - Show proper time for `Created at` Label when editing existing boards, instead of the current time
@@ -22,6 +23,10 @@ and the parent kanban-tui folder
 to no break editing tasks
 - Fix task query to get the correct `creation_date`
 - Fixed foreign key constraint violation when deleting boards by correcting deletion order
+
+### Changed
+- Updated SKILL.md File
+- New database schema (with automatic migrations)
 
 ## v0.12.0
 ### Added
