@@ -1,8 +1,4 @@
-from kanban_tui.backends.sqlite.migrations import (
-    CURRENT_SCHEMA_VERSION,
-    apply_migration_v1_to_v2,
-    increment_schema_version,
-)
+import json
 import sqlite3
 from pathlib import Path
 from typing import Any, Generator, Sequence
@@ -15,6 +11,11 @@ from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.logevent import LogEvent
+from kanban_tui.backends.sqlite.migrations import (
+    CURRENT_SCHEMA_VERSION,
+    apply_migration_v1_to_v2,
+    increment_schema_version,
+)
 
 
 def adapt_datetime_iso(val: datetime.datetime) -> str:
@@ -44,8 +45,6 @@ def create_connection(
 
 
 def task_factory(cursor, row):
-    import json
-
     fields = [column[0] for column in cursor.description]
     data = dict(zip(fields, row))
 
