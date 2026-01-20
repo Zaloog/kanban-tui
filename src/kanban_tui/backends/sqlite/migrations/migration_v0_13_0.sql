@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = OFF;
+
 CREATE TABLE IF NOT EXISTS schema_versions (
     version INTEGER PRIMARY KEY,
     applied_on DATETIME NOT NULL
@@ -15,7 +17,7 @@ CREATE TABLE IF NOT EXISTS  dependencies (
 
 -- Alter boards table to add ON DELETE SET NULL for status columns
 -- Create new boards table with proper constraints
-CREATE TABLE boards_new (
+CREATE TABLE IF NOT EXISTS boards_new (
     board_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     icon TEXT,
@@ -74,6 +76,8 @@ BEGIN
         OLD.board_id
     );
 END;
+
+PRAGMA foreign_keys = ON;
 
 CREATE TRIGGER board_update
 AFTER UPDATE on boards

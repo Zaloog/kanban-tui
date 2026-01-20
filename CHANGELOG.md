@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.13.1
+### Fixed
+- Fix migration issue due to FOREIGN_KEYS not disabled during migration
+- Updated SKILL.md file to prefer default columns, to ensure status transitions on first init
+
 ## v0.13.0
 ### Added
 - Added a `--json` flag to `board/task/column list` commands, e.g. `ktui board list --json`
