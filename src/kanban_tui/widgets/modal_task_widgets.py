@@ -410,10 +410,8 @@ class DependencySelector(VimSelect):
             return
 
         # Check for circular dependency
-        from kanban_tui.backends.sqlite.database import would_create_cycle
-
-        if would_create_cycle(
-            self.current_task_id, new_value, self.app.backend.database_path
+        if self.app.backend.would_create_dependency_cycle(
+            self.current_task_id, new_value
         ):
             self.app.notify(
                 title="Cannot Add Dependency",

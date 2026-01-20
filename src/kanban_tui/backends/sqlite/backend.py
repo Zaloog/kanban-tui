@@ -38,6 +38,7 @@ from kanban_tui.backends.sqlite.database import (
     get_filtered_events_db,
     create_task_dependency_db,
     delete_task_dependency_db,
+    would_create_cycle,
     get_task_dependencies_db,
     get_dependent_tasks_db,
     get_blocked_tasks_db,
@@ -322,3 +323,17 @@ class SqliteBackend(Backend):
             List of blocked tasks
         """
         return get_blocked_tasks_db(database=self.database_path)
+
+    def would_create_dependency_cycle(
+        self, task_id: int, depends_on_task_id: int
+    ) -> bool:
+        """Check if adding a dependency would create a circular dependency.
+
+        Args:
+            task_id: The task that would depend on another task
+            depends_on_task_id: The task that would be depended upon
+
+        Returns:
+            True if adding this dependency would create a cycle, False otherwise
+        """
+        return would_create_cycle(task_id, depends_on_task_id, self.database_path)

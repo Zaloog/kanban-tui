@@ -188,6 +188,14 @@ def test_task_wrong_backend(test_app, test_jira_config):
         result = runner.invoke(cli, args=["task", "list"], obj=test_app)
         assert result.exit_code == 2
         assert pytest.raises(UsageError)
+        assert (
+            f"Currently using `{test_app.config.backend.mode}` backend."
+            in result.output
+        )
+        assert (
+            f"Please change the backend to `{Backends.SQLITE}` before using the `task` command."
+            in result.output
+        )
 
 
 def test_task_list(test_app):
@@ -901,6 +909,7 @@ def test_task_create_with_circular_dependency_direct(test_app):
         assert result.exit_code == 0
 
         # Check that creating 6 -> 8 would create a cycle (8 -> 7 -> 1 -> 6)
+
         from kanban_tui.backends.sqlite.database import would_create_cycle
 
         assert would_create_cycle(6, 8, test_app.backend.database_path)

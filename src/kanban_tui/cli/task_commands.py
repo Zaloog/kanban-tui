@@ -188,11 +188,7 @@ def create_task(
                 continue
 
             # Check if this would create a circular dependency
-            from kanban_tui.backends.sqlite.database import would_create_cycle
-
-            if would_create_cycle(
-                task_id, depends_on_task_id, app.backend.database_path
-            ):
+            if app.backend.would_create_dependency_cycle(task_id, depends_on_task_id):
                 print_to_console(
                     f"[red]Cannot add dependency: would create circular dependency with task {depends_on_task_id}.[/]"
                 )
