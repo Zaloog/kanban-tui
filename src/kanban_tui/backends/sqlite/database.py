@@ -113,8 +113,8 @@ def run_migrations(database: str = DATABASE_FILE.as_posix()):
             con.commit()
 
         except sqlite3.Error as e:
-            raise e
             con.rollback()
+            raise e
 
 
 def init_new_db(database: str = DATABASE_FILE.as_posix()):
@@ -592,8 +592,8 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
             # con.executescript(indexes_creation_str)
             run_migrations(database)
         except sqlite3.Error as e:
-            raise e
             con.rollback()
+            raise e
 
 
 # Audit Tables
@@ -689,8 +689,8 @@ def create_new_board_db(
             con.commit()
             return created_board
         except sqlite3.Error as e:
-            con.rollback()
             raise e
+            con.rollback()
 
 
 def create_new_task_db(
@@ -737,8 +737,8 @@ def create_new_task_db(
             con.commit()
             return new_task
         except sqlite3.Error as e:
-            con.rollback()
             raise e
+            con.rollback()
 
 
 def create_new_column_db(
@@ -782,8 +782,8 @@ def create_new_column_db(
             con.commit()
             return new_column
         except sqlite3.Error as e:
-            con.rollback()
             raise e
+            con.rollback()
 
 
 def create_new_category_db(
@@ -1068,6 +1068,59 @@ def get_task_by_id_db(
             task = con.execute(query_str, task_id_dict).fetchone()
             con.commit()
             return task
+        except sqlite3.Error as e:
+            con.rollback()
+            raise (e)
+
+
+def get_tasks_by_ids_db(
+    task_ids: list[int],
+    database: str = DATABASE_FILE.as_posix(),
+) -> list[Task]:
+    """Fetch multiple tasks by their IDs in a single query to avoid N+1 queries.
+
+    Args:
+        task_ids: List of task IDs to fetch
+        database: Database path
+
+    Returns:
+        List of Task objects, in the same order as task_ids
+    """
+    if not task_ids:
+        return []
+
+    # Create placeholders for the IN clause
+    placeholders = ",".join("?" * len(task_ids))
+
+    query_str = f"""
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.task_id IN ({placeholders})
+    ;
+    """
+
+    with create_connection(database=database) as con:
+        con.row_factory = task_factory
+        try:
+            tasks = con.execute(query_str, task_ids).fetchall()
+            con.commit()
+
+            # Create a mapping for fast lookup and preserve order
+            task_map = {task.task_id: task for task in tasks}
+            return [task_map[task_id] for task_id in task_ids if task_id in task_map]
         except sqlite3.Error as e:
             con.rollback()
             raise (e)

@@ -200,11 +200,9 @@ class TaskCard(Vertical):
 
         # Dependencies
         if self.task_.blocked_by:
-            unfinished_deps = []
-            for dep_id in self.task_.blocked_by:
-                dep_task = self.app.backend.get_task_by_id(dep_id)
-                if dep_task and not dep_task.finished:
-                    unfinished_deps.append(dep_task)
+            # Fetch all dependency tasks in a single query to avoid N+1 queries
+            dep_tasks = self.app.backend.get_tasks_by_ids(self.task_.blocked_by)
+            unfinished_deps = [t for t in dep_tasks if not t.finished]
 
             if unfinished_deps:
                 count = len(unfinished_deps)

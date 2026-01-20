@@ -350,21 +350,21 @@ class TaskDependencyManager(Vertical):
         if not task or not task.blocked_by:
             return
 
-        for dep_id in task.blocked_by:
-            dep_task = self.app.backend.get_task_by_id(dep_id)
-            if dep_task:
-                # Use proper Rich markup for status with emojis
-                if dep_task.finished:
-                    status = Text.from_markup("[green]:heavy_check_mark: Done[/]")
-                else:
-                    status = Text.from_markup("[yellow]:warning: Pending[/]")
-                table.add_row(
-                    f"#{dep_task.task_id}",
-                    dep_task.title[:30],  # Truncate long titles
-                    status,
-                    "Remove",
-                    key=str(dep_id),
-                )
+        # Fetch all dependency tasks in a single query to avoid N+1 queries
+        dep_tasks = self.app.backend.get_tasks_by_ids(task.blocked_by)
+        for dep_task in dep_tasks:
+            # Use proper Rich markup for status with emojis
+            if dep_task.finished:
+                status = Text.from_markup("[green]:heavy_check_mark: Done[/]")
+            else:
+                status = Text.from_markup("[yellow]:warning: Pending[/]")
+            table.add_row(
+                f"#{dep_task.task_id}",
+                dep_task.title[:30],  # Truncate long titles
+                status,
+                "Remove",
+                key=str(dep_task.task_id),
+            )
 
     def _refresh_board_task_cards(self):
         """Refresh all task cards on the board screen to show updated dependency status."""

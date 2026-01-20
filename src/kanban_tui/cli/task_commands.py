@@ -76,12 +76,25 @@ def list_tasks(
 
     # Filter for actionable tasks if requested
     if actionable and tasks:
+        # Collect all unique dependency IDs to fetch in bulk
+        all_dep_ids = set()
+        for task in tasks:
+            if task.blocked_by:
+                all_dep_ids.update(task.blocked_by)
+
+        # Fetch all dependency tasks in a single query to avoid N+1 queries
+        dep_tasks_map = {}
+        if all_dep_ids:
+            dep_tasks = app.backend.get_tasks_by_ids(list(all_dep_ids))
+            dep_tasks_map = {t.task_id: t for t in dep_tasks}
+
+        # Filter for actionable tasks
         tasks = [
             task
             for task in tasks
             if not task.blocked_by
             or all(
-                app.backend.get_task_by_id(dep_id).finished
+                dep_tasks_map.get(dep_id) and dep_tasks_map[dep_id].finished
                 for dep_id in task.blocked_by
             )
         ]

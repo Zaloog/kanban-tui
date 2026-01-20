@@ -23,6 +23,7 @@ from kanban_tui.backends.sqlite.database import (
     get_all_columns_on_board_db,
     get_category_by_id_db,
     get_task_by_id_db,
+    get_tasks_by_ids_db,
     get_task_by_column_db,
     get_column_by_id_db,
     init_new_db,
@@ -175,6 +176,17 @@ class SqliteBackend(Backend):
     def get_task_by_id(self, task_id: int) -> Task | None:
         task = get_task_by_id_db(task_id=task_id, database=self.database_path)
         return task
+
+    def get_tasks_by_ids(self, task_ids: list[int]) -> list[Task]:
+        """Fetch multiple tasks by their IDs in a single query.
+
+        Args:
+            task_ids: List of task IDs to fetch
+
+        Returns:
+            List of Task objects
+        """
+        return get_tasks_by_ids_db(task_ids=task_ids, database=self.database_path)
 
     def get_tasks_by_column(self, column_id: int) -> list[Task] | None:
         tasks = get_task_by_column_db(column_id=column_id, database=self.database_path)

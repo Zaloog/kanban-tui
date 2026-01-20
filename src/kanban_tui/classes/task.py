@@ -115,11 +115,9 @@ class Task(BaseModel):
         if not self.blocked_by:
             return True, "OK"
 
-        unfinished_tasks = []
-        for dependency_id in self.blocked_by:
-            dependency_task = backend.get_task_by_id(dependency_id)
-            if dependency_task and not dependency_task.finished:
-                unfinished_tasks.append(dependency_task)
+        # Fetch all dependency tasks in a single query to avoid N+1 queries
+        dependency_tasks = backend.get_tasks_by_ids(self.blocked_by)
+        unfinished_tasks = [t for t in dependency_tasks if not t.finished]
 
         if unfinished_tasks:
             task_titles = ", ".join(
