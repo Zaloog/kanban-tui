@@ -49,7 +49,7 @@ ktui board create "Board Name" --icon "🚀" --set-active -c "Col1" -c "Col2", -
 ```
 **Options**:
 - `--set-active`: Immediately activate this board
-- `-c "Col1" -c "Col2", -c "Col3"`: Custom columns (default: "Ready, Doing, Done, Archive")
+- `-c "Col1" -c "Col2", -c "Col3"`: Custom columns (default: "Ready, Doing, Done, Archive").
 - `--icon`: Optional emoji icon for visual identification
 
 #### Switch Active Board
@@ -197,6 +197,8 @@ ktui task list --json
 **Actions**:
 ```bash
 # Create board with workflow columns
+# Always prefer default columns, i.e. no -c options, if not told otherwise, to ensure already working status columns
+
 ktui board create "API Development" --icon "⚙️" --set-active -c "Backlog, In Progress, Code Review, Testing, Done"
 
 # Get column IDs
@@ -313,6 +315,7 @@ ktui task list --json --board 3 --actionable
 
 ### Text Handling
 - Quote strings with spaces: `"Task Title"`, `"Multi-word description"`
+- The task description also supports markdown
 - Escape special shell characters if present
 - Use descriptive task titles (user-facing) and detailed descriptions
 
