@@ -77,6 +77,8 @@ BEGIN
     );
 END;
 
+PRAGMA foreign_keys_check;
+
 PRAGMA foreign_keys = ON;
 
 CREATE TRIGGER board_update

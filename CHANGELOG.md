@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.X.X
+### Added
+- FOREIGN_KEYS check to migration
+
 ## v0.13.1
 ### Fixed
 - Fix migration issue due to FOREIGN_KEYS not disabled during migration
