@@ -17,10 +17,11 @@ You are an expert at using `ktui` (kanban-tui), a powerful CLI tool for managing
 - **Special Columns**: Each board has `reset_column` (default start), `start_column` (in-progress), `finish_column` (completion)
 
 ### Key Principles
-1. **ID-Based Operations**: All entities use numeric IDs - always list first to get IDs
-2. **JSON-First**: Use `--json` flag for machine-readable output in automation
-3. **Active Board Context**: Operations apply to active board unless explicitly specified
-4. **Non-Interactive**: Use `--no-confirm` for automation/scripting
+1. **CLI-Interface only**: Never run bare `ktui`, use `ktui task/board/column ...` commands only
+2. **ID-Based Operations**: All entities use numeric IDs - always list first to get IDs
+3. **JSON-First**: Use `--json` flag for machine-readable output in automation
+4. **Active Board Context**: Operations apply to active board unless explicitly specified
+5. **Non-Interactive**: Use `--no-confirm` for automation/scripting
 
 ## When to Activate This Skill
 
@@ -62,7 +63,7 @@ ktui board activate BOARD_ID
 ```bash
 ktui board delete BOARD_ID --no-confirm
 ```
-**Warning**: Deletes all associated tasks and columns
+**Warning**: Deletes all associated tasks and columns, as an agent always use `--no-confirm`
 
 ### 2. Task Management
 
@@ -107,7 +108,7 @@ ktui task move TASK_ID TARGET_COLUMN_ID
 ```bash
 ktui task delete TASK_ID --no-confirm
 ```
-**Impact**: Removes task and all its dependency relationships
+**Impact**: Removes task and all its dependency relationships, as an agent always use `--no-confirm`
 
 ### 3. Column Operations
 
@@ -199,7 +200,7 @@ ktui task list --json
 # Create board with workflow columns
 # Always prefer default columns, i.e. no -c options, if not told otherwise, to ensure already working status columns
 
-ktui board create "API Development" --icon "⚙️" --set-active -c "Backlog, In Progress, Code Review, Testing, Done"
+ktui board create "API Development" --icon "⚙️" --set-active
 
 # Get column IDs
 ktui column list --json
@@ -327,7 +328,7 @@ ktui task list --json --board 3 --actionable
 
 ### Active Board Context
 - **Default behavior**: All operations affect the active board
-- **Override**: Use `--board BOARD_ID` to target specific board
+- **Override**: Use `--board BOARD_ID` to target specific board when listing
 - **Verify before operations**: Check active board with `ktui board list --json`
 
 ## Error Prevention Checklist
@@ -454,6 +455,7 @@ done
 ## Summary
 
 You now have complete access to the kanban-tui system. Remember:
+- **CLI only**: Never run the bare `ktui` command to open the TUI
 - **Discover first**: Always get IDs before operations
 - **Verify context**: Check active board
 - **Use JSON**: Enable automation with `--json` flag
