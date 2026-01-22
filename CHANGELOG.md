@@ -1,8 +1,11 @@
 # Changelog
 
-## v0.X.X
+## v0.14.0
 ### Added
 - FOREIGN_KEYS check to migration
+
+### Fixed
+- Added `Delete` mention on Category Dropdown
 
 ## v0.13.1
 ### Fixed

@@ -273,7 +273,7 @@ class CategorySelector(VimSelect):
             (f"[on {category.color}]  [/] {category.name}", category.category_id)
             for category in self.app.backend.get_all_categories()
         ]
-        options.insert(0, ("Add/Edit categories", self.NEW))
+        options.insert(0, ("Add/Edit/Delete categories", self.NEW))
         return options
 
 
