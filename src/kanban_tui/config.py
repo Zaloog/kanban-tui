@@ -128,9 +128,8 @@ class Settings(BaseSettings):
         config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")
         if config_from_env:
             path = config_from_env
-        with open(Path(path).resolve(), "w") as toml_file:
-            dumb = tomli_w.dumps(self.model_dump())
-            toml_file.write(dumb)
+        dump = tomli_w.dumps(self.model_dump())
+        Path(path).resolve().write_text(dump, encoding="utf-8")
 
     @classmethod
     def settings_customise_sources(
