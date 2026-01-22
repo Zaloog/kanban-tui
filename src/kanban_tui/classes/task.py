@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
+from typing import Any
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 
 class Task(BaseModel):
@@ -15,19 +16,30 @@ class Task(BaseModel):
     description: str = ""
     blocked_by: list[int] = []  # Task IDs this task depends on
     blocking: list[int] = []  # Task IDs that depend on this task
+    metadata: dict[str, Any] = Field(default_factory=dict)  # Backend-specific extras
 
     def get_days_since_creation(self) -> int:
-        return (
-            datetime.now().replace(microsecond=0) - self.creation_date
-        ) // timedelta(days=1)  # + 1
+        now = datetime.now().replace(microsecond=0)
+        # Handle both timezone-aware and naive datetimes
+        creation = (
+            self.creation_date.replace(tzinfo=None)
+            if self.creation_date.tzinfo
+            else self.creation_date
+        )
+        return (now - creation) // timedelta(days=1)  # + 1
 
     def get_days_left_till_due(self) -> int | None:
         if self.due_date:
+            now = datetime.now().replace(microsecond=0)
+            # Handle both timezone-aware and naive datetimes
+            due = (
+                self.due_date.replace(tzinfo=None)
+                if self.due_date.tzinfo
+                else self.due_date
+            )
             return max(
                 0,
-                (self.due_date - datetime.now().replace(microsecond=0))
-                // timedelta(days=1)
-                + 1,
+                (due - now) // timedelta(days=1) + 1,
             )
         return None
 
@@ -126,3 +138,34 @@ class Task(BaseModel):
             return False, f"Task is blocked by unfinished dependencies: {task_titles}"
 
         return True, "OK"
+
+    def get_metadata(self, key: str, default: Any = None) -> Any:
+        """Get metadata value by key with optional default.
+
+        Args:
+            key: Metadata key to retrieve
+            default: Default value if key not found
+
+        Returns:
+            Metadata value or default
+        """
+        return self.metadata.get(key, default)
+
+    def set_metadata(self, key: str, value: Any) -> None:
+        """Set metadata value by key.
+
+        Args:
+            key: Metadata key to set
+            value: Value to store
+        """
+        self.metadata[key] = value
+
+    @property
+    def jira_key(self) -> str | None:
+        """Get Jira issue key from metadata (e.g., 'KTUI-123')."""
+        return self.get_metadata("jira_key")
+
+    @property
+    def assignee(self) -> str | None:
+        """Get task assignee from metadata (Jira-specific)."""
+        return self.get_metadata("assignee")

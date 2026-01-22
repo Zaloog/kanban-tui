@@ -122,10 +122,23 @@ class KanbanTui(App[str | None]):
         match event.value:
             case Backends.SQLITE:
                 self.config.set_backend(new_backend=event.value)
+            case Backends.JIRA:
+                # Check if Jira is configured
+                if not self.config.backend.jira_settings.base_url:
+                    self.notify(
+                        title="Jira not configured",
+                        message="Please configure Jira settings in config.toml (see JIRA_SETUP.md)",
+                        severity="warning",
+                    )
+                    with self.prevent(Select.Changed):
+                        event.select.value = Backends.SQLITE
+                    self.action_focus_next()
+                    return
+                self.config.set_backend(new_backend=event.value)
             case _:
                 self.notify(
                     title="Backend not available yet",
-                    message="Please choose the `sqlite` backend",
+                    message="Please choose the `sqlite` or `jira` backend",
                     severity="warning",
                 )
                 with self.prevent(Select.Changed):
