@@ -39,7 +39,7 @@ class BoardSettings(BaseModel):
 class TaskSettings(BaseModel):
     default_color: str = Field(default="#004578")
     always_expanded: bool = Field(default=False)
-    movement_mode: MovementModes = Field(default=MovementModes.ADJACENT)
+    movement_mode: MovementModes = Field(default=MovementModes("adjacent"))
 
 
 class JqlEntry(BaseModel):
@@ -70,7 +70,7 @@ class SqliteBackendSettings(BaseModel):
 
 
 class BackendSettings(BaseModel):
-    mode: Backends = Field(default=Backends.SQLITE)
+    mode: Backends = Field(default=Backends("sqlite"))
     sqlite_settings: SqliteBackendSettings = Field(
         default_factory=SqliteBackendSettings
     )

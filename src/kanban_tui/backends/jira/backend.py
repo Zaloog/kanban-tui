@@ -20,8 +20,8 @@ from kanban_tui.backends.jira.models import JiraIssue
 @dataclass
 class JiraBackend(Backend):
     settings: JiraBackendSettings
-    auth: Any = field(init=False, default=None)
-    auth_settings: AuthSettings = field(init=False, default=None)
+    auth: Any = field(init=False)
+    auth_settings: AuthSettings = field(init=False)
     _status_column_map: dict[str, int] = field(init=False, default_factory=dict)
     _cache: dict[str, Any] = field(init=False, default_factory=dict)
     _cache_timestamp: datetime | None = field(init=False, default=None)
@@ -85,7 +85,7 @@ class JiraBackend(Backend):
     def get_columns(self, board_id: int | None = None) -> list[Column]:
         """Return columns based on status mapping"""
         # Create columns from unique status-to-column mappings
-        column_names = {
+        column_names: dict[int, list] = {
             column_id: [] for column_id in set(self._status_column_map.values())
         }
 
@@ -337,11 +337,11 @@ class JiraBackend(Backend):
         return boards[0] if boards else None
 
     @property
-    def api_key(self) -> str | None:
+    def api_key(self) -> str:
         return self.auth_settings.jira.api_key
 
     @property
-    def cert_path(self) -> str | None:
+    def cert_path(self) -> str:
         return self.auth_settings.jira.cert_path
 
     # Read-only backend - these methods raise NotImplementedError

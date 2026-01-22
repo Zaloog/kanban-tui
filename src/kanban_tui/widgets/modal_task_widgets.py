@@ -23,9 +23,9 @@ from textual.widgets import (
     Rule,
     TextArea,
     Label,
+    DataTable,
     Switch,
     Button,
-    DataTable,
 )
 from textual.containers import Horizontal, Vertical, VerticalScroll
 
@@ -325,9 +325,6 @@ class TaskDependencyManager(Vertical):
         with Horizontal(id="add_dependency_section"):
             yield Label("Add Dependency:")
             yield DependencySelector(current_task_id=self.current_task_id)
-
-        # Current dependencies table
-        from textual.widgets import DataTable
 
         table = DataTable(id="dependencies_table")
         table.add_columns("ID", "Title", "Status", "Action")
