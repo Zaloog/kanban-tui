@@ -175,20 +175,6 @@ class JiraBackend(Backend):
 
         return tasks
 
-    def get_blocked_tasks(self) -> list[Task]:
-        """Get tasks that are blocked by unfinished dependencies"""
-        all_tasks = self.get_tasks_on_active_board()
-        blocked_tasks = []
-
-        for task in all_tasks:
-            if task.blocked_by:
-                # Check if any blocking tasks are unfinished
-                blocking_tasks = self.get_tasks_by_ids(task.blocked_by)
-                if any(not bt.finished for bt in blocking_tasks):
-                    blocked_tasks.append(task)
-
-        return blocked_tasks
-
     # Helper methods
 
     def _get_active_jql_entry(self):

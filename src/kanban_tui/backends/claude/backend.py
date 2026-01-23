@@ -1,4 +1,5 @@
 from __future__ import annotations
+from coverage.python import os
 
 import json
 from dataclasses import dataclass
@@ -33,7 +34,8 @@ class ClaudeBackend(Backend):
     settings: ClaudeBackendSettings
 
     def __post_init__(self):
-        self._tasks_base_path = Path(self.settings.tasks_base_path).expanduser()
+        path = os.getenv("CLAUDE_CODE_CONFIG_DIR", self.settings.tasks_base_path)
+        self._tasks_base_path = Path(path).expanduser()
         self._status_to_column_id = {
             "pending": 1,
             "in_progress": 2,
@@ -346,11 +348,6 @@ class ClaudeBackend(Backend):
         """Get all tasks that depend on the given task."""
         task = self.get_task_by_id(task_id)
         return task.blocking if task else []
-
-    def get_blocked_tasks(self) -> list[Task]:
-        """Get all tasks blocked by unfinished dependencies."""
-        all_tasks = self.get_tasks_on_active_board()
-        return [t for t in all_tasks if t.is_blocked]
 
     def would_create_dependency_cycle(
         self, task_id: int, depends_on_task_id: int

@@ -1,1 +1,0 @@
-# Claude backend tests

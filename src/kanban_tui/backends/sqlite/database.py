@@ -1762,27 +1762,3 @@ def would_create_cycle(
         stack.extend(dependencies)
 
     return False
-
-
-def get_blocked_tasks_db(
-    database: str = DATABASE_FILE.as_posix(),
-) -> list[Task]:
-    query_str = """
-    SELECT DISTINCT t.*
-    FROM tasks t
-    INNER JOIN dependencies d ON t.task_id = d.task_id
-    INNER JOIN tasks blocking_task ON d.depends_on_task_id = blocking_task.task_id
-    WHERE blocking_task.finish_date IS NULL
-    ORDER BY t.task_id
-    ;
-    """
-
-    with create_connection(database=database) as con:
-        con.row_factory = task_factory
-        try:
-            tasks = con.execute(query_str).fetchall()
-            con.commit()
-            return tasks
-        except sqlite3.Error as e:
-            con.rollback()
-            raise e
