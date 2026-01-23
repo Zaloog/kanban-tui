@@ -3,6 +3,8 @@
 ## v0.14.0
 ### Added
 - FOREIGN_KEYS check to migration
+- Claude Backend to view tasks under `~/.claude/tasks`
+- First version of jira Backend (not fully functional)
 
 ### Fixed
 - Added `Delete` mention on Category Dropdown
