@@ -23,6 +23,7 @@ from kanban_tui.constants import (
 class Backends(StrEnum):
     SQLITE = "sqlite"
     JIRA = "jira"
+    CLAUDE = "claude"
     CUSTOM = "custom"
 
 
@@ -69,12 +70,20 @@ class SqliteBackendSettings(BaseModel):
     active_board_id: int = Field(default=1)
 
 
+class ClaudeBackendSettings(BaseModel):
+    tasks_base_path: str = Field(default="~/.claude/tasks")
+    active_session_id: str = Field(default="")
+
+
 class BackendSettings(BaseModel):
     mode: Backends = Field(default=Backends("sqlite"))
     sqlite_settings: SqliteBackendSettings = Field(
         default_factory=SqliteBackendSettings
     )
     jira_settings: JiraBackendSettings = Field(default_factory=JiraBackendSettings)
+    claude_settings: ClaudeBackendSettings = Field(
+        default_factory=ClaudeBackendSettings
+    )
 
 
 class Settings(BaseSettings):
@@ -112,6 +121,14 @@ class Settings(BaseSettings):
 
     def set_active_board(self, new_active_board_id: int) -> None:
         self.backend.sqlite_settings.active_board_id = new_active_board_id
+        self.save()
+
+    def set_active_claude_session(self, new_session_id: str) -> None:
+        self.backend.claude_settings.active_session_id = new_session_id
+        self.save()
+
+    def set_active_jql(self, new_jql: int) -> None:
+        self.backend.jira_settings.active_jql = new_jql
         self.save()
 
     def add_jql(self, new_jql: JqlEntry) -> None:

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 from importlib.metadata import version
 
@@ -74,8 +75,14 @@ class KanbanTui(App[str | None]):
                 from kanban_tui.backends.jira.backend import JiraBackend
 
                 backend = JiraBackend(self.config.backend.jira_settings)
+            case Backends.CLAUDE:
+                from kanban_tui.backends.claude.backend import ClaudeBackend
+
+                backend = ClaudeBackend(self.config.backend.claude_settings)
             case _:
-                raise NotImplementedError("Only sqlite Backend is supported for now")
+                raise NotImplementedError(
+                    "Only sqlite, jira, and claude backends are supported"
+                )
 
         return backend
 
@@ -123,6 +130,19 @@ class KanbanTui(App[str | None]):
             case Backends.SQLITE:
                 self.config.set_backend(new_backend=event.value)
             case Backends.JIRA:
+                try:
+                    version("atlassian-python-api")
+                except ImportError:
+                    self.notify(
+                        title="Optional Jira dependency required",
+                        message='Can be installed with: [$warning]uv tool install "kanban-tui\\[jira]"[/]',
+                        # markup=False,
+                        severity="warning",
+                    )
+                    with self.prevent(Select.Changed):
+                        event.select.value = self.config.backend.mode
+                    self.action_focus_next()
+                    return
                 # Check if Jira is configured
                 if not self.config.backend.jira_settings.base_url:
                     self.notify(
@@ -131,14 +151,35 @@ class KanbanTui(App[str | None]):
                         severity="warning",
                     )
                     with self.prevent(Select.Changed):
-                        event.select.value = Backends.SQLITE
+                        event.select.value = self.config.backend.mode
                     self.action_focus_next()
                     return
                 self.config.set_backend(new_backend=event.value)
+            case Backends.CLAUDE:
+                # Check if Claude tasks directory exists
+                claude_path = Path(
+                    self.config.backend.claude_settings.tasks_base_path
+                ).expanduser()
+                if not claude_path.exists() or not any(claude_path.iterdir()):
+                    self.notify(
+                        title="Claude backend not available",
+                        message="No Claude Code tasks found in ~/.claude/tasks/ (see CLAUDE_BACKEND.md)",
+                        severity="warning",
+                    )
+                    with self.prevent(Select.Changed):
+                        event.select.value = self.config.backend.mode
+                    self.action_focus_next()
+                    return
+                self.config.set_backend(new_backend=event.value)
+                self.notify(
+                    title="Claude backend activated",
+                    message="Read-only mode: viewing Claude Code tasks from ~/.claude/tasks/",
+                    severity="information",
+                )
             case _:
                 self.notify(
                     title="Backend not available yet",
-                    message="Please choose the `sqlite` or `jira` backend",
+                    message="Please choose the `sqlite`, `jira`, or `claude` backend",
                     severity="warning",
                 )
                 with self.prevent(Select.Changed):
@@ -157,7 +198,18 @@ class KanbanTui(App[str | None]):
 
     def watch_active_board(self, old_board: Board | None, new_board: Board):
         if self.active_board:
-            self.config.set_active_board(new_active_board_id=self.active_board.board_id)
+            match self.config.backend.mode:
+                case Backends.SQLITE:
+                    self.config.set_active_board(
+                        new_active_board_id=self.active_board.board_id
+                    )
+                case Backends.CLAUDE:
+                    self.config.set_active_claude_session(
+                        new_session_id=self.active_board.name
+                    )
+                case Backends.JIRA:
+                    self.config.set_active_jql(new_jql=self.active_board.board_id)
+
         self.update_column_list()
         # If updating Board, refresh setting screen
         if old_board:
