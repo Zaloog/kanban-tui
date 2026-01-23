@@ -222,13 +222,16 @@ class KanbanTui(App[str | None]):
         self.config.set_theme(new_theme)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "refresh":
-            if not isinstance(self.screen, BoardScreen):
-                return False
-
-        if action == "show_backend_selector":
-            if not isinstance(self.screen, tuple(self.SCREENS.values())):
-                return False
+        match action:
+            case "refresh":
+                if not isinstance(self.screen, BoardScreen):
+                    return False
+            case "show_backend_selector":
+                if not isinstance(self.screen, tuple(self.SCREENS.values())):
+                    return False
+            case "switch_screen":
+                if self.config.backend.mode != Backends.SQLITE:
+                    return False
         return True
 
     def action_show_backend_selector(self):

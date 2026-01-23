@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
-from kanban_tui.config import MovementModes
+from kanban_tui.config import MovementModes, Backends
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -139,6 +139,9 @@ class TaskCard(Vertical):
         self.description.display = is_visible
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if self.app.config.backend.mode != Backends.SQLITE:
+            return False
+
         column_id_list = list(self.app.visible_column_dict.keys())
         if action == "move_task":
             if parameters == ("left",):
