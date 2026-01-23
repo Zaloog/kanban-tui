@@ -147,7 +147,7 @@ class KanbanTui(App[str | None]):
                 if not self.config.backend.jira_settings.base_url:
                     self.notify(
                         title="Jira not configured",
-                        message="Please configure Jira settings in config.toml (see JIRA_SETUP.md)",
+                        message="Please configure Jira settings in config.toml",
                         severity="warning",
                     )
                     with self.prevent(Select.Changed):
@@ -163,7 +163,7 @@ class KanbanTui(App[str | None]):
                 if not claude_path.exists() or not any(claude_path.iterdir()):
                     self.notify(
                         title="Claude backend not available",
-                        message="No Claude Code tasks found in ~/.claude/tasks/ (see CLAUDE_BACKEND.md)",
+                        message="No Claude Code tasks found in ~/.claude/tasks/",
                         severity="warning",
                     )
                     with self.prevent(Select.Changed):
