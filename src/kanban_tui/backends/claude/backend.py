@@ -1,6 +1,5 @@
 from __future__ import annotations
-from coverage.python import os
-
+import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -12,7 +11,6 @@ from kanban_tui.classes.board import Board
 from kanban_tui.classes.category import Category
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
-from kanban_tui.classes.logevent import LogEvent
 from kanban_tui.config import ClaudeBackendSettings
 
 
@@ -214,11 +212,6 @@ class ClaudeBackend(Backend):
         all_tasks = self.get_tasks_on_active_board()
         return [t for t in all_tasks if t.task_id in task_ids]
 
-    def get_tasks_by_column(self, column_id: int) -> list[Task] | None:
-        """Get all tasks in a specific column."""
-        all_tasks = self.get_tasks_on_active_board()
-        return [t for t in all_tasks if t.column == column_id]
-
     def get_column_by_id(self, column_id: int) -> Column | None:
         """Get a column by ID."""
         columns = self.get_columns()
@@ -268,9 +261,6 @@ class ClaudeBackend(Backend):
     ) -> Task:
         raise NotImplementedError("Claude backend is read-only. Cannot update tasks.")
 
-    def delete_task(self, task_id: int):
-        raise NotImplementedError("Claude backend is read-only. Cannot delete tasks.")
-
     def create_new_category(self, name: str, color: str) -> Category:
         raise NotImplementedError(
             "Claude backend is read-only. Cannot create categories."
@@ -302,18 +292,6 @@ class ClaudeBackend(Backend):
             "Claude backend is read-only. Cannot update column names."
         )
 
-    def delete_column(self, column_id: int, position: int, board_id: int) -> Column:
-        raise NotImplementedError("Claude backend is read-only. Cannot delete columns.")
-
-    def create_new_column(self, board_id: int, position: int, name: str):
-        raise NotImplementedError("Claude backend is read-only. Cannot create columns.")
-
-    def get_ordered_tasks(self, order_by: str) -> list[dict]:
-        raise NotImplementedError("Claude backend does not support task ordering.")
-
-    def get_filtered_events(self, filter: dict) -> list[LogEvent]:
-        return []  # No audit events in Claude backend
-
     def get_board_infos(self):
         """Get board information for all sessions."""
         boards = self.get_boards()
@@ -338,11 +316,6 @@ class ClaudeBackend(Backend):
         raise NotImplementedError(
             "Claude backend is read-only. Cannot delete dependencies."
         )
-
-    def get_task_dependencies(self, task_id: int) -> list[int]:
-        """Get all tasks that the given task depends on."""
-        task = self.get_task_by_id(task_id)
-        return task.blocked_by if task else []
 
     def would_create_dependency_cycle(
         self, task_id: int, depends_on_task_id: int

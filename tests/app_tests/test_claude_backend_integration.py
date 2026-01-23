@@ -132,7 +132,4 @@ def test_claude_backend_read_only_operations(temp_claude_tasks_env):
             backend.create_new_task("Test", "Description", 1)
 
         with pytest.raises(NotImplementedError, match="read-only"):
-            backend.delete_task(1)
-
-        with pytest.raises(NotImplementedError, match="read-only"):
             backend.create_new_board("Test Board")

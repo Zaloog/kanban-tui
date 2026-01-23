@@ -137,40 +137,6 @@ def test_claude_backend_get_task_by_id(temp_claude_tasks, test_app):
     assert task is None
 
 
-def test_claude_backend_get_tasks_by_column(temp_claude_tasks):
-    """Test filtering tasks by column."""
-    tasks_path, session_id = temp_claude_tasks
-
-    settings = ClaudeBackendSettings(
-        tasks_base_path=str(tasks_path), active_session_id=session_id
-    )
-    backend = ClaudeBackend(settings)
-
-    # Tasks in "Doing" column
-    doing_tasks = backend.get_tasks_by_column(2)
-    assert len(doing_tasks) == 1
-    assert doing_tasks[0].title == "Implement feature X"
-
-    # Tasks in "Ready" column
-    ready_tasks = backend.get_tasks_by_column(1)
-    assert len(ready_tasks) == 1
-    assert ready_tasks[0].title == "Test feature X"
-
-
-def test_claude_backend_dependencies(temp_claude_tasks):
-    """Test dependency-related methods."""
-    tasks_path, session_id = temp_claude_tasks
-
-    settings = ClaudeBackendSettings(
-        tasks_base_path=str(tasks_path), active_session_id=session_id
-    )
-    backend = ClaudeBackend(settings)
-
-    # Task 1 blocks task 2
-    dependencies = backend.get_task_dependencies(2)
-    assert dependencies == [1]
-
-
 def test_claude_backend_read_only_operations(temp_claude_tasks):
     """Test that write operations raise NotImplementedError."""
     tasks_path, session_id = temp_claude_tasks
@@ -186,9 +152,6 @@ def test_claude_backend_read_only_operations(temp_claude_tasks):
 
     with pytest.raises(NotImplementedError):
         backend.create_new_task("Test Task", "Description", 1)
-
-    with pytest.raises(NotImplementedError):
-        backend.delete_task(1)
 
     with pytest.raises(NotImplementedError):
         backend.create_task_dependency(1, 2)
