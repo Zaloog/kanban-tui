@@ -14,6 +14,7 @@ from kanban_tui.classes.logevent import LogEvent
 from kanban_tui.backends.sqlite.migrations import (
     CURRENT_SCHEMA_VERSION,
     apply_migration_v1_to_v2,
+    apply_migration_v2_to_v3,
     increment_schema_version,
 )
 
@@ -53,6 +54,13 @@ def task_factory(cursor, row):
         data["blocked_by"] = json.loads(data["blocked_by"])
     if "blocking" in data and isinstance(data["blocking"], str):
         data["blocking"] = json.loads(data["blocking"])
+
+    # Parse JSON for metadata field
+    if "metadata" in data:
+        if isinstance(data["metadata"], str):
+            data["metadata"] = json.loads(data["metadata"]) if data["metadata"] else {}
+        elif data["metadata"] is None:
+            data["metadata"] = {}
 
     return Task(**data)
 
@@ -108,6 +116,11 @@ def run_migrations(database: str = DATABASE_FILE.as_posix()):
             if current_version < 2:
                 apply_migration_v1_to_v2(con)
                 increment_schema_version(con, 2)
+
+            # migration to v3
+            if current_version < 3:
+                apply_migration_v2_to_v3(con)
+                increment_schema_version(con, 3)
 
             con.commit()
 
@@ -586,10 +599,13 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
             con.execute(column_delete_trigger_str)
             con.execute(column_update_trigger_str)
 
+            # Initialize schema version for new database (already at v3)
+
             con.commit()
 
             # con.executescript(indexes_creation_str)
             run_migrations(database)
+            # Don't run migrations on brand new database - it's already at current version
         except sqlite3.Error as e:
             con.rollback()
             raise e
@@ -700,6 +716,7 @@ def create_new_task_db(
     start_date: datetime.datetime | None = None,
     finish_date: datetime.datetime | None = None,
     due_date: datetime.datetime | None = None,
+    metadata: dict[str, Any] | None = None,
     database: str = DATABASE_FILE.as_posix(),
 ) -> Task:
     task_dict = {
@@ -711,6 +728,7 @@ def create_new_task_db(
         "category": category,
         "due_date": due_date,
         "description": description,
+        "metadata": json.dumps(metadata if metadata is not None else {}),
     }
 
     transaction_str = """
@@ -724,7 +742,8 @@ def create_new_task_db(
         :creation_date,
         :start_date,
         :finish_date,
-        :due_date
+        :due_date,
+        :metadata
         )
         RETURNING *
         ;"""
@@ -1191,12 +1210,14 @@ def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) 
         "start_date": task.start_date,
         "column": task.column,
         "finish_date": task.finish_date,
+        "metadata": json.dumps(task.metadata),
     }
     transaction_str = """
     UPDATE tasks
     SET start_date = :start_date,
         finish_date = :finish_date,
-        column = :column
+        column = :column,
+        metadata = :metadata
     WHERE task_id = :task_id
     RETURNING *;
     """
@@ -1315,6 +1336,7 @@ def update_task_entry_db(
     category: int | None = None,
     description: str | None = None,
     due_date: datetime.datetime | None = None,
+    metadata: dict[str, Any] | None = None,
     database: str = DATABASE_FILE.as_posix(),
 ) -> Task:
     update_task_dict = {
@@ -1323,17 +1345,31 @@ def update_task_entry_db(
         "category": category,
         "description": description,
         "due_date": due_date,
+        "metadata": json.dumps(metadata) if metadata is not None else None,
     }
 
-    transaction_str = """
-    UPDATE tasks
-    SET
-        title = :title,
-        category = :category,
-        description = :description,
-        due_date = :due_date
-    WHERE task_id = :task_id;
-    """
+    # Only update metadata if explicitly provided
+    if metadata is not None:
+        transaction_str = """
+        UPDATE tasks
+        SET
+            title = :title,
+            category = :category,
+            description = :description,
+            due_date = :due_date,
+            metadata = :metadata
+        WHERE task_id = :task_id;
+        """
+    else:
+        transaction_str = """
+        UPDATE tasks
+        SET
+            title = :title,
+            category = :category,
+            description = :description,
+            due_date = :due_date
+        WHERE task_id = :task_id;
+        """
 
     # Query to get the updated task with dependencies
     query_str = """

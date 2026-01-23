@@ -100,7 +100,7 @@ def test_auth_dir_creation(test_jira_config: Settings, test_auth_path) -> None:
 
 
 def test_default_config(test_config: Settings, test_database_path: str) -> None:
-    settings_dict = test_config.model_dump(serialize_as_any=True)
+    settings_dict = test_config.model_dump()  # serialize_as_any=True)
     default_settings = {
         "board": {
             "theme": "dracula",
@@ -117,10 +117,21 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
                 "database_path": test_database_path,
                 "active_board_id": 1,
             },
+            "claude_settings": {
+                "active_session_id": "",
+                "tasks_base_path": "~/.claude/tasks",
+            },
             "jira_settings": {
                 "base_url": "",
+                "cache_ttl_seconds": 300,
                 "auth_file_path": AUTH_FILE.as_posix(),
                 "jqls": [],
+                "project_key": "",
+                "status_to_column_map": {
+                    "Done": 3,
+                    "In Progress": 2,
+                    "To Do": 1,
+                },
                 "active_jql": 1,
             },
         },

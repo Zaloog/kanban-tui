@@ -1,0 +1,138 @@
+"""Integration tests for Claude backend in the TUI app."""
+
+import json
+import os
+import tempfile
+from pathlib import Path
+import pytest
+
+from kanban_tui.app import KanbanTui
+from kanban_tui.config import Backends, init_config
+from kanban_tui.constants import CONFIG_NAME, DATABASE_NAME
+
+
+@pytest.fixture
+def temp_claude_tasks_env():
+    """Create a temporary Claude tasks directory and set it in config."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tasks_path = Path(tmpdir)
+
+        # Create a test session
+        session_id = "test-integration-session"
+        session_path = tasks_path / session_id
+        session_path.mkdir()
+
+        # Create test tasks
+        tasks = [
+            {
+                "id": "1",
+                "subject": "Integration test task",
+                "description": "Testing Claude backend in TUI",
+                "activeForm": "Testing integration",
+                "status": "in_progress",
+                "blocks": [],
+                "blockedBy": [],
+            },
+            {
+                "id": "2",
+                "subject": "Completed task",
+                "description": "Already done",
+                "activeForm": "Completing task",
+                "status": "completed",
+                "blocks": [],
+                "blockedBy": [],
+            },
+        ]
+
+        for task in tasks:
+            task_file = session_path / f"{task['id']}.json"
+            task_file.write_text(json.dumps(task, indent=2))
+
+        yield str(tasks_path), session_id
+
+
+def test_claude_backend_can_be_selected(temp_claude_tasks_env):
+    """Test that Claude backend can be instantiated in the app."""
+    tasks_path, session_id = temp_claude_tasks_env
+
+    # Create temporary config and database paths
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = str(Path(tmpdir) / CONFIG_NAME)
+        database_path = str(Path(tmpdir) / DATABASE_NAME)
+
+        # Initialize config
+        os.environ["KANBAN_TUI_CONFIG_FILE"] = config_path
+        os.environ["KANBAN_TUI_DATABASE_FILE"] = database_path
+        init_config(config_path=config_path, database=database_path)
+
+        # Create app with Claude backend configuration
+        app = KanbanTui(config_path=config_path, database_path=database_path)
+        app.config.backend.mode = Backends.CLAUDE
+        app.config.backend.claude_settings.tasks_base_path = tasks_path
+        app.config.backend.claude_settings.active_session_id = session_id
+
+        # Get backend should work
+        backend = app.get_backend()
+        assert backend is not None
+
+        # Should be able to get boards
+        boards = backend.get_boards()
+        assert len(boards) == 1
+        assert boards[0].name == session_id
+
+        # Should be able to get tasks
+        tasks = backend.get_tasks_on_active_board()
+        assert len(tasks) == 2
+
+        # Verify task statuses mapped correctly
+        task1 = next(t for t in tasks if t.task_id == 1)
+        assert task1.column == 2  # in_progress -> Doing
+
+        task2 = next(t for t in tasks if t.task_id == 2)
+        assert task2.column == 3  # completed -> Done
+
+
+def test_claude_backend_settings_in_config(test_app: KanbanTui):
+    """Test that Claude backend settings are part of config."""
+    test_app.config.set_backend(Backends.CLAUDE)
+    test_app.backend = test_app.get_backend()
+
+    assert hasattr(test_app.backend.settings, "tasks_base_path")
+    assert hasattr(test_app.backend.settings, "active_session_id")
+
+    # Test default values
+    assert test_app.backend.settings.tasks_base_path == "~/.claude/tasks"
+    assert test_app.backend.settings.active_session_id == ""
+
+
+def test_claude_backend_read_only_operations(temp_claude_tasks_env):
+    """Test that write operations raise NotImplementedError."""
+    tasks_path, session_id = temp_claude_tasks_env
+
+    # Create temporary config and database paths
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_path = str(Path(tmpdir) / CONFIG_NAME)
+        database_path = str(Path(tmpdir) / DATABASE_NAME)
+
+        # Initialize config
+        os.environ["KANBAN_TUI_CONFIG_FILE"] = config_path
+        os.environ["KANBAN_TUI_DATABASE_FILE"] = database_path
+        init_config(config_path=config_path, database=database_path)
+
+        # Create app with Claude backend
+        app = KanbanTui(config_path=config_path, database_path=database_path)
+        app.config.backend.mode = Backends.CLAUDE
+        app.config.backend.claude_settings.tasks_base_path = tasks_path
+        app.config.backend.claude_settings.active_session_id = session_id
+
+        backend = app.get_backend()
+
+        # All write operations should raise NotImplementedError
+        with pytest.raises(NotImplementedError, match="read-only"):
+            backend.create_new_task("Test", "Description", 1)
+
+        with pytest.raises(NotImplementedError, match="read-only"):
+            backend.delete_task(1)
+
+        with pytest.raises(NotImplementedError, match="read-only"):
+            backend.create_new_board("Test Board")

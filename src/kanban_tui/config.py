@@ -23,6 +23,7 @@ from kanban_tui.constants import (
 class Backends(StrEnum):
     SQLITE = "sqlite"
     JIRA = "jira"
+    CLAUDE = "claude"
     CUSTOM = "custom"
 
 
@@ -39,7 +40,7 @@ class BoardSettings(BaseModel):
 class TaskSettings(BaseModel):
     default_color: str = Field(default="#004578")
     always_expanded: bool = Field(default=False)
-    movement_mode: MovementModes = Field(default=MovementModes.ADJACENT)
+    movement_mode: MovementModes = Field(default=MovementModes("adjacent"))
 
 
 class JqlEntry(BaseModel):
@@ -53,6 +54,15 @@ class JiraBackendSettings(BaseModel):
     auth_file_path: str = Field(default=AUTH_FILE.as_posix())
     jqls: list[JqlEntry] = Field(default_factory=list)
     active_jql: int = Field(default=1)
+    project_key: str = Field(default="")
+    status_to_column_map: dict[str, int] = Field(
+        default_factory=lambda: {
+            "To Do": 1,
+            "In Progress": 2,
+            "Done": 3,
+        }
+    )
+    cache_ttl_seconds: int = Field(default=300)  # 5 minutes cache
 
 
 class SqliteBackendSettings(BaseModel):
@@ -60,12 +70,20 @@ class SqliteBackendSettings(BaseModel):
     active_board_id: int = Field(default=1)
 
 
+class ClaudeBackendSettings(BaseModel):
+    tasks_base_path: str = Field(default="~/.claude/tasks")
+    active_session_id: str = Field(default="")
+
+
 class BackendSettings(BaseModel):
-    mode: Backends = Field(default=Backends.SQLITE)
+    mode: Backends = Field(default=Backends("sqlite"))
     sqlite_settings: SqliteBackendSettings = Field(
         default_factory=SqliteBackendSettings
     )
     jira_settings: JiraBackendSettings = Field(default_factory=JiraBackendSettings)
+    claude_settings: ClaudeBackendSettings = Field(
+        default_factory=ClaudeBackendSettings
+    )
 
 
 class Settings(BaseSettings):
@@ -105,6 +123,14 @@ class Settings(BaseSettings):
         self.backend.sqlite_settings.active_board_id = new_active_board_id
         self.save()
 
+    def set_active_claude_session(self, new_session_id: str) -> None:
+        self.backend.claude_settings.active_session_id = new_session_id
+        self.save()
+
+    def set_active_jql(self, new_jql: int) -> None:
+        self.backend.jira_settings.active_jql = new_jql
+        self.save()
+
     def add_jql(self, new_jql: JqlEntry) -> None:
         self.backend.jira_settings.jqls.append(new_jql)
         self.save()
@@ -119,9 +145,8 @@ class Settings(BaseSettings):
         config_from_env = os.getenv("KANBAN_TUI_CONFIG_FILE")
         if config_from_env:
             path = config_from_env
-        with open(Path(path).resolve(), "w") as toml_file:
-            dumb = tomli_w.dumps(self.model_dump())
-            toml_file.write(dumb)
+        dump = tomli_w.dumps(self.model_dump())
+        Path(path).resolve().write_text(dump, encoding="utf-8")
 
     @classmethod
     def settings_customise_sources(
