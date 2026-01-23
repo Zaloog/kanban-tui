@@ -119,7 +119,7 @@ def test_claude_backend_get_tasks(temp_claude_tasks):
     assert task3.finished is True
 
 
-def test_claude_backend_get_task_by_id(temp_claude_tasks, test_app):
+def test_claude_backend_get_task_by_id(temp_claude_tasks):
     """Test fetching a specific task by ID."""
     tasks_path, session_id = temp_claude_tasks
 

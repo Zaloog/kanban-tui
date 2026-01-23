@@ -32,8 +32,12 @@ class ClaudeBackend(Backend):
     settings: ClaudeBackendSettings
 
     def __post_init__(self):
-        path = os.getenv("CLAUDE_CODE_CONFIG_DIR", self.settings.tasks_base_path)
-        self._tasks_base_path = Path(path).expanduser()
+        if path := os.getenv("CLAUDE_CODE_CONFIG_DIR"):
+            path = Path(path) / "tasks"
+        else:
+            path = Path(self.settings.tasks_base_path)
+
+        self._tasks_base_path = path.expanduser()
         self._status_to_column_id = {
             "pending": 1,
             "in_progress": 2,
