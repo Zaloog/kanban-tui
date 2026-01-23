@@ -140,6 +140,8 @@ class TaskCard(Vertical):
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.app.config.backend.mode != Backends.SQLITE:
+            if action == "edit_task":
+                return True
             return False
 
         column_id_list = list(self.app.visible_column_dict.keys())
