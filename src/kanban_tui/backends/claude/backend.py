@@ -344,11 +344,6 @@ class ClaudeBackend(Backend):
         task = self.get_task_by_id(task_id)
         return task.blocked_by if task else []
 
-    def get_dependent_tasks(self, task_id: int) -> list[int]:
-        """Get all tasks that depend on the given task."""
-        task = self.get_task_by_id(task_id)
-        return task.blocking if task else []
-
     def would_create_dependency_cycle(
         self, task_id: int, depends_on_task_id: int
     ) -> bool:

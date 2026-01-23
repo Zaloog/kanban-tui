@@ -170,10 +170,6 @@ def test_claude_backend_dependencies(temp_claude_tasks):
     dependencies = backend.get_task_dependencies(2)
     assert dependencies == [1]
 
-    # Task 2 is blocked by task 1
-    dependents = backend.get_dependent_tasks(1)
-    assert dependents == [2]
-
 
 def test_claude_backend_read_only_operations(temp_claude_tasks):
     """Test that write operations raise NotImplementedError."""

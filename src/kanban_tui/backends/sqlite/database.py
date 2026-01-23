@@ -1709,30 +1709,6 @@ def get_task_dependencies_db(
             raise e
 
 
-def get_dependent_tasks_db(
-    task_id: int,
-    database: str = DATABASE_FILE.as_posix(),
-) -> list[int]:
-    query_str = """
-    SELECT task_id
-    FROM dependencies
-    WHERE depends_on_task_id = :task_id
-    ORDER BY task_id
-    ;
-    """
-    task_id_dict = {"task_id": task_id}
-
-    with create_connection(database=database) as con:
-        con.row_factory = sqlite3.Row
-        try:
-            results = con.execute(query_str, task_id_dict).fetchall()
-            con.commit()
-            return [row[0] for row in results]
-        except sqlite3.Error as e:
-            con.rollback()
-            raise e
-
-
 def would_create_cycle(
     task_id: int,
     depends_on_task_id: int,

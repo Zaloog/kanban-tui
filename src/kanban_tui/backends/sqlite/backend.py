@@ -40,7 +40,6 @@ from kanban_tui.backends.sqlite.database import (
     delete_task_dependency_db,
     would_create_cycle,
     get_task_dependencies_db,
-    get_dependent_tasks_db,
 )
 
 
@@ -297,20 +296,6 @@ class SqliteBackend(Backend):
             List of task IDs this task depends on
         """
         return get_task_dependencies_db(
-            task_id=task_id,
-            database=self.database_path,
-        )
-
-    def get_dependent_tasks(self, task_id: int) -> list[int]:
-        """Get all tasks that depend on the given task.
-
-        Args:
-            task_id: The task ID
-
-        Returns:
-            List of task IDs that depend on this task
-        """
-        return get_dependent_tasks_db(
             task_id=task_id,
             database=self.database_path,
         )
