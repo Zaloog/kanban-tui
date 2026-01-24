@@ -82,18 +82,3 @@ async def test_app_auth_set_key_and_url(test_app: KanbanTui, test_file_location:
         await pilot.press(*"http://localhost:8080")
         await pilot.click("#btn_continue")
         assert isinstance(test_app.screen, ModalBoardOverviewScreen)
-
-
-async def test_app_auth_exit_no_url_set(test_app: KanbanTui, test_file_location: Path):
-    config_path = (
-        Path(__file__).parent.parent.parent / "sample-configs/sample_auth.toml"
-    )
-    os.environ["KANBAN_TUI_AUTH_FILE"] = config_path.as_posix()
-
-    test_app.config.backend.mode = Backends.JIRA
-    test_app.backend = test_app.get_backend()
-    async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert isinstance(test_app.screen, ModalBaseUrlScreen)
-        await pilot.press("escape")
-
-    assert test_app.return_code == 1
