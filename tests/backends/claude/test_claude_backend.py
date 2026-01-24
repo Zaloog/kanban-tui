@@ -1,10 +1,11 @@
+import os
 import json
-import tempfile
 from pathlib import Path
 import pytest
 
+from kanban_tui.app import KanbanTui
 from kanban_tui.backends.claude.backend import ClaudeBackend
-from kanban_tui.config import ClaudeBackendSettings
+from kanban_tui.config import ClaudeBackendSettings, Backends
 
 
 @pytest.fixture
@@ -157,15 +158,15 @@ def test_claude_backend_read_only_operations(temp_claude_tasks):
         backend.create_task_dependency(1, 2)
 
 
-def test_claude_backend_empty_directory():
+def test_claude_backend_empty_directory(tmp_path, test_app: KanbanTui):
     """Test backend behavior with no sessions."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        settings = ClaudeBackendSettings(tasks_base_path=tmpdir, active_session_id="")
-        backend = ClaudeBackend(settings)
+    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+    test_app.config.set_backend(Backends("claude"))
+    backend = test_app.get_backend()
 
-        boards = backend.get_boards()
-        assert len(boards) == 0
+    boards = backend.get_boards()
+    assert len(boards) == 0
 
-        # Should raise exception when no boards exist
-        with pytest.raises(Exception, match="No Claude task sessions found"):
-            _ = backend.active_board
+    # Should raise exception when no boards exist
+    with pytest.raises(Exception, match="No Claude task sessions found"):
+        _ = backend.active_board

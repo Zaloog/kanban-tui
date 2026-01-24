@@ -144,17 +144,18 @@ class KanbanTui(App[str | None]):
                     self.action_focus_next()
                     return
                 # Check if Jira is configured
-                if not self.config.backend.jira_settings.base_url:
-                    self.notify(
-                        title="Jira not configured",
-                        message="Please configure Jira settings in config.toml",
-                        severity="warning",
-                    )
-                    with self.prevent(Select.Changed):
-                        event.select.value = self.config.backend.mode
-                    self.action_focus_next()
-                    # return
+                # if not self.config.backend.jira_settings.base_url:
+                #     self.notify(
+                #         title="Jira not configured",
+                #         message="Please configure Jira settings in config.toml",
+                #         severity="warning",
+                #     )
+                #     with self.prevent(Select.Changed):
+                #         event.select.value = self.config.backend.mode
+                #     self.action_focus_next()
+                # return
                 self.config.set_backend(new_backend=event.value)
+
             case Backends.CLAUDE:
                 # Check if Claude tasks directory exists
                 claude_path = Path(
@@ -187,8 +188,8 @@ class KanbanTui(App[str | None]):
                 self.action_focus_next()
                 return
         self.backend = self.get_backend()
-        self.update_board_list()
-        self.get_screen("board", BoardScreen).refresh(recompose=True)
+        self.action_refresh()
+        # self.get_screen("board", BoardScreen).refresh(recompose=True)
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
