@@ -126,6 +126,10 @@ class Settings(BaseSettings):
         self.backend.claude_settings.active_session_id = new_session_id
         self.save()
 
+    def set_base_url(self, new_base_url: str) -> None:
+        self.backend.jira_settings.base_url = new_base_url
+        self.save()
+
     def set_active_jql(self, new_jql: int) -> None:
         self.backend.jira_settings.active_jql = new_jql
         self.save()

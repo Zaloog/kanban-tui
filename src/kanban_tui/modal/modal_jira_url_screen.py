@@ -11,6 +11,7 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Input, Button
 from textual.containers import Vertical
+from textual.validation import URL
 
 from kanban_tui.widgets.custom_widgets import ButtonRow
 
@@ -31,13 +32,19 @@ class ModalBaseUrlScreen(ModalScreen):
 
     def compose(self) -> Iterable[Widget]:
         with Vertical():
-            yield Input(placeholder="Jira base url", valid_empty=False)
+            yield Input(
+                placeholder="Jira base url",
+                valid_empty=False,
+                validators=[URL()],
+                validate_on=["changed"],
+            )
             yield ButtonRow(id="horzontal_buttons")
 
     @on(Button.Pressed, "#btn_continue")
     def add_new_url(self):
-        updated_name = self.query_one(Input).value
-        self.dismiss(result=updated_name)
+        base_url = self.query_one(Input).value
+        self.app.config.set_base_url(base_url)
+        self.dismiss(result=base_url)
 
     @on(Button.Pressed, "#btn_cancel")
     def cancel_new_url(self):
