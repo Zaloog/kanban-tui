@@ -43,7 +43,7 @@ KanbanTuiFooter {
     border:none;
     SelectOverlay {
       background:$primary-muted;
-      height: 3;
+      height: 4;
       content-align:center middle;
     }
   }

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.15.0
+### Fixed
+- Adjust height of BackendSelector to 4, to  prevent scrollbar appearance
+
 ## v0.14.0
 ### Added
 - FOREIGN_KEYS check to migration
