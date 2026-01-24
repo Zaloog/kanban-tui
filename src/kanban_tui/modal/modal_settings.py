@@ -49,12 +49,10 @@ class ModalUpdateColumnScreen(ModalScreen):
             yield ButtonRow(id="horizontal_buttons")
 
     @on(Button.Pressed, "#btn_continue")
-    # @on(Button.Pressed, "#btn_continue_new_col")
     def confirm_new_column(self):
         updated_name = self.query_one(Input).value
         self.dismiss(result=updated_name)
 
-    # @on(Button.Pressed, "#btn_cancel_new_col")
     @on(Button.Pressed, "#btn_cancel")
     def cancel_new_column(self):
         self.dismiss(result=None)

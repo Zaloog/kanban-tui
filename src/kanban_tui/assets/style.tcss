@@ -586,19 +586,33 @@ ColumnSelector{
       }
     }
 }
+ModalBaseUrlScreen {
+  align: center middle;
+  Vertical{
+    width: 30%;
+    height: auto;
+  }
+  Horizontal{
+    height:auto;
+  }
+  Button{
+    width:1fr;
+    height:auto;
+  }
+}
 ModalUpdateColumnScreen {
-    align: center middle;
-    Vertical{
-        width: 30%;
-        height: auto;
-    }
-    Horizontal{
-        height:auto;
-    }
-    Button{
-        width:1fr;
-        height:auto;
-    }
+  align: center middle;
+  Vertical{
+    width: 30%;
+    height: auto;
+  }
+  Horizontal{
+    height:auto;
+  }
+  Button{
+    width:1fr;
+    height:auto;
+  }
 }
 OverViewPlot{
     height:1fr;
