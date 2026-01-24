@@ -60,13 +60,17 @@ class BoardScreen(Screen):
                 if not self.app.backend.api_key:
                     worker = get_current_worker()
                     worker.cancel()
-                    self.app.exit(message="Please enter a valid api key")
+                    self.app.config.set_backend(Backends("sqlite"))
+                    self.app.exit(return_code=1, message="Please enter a valid api key")
 
                 await self.ensure_base_url()
                 if not self.app.backend.settings.base_url:
                     worker = get_current_worker()
                     worker.cancel()
-                    self.app.exit(message="Please enter a valid jira base url")
+                    self.app.config.set_backend(Backends("sqlite"))
+                    self.app.exit(
+                        return_code=1, message="Please enter a valid jira base url"
+                    )
 
         await self.ensure_active_board()
 

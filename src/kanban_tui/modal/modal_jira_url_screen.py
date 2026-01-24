@@ -18,7 +18,7 @@ from kanban_tui.widgets.custom_widgets import ButtonRow
 
 class ModalBaseUrlScreen(ModalScreen):
     app: "KanbanTui"
-    BINDINGS = [Binding("escape", "app.pop_screen", "Close")]
+    BINDINGS = [Binding("escape", "cancel_new_url", "Close")]
 
     def on_mount(self):
         if self.app.backend.settings.base_url:
@@ -47,7 +47,7 @@ class ModalBaseUrlScreen(ModalScreen):
         self.dismiss(result=base_url)
 
     @on(Button.Pressed, "#btn_cancel")
-    def cancel_new_url(self):
+    def action_cancel_new_url(self):
         self.dismiss(result=None)
 
     @on(Input.Changed)
