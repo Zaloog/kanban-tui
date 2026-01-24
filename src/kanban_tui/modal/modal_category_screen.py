@@ -120,7 +120,8 @@ class ModalCategoryManageScreen(ModalScreen[int | None]):
         hightlighted_item = self.query_one(CategoryList).highlighted_child
 
         confirm_deletion = await self.app.push_screen(
-            ModalConfirmScreen("Delete Category?"), wait_for_dismiss=True
+            ModalConfirmScreen("Delete category?", button_text="Delete category"),
+            wait_for_dismiss=True,
         )
         if not confirm_deletion:
             return

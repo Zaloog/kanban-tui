@@ -15,7 +15,6 @@ from textual.containers import Vertical, VerticalScroll
 from kanban_tui.textual_datepicker import DateSelect
 from kanban_tui.classes.task import Task
 from kanban_tui.widgets.modal_task_widgets import (
-    ButtonRow,
     TaskAdditionalInfos,
     TaskDueDateSelector,
     TaskTitleInput,
@@ -23,6 +22,7 @@ from kanban_tui.widgets.modal_task_widgets import (
     TaskDescription,
     TaskDependencyManager,
 )
+from kanban_tui.widgets.custom_widgets import ButtonRow
 
 
 class ModalTaskEditScreen(ModalScreen[Task | None]):

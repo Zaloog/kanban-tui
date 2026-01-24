@@ -126,7 +126,6 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
                 "cache_ttl_seconds": 300,
                 "auth_file_path": AUTH_FILE.as_posix(),
                 "jqls": [],
-                "project_key": "",
                 "status_to_column_map": {
                     "Done": 3,
                     "In Progress": 2,

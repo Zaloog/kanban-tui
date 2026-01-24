@@ -153,7 +153,7 @@ class KanbanTui(App[str | None]):
                     with self.prevent(Select.Changed):
                         event.select.value = self.config.backend.mode
                     self.action_focus_next()
-                    return
+                    # return
                 self.config.set_backend(new_backend=event.value)
             case Backends.CLAUDE:
                 # Check if Claude tasks directory exists

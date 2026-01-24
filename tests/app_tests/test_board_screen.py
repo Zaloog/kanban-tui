@@ -147,7 +147,7 @@ async def test_kanbanboard_movement(test_app: KanbanTui):
         # delete Done Task
         await pilot.press("l")
         await pilot.press("d")
-        await pilot.click("#btn_continue_delete")
+        await pilot.click("#btn_continue")
         assert pilot.app.focused.task_.title == "Task_ready_2"
         assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 2

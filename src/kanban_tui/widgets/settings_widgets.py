@@ -406,7 +406,10 @@ class ColumnSelector(ListView):
             return
 
         confirm_deletion = await self.app.push_screen(
-            ModalConfirmScreen(text=f"Delete Column [blue]{column.name}[/]"),
+            ModalConfirmScreen(
+                text=f"Delete column [blue]{column.name}[/]",
+                button_text="Delete column",
+            ),
             wait_for_dismiss=True,
         )
         if not confirm_deletion:

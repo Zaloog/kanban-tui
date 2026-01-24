@@ -253,7 +253,8 @@ class ModalBoardOverviewScreen(ModalScreen):
 
         confirm_deletion = await self.app.push_screen(
             ModalConfirmScreen(
-                text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?"
+                text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?",
+                button_text="Delete board",
             ),
             wait_for_dismiss=True,
         )

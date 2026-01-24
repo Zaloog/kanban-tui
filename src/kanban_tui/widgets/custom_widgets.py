@@ -69,3 +69,9 @@ class VimSelect(Select):
             self.query_one(SelectOverlay).action_cursor_down()
         else:
             self.screen.focus_next()
+
+
+class ButtonRow(Horizontal):
+    def compose(self):
+        yield Button("Create Task", id="btn_continue", variant="success")
+        yield Button("Cancel", id="btn_cancel", variant="error")

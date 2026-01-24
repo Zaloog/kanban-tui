@@ -51,6 +51,8 @@ class BoardScreen(Screen):
         match self.app.config.backend.mode:
             case Backends.JIRA:
                 await self.ensure_api_key()
+                if not self.app.backend.api_key:
+                    self.app.exit(message="Please enter a valid api key")
 
         await self.ensure_active_board()
 

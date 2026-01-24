@@ -273,7 +273,10 @@ class TaskCard(Vertical):
     @work()
     async def action_delete_task(self) -> None:
         confirm_deletion = await self.app.push_screen(
-            ModalConfirmScreen(text=f"Delete Task [blue]{self.task_.title}[/]?"),
+            ModalConfirmScreen(
+                text=f"Delete task [blue]{self.task_.title}[/]?",
+                button_text="Delete task",
+            ),
             wait_for_dismiss=True,
         )
         if confirm_deletion:
