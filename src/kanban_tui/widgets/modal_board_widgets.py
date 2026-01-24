@@ -24,6 +24,9 @@ class BoardList(ListView):
         Binding(key="k", action="cursor_up", show=False),
     ]
 
+    def on_mount(self):
+        self.focus()
+
     def __init__(self) -> None:
         board_listitems = self.get_board_list_items()
         initial_index = self.get_initial_index()
@@ -44,15 +47,13 @@ class BoardList(ListView):
 
     def get_board_list_items(self) -> list[BoardListItem]:
         info_dict = {
-            board["board_id"]: board for board in self.app.backend.get_board_infos()
+            board_info["board_id"]: board_info
+            for board_info in self.app.backend.get_board_infos()
         }
         return [
             BoardListItem(board=board, info_dict=info_dict[board.board_id])
             for board in self.app.board_list
         ]
-
-    def on_mount(self):
-        self.focus()
 
 
 class BoardListItem(ListItem):
@@ -67,11 +68,8 @@ class BoardListItem(ListItem):
         super().__init__(id=f"listitem_board_{self.board.board_id}")
 
     def compose(self) -> Iterable[Widget]:
-        if (
-            self.board.board_id
-            == self.app.config.backend.sqlite_settings.active_board_id
-        ):
-            self.styles.background = "green"
+        if self.board.board_id == self.app.active_board.board_id:
+            self.add_class("active")
         with Horizontal():
             yield Label(Text.from_markup(self.board.full_name))
             yield Rule(orientation="vertical")

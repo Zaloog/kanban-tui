@@ -365,6 +365,11 @@ ModalBoardOverviewScreen {
 BoardListItem{
     height:3;
     content-align:center middle;
+    border-left: outer transparent;
+    &.active{
+      border-left: outer $success;
+      border-right: outer $success;
+    }
     Label{
         width: 1fr;
         padding:1 0;

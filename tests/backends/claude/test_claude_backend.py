@@ -82,9 +82,9 @@ def test_claude_backend_get_columns(temp_claude_tasks):
 
     columns = backend.get_columns()
     assert len(columns) == 3
-    assert columns[0].name == "Ready"
-    assert columns[1].name == "Doing"
-    assert columns[2].name == "Done"
+    assert columns[0].name == "pending"
+    assert columns[1].name == "in_progress"
+    assert columns[2].name == "completed"
 
 
 def test_claude_backend_get_tasks(temp_claude_tasks):

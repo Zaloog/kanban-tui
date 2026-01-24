@@ -43,11 +43,6 @@ class ClaudeBackend(Backend):
             "in_progress": 2,
             "completed": 3,
         }
-        self._column_names = {
-            1: "Ready",
-            2: "Doing",
-            3: "Done",
-        }
 
     # === Board Management ===
 
@@ -103,26 +98,13 @@ class ClaudeBackend(Backend):
 
         return [
             Column(
-                column_id=1,
-                name="Ready",
+                column_id=index,
+                name=name,
                 visible=True,
-                position=0,
+                position=index - 1,
                 board_id=board_id,
-            ),
-            Column(
-                column_id=2,
-                name="Doing",
-                visible=True,
-                position=1,
-                board_id=board_id,
-            ),
-            Column(
-                column_id=3,
-                name="Done",
-                visible=True,
-                position=2,
-                board_id=board_id,
-            ),
+            )
+            for name, index in self._status_to_column_id.items()
         ]
 
     # === Task Management ===
@@ -304,7 +286,9 @@ class ClaudeBackend(Backend):
                 "board_id": board.board_id,
                 "name": board.name,
                 "icon": board.icon,
-                "task_count": len(self.get_tasks_by_board(board.board_id)),
+                "amount_tasks": len(self.get_tasks_by_board(board.board_id)),
+                "amount_columns": len(self.get_columns(board.board_id)),
+                "next_due": None,  # Claude backend doesn't use due dates
             }
             for board in boards
         ]
