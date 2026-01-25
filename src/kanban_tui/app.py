@@ -143,17 +143,6 @@ class KanbanTui(App[str | None]):
                         event.select.value = self.config.backend.mode
                     self.action_focus_next()
                     return
-                # Check if Jira is configured
-                # if not self.config.backend.jira_settings.base_url:
-                #     self.notify(
-                #         title="Jira not configured",
-                #         message="Please configure Jira settings in config.toml",
-                #         severity="warning",
-                #     )
-                #     with self.prevent(Select.Changed):
-                #         event.select.value = self.config.backend.mode
-                #     self.action_focus_next()
-                # return
                 self.config.set_backend(new_backend=event.value)
 
             case Backends.CLAUDE:
@@ -189,7 +178,6 @@ class KanbanTui(App[str | None]):
                 return
         self.backend = self.get_backend()
         self.action_refresh()
-        # self.get_screen("board", BoardScreen).refresh(recompose=True)
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()

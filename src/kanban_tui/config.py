@@ -61,7 +61,6 @@ class JiraBackendSettings(BaseModel):
             "Done": 3,
         }
     )
-    cache_ttl_seconds: int = Field(default=300)  # 5 minutes cache
 
 
 class SqliteBackendSettings(BaseModel):
@@ -132,16 +131,6 @@ class Settings(BaseSettings):
 
     def set_active_jql(self, new_jql: int) -> None:
         self.backend.jira_settings.active_jql = new_jql
-        self.save()
-
-    def add_jql(self, new_jql: JqlEntry) -> None:
-        self.backend.jira_settings.jqls.append(new_jql)
-        self.save()
-
-    def remove_jql(self, jql_to_remove: JqlEntry) -> None:
-        for jql in self.backend.jira_settings.jqls:
-            if jql == jql_to_remove:
-                self.backend.jira_settings.jqls.remove(jql_to_remove)
         self.save()
 
     def save(self, path: str = CONFIG_FILE.as_posix()):

@@ -19,5 +19,10 @@ def get_all_issues(auth: Jira, project: str):
     return auth.get_all_project_issues(project)
 
 
+def get_transitions(auth: Jira, issue_key: str):
+    """Get available transitions for a specific issue"""
+    return auth.get_issue_transitions(issue_key)
+
+
 def api(auth: Jira) -> Jira:
     return auth

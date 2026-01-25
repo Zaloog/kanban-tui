@@ -83,9 +83,6 @@ class ClaudeBackend(Backend):
             for board in boards:
                 if board.name == self.settings.active_session_id:
                     return board
-            # Fallback to first board if specified session not found
-            return boards[0]
-
         # Default to first board
         return boards[0]
 

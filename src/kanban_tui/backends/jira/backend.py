@@ -8,7 +8,7 @@ from kanban_tui.classes.board import Board
 from kanban_tui.classes.category import Category
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
-from kanban_tui.config import JiraBackendSettings
+from kanban_tui.config import JiraBackendSettings, JqlEntry
 from kanban_tui.backends.auth import init_auth_file
 from kanban_tui.backends.jira.jira_api import (
     get_jql,
@@ -23,8 +23,6 @@ class JiraBackend(Backend):
     auth: Any = field(init=False)
     auth_settings: AuthSettings = field(init=False)
     _status_column_map: dict[str, int] = field(init=False, default_factory=dict)
-    _cache: dict[str, Any] = field(init=False, default_factory=dict)
-    _cache_timestamp: datetime | None = field(init=False, default=None)
 
     def __post_init__(self):
         init_auth_file(self.settings.auth_file_path)
@@ -33,8 +31,6 @@ class JiraBackend(Backend):
             self.settings.base_url, self.api_key, self.cert_path
         )
         self._status_column_map = self.settings.status_to_column_map
-        self._cache = {}
-        self._cache_timestamp = None
 
     # Queries
     def get_boards(self) -> list[Board]:
@@ -49,14 +45,15 @@ class JiraBackend(Backend):
         # Create a virtual board from the JQL query
         return [
             Board(
-                board_id=1,
-                name=active_jql_entry.name,
+                board_id=entry.id,
+                name=entry.name,
                 icon=":mag:",
                 creation_date=datetime.now(),
                 reset_column=1,  # To Do
                 start_column=2,  # In Progress
                 finish_column=3,  # Done
             )
+            for entry in self.settings.jqls
         ]
 
     def get_all_categories(self) -> list[Category]:
@@ -64,27 +61,34 @@ class JiraBackend(Backend):
         return []
 
     def get_board_infos(self) -> list[dict]:
-        """Return info about the virtual Jira board"""
+        """Return info about the virtual Jira boards"""
         boards = self.get_boards()
         if not boards:
             return []
 
-        tasks = self.get_tasks_on_active_board()
+        board_infos = []
 
-        return [
-            {
-                "board_id": 1,
-                "amount_tasks": len(tasks),
-                "amount_columns": len(self.get_columns()),
+        for board in boards:
+            board_tasks = self.get_tasks_by_board_id(board_id=board.board_id)
+
+            board_info_dict = {
+                "board_id": board.board_id,
+                "amount_tasks": len(board_tasks),
+                "amount_columns": len(self.get_columns(board_id=board.board_id)),
                 "next_due": min(
-                    (t.due_date for t in tasks if t.due_date), default=None
+                    (t.due_date for t in board_tasks if t.due_date), default=None
                 ),
             }
-        ]
+            board_infos.append(board_info_dict)
+
+        return board_infos
 
     def get_columns(self, board_id: int | None = None) -> list[Column]:
         """Return columns based on status mapping"""
         # Create columns from unique status-to-column mappings
+        if not board_id and self.active_board:
+            board_id = self.active_board.board_id
+
         column_names: dict[int, list] = {
             column_id: [] for column_id in set(self._status_column_map.values())
         }
@@ -106,24 +110,21 @@ class JiraBackend(Backend):
                     name=name,
                     visible=True,
                     position=column_id - 1,
-                    board_id=1,
+                    board_id=board_id,
                 )
             )
 
         return columns
 
-    def get_tasks_on_active_board(self) -> list[Task]:
+    def get_tasks_by_board_id(self, board_id: int) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks"""
-        # Check cache
-        if self._is_cache_valid():
-            return self._cache.get("tasks", [])
 
-        active_jql_entry = self._get_active_jql_entry()
-        if not active_jql_entry:
-            return []
+        board_jql_entry = [
+            entry for entry in self.settings.jqls if entry.id == board_id
+        ][0]
 
         # Execute JQL query
-        jql_result = get_jql(self.auth, active_jql_entry.jql)
+        jql_result = get_jql(self.auth, board_jql_entry.jql)
         issues = jql_result.get("issues", [])
 
         # Convert issues to tasks
@@ -133,31 +134,20 @@ class JiraBackend(Backend):
                 task = self._jira_issue_to_task(issue_data)
                 tasks.append(task)
             except Exception as e:
-                # Log error but continue processing other issues
-                print(f"Error converting issue {issue_data.get('key', 'unknown')}: {e}")
-                continue
+                raise e
 
         # Resolve dependencies
         self._resolve_issue_dependencies(tasks, issues)
-
-        # Update cache
-        self._cache["tasks"] = tasks
-        self._cache_timestamp = datetime.now()
-
         return tasks
+
+    def get_tasks_on_active_board(self) -> list[Task]:
+        """Execute active JQL query and convert issues to Tasks"""
+        return self.get_tasks_by_board_id(board_id=self.settings.active_jql)
 
     def get_tasks_by_ids(self, task_ids: list[int]) -> list[Task]:
         """Fetch specific Jira issues by ID"""
         if not task_ids:
             return []
-
-        # Try to get from cache first
-        cached_tasks = self._cache.get("tasks", [])
-        if cached_tasks:
-            task_map = {t.task_id: t for t in cached_tasks}
-            found_tasks = [task_map[tid] for tid in task_ids if tid in task_map]
-            if len(found_tasks) == len(task_ids):
-                return found_tasks
 
         # Fetch from Jira API
         tasks = []
@@ -188,14 +178,6 @@ class JiraBackend(Backend):
 
         # Fallback to first entry
         return self.settings.jqls[0] if self.settings.jqls else None
-
-    def _is_cache_valid(self) -> bool:
-        """Check if cache is still valid"""
-        if not self._cache_timestamp:
-            return False
-
-        elapsed = (datetime.now() - self._cache_timestamp).total_seconds()
-        return elapsed < self.settings.cache_ttl_seconds
 
     def _jira_issue_to_task(self, issue_data: dict) -> Task:
         """Convert Jira issue dict to Task model"""
@@ -315,12 +297,15 @@ class JiraBackend(Backend):
                             if int(inward_task.task_id) not in task.blocking:
                                 task.blocking.append(int(inward_task.task_id))
 
-    # Properties
-
     @property
     def active_board(self) -> Board | None:
         boards = self.get_boards()
-        return boards[0] if boards else None
+        if self.settings.active_jql:
+            for board in boards:
+                if board.board_id == self.settings.active_jql:
+                    return board
+        # Default to first board
+        return boards[0]
 
     @property
     def api_key(self) -> str:
@@ -352,16 +337,25 @@ class JiraBackend(Backend):
             "Jira backend is read-only. Update task status in Jira directly."
         )
 
-    def create_new_board(self, *args, **kwargs):
-        raise NotImplementedError(
-            "Jira backend is read-only. Boards are defined via JQL queries."
-        )
+    def create_new_board(self, name: str, jql: str) -> int:
+        if self.settings.jqls:
+            new_id = self.settings.jqls[-1].id + 1
+        else:
+            new_id = 1
+
+        new_jql = JqlEntry(id=new_id, name=name, jql=jql)
+        self.settings.jqls.append(new_jql)
+        return new_id
 
     def update_board_entry(self, *args, **kwargs):
         raise NotImplementedError("Jira backend is read-only. Update boards in config.")
 
-    def delete_board(self, *args, **kwargs):
-        raise NotImplementedError("Jira backend is read-only. Delete boards in config.")
+    def delete_board(self, board_id: int):
+        for jql in self.settings.jqls:
+            if board_id == jql.id:
+                jql_to_delete = jql
+
+        self.settings.jqls.remove(jql_to_delete)
 
     def create_new_column(self, *args, **kwargs):
         raise NotImplementedError(
