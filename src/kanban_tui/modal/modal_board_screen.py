@@ -254,10 +254,7 @@ class ModalBoardOverviewScreen(ModalScreen):
         highlighted = self.query_exactly_one(BoardList).highlighted_child
 
         highlighted_board = highlighted.board
-        if (
-            highlighted_board.board_id
-            == self.app.config.backend.sqlite_settings.active_board_id
-        ):
+        if highlighted_board.board_id == self.app.active_board.board_id:
             self.notify(
                 title="Can not delete the active board",
                 severity="error",
