@@ -1,8 +1,10 @@
 # Changelog
 
 ## v0.15.0
-### Fixed
-- Adjust height of BackendSelector to 4, to  prevent scrollbar appearance
+### Added
+- `Claude` Backend now allows to move/delete tasks
+- `Jira` Backend progress, can create boards via jql, columns are based on status read_only currently
+- Removed Custom Backend Option
 
 ## v0.14.0
 ### Added

@@ -24,7 +24,6 @@ class Backends(StrEnum):
     SQLITE = "sqlite"
     JIRA = "jira"
     CLAUDE = "claude"
-    CUSTOM = "custom"
 
 
 class MovementModes(StrEnum):
