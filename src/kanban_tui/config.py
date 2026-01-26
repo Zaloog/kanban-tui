@@ -54,13 +54,6 @@ class JiraBackendSettings(BaseModel):
     auth_file_path: str = Field(default=AUTH_FILE.as_posix())
     jqls: list[JqlEntry] = Field(default_factory=list)
     active_jql: int = Field(default=1)
-    status_to_column_map: dict[str, int] = Field(
-        default_factory=lambda: {
-            "To Do": 1,
-            "In Progress": 2,
-            "Done": 3,
-        }
-    )
 
 
 class SqliteBackendSettings(BaseModel):

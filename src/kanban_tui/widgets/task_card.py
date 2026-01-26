@@ -140,7 +140,7 @@ class TaskCard(Vertical):
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.app.config.backend.mode != Backends.SQLITE:
-            if action == "edit_task":
+            if action in ("edit_task", "show_blocking_tasks"):
                 return True
             return False
 
@@ -257,11 +257,6 @@ class TaskCard(Vertical):
 
         if not blocking_cards:
             return
-
-        # Store original colors for each card
-        original_colors = {}
-        for card in blocking_cards:
-            original_colors[card] = card.styles.background
 
         def toggle_flash():
             for card in blocking_cards:

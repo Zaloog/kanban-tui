@@ -1,3 +1,4 @@
+from kanban_tui.config import JqlEntry
 from kanban_tui.widgets.custom_widgets import ButtonRow
 from kanban_tui.classes.board import Board
 from typing import Iterable, TYPE_CHECKING
@@ -66,12 +67,17 @@ class ModalNewJiraBoardScreen(ModalScreen):
             # Action buttons
             yield ButtonRow(id="horizontal_buttons")
 
+    def board_to_jql(self, board: Board) -> JqlEntry:
+        return [
+            jql for jql in self.app.backend.settings.jqls if jql.id == board.board_id
+        ][0]
+
     def on_mount(self) -> None:
         if self.jira_board:
             self.query_one("#input_board_name", Input).value = self.jira_board.name
-            self.query_one("#input_jql", Input).value = self.app.backend.settings.jqls[
-                self.jira_board.board_id - 1
-            ].jql
+            self.query_one("#input_jql", Input).value = self.board_to_jql(
+                self.jira_board
+            ).jql
             self.query_exactly_one("#btn_continue", Button).label = "Edit board"
 
         self.query_exactly_one("#input_jql", Input).border_title = "JQL Query"
@@ -225,34 +231,14 @@ class ModalNewJiraBoardScreen(ModalScreen):
         if not board_name or not self.jql_validated or not self.detected_columns:
             return
 
-        # Update status to column mapping based on detected columns
-        # Assign each status to a column ID (1-indexed)
-        status_to_column_map = {
-            status: idx + 1 for idx, status in enumerate(self.detected_columns)
-        }
-
         # Add to config
         new_board_id = self.app.backend.create_new_board(name=board_name, jql=jql)
         # self.app.config.add_jql(new_jql_entry)
 
-        # Update status mapping
-        self.app.config.backend.jira_settings.status_to_column_map = (
-            status_to_column_map
-        )
-        self.app.config.save()
-
-        # Set as active JQL
         self.app.config.set_active_jql(new_board_id)
-
-        # Notify user
-        self.app.notify(
-            f"✅ Created Jira board '{board_name}' with {len(self.detected_columns)} columns",
-            severity="information",
-        )
-        # Update board list
+        self.app.config.save()
         self.app.update_board_list()
 
-        # Dismiss modal
         self.dismiss(result=True)
 
     @on(Button.Pressed, "#btn_cancel")

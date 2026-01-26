@@ -222,7 +222,7 @@ class JiraBackend(Backend):
 
         return Task(
             task_id=task_id,
-            title=jira_issue.summary,
+            title=f"{jira_issue.key}\n{jira_issue.summary}",
             column=column_id,
             creation_date=jira_issue.created,
             start_date=start_date,
