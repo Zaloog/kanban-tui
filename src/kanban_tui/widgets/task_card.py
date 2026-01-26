@@ -139,10 +139,9 @@ class TaskCard(Vertical):
         self.description.display = is_visible
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if self.app.config.backend.mode != Backends.SQLITE:
-            if action in ("edit_task", "show_blocking_tasks"):
-                return True
-            return False
+        if self.app.config.backend.mode == Backends.JIRA:
+            if action not in ("edit_task"):
+                return False
 
         column_id_list = list(self.app.visible_column_dict.keys())
         if action == "move_task":

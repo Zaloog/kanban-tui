@@ -43,6 +43,9 @@ class ClaudeBackend(Backend):
             "in_progress": 2,
             "completed": 3,
         }
+        self._column_id_to_status = {
+            column_id: status for status, column_id in self._status_to_column_id.items()
+        }
 
     # === Board Management ===
 
@@ -229,10 +232,26 @@ class ClaudeBackend(Backend):
     ) -> Task:
         raise NotImplementedError("Claude backend is read-only. Cannot create tasks.")
 
-    def update_task_status(self, new_task: Task) -> Task:
-        raise NotImplementedError(
-            "Claude backend is read-only. Cannot update task status."
-        )
+    def get_task_file_path(self, task_id: int) -> Path:
+        task_name = f"{task_id}.json"
+        return self._get_session_path(self.active_board.board_id) / task_name
+
+    def update_task_json(
+        self, task_path: Path, target_status: int
+    ) -> dict[str, Any] | None:
+        json_dict = self._read_task_file(task_path)
+        if json_dict:
+            json_dict["status"] = self._column_id_to_status.get(target_status)
+        return json_dict
+
+    def save_json(self, target_path: Path, json_dict):
+        json_string = json.dumps(json_dict)
+        target_path.write_text(json_string, encoding="utf-8")
+
+    def update_task_status(self, new_task: Task):
+        task_path = self.get_task_file_path(new_task.task_id)
+        new_json_dict = self.update_task_json(task_path, new_task.column)
+        self.save_json(task_path, new_json_dict)
 
     def update_task_entry(
         self,
@@ -248,6 +267,10 @@ class ClaudeBackend(Backend):
         raise NotImplementedError(
             "Claude backend is read-only. Cannot create categories."
         )
+
+    def delete_task(self, task_id: int):
+        task_path = self.get_task_file_path(task_id)
+        task_path.unlink(missing_ok=True)
 
     def update_category(self, category_id: int, name: str, color: str) -> Category:
         raise NotImplementedError(

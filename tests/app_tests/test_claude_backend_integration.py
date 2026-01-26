@@ -1,5 +1,7 @@
 """Integration tests for Claude backend in the TUI app."""
 
+from kanban_tui.widgets.task_card import TaskCard
+
 import json
 import os
 from pathlib import Path
@@ -7,6 +9,8 @@ import pytest
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.config import Backends
+
+APP_SIZE = (150, 50)
 
 
 @pytest.fixture
@@ -104,3 +108,41 @@ def test_claude_backend_read_only_operations(temp_claude_tasks_env, test_app):
 
     with pytest.raises(NotImplementedError, match="read-only"):
         backend.create_new_board("Test Board")
+
+
+async def test_claude_backend_move_task(temp_claude_tasks_env, test_app: KanbanTui):
+    """Test that write operations raise NotImplementedError."""
+    tasks_path, session_id = temp_claude_tasks_env
+
+    test_app.config.backend.mode = Backends.CLAUDE
+    test_app.config.backend.claude_settings.active_session_id = session_id
+    test_app.backend = test_app.get_backend()
+
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.task_id == 1
+        assert test_app.focused.task_.column == 2
+
+        await pilot.press("L")
+        assert test_app.focused.task_.task_id == 1
+        assert test_app.focused.task_.column == 3
+
+
+async def test_claude_backend_delete_task(temp_claude_tasks_env, test_app: KanbanTui):
+    """Test that write operations raise NotImplementedError."""
+    tasks_path, session_id = temp_claude_tasks_env
+
+    test_app.config.backend.mode = Backends.CLAUDE
+    test_app.config.backend.claude_settings.active_session_id = session_id
+    test_app.backend = test_app.get_backend()
+
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.task_id == 1
+        assert test_app.focused.task_.column == 2
+
+        await pilot.press("d")
+        await pilot.press("enter")
+        assert len(test_app.task_list) == 1
+
+        assert not (tasks_path / "tasks" / session_id / "1.json").exists()

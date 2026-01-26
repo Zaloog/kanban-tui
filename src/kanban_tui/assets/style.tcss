@@ -70,7 +70,7 @@ Column VerticalScroll {
 TaskCard {
   width: 1fr;
   height: auto;
-  min-height: 4;
+  min-height: 5;
   margin: 0 0 1 0;
   border: tall transparent;
   transition: height 200ms linear;
@@ -118,6 +118,7 @@ TaskCard Markdown {
         height: auto;
         color:auto;
         margin:0;
+        max-height:10;
 }
 
 .task-field {
