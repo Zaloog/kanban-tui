@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.15.0
+### Added
+- `Claude` Backend now allows to move/delete tasks
+- `Jira` Backend progress, can create boards via jql, columns are based on status read_only currently
+- Removed Custom Backend Option
+
 ## v0.14.0
 ### Added
 - FOREIGN_KEYS check to migration

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
-from kanban_tui.config import MovementModes
+from kanban_tui.config import MovementModes, Backends
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -139,6 +139,10 @@ class TaskCard(Vertical):
         self.description.display = is_visible
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if self.app.config.backend.mode == Backends.JIRA:
+            if action not in ("edit_task"):
+                return False
+
         column_id_list = list(self.app.visible_column_dict.keys())
         if action == "move_task":
             if parameters == ("left",):
@@ -253,11 +257,6 @@ class TaskCard(Vertical):
         if not blocking_cards:
             return
 
-        # Store original colors for each card
-        original_colors = {}
-        for card in blocking_cards:
-            original_colors[card] = card.styles.background
-
         def toggle_flash():
             for card in blocking_cards:
                 card.toggle_class("blinking")
@@ -268,7 +267,10 @@ class TaskCard(Vertical):
     @work()
     async def action_delete_task(self) -> None:
         confirm_deletion = await self.app.push_screen(
-            ModalConfirmScreen(text=f"Delete Task [blue]{self.task_.title}[/]?"),
+            ModalConfirmScreen(
+                text=f"Delete task [blue]{self.task_.title}[/]?",
+                button_text="Delete task",
+            ),
             wait_for_dismiss=True,
         )
         if confirm_deletion:

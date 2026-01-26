@@ -127,7 +127,7 @@ async def test_modal_category_delete(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
 
         # Confirm
-        await pilot.click("#btn_continue_delete")
+        await pilot.click("#btn_continue")
 
         # Should return to Manage Screen
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)

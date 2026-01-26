@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,7 +11,6 @@ from kanban_tui.classes.board import Board
 from kanban_tui.classes.category import Category
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
-from kanban_tui.classes.logevent import LogEvent
 from kanban_tui.config import ClaudeBackendSettings
 
 
@@ -33,16 +32,19 @@ class ClaudeBackend(Backend):
     settings: ClaudeBackendSettings
 
     def __post_init__(self):
-        self._tasks_base_path = Path(self.settings.tasks_base_path).expanduser()
+        if path := os.getenv("CLAUDE_CODE_CONFIG_DIR"):
+            path = Path(path) / "tasks"
+        else:
+            path = Path(self.settings.tasks_base_path)
+
+        self._tasks_base_path = path.expanduser()
         self._status_to_column_id = {
             "pending": 1,
             "in_progress": 2,
             "completed": 3,
         }
-        self._column_names = {
-            1: "Ready",
-            2: "Doing",
-            3: "Done",
+        self._column_id_to_status = {
+            column_id: status for status, column_id in self._status_to_column_id.items()
         }
 
     # === Board Management ===
@@ -84,9 +86,6 @@ class ClaudeBackend(Backend):
             for board in boards:
                 if board.name == self.settings.active_session_id:
                     return board
-            # Fallback to first board if specified session not found
-            return boards[0]
-
         # Default to first board
         return boards[0]
 
@@ -99,26 +98,13 @@ class ClaudeBackend(Backend):
 
         return [
             Column(
-                column_id=1,
-                name="Ready",
+                column_id=index,
+                name=name,
                 visible=True,
-                position=0,
+                position=index - 1,
                 board_id=board_id,
-            ),
-            Column(
-                column_id=2,
-                name="Doing",
-                visible=True,
-                position=1,
-                board_id=board_id,
-            ),
-            Column(
-                column_id=3,
-                name="Done",
-                visible=True,
-                position=2,
-                board_id=board_id,
-            ),
+            )
+            for name, index in self._status_to_column_id.items()
         ]
 
     # === Task Management ===
@@ -212,11 +198,6 @@ class ClaudeBackend(Backend):
         all_tasks = self.get_tasks_on_active_board()
         return [t for t in all_tasks if t.task_id in task_ids]
 
-    def get_tasks_by_column(self, column_id: int) -> list[Task] | None:
-        """Get all tasks in a specific column."""
-        all_tasks = self.get_tasks_on_active_board()
-        return [t for t in all_tasks if t.column == column_id]
-
     def get_column_by_id(self, column_id: int) -> Column | None:
         """Get a column by ID."""
         columns = self.get_columns()
@@ -251,10 +232,26 @@ class ClaudeBackend(Backend):
     ) -> Task:
         raise NotImplementedError("Claude backend is read-only. Cannot create tasks.")
 
-    def update_task_status(self, new_task: Task) -> Task:
-        raise NotImplementedError(
-            "Claude backend is read-only. Cannot update task status."
-        )
+    def get_task_file_path(self, task_id: int) -> Path:
+        task_name = f"{task_id}.json"
+        return self._get_session_path(self.active_board.board_id) / task_name
+
+    def update_task_json(
+        self, task_path: Path, target_status: int
+    ) -> dict[str, Any] | None:
+        json_dict = self._read_task_file(task_path)
+        if json_dict:
+            json_dict["status"] = self._column_id_to_status.get(target_status)
+        return json_dict
+
+    def save_json(self, target_path: Path, json_dict):
+        json_string = json.dumps(json_dict)
+        target_path.write_text(json_string, encoding="utf-8")
+
+    def update_task_status(self, new_task: Task):
+        task_path = self.get_task_file_path(new_task.task_id)
+        new_json_dict = self.update_task_json(task_path, new_task.column)
+        self.save_json(task_path, new_json_dict)
 
     def update_task_entry(
         self,
@@ -266,13 +263,14 @@ class ClaudeBackend(Backend):
     ) -> Task:
         raise NotImplementedError("Claude backend is read-only. Cannot update tasks.")
 
-    def delete_task(self, task_id: int):
-        raise NotImplementedError("Claude backend is read-only. Cannot delete tasks.")
-
     def create_new_category(self, name: str, color: str) -> Category:
         raise NotImplementedError(
             "Claude backend is read-only. Cannot create categories."
         )
+
+    def delete_task(self, task_id: int):
+        task_path = self.get_task_file_path(task_id)
+        task_path.unlink(missing_ok=True)
 
     def update_category(self, category_id: int, name: str, color: str) -> Category:
         raise NotImplementedError(
@@ -300,18 +298,6 @@ class ClaudeBackend(Backend):
             "Claude backend is read-only. Cannot update column names."
         )
 
-    def delete_column(self, column_id: int, position: int, board_id: int) -> Column:
-        raise NotImplementedError("Claude backend is read-only. Cannot delete columns.")
-
-    def create_new_column(self, board_id: int, position: int, name: str):
-        raise NotImplementedError("Claude backend is read-only. Cannot create columns.")
-
-    def get_ordered_tasks(self, order_by: str) -> list[dict]:
-        raise NotImplementedError("Claude backend does not support task ordering.")
-
-    def get_filtered_events(self, filter: dict) -> list[LogEvent]:
-        return []  # No audit events in Claude backend
-
     def get_board_infos(self):
         """Get board information for all sessions."""
         boards = self.get_boards()
@@ -320,7 +306,9 @@ class ClaudeBackend(Backend):
                 "board_id": board.board_id,
                 "name": board.name,
                 "icon": board.icon,
-                "task_count": len(self.get_tasks_by_board(board.board_id)),
+                "amount_tasks": len(self.get_tasks_by_board(board.board_id)),
+                "amount_columns": len(self.get_columns(board.board_id)),
+                "next_due": None,  # Claude backend doesn't use due dates
             }
             for board in boards
         ]
@@ -336,21 +324,6 @@ class ClaudeBackend(Backend):
         raise NotImplementedError(
             "Claude backend is read-only. Cannot delete dependencies."
         )
-
-    def get_task_dependencies(self, task_id: int) -> list[int]:
-        """Get all tasks that the given task depends on."""
-        task = self.get_task_by_id(task_id)
-        return task.blocked_by if task else []
-
-    def get_dependent_tasks(self, task_id: int) -> list[int]:
-        """Get all tasks that depend on the given task."""
-        task = self.get_task_by_id(task_id)
-        return task.blocking if task else []
-
-    def get_blocked_tasks(self) -> list[Task]:
-        """Get all tasks blocked by unfinished dependencies."""
-        all_tasks = self.get_tasks_on_active_board()
-        return [t for t in all_tasks if t.is_blocked]
 
     def would_create_dependency_cycle(
         self, task_id: int, depends_on_task_id: int

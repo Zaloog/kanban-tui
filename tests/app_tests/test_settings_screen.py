@@ -226,7 +226,7 @@ async def test_column_delete_click(no_task_app: KanbanTui):
         # Delete Column
         await pilot.press("d")
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
-        await pilot.click("#btn_continue_delete")
+        await pilot.click("#btn_continue")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SettingsScreen)
         assert len(pilot.app.column_list) == 3
@@ -259,7 +259,7 @@ async def test_column_creation(
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         await pilot.press(*column_name)
-        await pilot.click("#btn_continue_new_col")
+        await pilot.click("#btn_continue")
         await pilot.pause()
 
         assert pilot.app.visible_column_dict == visible_column_dict
@@ -299,7 +299,7 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
-        await pilot.click("#btn_cancel_new_col")
+        await pilot.click("#btn_cancel")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SettingsScreen)
 
@@ -320,7 +320,7 @@ async def test_column_creation_column_name_present(test_app: KanbanTui):
 
         # Cancel Modal View
         await pilot.press(*"Ready")
-        assert pilot.app.screen.query_exactly_one("#btn_continue_new_col").disabled
+        assert pilot.app.screen.query_exactly_one("#btn_continue").disabled
 
 
 async def test_column_rename(test_app: KanbanTui):
@@ -342,14 +342,14 @@ async def test_column_rename(test_app: KanbanTui):
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
         assert pilot.app.focused.placeholder == "Current column name: 'Ready'"
         assert pilot.app.focused.value == ""
-        assert pilot.app.screen.query_exactly_one("#btn_continue_new_col").disabled
+        assert pilot.app.screen.query_exactly_one("#btn_continue").disabled
 
         await pilot.press("r")
         await pilot.press("backspace")
-        assert pilot.app.screen.query_exactly_one("#btn_continue_new_col").disabled
+        assert pilot.app.screen.query_exactly_one("#btn_continue").disabled
 
         await pilot.press(*"New Name!")
-        await pilot.click("#btn_continue_new_col")
+        await pilot.click("#btn_continue")
         await pilot.pause()
         assert pilot.app.focused.highlighted_child.column.name == "New Name!"
         assert pilot.app.column_list[0].name == "New Name!"

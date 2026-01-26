@@ -143,18 +143,8 @@ class KanbanTui(App[str | None]):
                         event.select.value = self.config.backend.mode
                     self.action_focus_next()
                     return
-                # Check if Jira is configured
-                if not self.config.backend.jira_settings.base_url:
-                    self.notify(
-                        title="Jira not configured",
-                        message="Please configure Jira settings in config.toml (see JIRA_SETUP.md)",
-                        severity="warning",
-                    )
-                    with self.prevent(Select.Changed):
-                        event.select.value = self.config.backend.mode
-                    self.action_focus_next()
-                    return
                 self.config.set_backend(new_backend=event.value)
+
             case Backends.CLAUDE:
                 # Check if Claude tasks directory exists
                 claude_path = Path(
@@ -163,7 +153,7 @@ class KanbanTui(App[str | None]):
                 if not claude_path.exists() or not any(claude_path.iterdir()):
                     self.notify(
                         title="Claude backend not available",
-                        message="No Claude Code tasks found in ~/.claude/tasks/ (see CLAUDE_BACKEND.md)",
+                        message="No Claude Code tasks found in ~/.claude/tasks/",
                         severity="warning",
                     )
                     with self.prevent(Select.Changed):
@@ -187,8 +177,7 @@ class KanbanTui(App[str | None]):
                 self.action_focus_next()
                 return
         self.backend = self.get_backend()
-        self.update_board_list()
-        self.get_screen("board", BoardScreen).refresh(recompose=True)
+        self.action_refresh()
 
     def update_board_list(self):
         self.board_list = self.backend.get_boards()
@@ -222,13 +211,16 @@ class KanbanTui(App[str | None]):
         self.config.set_theme(new_theme)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "refresh":
-            if not isinstance(self.screen, BoardScreen):
-                return False
-
-        if action == "show_backend_selector":
-            if not isinstance(self.screen, tuple(self.SCREENS.values())):
-                return False
+        match action:
+            case "refresh":
+                if not isinstance(self.screen, BoardScreen):
+                    return False
+            case "show_backend_selector":
+                if not isinstance(self.screen, tuple(self.SCREENS.values())):
+                    return False
+            case "switch_screen":
+                if self.config.backend.mode != Backends.SQLITE:
+                    return False
         return True
 
     def action_show_backend_selector(self):

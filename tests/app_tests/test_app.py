@@ -50,7 +50,7 @@ async def test_app_no_visible_tasks(test_app: KanbanTui):
         # delete only task in doing column
         await pilot.press("l")
         await pilot.press("d")
-        await pilot.click("#btn_continue_delete")
+        await pilot.click("#btn_continue")
 
         # Only make doing col visible
         await pilot.press("ctrl+l")

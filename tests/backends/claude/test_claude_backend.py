@@ -1,10 +1,11 @@
+import os
 import json
-import tempfile
 from pathlib import Path
 import pytest
 
+from kanban_tui.app import KanbanTui
 from kanban_tui.backends.claude.backend import ClaudeBackend
-from kanban_tui.config import ClaudeBackendSettings
+from kanban_tui.config import ClaudeBackendSettings, Backends
 
 
 @pytest.fixture
@@ -82,9 +83,9 @@ def test_claude_backend_get_columns(temp_claude_tasks):
 
     columns = backend.get_columns()
     assert len(columns) == 3
-    assert columns[0].name == "Ready"
-    assert columns[1].name == "Doing"
-    assert columns[2].name == "Done"
+    assert columns[0].name == "pending"
+    assert columns[1].name == "in_progress"
+    assert columns[2].name == "completed"
 
 
 def test_claude_backend_get_tasks(temp_claude_tasks):
@@ -119,7 +120,7 @@ def test_claude_backend_get_tasks(temp_claude_tasks):
     assert task3.finished is True
 
 
-def test_claude_backend_get_task_by_id(temp_claude_tasks, test_app):
+def test_claude_backend_get_task_by_id(temp_claude_tasks):
     """Test fetching a specific task by ID."""
     tasks_path, session_id = temp_claude_tasks
 
@@ -135,49 +136,6 @@ def test_claude_backend_get_task_by_id(temp_claude_tasks, test_app):
     # Non-existent task
     task = backend.get_task_by_id(999)
     assert task is None
-
-
-def test_claude_backend_get_tasks_by_column(temp_claude_tasks):
-    """Test filtering tasks by column."""
-    tasks_path, session_id = temp_claude_tasks
-
-    settings = ClaudeBackendSettings(
-        tasks_base_path=str(tasks_path), active_session_id=session_id
-    )
-    backend = ClaudeBackend(settings)
-
-    # Tasks in "Doing" column
-    doing_tasks = backend.get_tasks_by_column(2)
-    assert len(doing_tasks) == 1
-    assert doing_tasks[0].title == "Implement feature X"
-
-    # Tasks in "Ready" column
-    ready_tasks = backend.get_tasks_by_column(1)
-    assert len(ready_tasks) == 1
-    assert ready_tasks[0].title == "Test feature X"
-
-
-def test_claude_backend_dependencies(temp_claude_tasks):
-    """Test dependency-related methods."""
-    tasks_path, session_id = temp_claude_tasks
-
-    settings = ClaudeBackendSettings(
-        tasks_base_path=str(tasks_path), active_session_id=session_id
-    )
-    backend = ClaudeBackend(settings)
-
-    # Task 1 blocks task 2
-    dependencies = backend.get_task_dependencies(2)
-    assert dependencies == [1]
-
-    # Task 2 is blocked by task 1
-    dependents = backend.get_dependent_tasks(1)
-    assert dependents == [2]
-
-    # Get all blocked tasks
-    blocked_tasks = backend.get_blocked_tasks()
-    assert len(blocked_tasks) == 1
-    assert blocked_tasks[0].task_id == 2
 
 
 def test_claude_backend_read_only_operations(temp_claude_tasks):
@@ -197,21 +155,18 @@ def test_claude_backend_read_only_operations(temp_claude_tasks):
         backend.create_new_task("Test Task", "Description", 1)
 
     with pytest.raises(NotImplementedError):
-        backend.delete_task(1)
-
-    with pytest.raises(NotImplementedError):
         backend.create_task_dependency(1, 2)
 
 
-def test_claude_backend_empty_directory():
+def test_claude_backend_empty_directory(tmp_path, test_app: KanbanTui):
     """Test backend behavior with no sessions."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        settings = ClaudeBackendSettings(tasks_base_path=tmpdir, active_session_id="")
-        backend = ClaudeBackend(settings)
+    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+    test_app.config.set_backend(Backends("claude"))
+    backend = test_app.get_backend()
 
-        boards = backend.get_boards()
-        assert len(boards) == 0
+    boards = backend.get_boards()
+    assert len(boards) == 0
 
-        # Should raise exception when no boards exist
-        with pytest.raises(Exception, match="No Claude task sessions found"):
-            _ = backend.active_board
+    # Should raise exception when no boards exist
+    with pytest.raises(Exception, match="No Claude task sessions found"):
+        _ = backend.active_board

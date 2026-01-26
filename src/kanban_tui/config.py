@@ -24,7 +24,6 @@ class Backends(StrEnum):
     SQLITE = "sqlite"
     JIRA = "jira"
     CLAUDE = "claude"
-    CUSTOM = "custom"
 
 
 class MovementModes(StrEnum):
@@ -54,7 +53,6 @@ class JiraBackendSettings(BaseModel):
     auth_file_path: str = Field(default=AUTH_FILE.as_posix())
     jqls: list[JqlEntry] = Field(default_factory=list)
     active_jql: int = Field(default=1)
-    project_key: str = Field(default="")
     status_to_column_map: dict[str, int] = Field(
         default_factory=lambda: {
             "To Do": 1,
@@ -62,7 +60,6 @@ class JiraBackendSettings(BaseModel):
             "Done": 3,
         }
     )
-    cache_ttl_seconds: int = Field(default=300)  # 5 minutes cache
 
 
 class SqliteBackendSettings(BaseModel):
@@ -127,18 +124,12 @@ class Settings(BaseSettings):
         self.backend.claude_settings.active_session_id = new_session_id
         self.save()
 
+    def set_base_url(self, new_base_url: str) -> None:
+        self.backend.jira_settings.base_url = new_base_url
+        self.save()
+
     def set_active_jql(self, new_jql: int) -> None:
         self.backend.jira_settings.active_jql = new_jql
-        self.save()
-
-    def add_jql(self, new_jql: JqlEntry) -> None:
-        self.backend.jira_settings.jqls.append(new_jql)
-        self.save()
-
-    def remove_jql(self, jql_to_remove: JqlEntry) -> None:
-        for jql in self.backend.jira_settings.jqls:
-            if jql == jql_to_remove:
-                self.backend.jira_settings.jqls.remove(jql_to_remove)
         self.save()
 
     def save(self, path: str = CONFIG_FILE.as_posix()):

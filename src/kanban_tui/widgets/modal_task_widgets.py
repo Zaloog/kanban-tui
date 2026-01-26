@@ -25,7 +25,6 @@ from textual.widgets import (
     Label,
     DataTable,
     Switch,
-    Button,
 )
 from textual.containers import Horizontal, Vertical, VerticalScroll
 
@@ -481,7 +480,7 @@ class DependencySelector(VimSelect):
         return available_tasks
 
 
-class ButtonRow(Horizontal):
-    def compose(self):
-        yield Button("Create Task", id="btn_continue", variant="success", disabled=True)
-        yield Button("Cancel", id="btn_cancel", variant="error")
+# class ButtonRow(Horizontal):
+#     def compose(self):
+#         yield Button("Create Task", id="btn_continue", variant="success", disabled=True)
+#         yield Button("Cancel", id="btn_cancel", variant="error")

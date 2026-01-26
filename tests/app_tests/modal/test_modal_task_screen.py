@@ -152,7 +152,7 @@ async def test_task_delete(test_app: KanbanTui):
         await pilot.press("d")
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         # Cancel with escape
-        await pilot.click("#btn_continue_delete")
+        await pilot.click("#btn_continue")
         assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.focused.id == "taskcard_5"
 

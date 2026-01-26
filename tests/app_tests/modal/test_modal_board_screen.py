@@ -250,7 +250,7 @@ async def test_modal_board_delete_board(test_app: KanbanTui):
         # Delete Board number 2
         await pilot.press(*"jd")
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
-        await pilot.click("#btn_continue_delete")
+        await pilot.click("#btn_continue")
         assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
         assert len(pilot.app.board_list) == 2
 

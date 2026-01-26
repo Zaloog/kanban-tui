@@ -40,8 +40,6 @@ from kanban_tui.backends.sqlite.database import (
     delete_task_dependency_db,
     would_create_cycle,
     get_task_dependencies_db,
-    get_dependent_tasks_db,
-    get_blocked_tasks_db,
 )
 
 
@@ -301,28 +299,6 @@ class SqliteBackend(Backend):
             task_id=task_id,
             database=self.database_path,
         )
-
-    def get_dependent_tasks(self, task_id: int) -> list[int]:
-        """Get all tasks that depend on the given task.
-
-        Args:
-            task_id: The task ID
-
-        Returns:
-            List of task IDs that depend on this task
-        """
-        return get_dependent_tasks_db(
-            task_id=task_id,
-            database=self.database_path,
-        )
-
-    def get_blocked_tasks(self) -> list[Task]:
-        """Get all tasks blocked by unfinished dependencies.
-
-        Returns:
-            List of blocked tasks
-        """
-        return get_blocked_tasks_db(database=self.database_path)
 
     def would_create_dependency_cycle(
         self, task_id: int, depends_on_task_id: int

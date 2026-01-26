@@ -13,6 +13,10 @@ check:
 
 # -- Run in Dev mode ---
 dev:
+	$(RUN) textual run -c kanban-tui --dev
+
+# -- Run in Dev demo mode ---
+devd:
 	$(RUN) textual run -c kanban-tui demo --dev
 
 

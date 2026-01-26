@@ -43,7 +43,7 @@ KanbanTuiFooter {
     border:none;
     SelectOverlay {
       background:$primary-muted;
-      height: 3;
+      height: 4;
       content-align:center middle;
     }
   }
@@ -70,7 +70,7 @@ Column VerticalScroll {
 TaskCard {
   width: 1fr;
   height: auto;
-  min-height: 4;
+  min-height: 5;
   margin: 0 0 1 0;
   border: tall transparent;
   transition: height 200ms linear;
@@ -118,6 +118,7 @@ TaskCard Markdown {
         height: auto;
         color:auto;
         margin:0;
+        max-height:10;
 }
 
 .task-field {
@@ -346,7 +347,7 @@ ModalBoardOverviewScreen {
     align:center middle;
     Vertical{
         width:70%;
-        border:$success;
+        border:tall $success;
         height:60%;
         align:center middle;
         content-align:center middle;
@@ -365,6 +366,11 @@ ModalBoardOverviewScreen {
 BoardListItem{
     height:3;
     content-align:center middle;
+    border-left: outer transparent;
+    &.active{
+      border-left: outer $success;
+      border-right: outer $success;
+    }
     Label{
         width: 1fr;
         padding:1 0;
@@ -581,19 +587,33 @@ ColumnSelector{
       }
     }
 }
+ModalBaseUrlScreen {
+  align: center middle;
+  Vertical{
+    width: 30%;
+    height: auto;
+  }
+  Horizontal{
+    height:auto;
+  }
+  Button{
+    width:1fr;
+    height:auto;
+  }
+}
 ModalUpdateColumnScreen {
-    align: center middle;
-    Vertical{
-        width: 30%;
-        height: auto;
-    }
-    Horizontal{
-        height:auto;
-    }
-    Button{
-        width:1fr;
-        height:auto;
-    }
+  align: center middle;
+  Vertical{
+    width: 30%;
+    height: auto;
+  }
+  Horizontal{
+    height:auto;
+  }
+  Button{
+    width:1fr;
+    height:auto;
+  }
 }
 OverViewPlot{
     height:1fr;
@@ -760,4 +780,94 @@ AddRule Button{
 
 #bla {
     transition: background 500ms in_out_cubic, color 500ms in_out_cubic;
+}
+
+ModalNewJiraBoardScreen {
+    align: center middle;
+
+    Vertical {
+        width: 80%;
+        height: auto;
+        border: tall $success;
+        align: center middle;
+        content-align: center middle;
+        padding: 1;
+
+        #label_header {
+            width: 1fr;
+            height: auto;
+            text-align: center;
+            padding: 1 0;
+            background: $background;
+        }
+
+        #input_board_name {
+            width: 1fr;
+            height: 3;
+            border: tall $success;
+            border-title-align: center;
+            margin: 0 0 1 0;
+        }
+
+        Horizontal {
+            width: 1fr;
+            height: auto;
+            margin: 0 0 1 0;
+
+            #input_jql {
+                width: 4fr;
+                height: 3;
+                border: tall $success;
+                border-title-align: center;
+            }
+
+            #btn_check_jql {
+                width: 1fr;
+                height: 3;
+                min-width: 10;
+            }
+        }
+
+        #static_status {
+            width: 1fr;
+            height: auto;
+            text-align: center;
+            # padding: 1;
+            border: tall $primary;
+            margin: 0 0 1 0;
+        }
+
+        #column_container {
+            width: 1fr;
+            height: auto;
+            border: tall $primary-muted;
+            padding: 1;
+            margin: 0 0 1 0;
+
+            #label_columns {
+                width: 1fr;
+                height: auto;
+                text-align: center;
+                padding: 0 0 1 0;
+            }
+
+            #column_list {
+                width: 1fr;
+                height: auto;
+                max-height: 15;
+                border: none;
+            }
+        }
+
+        #horizontal_buttons {
+            width: 1fr;
+            height: auto;
+            dock:bottom;
+
+            Button {
+                width: 1fr;
+                height: 3;
+            }
+        }
+    }
 }

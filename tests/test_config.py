@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from kanban_tui.backends.jira.backend import JiraBackend
-from kanban_tui.config import JqlEntry, Settings, init_config
+from kanban_tui.config import Settings, init_config
 from kanban_tui.constants import AUTH_FILE
 
 
@@ -38,43 +38,6 @@ def test_config_theme_update(test_config: Settings) -> None:
 
     updated_config = Settings()
     assert updated_config.board.theme == "monokai"
-
-
-def test_config_jql_add(test_config: Settings) -> None:
-    JQLS = [
-        JqlEntry(id=1, name="projectA", jql="project = A"),
-        JqlEntry(id=2, name="project B", jql="project = B"),
-    ]
-    TARGET_CONFIG = [
-        {"id": 1, "name": "projectA", "jql": "project = A"},
-        {"id": 2, "name": "project B", "jql": "project = B"},
-    ]
-    assert test_config.backend.jira_settings.jqls == []
-
-    for jql in JQLS:
-        test_config.add_jql(jql)
-
-    updated_config = Settings()
-    model_dict = updated_config.model_dump()
-    assert model_dict["backend"]["jira_settings"]["jqls"] == TARGET_CONFIG
-
-
-def test_config_jql_remove(test_config: Settings) -> None:
-    JQLS_ADD = [
-        JqlEntry(id=1, name="projectA", jql="project = A"),
-        JqlEntry(id=2, name="project B", jql="project = B"),
-    ]
-    TARGET_CONFIG = [
-        {"id": 2, "name": "project B", "jql": "project = B"},
-    ]
-    for jql in JQLS_ADD:
-        test_config.add_jql(jql)
-    assert test_config.backend.jira_settings.jqls == JQLS_ADD
-
-    test_config.remove_jql(JqlEntry(id=1, name="projectA", jql="project = A"))
-    updated_config = Settings()
-    model_dict = updated_config.model_dump()
-    assert model_dict["backend"]["jira_settings"]["jqls"] == TARGET_CONFIG
 
 
 def test_config_creation(
@@ -123,10 +86,8 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
             },
             "jira_settings": {
                 "base_url": "",
-                "cache_ttl_seconds": 300,
                 "auth_file_path": AUTH_FILE.as_posix(),
                 "jqls": [],
-                "project_key": "",
                 "status_to_column_map": {
                     "Done": 3,
                     "In Progress": 2,

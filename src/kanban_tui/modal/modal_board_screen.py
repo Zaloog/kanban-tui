@@ -201,21 +201,35 @@ class ModalBoardOverviewScreen(ModalScreen):
 
     @on(Button.Pressed, "#btn_create_board")
     def action_new_board(self) -> None:
-        # TODO Change this back later
         match self.app.config.backend.mode:
             case Backends.SQLITE:
                 self.app.push_screen(
                     ModalNewBoardScreen(), callback=self.update_board_listview
                 )
             case Backends.JIRA:
-                msg = self.app.backend.jql()
-                self.notify(f"{msg}", markup=False)
+                from kanban_tui.modal.modal_jira_board_screen import (
+                    ModalNewJiraBoardScreen,
+                )
+
+                self.app.push_screen(
+                    ModalNewJiraBoardScreen(), callback=self.update_board_listview
+                )
 
     def action_edit_board(self) -> None:
         highlighted = self.query_exactly_one(BoardList).highlighted_child
         highlighted_board = highlighted.board
+        match self.app.config.backend.mode:
+            case Backends.SQLITE:
+                screen_to_push = ModalNewBoardScreen
+            case Backends.JIRA:
+                from kanban_tui.modal.modal_jira_board_screen import (
+                    ModalNewJiraBoardScreen,
+                )
+
+                screen_to_push = ModalNewJiraBoardScreen
+
         self.app.push_screen(
-            ModalNewBoardScreen(board=highlighted_board),
+            screen_to_push(board=highlighted_board),
             callback=self.update_board_listview,
         )
 
@@ -240,10 +254,7 @@ class ModalBoardOverviewScreen(ModalScreen):
         highlighted = self.query_exactly_one(BoardList).highlighted_child
 
         highlighted_board = highlighted.board
-        if (
-            highlighted_board.board_id
-            == self.app.config.backend.sqlite_settings.active_board_id
-        ):
+        if highlighted_board.board_id == self.app.active_board.board_id:
             self.notify(
                 title="Can not delete the active board",
                 severity="error",
@@ -253,7 +264,8 @@ class ModalBoardOverviewScreen(ModalScreen):
 
         confirm_deletion = await self.app.push_screen(
             ModalConfirmScreen(
-                text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?"
+                text=f"Delete [blue]{highlighted_board.full_name}[/] and all its tasks?",
+                button_text="Delete board",
             ),
             wait_for_dismiss=True,
         )
@@ -262,6 +274,7 @@ class ModalBoardOverviewScreen(ModalScreen):
             self.app.backend.delete_board(
                 board_id=highlighted_board.board_id,
             )
+
             self.app.update_board_list()
             await self.update_board_listview()
 

@@ -12,9 +12,10 @@ from textual.binding import Binding
 from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
 from textual.widgets import Input, Button
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 
 from kanban_tui.classes.column import Column
+from kanban_tui.widgets.custom_widgets import ButtonRow
 
 
 class ModalUpdateColumnScreen(ModalScreen):
@@ -33,6 +34,9 @@ class ModalUpdateColumnScreen(ModalScreen):
                 Input
             ).placeholder = f"Current column name: '{self.event.name}'"
             self.query_one(Button).label = "Rename column"
+        else:
+            self.query_one(Button).label = "Create column"
+        self.query_one(Button).disabled = True
 
     def compose(self) -> Iterable[Widget]:
         column_names = [column.name for column in self.app.column_list]
@@ -42,28 +46,21 @@ class ModalUpdateColumnScreen(ModalScreen):
                 validate_on=["changed"],
                 validators=[ValidColumn(columns=column_names)],
             )
-            with Horizontal(id="horizontal_buttons_delete"):
-                yield Button(
-                    "Create Column",
-                    id="btn_continue_new_col",
-                    variant="success",
-                    disabled=True,
-                )
-                yield Button("Cancel", id="btn_cancel_new_col", variant="error")
+            yield ButtonRow(id="horizontal_buttons")
 
-    @on(Button.Pressed, "#btn_continue_new_col")
+    @on(Button.Pressed, "#btn_continue")
     def confirm_new_column(self):
         updated_name = self.query_one(Input).value
         self.dismiss(result=updated_name)
 
-    @on(Button.Pressed, "#btn_cancel_new_col")
+    @on(Button.Pressed, "#btn_cancel")
     def cancel_new_column(self):
         self.dismiss(result=None)
 
     @on(Input.Changed)
     def enable_if_valid(self, event: Input.Changed):
         self.query_exactly_one(
-            "#btn_continue_new_col", Button
+            "#btn_continue", Button
         ).disabled = not event.validation_result.is_valid
 
 

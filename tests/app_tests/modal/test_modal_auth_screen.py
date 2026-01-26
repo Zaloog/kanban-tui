@@ -1,3 +1,5 @@
+from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
+from kanban_tui.modal.modal_jira_url_screen import ModalBaseUrlScreen
 import os
 from pathlib import Path
 
@@ -51,7 +53,7 @@ async def test_app_auth_save_new_key(test_app: KanbanTui, test_file_location: Pa
     test_app.config.backend.mode = Backends.JIRA
     test_app.backend = test_app.get_backend()
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert pilot.app.auth_only
+        assert test_app.auth_only
         assert isinstance(pilot.app.screen, ModalAuthScreen)
         assert pilot.app.screen.api_key == ""
         await pilot.press(*"NEW_KEY")
@@ -59,3 +61,24 @@ async def test_app_auth_save_new_key(test_app: KanbanTui, test_file_location: Pa
         assert isinstance(pilot.app.focused, IconButton)
 
         assert pilot.app.screen.api_key == "NEW_KEY"
+
+
+async def test_app_auth_set_key_and_url(test_app: KanbanTui, test_file_location: Path):
+    config_path = test_file_location / "test_sample_auth.toml"
+    os.environ["KANBAN_TUI_AUTH_FILE"] = config_path.as_posix()
+
+    test_app.config.backend.mode = Backends.JIRA
+    test_app.backend = test_app.get_backend()
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert isinstance(test_app.screen, ModalAuthScreen)
+        assert test_app.screen.api_key == ""
+        await pilot.press(*"NEW_KEY")
+        await pilot.press("enter")
+        assert isinstance(pilot.app.focused, IconButton)
+        await pilot.press("escape")
+
+        # Enter a URL
+        assert isinstance(test_app.screen, ModalBaseUrlScreen)
+        await pilot.press(*"http://localhost:8080")
+        await pilot.click("#btn_continue")
+        assert isinstance(test_app.screen, ModalBoardOverviewScreen)

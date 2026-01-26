@@ -10,7 +10,6 @@ from textual import on
 from textual.widget import Widget
 from textual.binding import Binding
 
-from textual.validation import Validator, ValidationResult
 from textual.screen import ModalScreen
 from textual.widgets import Button, Footer, Input, Label
 from textual.containers import Horizontal, Vertical
@@ -194,28 +193,3 @@ class ModalAuthScreen(ModalScreen):
     def update_visibility_show_button(self, event: Input.Changed):
         should_be_visible = bool(event.value)
         self.query_one("#button_show_api_key", IconButton).display = should_be_visible
-
-
-#     @on(Input.Changed)
-#     def enable_if_valid(self, event: Input.Changed):
-#         self.query_exactly_one(
-#             "#btn_continue_new_col", Button
-#         ).disabled = not event.validation_result.is_valid
-#
-#
-class ValidApiKey(Validator):
-    def __init__(self, columns: list[str], *args, **kwargs) -> None:
-        self.columns = columns
-        super().__init__(*args, **kwargs)
-
-    def key_is_empty(self, value: str) -> bool:
-        return value.strip() == ""
-
-    def validate(self, value: str) -> ValidationResult:
-        """Check if column name is already present"""
-        if self.column_is_empty(value):
-            return self.failure()
-        if self.column_is_valid(value):
-            return self.success()
-        else:
-            return self.failure("Please choose a different column name")
