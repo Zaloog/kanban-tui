@@ -74,6 +74,7 @@ class OrderedGroup(click.Group):
 @click.option("--web", is_flag=True, default=False, help="Host app locally")
 @click.pass_context
 def cli(ctx, web: bool):
+    """Running without any commands starts the TUI and should never be used by agents"""
     if web:
         try:
             from textual_serve.server import Server
@@ -122,6 +123,14 @@ cli.add_command(task)
 cli.add_command(column)
 cli.add_command(auth)
 cli.add_command(skill)
+try:
+    from kanban_tui.cli.mcp_commands import mcp
+
+    cli.add_command(mcp)
+except ImportError:
+    print_to_console(
+        "Please install [yellow]kanban-tui\\[mcp][/] to use kanban-tui as an mcp server."
+    )
 
 
 if __name__ == "__main__":

@@ -50,6 +50,9 @@ web = [
 jira = [
     "atlassian-python-api>=4.0.7",
 ]
+mcp = [
+    "pycli-mcp>=0.3.0",
+]
 
 
 [dependency-groups]

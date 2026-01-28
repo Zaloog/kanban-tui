@@ -41,7 +41,7 @@ def column(app: KanbanTui):
 )
 def list_columns(app: KanbanTui, json: bool, board: None | int):
     """
-    List all columns on active board
+    List all columns on active board, agents should prefer --json flag
     """
     boards = app.backend.get_boards()
     if not boards:
