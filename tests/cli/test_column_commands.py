@@ -1,6 +1,4 @@
-import pytest
 from click.testing import CliRunner
-from click.exceptions import UsageError
 
 from kanban_tui.cli import cli
 from kanban_tui.config import Backends
@@ -52,7 +50,14 @@ def test_column_wrong_backend(test_app, test_jira_config):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["column", "list"], obj=test_app)
         assert result.exit_code == 2
-        assert pytest.raises(UsageError)
+        assert (
+            f"Currently using `{test_app.config.backend.mode}` backend."
+            in result.output
+        )
+        assert (
+            f"Please change the backend to `{Backends.SQLITE}` before using the `column` command."
+            in result.output
+        )
 
 
 def test_column_list(test_app):

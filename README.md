@@ -9,7 +9,7 @@
 # kanban-tui
 
 A customizable terminal-based task manager powered by [Textual][textual].
-Now also usable in co-op mode with AI agents (check the [CLI interface](#cli-interface) for more info).
+Now also usable in co-op mode with AI agents (check the [CLI interface](#cli-interface) and [MCP Server][#mcp-server] section for more info).
 
 ## Demo
 ![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/docs/demo.gif)
@@ -21,7 +21,6 @@ uvx kanban-tui demo
 ```
 
 ## Features
-- Expand for detailed information
 
 </details>
 <details><summary>Following the XDG basedir convention</summary>
@@ -64,8 +63,8 @@ Tasks can have dependencies on other tasks, creating a workflow where certain ta
 - **Blocking Prevention**: Tasks with unfinished dependencies cannot be moved to start/finish columns
 - **Circular Detection**: The system prevents circular dependencies (Task A depends on Task B, Task B depends on Task A)
 - **Visual Indicators**: Task cards show visual cues for dependency status:
-  - ⚠️ "Blocked by X unfinished tasks" - Task has dependencies that aren't finished yet
-  - 🔗 "Blocking Y tasks" - Other tasks depend on this one
+  - 🔒 "Blocked by X unfinished tasks" - Task has dependencies that aren't finished yet
+  - ❗ "Blocking Y tasks" - Other tasks depend on this one
   - ✅ "No dependencies" - Task has no dependency relationships
 - **CLI Support**: Dependencies can be managed via the CLI with the `--depends-on` flag when creating tasks, or using the `--force` flag to override blocking when moving tasks
 </details>
@@ -206,7 +205,7 @@ ktui clear
 ### Create or Update Agent SKILL.md File
 With version v0.11.0 kanban-tui offers a [CLI Interface](#cli-interface-to-manage-tasks) to manage tasks, boards and columns.
 This is targeted mainly for agentic use e.g. via [Claude][claude-code], because references will be made only by ids, but some commands
-are also ergonomic for human use (e.g. task creation).
+are also ergonomic for human use (e.g. task or board creation).
 
 ```bash
 ktui skill init/update/delete
@@ -221,6 +220,17 @@ Note that not every functionality is supported yet (e.g. category management, co
 ktui task list/create/update/move/delete
 ktui board list/create/delete/activate
 ktui columns list
+```
+
+### MCP Server
+In addition to skills, `kanban-tui` can be run as a local mcp server, which exposes the `ktui task/board/column` commands.
+This requires the optional `mcp` dependency, which can be installed via `uv tool install kanban-tui[mcp]`. It utilizes [pycli-mcp]
+to directly expose the commands.
+Using the bare `ktui mcp` command shows the instruction to add `kanban-tui` mcp to [claude-code]. The server itself is
+started using the `--start-server` flag.
+
+```bash
+ktui mcp
 ```
 
 ### Show Location of Data, Config and Skill Files
@@ -250,6 +260,7 @@ Also check the [Changelog] for new updates.
 [textual-plotext]: https://github.com/Textualize/textual-plotext
 [xdg-base-dirs]: https://github.com/srstevenson/xdg-base-dirs
 [pydantic-settings]: https://pypi.org/project/pydantic-settings/
+[pycli-mcp]: https://github.com/ofek/pycli-mcp
 
 <!-- external Links Others -->
 [XDG]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html

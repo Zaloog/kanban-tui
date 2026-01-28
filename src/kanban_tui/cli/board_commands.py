@@ -35,7 +35,7 @@ def board(app: KanbanTui):
 )
 def list_boards(app: KanbanTui, json: bool):
     """
-    List all boards
+    List all boards, agents should prefer the --json flag
     """
     boards = app.backend.get_boards()
     if not boards:

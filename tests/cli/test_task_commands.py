@@ -2,7 +2,6 @@ import pytest
 from datetime import datetime
 from freezegun import freeze_time
 from click.testing import CliRunner
-from click.exceptions import UsageError
 
 from kanban_tui.cli import cli
 from kanban_tui.config import Backends
@@ -192,7 +191,6 @@ def test_task_wrong_backend(test_app, test_jira_config):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["task", "list"], obj=test_app)
         assert result.exit_code == 2
-        assert pytest.raises(UsageError)
         assert (
             f"Currently using `{test_app.config.backend.mode}` backend."
             in result.output

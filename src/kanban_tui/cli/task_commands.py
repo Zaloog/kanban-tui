@@ -59,7 +59,7 @@ def list_tasks(
     app: KanbanTui, json: bool, column: None | int, board: None | int, actionable: bool
 ):
     """
-    List all tasks on active board
+    List all tasks on active board, agents should prefer --json flag
     """
     boards = app.backend.get_boards()
     if not boards:
