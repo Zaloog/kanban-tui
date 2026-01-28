@@ -1,13 +1,10 @@
-from kanban_tui.utils import print_to_console
 import asyncio
 
 import click
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.config import Backends
-
-from mcp.server.stdio import stdio_server
-from pycli_mcp import CommandQuery, CommandMCPServer
+from kanban_tui.utils import print_to_console
 
 
 @click.command()
@@ -24,6 +21,15 @@ def mcp(app: KanbanTui, ctx, start_server: bool):
     """
     Starts the mcp server that exposes task/board/column commands
     """
+    try:
+        from mcp.server.stdio import stdio_server
+        from pycli_mcp import CommandQuery, CommandMCPServer
+    except ImportError:
+        print_to_console(
+            "Please install [yellow]kanban-tui\\[mcp][/] to use kanban-tui as an mcp server."
+        )
+        return
+
     if app.config.backend.mode != Backends.SQLITE:
         raise click.exceptions.UsageError(
             f"""
@@ -32,7 +38,9 @@ def mcp(app: KanbanTui, ctx, start_server: bool):
             """
         )
     if not start_server:
-        print_to_console("To add [yellow]kanban-tui[/] as an mcp-server, run:")
+        print_to_console(
+            "To add [yellow]kanban-tui[/] as an mcp-server, e.g. for `claude`, run:"
+        )
         print_to_console(
             "[blue]claude mcp add kanban-tui --transport stdio --scope user -- ktui mcp --start-server[/]"
         )
