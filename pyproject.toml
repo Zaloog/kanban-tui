@@ -1,7 +1,7 @@
 [project]
 name = "kanban-tui"
-version = "0.15.0"
-description = "customizable task tui powered by textual"
+version = "0.16.0"
+description = "customizable task tui powered by textual usable by agents"
 authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
 ]
@@ -21,7 +21,7 @@ readme = "README.md"
 requires-python = ">= 3.11"
 license = { text = "MIT" }
 
-keywords = ["python", "textual", "tui", "kanban"]
+keywords = ["python", "textual", "tui", "kanban", "mcp", "tasks", "cli"]
 
 classifiers = [
     "Development Status :: 3 - Alpha",
