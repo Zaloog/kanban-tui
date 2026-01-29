@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import json
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -217,7 +218,8 @@ class ClaudeBackend(Backend):
         raise NotImplementedError("Claude backend is read-only. Cannot create boards.")
 
     def delete_board(self, board_id: int):
-        raise NotImplementedError("Claude backend is read-only. Cannot delete boards.")
+        board_path = self._get_session_path(board_id)
+        shutil.rmtree(board_path)
 
     def update_board(self, board_id: int, name: str, icon: str):
         raise NotImplementedError("Claude backend is read-only. Cannot update boards.")
@@ -236,7 +238,7 @@ class ClaudeBackend(Backend):
         task_name = f"{task_id}.json"
         return self._get_session_path(self.active_board.board_id) / task_name
 
-    def update_task_json(
+    def update_task_status_json(
         self, task_path: Path, target_status: int
     ) -> dict[str, Any] | None:
         json_dict = self._read_task_file(task_path)
@@ -250,18 +252,34 @@ class ClaudeBackend(Backend):
 
     def update_task_status(self, new_task: Task):
         task_path = self.get_task_file_path(new_task.task_id)
-        new_json_dict = self.update_task_json(task_path, new_task.column)
+        new_json_dict = self.update_task_status_json(task_path, new_task.column)
         self.save_json(task_path, new_json_dict)
+
+    def update_task_json(
+        self, task_path: Path, title: str, description: str
+    ) -> dict[str, Any] | None:
+        json_dict = self._read_task_file(task_path)
+        if json_dict:
+            json_dict["subject"] = title
+            json_dict["description"] = description
+        return json_dict
 
     def update_task_entry(
         self,
         task_id: int,
         title: str,
         description: str,
-        category: int,
-        due_date: datetime,
-    ) -> Task:
-        raise NotImplementedError("Claude backend is read-only. Cannot update tasks.")
+        category: int | None,
+        due_date: datetime | None,
+    ) -> Task | None:
+        task_path = self.get_task_file_path(task_id)
+        new_json_dict = self.update_task_json(task_path, title, description)
+        self.save_json(task_path, new_json_dict)
+        if new_json_dict:
+            return self._claude_task_to_kanban(
+                new_json_dict, self.active_board.board_id
+            )
+        return None
 
     def create_new_category(self, name: str, color: str) -> Category:
         raise NotImplementedError(
