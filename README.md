@@ -37,7 +37,18 @@ More columns can be created via the `Settings`-Tab. Also the visibility and orde
 Deletion of existing columns is only possible, if no task is present in the column you want to delete.
 </details>
 
+<details><summary>Multiple Backends</summary>
+
+kanban-tui currently supports three backends.
+- **sqlite** (default) | Supports all features of `kanban-tui`
+- **jira** | Connect to your jira instance via api key and query tasks via jql.
+Columns are defined by task transitions.
+- **claude** | Read the `.json` files under `~/.claude/tasks/`. Boards are created for each session ID.
+Supports only a subset of features
+
+
 </details>
+
 <details><summary>Multi Board Support</summary>
 
 With version v0.4.0 kanban-tui allows the creation of multiple boards.
@@ -45,14 +56,12 @@ Use `B` on the `Kanban Board`-Tab to get an overview over all Boards including
 the amount of columns, tasks and the earliest Due Date.
 </details>
 
-</details>
 <details><summary>Task Management</summary>
 
 When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or `move (H, L)` tasks between columns.
 Movement between columns also supports drag and drop via mouse.
 </details>
 
-</details>
 <details><summary>Task Dependencies</summary>
 
 Tasks can have dependencies on other tasks, creating a workflow where certain tasks must be completed before others can proceed.
@@ -67,7 +76,6 @@ Tasks can have dependencies on other tasks, creating a workflow where certain ta
 - **CLI Support**: Dependencies can be managed via the CLI with the `--depends-on` flag when creating tasks, or using the `--force` flag to override blocking when moving tasks
 </details>
 
-</details>
 <details><summary>Database Information</summary>
 The current database schema looks as follows.
 The Audit table is filled automatically based on triggers.
@@ -133,7 +141,6 @@ erDiagram
 ```
 </details>
 
-</details>
 <details><summary>Visual Summary and Audit Table</summary>
 
 To give you an overview over the amount of tasks you `created`, `started` or `finished`, kanban-tui
