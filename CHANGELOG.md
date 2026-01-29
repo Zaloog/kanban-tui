@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.17.0 (unreleased)
+### Added
+- Added board/session deletion and Task title/description updates for Claude backend
+
 ## v0.16.1
 ### Fixed
 - Run mcp server in an asyncio task with another task listening to SIGINT and SIGTERM to properly close down the mcp Server
