@@ -265,4 +265,4 @@ async def test_custom_footer(test_app: KanbanTui):
 async def test_custom_footer_backend_switcher(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         assert not pilot.app.screen.query_one(VimSelect).display
-        assert pilot.app.screen.query_one(VimSelect).value == Backends.SQLITE
+        assert pilot.app.screen.query_one(VimSelect).value == f"✔  {Backends.SQLITE}"

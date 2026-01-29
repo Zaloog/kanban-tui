@@ -34,17 +34,19 @@ KanbanTuiFooter {
     padding-left: 1;
   }
   Select {
-    color:$primary-muted;
+    # color:$primary-muted;
     width: 1fr;
     height: 1;
     max-height: 1;
-    content-align:center middle;
+    content-align:left middle;
     align:center middle;
     border:none;
     SelectOverlay {
       background:$primary-muted;
-      height: 4;
-      content-align:center middle;
+      width:20;
+      offset-x:-1;
+      height: 3;
+      content-align:left middle;
     }
   }
 }

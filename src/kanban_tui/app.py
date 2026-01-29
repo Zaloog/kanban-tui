@@ -126,9 +126,11 @@ class KanbanTui(App[str | None]):
 
     @on(Select.Changed, "#select_backend_mode")
     def update_backend(self, event: Select.Changed):
-        match event.value:
+        backend_value = event.value.split(" ")[-1].strip()
+        match backend_value:
             case Backends.SQLITE:
-                self.config.set_backend(new_backend=event.value)
+                # self.config.set_backend(new_backend=event.value)
+                self.config.set_backend(new_backend=backend_value)
             case Backends.JIRA:
                 try:
                     version("atlassian-python-api")
@@ -140,10 +142,10 @@ class KanbanTui(App[str | None]):
                         severity="warning",
                     )
                     with self.prevent(Select.Changed):
-                        event.select.value = self.config.backend.mode
+                        event.select.value = f"✔  {self.app.config.backend.mode}"  # self.config.backend.mode
                     self.action_focus_next()
                     return
-                self.config.set_backend(new_backend=event.value)
+                self.config.set_backend(new_backend=backend_value)
 
             case Backends.CLAUDE:
                 # Check if Claude tasks directory exists
@@ -157,26 +159,20 @@ class KanbanTui(App[str | None]):
                         severity="warning",
                     )
                     with self.prevent(Select.Changed):
-                        event.select.value = self.config.backend.mode
+                        # event.select.value = self.config.backend.mode
+                        event.select.value = f"✔  {self.app.config.backend.mode}"  # self.config.backend.mode
                     self.action_focus_next()
                     return
-                self.config.set_backend(new_backend=event.value)
+                # self.config.set_backend(new_backend=event.value)
+                self.config.set_backend(new_backend=backend_value)
                 self.notify(
                     title="Claude backend activated",
                     message="Read-only mode: viewing Claude Code tasks from ~/.claude/tasks/",
                     severity="information",
                 )
-            case _:
-                self.notify(
-                    title="Backend not available yet",
-                    message="Please choose the `sqlite`, `jira`, or `claude` backend",
-                    severity="warning",
-                )
-                with self.prevent(Select.Changed):
-                    event.select.value = Backends.SQLITE
-                self.action_focus_next()
-                return
         self.backend = self.get_backend()
+        # This make the checkmark on the new backend
+        event.select.update_values()
         self.action_refresh()
 
     def update_board_list(self):
