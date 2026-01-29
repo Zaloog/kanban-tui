@@ -227,7 +227,7 @@ Note that not every functionality is supported yet (e.g. category management, co
 ```bash
 ktui task list/create/update/move/delete
 ktui board list/create/delete/activate
-ktui columns list
+ktui column list
 ```
 
 ### MCP Server
