@@ -1,8 +1,7 @@
+from kanban_tui.config import Backends
 from pathlib import Path
 
-import pytest
 from click.testing import CliRunner
-from click.exceptions import UsageError
 
 from kanban_tui.cli import cli
 
@@ -25,7 +24,14 @@ def test_auth_wrong_backend(test_app, test_database_path):
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["auth"], obj=test_app)
         assert result.exit_code == 2
-        assert pytest.raises(UsageError)
+        assert (
+            f"Currently using `{test_app.config.backend.mode}` backend."
+            in result.output
+        )
+        assert (
+            f"Please change the backend to `{Backends.JIRA}` before using the `auth` command."
+            in result.output
+        )
 
 
 def test_clear_abort(test_app, test_database_path):

@@ -54,7 +54,7 @@ def auth(app: KanbanTui):
         raise click.exceptions.UsageError(
             f"""
             Currently using `{app.config.backend.mode}` backend.
-            Please change the backend to `jira` before using the `auth` command.
+            Please change the backend to `{Backends.JIRA}` before using the `auth` command.
             """
         )
 

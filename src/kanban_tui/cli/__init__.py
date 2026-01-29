@@ -1,5 +1,7 @@
 """CLI entry-point for kanban-tui"""
 
+import sys
+
 import os
 from collections import OrderedDict
 
@@ -12,6 +14,7 @@ from kanban_tui.app import KanbanTui
 from kanban_tui.cli.board_commands import board
 from kanban_tui.cli.demo_commands import demo
 from kanban_tui.cli.skills_commands import skill
+from kanban_tui.cli.mcp_commands import mcp
 from kanban_tui.cli.general_commands import info, clear, auth
 from kanban_tui.utils import print_to_console
 from kanban_tui.constants import (
@@ -27,6 +30,7 @@ COMMAND_DICT = {
         "info",
         "clear",
         "skill",
+        "mcp",
     ],
     "CLI Interface Commands": [
         "board",
@@ -73,7 +77,8 @@ class OrderedGroup(click.Group):
 @click.version_option(prog_name="kanban-tui")
 @click.option("--web", is_flag=True, default=False, help="Host app locally")
 @click.pass_context
-def cli(ctx, web: bool):
+def cli(ctx: click.Context, web: bool):
+    """Running without any commands starts the TUI and should never be used by agents"""
     if web:
         try:
             from textual_serve.server import Server
@@ -82,7 +87,7 @@ def cli(ctx, web: bool):
             print_to_console(
                 "Please install [yellow]kanban-tui\\[web][/] to add web support."
             )
-            return
+            sys.exit(1)
 
         command = "ktui"
         server = Server(command)
@@ -122,6 +127,7 @@ cli.add_command(task)
 cli.add_command(column)
 cli.add_command(auth)
 cli.add_command(skill)
+cli.add_command(mcp)
 
 
 if __name__ == "__main__":
