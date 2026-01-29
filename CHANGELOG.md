@@ -5,6 +5,7 @@
 - Added a local kanban-tui mcp server. Requires installation with optional `mcp` dependency (e.g. `uv tool install kanban-tui\[mcp\]`).
 - Added new `ktui mcp` command, which shows helper command how to add the mcp server.
 The server itself is started by appending the `--start-server` flag.
+- Added a better indication, which backend is active in the backend selector
 
 ## v0.15.0
 ### Added
