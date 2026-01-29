@@ -1,5 +1,7 @@
 """Integration tests for Claude backend in the TUI app."""
 
+from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
+
 from kanban_tui.widgets.task_card import TaskCard
 
 import json
@@ -146,3 +148,31 @@ async def test_claude_backend_delete_task(temp_claude_tasks_env, test_app: Kanba
         assert len(test_app.task_list) == 1
 
         assert not (tasks_path / "tasks" / session_id / "1.json").exists()
+
+
+async def test_claude_backend_delete_board(temp_claude_tasks_env, test_app: KanbanTui):
+    """Test that write operations raise NotImplementedError."""
+    tasks_path, session_id = temp_claude_tasks_env
+
+    session_name = "test-session-to-delete"
+    session_path = tasks_path / "tasks" / session_name
+    session_path.mkdir(parents=True)
+
+    test_app.config.backend.mode = Backends.CLAUDE
+    test_app.config.backend.claude_settings.active_session_id = session_id
+    test_app.backend = test_app.get_backend()
+
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        # Open Boards and move to board to be deleted
+        await pilot.press("B")
+        await pilot.press("j")
+        assert len(test_app.board_list) == 2
+
+        # delete
+        await pilot.press("d")
+        assert isinstance(test_app.screen, ModalConfirmScreen)
+        # + confirm
+        await pilot.press("enter")
+        assert len(test_app.board_list) == 1
+
+        assert not (tasks_path / "tasks" / session_name).exists()

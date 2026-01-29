@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import json
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -217,7 +218,8 @@ class ClaudeBackend(Backend):
         raise NotImplementedError("Claude backend is read-only. Cannot create boards.")
 
     def delete_board(self, board_id: int):
-        raise NotImplementedError("Claude backend is read-only. Cannot delete boards.")
+        board_path = self._get_session_path(board_id)
+        shutil.rmtree(board_path)
 
     def update_board(self, board_id: int, name: str, icon: str):
         raise NotImplementedError("Claude backend is read-only. Cannot update boards.")
