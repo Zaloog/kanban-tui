@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.16.1
+### Fixed
+- Run mcp server in an asyncio task with another task listening to SIGINT and SIGTERM to properly close down the mcp Server
+when exiting the agent. Before it happened, that a subprocess was dangling
+
 ## v0.16.0
 ### Added
 - Added a local kanban-tui mcp server. Requires installation with optional `mcp` dependency (e.g. `uv tool install kanban-tui\[mcp\]`).
