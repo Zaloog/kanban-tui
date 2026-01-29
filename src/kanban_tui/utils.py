@@ -180,6 +180,37 @@ def getrgb(color: str) -> tuple[int, int, int] | tuple[int, int, int, int]:
     raise ValueError(msg)
 
 
+# Curated list of distinct, vibrant colors for category suggestions
+CATEGORY_COLOR_POOL = [
+    "blue", "green", "red", "orange", "purple", "cyan", "magenta", "yellow",
+    "lime", "pink", "teal", "indigo", "coral", "gold", "salmon", "turquoise",
+    "violet", "crimson", "royalblue", "forestgreen", "tomato", "orchid",
+    "chocolate", "steelblue", "olivedrab", "hotpink", "darkorange", "mediumseagreen",
+    "slateblue", "darkviolet", "lightcoral", "dodgerblue", "darkgoldenrod", "mediumorchid",
+]
+
+
+def get_next_category_color(used_colors: list[str]) -> str:
+    """Get the next available color from the pool for a new category.
+    
+    Args:
+        used_colors: List of colors already used by existing categories
+        
+    Returns:
+        A color name from the pool that hasn't been used yet, or cycles back to the start
+    """
+    # Normalize used colors to lowercase for comparison
+    used_colors_lower = [color.lower() for color in used_colors]
+    
+    # Find first unused color
+    for color in CATEGORY_COLOR_POOL:
+        if color not in used_colors_lower:
+            return color
+    
+    # If all colors are used, cycle back to the start
+    return CATEGORY_COLOR_POOL[len(used_colors) % len(CATEGORY_COLOR_POOL)]
+
+
 colormap: dict[str, str | tuple[int, int, int]] = {
     # X11 colour table from https://drafts.csswg.org/css-color-4/, with
     # gray/grey spelling issues fixed.  This is a superset of HTML 4.0
