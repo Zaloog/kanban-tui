@@ -88,7 +88,7 @@ async def test_backend_mode(test_app: KanbanTui):
         assert pilot.app.config.backend.mode == Backends.SQLITE
         assert (
             pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
-            == Backends.SQLITE
+            == f"✔  {Backends.SQLITE}"
         )
 
         # toggle Backend Footer Select Value
@@ -99,7 +99,7 @@ async def test_backend_mode(test_app: KanbanTui):
         assert pilot.app.config.backend.mode == Backends.SQLITE
         assert (
             pilot.app.screen.query_exactly_one("#select_backend_mode", Select).value
-            == Backends.SQLITE
+            == f"✔  {Backends.SQLITE}"
         )
 
 
