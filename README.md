@@ -59,7 +59,9 @@ the amount of columns, tasks and the earliest Due Date.
 <details><summary>Task Management</summary>
 
 When on the `Kanban Board`-Tab you can `create (n)`, `edit (e)`, `delete (d)` or `move (H, L)` tasks between columns.
-Movement between columns also supports drag and drop via mouse.
+Movement between columns is also supported via mouse drag and drop.
+Task dependencies can be defined, which restrict movement to the `Doing` (start_column).
+To have the restrictions available, the status columns must be defined on the settings screen.
 </details>
 
 <details><summary>Task Dependencies</summary>

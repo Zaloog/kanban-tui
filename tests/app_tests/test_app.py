@@ -111,7 +111,7 @@ async def test_app_refresh(
         assert len(pilot.app.task_list) == 5
 
         # refresh app
-        await pilot.press("f5")
+        await pilot.press("r")
         assert len(pilot.app.task_list) == 4
 
 

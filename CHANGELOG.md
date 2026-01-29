@@ -7,6 +7,9 @@
 The server itself is started by appending the `--start-server` flag.
 - Added a better indication, which backend is active in the backend selector
 
+### Changed
+- Changed `refresh` shortcut from `f5` to `r`
+
 ## v0.15.0
 ### Added
 - `Claude` Backend now allows to move/delete tasks

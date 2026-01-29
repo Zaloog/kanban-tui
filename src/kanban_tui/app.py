@@ -28,7 +28,7 @@ from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 class KanbanTui(App[str | None]):
     CSS_PATH = Path("assets/style.tcss")
     BINDINGS = [
-        Binding("f5", "refresh", "🔄Refresh", priority=True),
+        Binding("r", "refresh", "🔄Refresh", priority=True),
         Binding("ctrl+j", 'switch_screen("board")', "Board"),
         Binding("ctrl+k", 'switch_screen("overview")', "Overview"),
         Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
