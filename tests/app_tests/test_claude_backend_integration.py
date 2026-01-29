@@ -1,5 +1,7 @@
 """Integration tests for Claude backend in the TUI app."""
 
+from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
+
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 
 from kanban_tui.widgets.task_card import TaskCard
@@ -148,6 +150,33 @@ async def test_claude_backend_delete_task(temp_claude_tasks_env, test_app: Kanba
         assert len(test_app.task_list) == 1
 
         assert not (tasks_path / "tasks" / session_id / "1.json").exists()
+
+
+async def test_claude_backend_update_task(temp_claude_tasks_env, test_app: KanbanTui):
+    """Test that write operations raise NotImplementedError."""
+    tasks_path, session_id = temp_claude_tasks_env
+
+    test_app.config.backend.mode = Backends.CLAUDE
+    test_app.config.backend.claude_settings.active_session_id = session_id
+    test_app.backend = test_app.get_backend()
+
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert isinstance(test_app.focused, TaskCard)
+        await pilot.press("e")
+        assert isinstance(test_app.screen, ModalTaskEditScreen)
+        # edit title
+        await pilot.press(*" update")
+        await pilot.press("tab")
+        # edit title
+        await pilot.press(*" edit")
+        await pilot.press("ctrl+j")
+        assert test_app.focused.task_.title == "Integration test task update"
+
+    task_string = (tasks_path / "tasks" / session_id / "1.json").read_text(
+        encoding="utf-8"
+    )
+    assert "update" in task_string
+    assert "edit" in task_string
 
 
 async def test_claude_backend_delete_board(temp_claude_tasks_env, test_app: KanbanTui):
