@@ -8,8 +8,8 @@
 
 # kanban-tui
 
-A customizable terminal-based task manager powered by [Textual][textual].
-Now also usable in co-op mode with AI agents (check the [CLI interface](#cli-interface) and [MCP Server][#mcp-server] section for more info).
+A customizable terminal-based task manager powered by [Textual][textual] with multiple backends.
+Now also usable in co-op mode with AI agents (check the [CLI interface](#cli-interface) and [MCP Server](#mcp-server) section for more info).
 
 ## Demo
 ![demo_gif](https://raw.githubusercontent.com/Zaloog/kanban-tui/main/docs/demo.gif)
@@ -22,15 +22,13 @@ uvx kanban-tui demo
 
 ## Features
 
-</details>
-<details><summary>Following the XDG basedir convention</summary>
+<details><summary>following the xdg basedir convention</summary>
 
 kanban-tui utilizes [pydantic-settings] and [xdg-base-dirs] `user_config_dir` to save
 the config file and `user_data_dir` for the sqlite database.
-You can get an overview of all file locations with `uvx kanban-tui info`
+you can get an overview of all file locations with `uvx kanban-tui info`
 </details>
 
-</details>
 <details><summary>Customizable Board</summary>
 
 kanban-tui comes with four default columns
@@ -90,6 +88,7 @@ erDiagram
         DATETIME start_date
         DATETIME finish_date
         DATETIME due_date
+        TEXT metadata
     }
     task_dependencies {
         INTEGER dependency_id PK
