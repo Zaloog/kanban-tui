@@ -49,7 +49,7 @@ def mcp(app: KanbanTui, ctx, start_server: bool):
         return
 
     query = CommandQuery(
-        command=ctx.parent.command, name="ktui", include=r"task|board|column"
+        command=ctx.parent.command, name="ktui", include=r"task|board|column|category"
     )
     mcp_server = CommandMCPServer(commands=[query])
 
