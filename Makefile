@@ -19,6 +19,9 @@ dev:
 devd:
 	$(RUN) textual run -c kanban-tui demo --dev
 
+release:
+	# Thanks Will
+	gh release create --generate-notes "v$(shell uv version| sed 's/[^0-9\.]*//g')"
 
 # -- Jira locally ---
 ju:
