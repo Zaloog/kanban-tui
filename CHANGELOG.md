@@ -3,6 +3,11 @@
 ## v0.17.0 (unreleased)
 ### Added
 - Added board/session deletion and Task title/description updates for Claude backend
+- Added category command to manage categories and updated existing commands for `--category`
+- Added category command to mcp server
+
+### Changed
+- Changed SKILL.md to include category commands/options, use `ktui skill update` to get the latest version
 
 ## v0.16.1
 ### Fixed
