@@ -1,3 +1,4 @@
+from textual.color import Color
 import pytest
 from datetime import datetime
 from kanban_tui.utils import (
@@ -174,6 +175,12 @@ def test_get_column_status_dict():
     assert status_enum["reset"] is None
     assert status_enum["start"] == 1
     assert status_enum["finish"] == 2
+
+
+def test_category_color_all_valid():
+    """Checks, if all colors can be parsed properly"""
+    parsed_colors = [Color.parse(color) for color in CATEGORY_COLOR_POOL]
+    assert parsed_colors
 
 
 def test_get_next_category_color_empty_list():
