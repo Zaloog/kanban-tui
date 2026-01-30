@@ -92,3 +92,26 @@ def delete_category(app: KanbanTui, category_id: int, no_confirm: bool):
         print_to_console(f"Deleted category with {category_id = }.")
     else:
         print_to_console(f"[red]There is no category with {category_id = }[/].")
+
+
+@category.command("update")
+@click.pass_obj
+@click.argument("category_id", type=click.INT)
+@click.option("--name", type=click.STRING, help="New name for the category")
+@click.option("--color", type=click.STRING, help="New color for the category")
+def update_category(
+    app: KanbanTui, category_id: int, name: str | None, color: str | None
+):
+    """
+    Updates an existing category
+    """
+    category = app.backend.get_category_by_id(category_id)
+    if not category:
+        print_to_console(f"[red]There is no category with {category_id = }[/].")
+        return
+
+    updated_name = name if name is not None else category.name
+    updated_color = color if color is not None else category.color
+
+    app.backend.update_category(category_id, updated_name, updated_color)
+    print_to_console(f"Updated category with {category_id = }.")
