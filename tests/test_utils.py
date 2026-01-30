@@ -1,3 +1,4 @@
+from textual.color import Color
 import pytest
 from datetime import datetime
 from kanban_tui.utils import (
@@ -5,6 +6,8 @@ from kanban_tui.utils import (
     get_days_left_till_due,
     get_time_range,
     get_column_status_dict,
+    get_next_category_color,
+    CATEGORY_COLOR_POOL,
 )
 
 from freezegun import freeze_time
@@ -172,3 +175,46 @@ def test_get_column_status_dict():
     assert status_enum["reset"] is None
     assert status_enum["start"] == 1
     assert status_enum["finish"] == 2
+
+
+def test_category_color_all_valid():
+    """Checks, if all colors can be parsed properly"""
+    parsed_colors = [Color.parse(color) for color in CATEGORY_COLOR_POOL]
+    assert parsed_colors
+
+
+def test_get_next_category_color_empty_list():
+    """Test getting next color with no used colors returns first color from pool."""
+    result = get_next_category_color([])
+    assert result == CATEGORY_COLOR_POOL[0]
+
+
+def test_get_next_category_color_some_used():
+    """Test getting next color with some colors already used."""
+    used_colors = ["blue", "green"]
+    result = get_next_category_color(used_colors)
+    assert result not in used_colors
+    assert result == CATEGORY_COLOR_POOL[2]  # "red" is the 3rd color
+
+
+def test_get_next_category_color_case_insensitive():
+    """Test that color matching is case-insensitive."""
+    used_colors = ["BLUE", "Green"]
+    result = get_next_category_color(used_colors)
+    assert result.lower() not in [c.lower() for c in used_colors]
+
+
+def test_get_next_category_color_cycles():
+    """Test that color selection cycles when all colors are used."""
+    # Use all colors from the pool
+    used_colors = CATEGORY_COLOR_POOL.copy()
+    result = get_next_category_color(used_colors)
+    # Should cycle back to start
+    assert result == CATEGORY_COLOR_POOL[len(used_colors) % len(CATEGORY_COLOR_POOL)]
+
+
+def test_get_next_category_color_finds_gap():
+    """Test that function finds a gap in used colors."""
+    used_colors = ["blue", "green", "orange"]  # Skip "red"
+    result = get_next_category_color(used_colors)
+    assert result == "red"  # Should find the gap

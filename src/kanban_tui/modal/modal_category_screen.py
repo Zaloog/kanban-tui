@@ -5,6 +5,7 @@ from rich.text import Text
 from textual.color import Color, ColorParseError
 
 from kanban_tui.classes.category import Category
+from kanban_tui.utils import get_next_category_color
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
@@ -247,6 +248,14 @@ class ModalNewCategoryScreen(ModalScreen[int | None]):
             self.query_exactly_one(
                 "#input_category_color", Input
             ).value = self.category.color
+        else:
+            # Pre-fill color input with next available color from pool
+            existing_categories = self.app.backend.get_all_categories()
+            used_colors = [cat.color for cat in existing_categories]
+            suggested_color = get_next_category_color(used_colors)
+            self.query_exactly_one(
+                "#input_category_color", Input
+            ).value = suggested_color
 
     @on(Button.Pressed, "#btn_continue_new_category")
     def confirm_new_category(self):
