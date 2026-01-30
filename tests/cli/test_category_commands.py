@@ -2,6 +2,7 @@ from click.testing import CliRunner
 
 from kanban_tui.cli import cli
 from kanban_tui.config import Backends
+from kanban_tui.utils import CATEGORY_COLOR_POOL
 
 CATEGORY_OUTPUT = """Category(category_id=1, name='red', color='#FF0000')
 Category(category_id=2, name='green', color='#00FF00')
@@ -79,7 +80,7 @@ def test_category_create(test_app):
             obj=test_app,
         )
         assert result.exit_code == 0
-        assert result.output == "Created category `yellow` with category_id = 4.\n"
+        assert "Created category `yellow`" in result.output
 
         # Verify category was created
         categories = test_app.backend.get_all_categories()
@@ -145,3 +146,137 @@ def test_category_delete_no_categories(no_task_app):
         )
         assert result.exit_code == 0
         assert "No categories created yet." in result.output
+
+
+def test_category_create_optional_color(test_app):
+    """Test creating a category without providing a color."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Get existing colors to verify prefill logic
+        existing_categories = test_app.backend.get_all_categories()
+        used_colors = [cat.color for cat in existing_categories]
+
+        result = runner.invoke(
+            cli,
+            args=["category", "create", "New Auto Color"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "Created category `New Auto Color` with color" in result.output
+
+        # Verify category was created with a valid color
+        categories = test_app.backend.get_all_categories()
+        assert len(categories) == 4
+        new_cat = categories[3]
+        assert new_cat.name == "New Auto Color"
+        assert new_cat.color not in used_colors
+        assert new_cat.color in CATEGORY_COLOR_POOL
+
+
+def test_category_create_invalid_color(test_app):
+    """Test creating a category with an invalid color."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["category", "create", "Invalid Color", "notacolor"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "Invalid color: notacolor" in result.output
+
+        # Verify category was NOT created
+        categories = test_app.backend.get_all_categories()
+        assert len(categories) == 3
+
+
+def test_category_update_name_only(test_app):
+    """Test updating only the category name."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["category", "update", "1", "--name", "Updated Red"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "Updated category with category_id = 1" in result.output
+
+        # Verify update
+        cat = test_app.backend.get_category_by_id(1)
+        assert cat.name == "Updated Red"
+        assert cat.color == "#FF0000"  # Original color
+
+
+def test_category_update_color_only(test_app):
+    """Test updating only the category color."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["category", "update", "2", "--color", "cyan"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "Updated category with category_id = 2" in result.output
+
+        # Verify update
+        cat = test_app.backend.get_category_by_id(2)
+        assert cat.name == "green"  # Original name
+        assert cat.color == "cyan"
+
+
+def test_category_update_both(test_app):
+    """Test updating both name and color."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "category",
+                "update",
+                "3",
+                "--name",
+                "Blue Updated",
+                "--color",
+                "magenta",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "Updated category with category_id = 3" in result.output
+
+        # Verify update
+        cat = test_app.backend.get_category_by_id(3)
+        assert cat.name == "Blue Updated"
+        assert cat.color == "magenta"
+
+
+def test_category_update_invalid_color(test_app):
+    """Test updating with an invalid color."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["category", "update", "1", "--color", "invalid-color"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "Invalid color: invalid-color" in result.output
+
+        # Verify NO update
+        cat = test_app.backend.get_category_by_id(1)
+        assert cat.color == "#FF0000"
+
+
+def test_category_update_nonexistent(test_app):
+    """Test updating a non-existent category."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["category", "update", "999", "--name", "Nope"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert "There is no category with category_id = 999" in result.output

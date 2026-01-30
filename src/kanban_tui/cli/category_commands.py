@@ -2,11 +2,12 @@
 
 import click
 from pydantic import TypeAdapter
+from textual.color import Color, ColorParseError
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.classes.category import Category
 from kanban_tui.config import Backends
-from kanban_tui.utils import print_to_console
+from kanban_tui.utils import print_to_console, get_next_category_color
 
 
 @click.group()
@@ -55,14 +56,27 @@ def list_categories(app: KanbanTui, json: bool):
 @category.command("create")
 @click.pass_obj
 @click.argument("name", type=click.STRING)
-@click.argument("color", type=click.STRING)
-def create_category(app: KanbanTui, name: str, color: str):
+@click.argument("color", type=click.STRING, required=False)
+def create_category(app: KanbanTui, name: str, color: str | None):
     """
     Creates a new category
     """
+    if color is None:
+        existing_categories = app.backend.get_all_categories()
+        used_colors = [cat.color for cat in existing_categories]
+        color = get_next_category_color(used_colors)
+    else:
+        try:
+            Color.parse(color)
+        except ColorParseError:
+            print_to_console(f"[red]Invalid color: {color}[/]")
+            return
+
     new_category = app.backend.create_new_category(name=name, color=color)
     category_id = new_category.category_id
-    print_to_console(f"Created category `{name}` with {category_id = }.")
+    print_to_console(
+        f"Created category `{name}` with color `{color}` and {category_id = }."
+    )
 
 
 @category.command("delete")
@@ -109,6 +123,13 @@ def update_category(
     if not category:
         print_to_console(f"[red]There is no category with {category_id = }[/].")
         return
+
+    if color:
+        try:
+            Color.parse(color)
+        except ColorParseError:
+            print_to_console(f"[red]Invalid color: {color}[/]")
+            return
 
     updated_name = name if name is not None else category.name
     updated_color = color if color is not None else category.color

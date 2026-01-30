@@ -83,7 +83,9 @@ ktui category list --json
 ```bash
 ktui category create "Category Name" "color"
 ```
-**Note**: Color can be any string, but TUI usually supports standard colors (red, blue, green, yellow, etc.)
+**Options**:
+- `color`: Optional. If omitted, a color is automatically assigned.
+**Note**: Color must be a valid CSS/X11 color name or hex code (e.g., "red", "#FF0000").
 
 #### Update Category
 ```bash
