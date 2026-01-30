@@ -31,7 +31,7 @@ def category(app: KanbanTui):
     is_flag=True,
     default=False,
     type=click.BOOL,
-    help="use JSON format",
+    help="Use JSON format",
 )
 def list_categories(app: KanbanTui, json: bool):
     """
