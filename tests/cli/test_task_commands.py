@@ -1229,3 +1229,63 @@ def test_task_list_actionable_json_format(test_app):
             # None of the returned tasks should be task 6
             task_ids = [t["task_id"] for t in tasks]
             assert 6 not in task_ids
+
+
+def test_task_create_with_category(test_app):
+    """Test creating a task with a category"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Task with Category",
+                "--category",
+                "1",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == "Created task `Task with Category` with task_id = 6.\n"
+
+        # Verify the task has the correct category
+        tasks = test_app.backend.get_tasks_on_active_board()
+        new_task = tasks[-1]
+        assert new_task.category == 1
+
+
+def test_task_update_category(test_app):
+    """Test updating a task's category"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create a task without category first
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "create",
+                "Task to Update",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+
+        # Now update it with a category
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "6",
+                "--category",
+                "2",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == "Updated task with task_id = 6.\n"
+
+        # Verify the category was updated
+        updated_task = test_app.backend.get_task_by_id(task_id=6)
+        assert updated_task.category == 2

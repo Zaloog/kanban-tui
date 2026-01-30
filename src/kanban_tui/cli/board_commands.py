@@ -135,6 +135,30 @@ def delete_board(app: KanbanTui, board_id: int, no_confirm: bool):
         print_to_console(f"[red]There is no board with {board_id = }[/].")
 
 
+@board.command("update")
+@click.pass_obj
+@click.argument("board_id", type=click.INT)
+@click.option("--name", type=click.STRING, help="New name for the board")
+@click.option("--icon", type=click.STRING, help="New icon for the board")
+def update_board(app: KanbanTui, board_id: int, name: str | None, icon: str | None):
+    """
+    Updates an existing board
+    """
+    boards = app.backend.get_boards()
+    target_board = next(
+        (board for board in boards if board.board_id == board_id), None
+    )
+
+    if not target_board:
+        print_to_console(f"[red]There is no board with {board_id = }[/].")
+        return
+
+    updated_name = name if name is not None else target_board.name
+    updated_icon = icon if icon is not None else target_board.icon
+
+    app.backend.update_board(board_id, updated_name, updated_icon)
+    print_to_console(f"Updated board with {board_id = }.")
+
 @board.command("activate")
 @click.pass_obj
 @click.argument("board_id", type=click.INT)

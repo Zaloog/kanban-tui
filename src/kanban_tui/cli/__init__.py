@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 from kanban_tui.cli.column_commands import column
 from kanban_tui.cli.task_commands import task
+from kanban_tui.cli.category_commands import category
 
 import click
 
@@ -34,6 +35,7 @@ COMMAND_DICT = {
     ],
     "CLI Interface Commands": [
         "board",
+        "category",
         "column",
         "task",
     ],
@@ -123,6 +125,7 @@ cli.add_command(demo)
 cli.add_command(info)
 cli.add_command(clear)
 cli.add_command(board)
+cli.add_command(category)
 cli.add_command(task)
 cli.add_command(column)
 cli.add_command(auth)

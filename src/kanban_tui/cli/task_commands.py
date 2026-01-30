@@ -134,6 +134,12 @@ def list_tasks(
     help="Column to put the task into [default: left most visible column]",
 )
 @click.option(
+    "--category",
+    default=None,
+    type=click.INT,
+    help="Category ID to assign to the task",
+)
+@click.option(
     "--due-date",
     default=None,
     type=click.DateTime(formats=["%Y-%m-%d"]),
@@ -150,6 +156,7 @@ def create_task(
     title: str,
     description: str,
     column: int,
+    category: int,
     due_date: datetime.datetime,
     depends_on: tuple[int, ...],
 ):
@@ -163,6 +170,7 @@ def create_task(
         title=title,
         description=description,
         column=column or first_visible_column,
+        category=category,
         due_date=due_date,
     )
     task_id = new_task.task_id
@@ -220,6 +228,12 @@ def create_task(
     help="The task description",
 )
 @click.option(
+    "--category",
+    default=None,
+    type=click.INT,
+    help="Category ID to assign to the task",
+)
+@click.option(
     "--due-date",
     default=None,
     type=click.DateTime(formats=["%Y-%m-%d"]),
@@ -230,20 +244,21 @@ def update_task(
     task_id: int,
     title: str | None,
     description: str | None,
+    category: int | None,
     due_date: datetime.datetime | None,
 ):
     """
     Updates a task
     """
     old_task = app.backend.get_task_by_id(task_id=task_id)
-    if all((title is None, description is None, due_date is None)):
+    if all((title is None, description is None, category is None, due_date is None)):
         print_to_console("No fields to update provided.")
     else:
         _updated_task = app.backend.update_task_entry(
             task_id=task_id,
             title=title or old_task.title,
             description=description or old_task.description,
-            category=None,
+            category=category if category is not None else old_task.category,
             due_date=due_date or old_task.due_date,
         )
         print_to_console(f"Updated task with {task_id = }.")

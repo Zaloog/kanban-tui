@@ -53,6 +53,12 @@ ktui board create "Board Name" --icon "🚀" --set-active -c "Col1" -c "Col2", -
 - `-c "Col1" -c "Col2", -c "Col3"`: Custom columns (default: "Ready, Doing, Done, Archive").
 - `--icon`: Optional emoji icon for visual identification
 
+#### Update Board
+```bash
+ktui board update BOARD_ID --name "New Name" --icon "🎨"
+```
+**Note**: Only specified fields are updated; others remain unchanged
+
 #### Switch Active Board
 ```bash
 ktui board activate BOARD_ID
@@ -65,7 +71,35 @@ ktui board delete BOARD_ID --no-confirm
 ```
 **Warning**: Deletes all associated tasks and columns, as an agent always use `--no-confirm`
 
-### 2. Task Management
+### 2. Category Management
+
+#### List All Categories
+```bash
+ktui category list --json
+```
+**Output**: Array of categories with `category_id`, `name`, `color`
+
+#### Create Category
+```bash
+ktui category create "Category Name" "color"
+```
+**Options**:
+- `color`: Optional. If omitted, a color is automatically assigned.
+**Note**: Color must be a valid CSS/X11 color name or hex code (e.g., "red", "#FF0000").
+
+#### Update Category
+```bash
+ktui category update CATEGORY_ID --name "New Name" --color "new-color"
+```
+**Note**: Only specified fields are updated; others remain unchanged
+
+#### Delete Category
+```bash
+ktui category delete CATEGORY_ID --no-confirm
+```
+**Impact**: Resets the category of all associated tasks to null, as an agent always use `--no-confirm`
+
+### 3. Task Management
 
 #### List Tasks
 ```bash
@@ -76,14 +110,15 @@ ktui task list --json
 - `--board BOARD_ID`: Tasks on specific board
 - `--actionable`: Only non-blocked tasks (no unfinished dependencies)
 
-**Output Fields**: `task_id`, `title`, `description`, `column_id`, `board_id`, `due_date`, `depends_on` (array), `creation_date`
+**Output Fields**: `task_id`, `title`, `description`, `column_id`, `board_id`, `due_date`, `category_id`, `depends_on` (array), `creation_date`
 
 #### Create Task
 ```bash
-ktui task create "Task Title" --description "Details" --column COLUMN_ID --due-date 2026-01-20 --depends-on TASK_ID
+ktui task create "Task Title" --description "Details" --column COLUMN_ID --category CATEGORY_ID --due-date 2026-01-20 --depends-on TASK_ID
 ```
 **Options**:
 - `--column`: Target column ID (omit for leftmost visible column)
+- `--category`: Category ID to assign to the task
 - `--due-date`: Format MUST be `YYYY-MM-DD` (e.g., "2026-01-20")
 - `--depends-on`: Dependency task ID (use multiple times for multiple dependencies)
 
@@ -94,7 +129,7 @@ ktui task create "Deploy to prod" --depends-on 5 --depends-on 7 --depends-on 9
 
 #### Update Task
 ```bash
-ktui task update TASK_ID --title "New Title" --description "New Desc" --due-date 2026-01-21
+ktui task update TASK_ID --title "New Title" --description "New Desc" --category CATEGORY_ID --due-date 2026-01-21
 ```
 **Note**: Only specified fields are updated; others remain unchanged
 
@@ -110,7 +145,7 @@ ktui task delete TASK_ID --no-confirm
 ```
 **Impact**: Removes task and all its dependency relationships, as an agent always use `--no-confirm`
 
-### 3. Column Operations
+### 4. Column Operations
 
 #### List Columns
 ```bash
