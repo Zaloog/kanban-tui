@@ -1,6 +1,7 @@
 .PHONY: all
 MAKE               := make --no-print-directory
 RUN 			   := uv run
+VERSION            := v$(shell uv version --short)
 
 
 # -- Testing ---
@@ -20,8 +21,12 @@ devd:
 	$(RUN) textual run -c kanban-tui demo --dev
 
 release:
+	git tag $(VERSION)
+	git push origin $(VERSION)
+
+notes:
 	# Thanks Will
-	gh release create --generate-notes "v$(shell uv version| sed 's/[^0-9\.]*//g')"
+	gh release create --generate-notes $(VERSION)
 
 # -- Jira locally ---
 ju:
