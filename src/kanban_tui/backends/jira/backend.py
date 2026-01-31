@@ -25,7 +25,6 @@ class JiraBackend(Backend):
     settings: JiraBackendSettings
     auth: Any = field(init=False)
     auth_settings: AuthSettings = field(init=False)
-    _status_column_map: dict[str, int] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         init_auth_file(self.settings.auth_file_path)
@@ -33,7 +32,6 @@ class JiraBackend(Backend):
         self.auth = authenticate_to_jira(
             self.settings.base_url, self.api_key, self.cert_path
         )
-        self._status_column_map = self.settings.status_to_column_map
 
     # Queries
     def get_boards(self) -> list[Board]:
@@ -286,7 +284,7 @@ class JiraBackend(Backend):
     def _get_column_mapping_for_board(self, board_id: int | None) -> dict[str, int]:
         """Get the column mapping for a specific board"""
         if board_id is None:
-            return self._status_column_map
+            return {}
 
         # Find the JQL entry for this board
         jql_entry = next(
@@ -296,8 +294,7 @@ class JiraBackend(Backend):
         if jql_entry and jql_entry.column_mapping:
             return jql_entry.column_mapping
 
-        # Fallback to global mapping
-        return self._status_column_map
+        return {}
 
     def _status_to_column(self, status: str, board_id: int | None = None) -> int:
         """Map Jira status to kanban column"""
