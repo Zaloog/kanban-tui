@@ -16,6 +16,7 @@ async def test_modal_category_manage_display(test_app: KanbanTui):
         # Push the screen directly
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
 
@@ -48,13 +49,16 @@ async def test_modal_category_create_new(test_app: KanbanTui):
         await pilot.click("#input_category_name")
         await pilot.pause()
         await pilot.press(*"Test Category")
+        await pilot.pause()
 
         # Color should already be pre-filled, clear it first
         await pilot.click("#input_category_color")
         await pilot.pause()
         # Select all and replace
         pilot.app.screen.query_one("#input_category_color", Input).value = ""
+        await pilot.pause()
         await pilot.press(*"cyan")
+        await pilot.pause()
 
         # Button should be enabled now
         assert not pilot.app.screen.query_one(
@@ -84,13 +88,16 @@ async def test_modal_category_edit(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         # Select first category (red)
         category_list = pilot.app.screen.query_one(CategoryList)
         category_list.index = 0
+        await pilot.pause()
 
         # Press 'e' to edit
         await pilot.press("e")
+        await pilot.pause()
 
         assert isinstance(pilot.app.screen, ModalNewCategoryScreen)
 
@@ -99,12 +106,16 @@ async def test_modal_category_edit(test_app: KanbanTui):
 
         # Change Name
         await pilot.click("#input_category_name")
+        await pilot.pause()
         # Input.value setting directly is easier for test state reset if select_all is tricky
         pilot.app.screen.query_one("#input_category_name", Input).value = ""
+        await pilot.pause()
         await pilot.press(*"Dark Red")
+        await pilot.pause()
 
         # Click Continue
         await pilot.click("#btn_continue_new_category")
+        await pilot.pause()
 
         # Should return to Manage Screen
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
@@ -119,18 +130,22 @@ async def test_modal_category_delete(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         # Select first category
         category_list = pilot.app.screen.query_one(CategoryList)
         category_list.index = 0
+        await pilot.pause()
 
         # Press 'd' to delete
         await pilot.press("d")
+        await pilot.pause()
 
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
 
         # Confirm
         await pilot.click("#btn_continue")
+        await pilot.pause()
 
         # Should return to Manage Screen
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
@@ -150,16 +165,22 @@ async def test_modal_category_create_validation_invalid_color(test_app: KanbanTu
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         await pilot.click("#btn_create_category")
+        await pilot.pause()
 
         # Enter Name
         await pilot.click("#input_category_name")
+        await pilot.pause()
         await pilot.press(*"Bad Color Category")
+        await pilot.pause()
 
         # Enter Invalid Color
         await pilot.click("#input_category_color")
+        await pilot.pause()
         await pilot.press(*"notacolor")
+        await pilot.pause()
 
         # Button should be disabled
         assert pilot.app.screen.query_one("#btn_continue_new_category", Button).disabled
@@ -174,13 +195,16 @@ async def test_modal_category_selection(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         # Select second category (green)
         category_list = pilot.app.screen.query_one(CategoryList)
         category_list.index = 1
+        await pilot.pause()
 
         # Simulate pressing enter/selecting
         await pilot.press("enter")
+        await pilot.pause()
 
         # Check screen dismissed
         assert not isinstance(pilot.app.screen, ModalCategoryManageScreen)
@@ -191,11 +215,14 @@ async def test_modal_category_cancel_create(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         await pilot.click("#btn_create_category")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalNewCategoryScreen)
 
         await pilot.click("#btn_cancel_new_category")
+        await pilot.pause()
 
         assert isinstance(pilot.app.screen, ModalCategoryManageScreen)
         assert len(pilot.app.backend.get_all_categories()) == 3
@@ -206,15 +233,17 @@ async def test_modal_category_color_prefill(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
 
         await pilot.click("#btn_create_category")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalNewCategoryScreen)
 
         # Check that color input is pre-filled
         color_input = pilot.app.screen.query_one("#input_category_color", Input)
         assert color_input.value != ""
         assert color_input.is_valid
-        
+
         # The first suggested color should be different from existing ones
         existing_categories = pilot.app.backend.get_all_categories()
         used_colors = [cat.color for cat in existing_categories]
@@ -227,26 +256,32 @@ async def test_modal_category_color_prefill_cycles(test_app: KanbanTui):
         # Get existing categories
         existing_categories = pilot.app.backend.get_all_categories()
         assert len(existing_categories) == 3
-        
+
         # Open create category screen
         screen = ModalCategoryManageScreen(current_category_id=None)
         await pilot.app.push_screen(screen)
+        await pilot.pause()
         await pilot.click("#btn_create_category")
-        
+        await pilot.pause()
+
         # Check first suggested color
         color_input1 = pilot.app.screen.query_one("#input_category_color", Input)
         first_color = color_input1.value
-        
+
         # Create a category with this color
         await pilot.click("#input_category_name")
+        await pilot.pause()
         await pilot.press(*"Test Category 1")
+        await pilot.pause()
         await pilot.click("#btn_continue_new_category")
-        
+        await pilot.pause()
+
         # Open create category screen again
         await pilot.click("#btn_create_category")
-        
+        await pilot.pause()
+
         # Check second suggested color is different
         color_input2 = pilot.app.screen.query_one("#input_category_color", Input)
         second_color = color_input2.value
-        
+
         assert second_color != first_color

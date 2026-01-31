@@ -302,6 +302,7 @@ async def test_column_creation_cancel_click(test_app: KanbanTui):
 
         # Click on First Position
         await pilot.click(pilot.app.screen.query(AddRule)[0].query_exactly_one(Button))
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalUpdateColumnScreen)
 
         # Cancel Modal View
