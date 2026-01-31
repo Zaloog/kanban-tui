@@ -45,6 +45,7 @@ async def test_settings_view(test_app: KanbanTui, test_database_path):
 async def test_task_expand_switch(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         assert not pilot.app.config.task.always_expanded
         assert not pilot.app.screen.query_exactly_one(
@@ -62,6 +63,7 @@ async def test_task_expand_switch(test_app: KanbanTui):
 async def test_task_movement_mode(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         assert pilot.app.config.task.movement_mode == MovementModes.ADJACENT
         assert (
@@ -84,6 +86,7 @@ async def test_task_movement_mode(test_app: KanbanTui):
 async def test_backend_mode(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         assert pilot.app.config.backend.mode == Backends.SQLITE
         assert (
@@ -128,6 +131,7 @@ async def test_board_columns_in_view(test_app: KanbanTui):
 
         # check columns in view
         await pilot.press("ctrl+j")
+        await pilot.pause()
         assert pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
 
 
@@ -178,6 +182,7 @@ async def test_column_visibility(test_app: KanbanTui):
 
         # toggle visibility
         await pilot.press("space")
+        await pilot.pause()
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done"}
 
         # Go to Archive ColumnItem
@@ -185,6 +190,7 @@ async def test_column_visibility(test_app: KanbanTui):
         assert pilot.app.focused.highlighted_child.id == "listitem_column_4"
 
         await pilot.press("space")
+        await pilot.pause()
         assert pilot.app.visible_column_dict == {2: "Doing", 3: "Done", 4: "Archive"}
 
 
@@ -355,6 +361,7 @@ async def test_column_rename(test_app: KanbanTui):
         assert pilot.app.column_list[0].name == "New Name!"
 
         await pilot.press("ctrl+j")
+        await pilot.pause()
         assert pilot.app.screen.query_one("#column_1").title == "New Name!"
 
 
@@ -367,6 +374,7 @@ async def test_setting_shortcuts(test_app: KanbanTui):
 
         await pilot.press("ctrl+o")
         await pilot.press("e")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(
             TaskAlwaysExpandedSwitch
         ).has_focus_within
@@ -377,20 +385,24 @@ async def test_setting_shortcuts(test_app: KanbanTui):
 
         await pilot.press("ctrl+o")
         await pilot.press("c")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         await pilot.press("ctrl+o")
         await pilot.press("n")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(TaskMovementSelector).has_focus_within
 
         await pilot.press("ctrl+o")
         await pilot.press("g")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(
             TaskDefaultColorSelector
         ).has_focus_within
 
         await pilot.press("ctrl+o")
         await pilot.press("s")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
 
 
@@ -403,6 +415,7 @@ async def test_status_column_selector(test_app: KanbanTui):
 
         await pilot.press("ctrl+o")
         await pilot.press("s")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
 
         # reset_column is now pre-populated with column 1 (Ready)
@@ -411,6 +424,7 @@ async def test_status_column_selector(test_app: KanbanTui):
         await pilot.click(pilot.app.focused)
         await pilot.press(*"jj")  # Navigate down 2 positions
         await pilot.press("enter")
+        await pilot.pause()
 
         # After pressing jj from column 1, we should be at column 3 (Done)
         assert pilot.app.focused.value == 3
@@ -418,6 +432,7 @@ async def test_status_column_selector(test_app: KanbanTui):
 
         await pilot.click(pilot.app.screen.query_one("#select_start"))
         await pilot.press("enter")
+        await pilot.pause()
         assert pilot.app.active_board.reset_column == 3
         assert pilot.app.active_board.start_column == 2
 
@@ -425,9 +440,11 @@ async def test_status_column_selector(test_app: KanbanTui):
 async def test_status_update_task_in_start_column(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         await pilot.press("ctrl+o")
         await pilot.press("s")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(StatusColumnSelector).has_focus_within
         # Go to Start Select
         await pilot.press("j")
@@ -436,8 +453,10 @@ async def test_status_update_task_in_start_column(test_app: KanbanTui):
 
         # Select Doing (column 2)
         await pilot.press("enter")
+        await pilot.pause()
         await pilot.press("k")
         await pilot.press("enter")
+        await pilot.pause()
 
         # assert pilot.app.focused.value == 2
         assert pilot.app.active_board.start_column == 1
@@ -447,9 +466,11 @@ async def test_status_update_task_in_start_column(test_app: KanbanTui):
         await pilot.press("enter")
         await pilot.press("k")
         await pilot.press("enter")
+        await pilot.pause()
         assert pilot.app.active_board.finish_column == 2
 
         await pilot.press("ctrl+j")
+        await pilot.pause()
         await pilot.press("L")
         assert (
             pilot.app.focused.task_.creation_date == pilot.app.focused.task_.start_date
@@ -459,9 +480,11 @@ async def test_status_update_task_in_start_column(test_app: KanbanTui):
 async def test_column_position_change_down(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         await pilot.press("ctrl+o")
         await pilot.press("c")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         await pilot.press("j")
@@ -481,6 +504,7 @@ async def test_column_position_change_down(test_app: KanbanTui):
 
         # Move Ready Column from position 1 -> 2
         await pilot.press("J")
+        await pilot.pause()
         assert (
             pilot.app.screen.query_exactly_one(
                 ColumnSelector
@@ -498,9 +522,11 @@ async def test_column_position_change_down(test_app: KanbanTui):
 async def test_column_position_change_up(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         await pilot.press("ctrl+o")
         await pilot.press("c")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         # Go to Doing Item
@@ -521,6 +547,7 @@ async def test_column_position_change_up(test_app: KanbanTui):
 
         # Move Doing Column from position 2 -> 1
         await pilot.press("K")
+        await pilot.pause()
         assert (
             pilot.app.screen.query_exactly_one(
                 ColumnSelector
@@ -539,9 +566,11 @@ async def test_column_position_change_up(test_app: KanbanTui):
 async def test_column_position_change_updates_status_values(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         await pilot.press("ctrl+o")
         await pilot.press("c")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         # Go to Doing Item
@@ -549,6 +578,7 @@ async def test_column_position_change_updates_status_values(test_app: KanbanTui)
 
         # Move Doing Column from position 2 -> 1
         await pilot.press("K")
+        await pilot.pause()
 
         # get Dropdown value at position 1, which should be "Doing at this point"
         assert (
@@ -597,13 +627,17 @@ async def test_column_selector_updates_on_board_change(test_app: KanbanTui):
 
         # save board
         await pilot.click("#btn_continue_new_board")
+        await pilot.pause()
         # Click to activate new Board
         await pilot.press("j", "enter")
+        await pilot.pause()
 
         # Move to Setting Screen
         await pilot.press("ctrl+l")
+        await pilot.pause()
         await pilot.press("ctrl+o")
         await pilot.press("c")
+        await pilot.pause()
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         # Go to test_column2
