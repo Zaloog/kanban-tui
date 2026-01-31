@@ -478,9 +478,3 @@ class DependencySelector(VimSelect):
             available_tasks.append((display_text, task.task_id))
 
         return available_tasks
-
-
-# class ButtonRow(Horizontal):
-#     def compose(self):
-#         yield Button("Create Task", id="btn_continue", variant="success", disabled=True)
-#         yield Button("Cancel", id="btn_cancel", variant="error")

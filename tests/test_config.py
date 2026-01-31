@@ -88,11 +88,6 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
                 "base_url": "",
                 "auth_file_path": AUTH_FILE.as_posix(),
                 "jqls": [],
-                "status_to_column_map": {
-                    "Done": 3,
-                    "In Progress": 2,
-                    "To Do": 1,
-                },
                 "active_jql": 1,
             },
         },

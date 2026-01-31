@@ -720,6 +720,45 @@ ColumnListItem{
     }
   }
 }
+
+JiraColumnListItem{
+  height:3;
+  content-align:center middle;
+  border:none;
+
+  VerticalGroup{
+    width:5;
+    margin-left:0;
+
+  }
+  RepositionButton{
+    margin:0 0 0 0;
+    background:transparent;
+    min-width:4;
+    width: 4;
+    border:none;
+    &:focus {
+      text-style: none;
+      background:transparent;
+    }
+    &.invisible {
+      visibility: hidden;
+    }
+  }
+
+  Label {
+    width: 2fr;
+    padding:1 0 0 1;
+    text-align:left;
+  }
+  IconButton{
+    margin:1 1 0 0;
+    &.shown {
+      background:$success-muted;
+    }
+  }
+}
+
 AddRule{
   margin:0;
   align:center middle;
