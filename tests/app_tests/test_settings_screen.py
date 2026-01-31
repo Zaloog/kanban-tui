@@ -598,33 +598,46 @@ async def test_column_selector_updates_on_board_change(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # Go to Setting Screen to initially load the widgets
         await pilot.press("ctrl+l")
+        await pilot.pause()
 
         # go back to BoardScreen and create a new board
         await pilot.press("ctrl+j")
+        await pilot.pause()
         await pilot.press("B")
+        await pilot.pause()
 
         # Open Board Creation Screen
         await pilot.press("n")
+        await pilot.pause()
 
         # Enter new Icon
         await pilot.press(*"bug")
+        await pilot.pause()
 
         # Enter new board name
         await pilot.click("#input_board_name")
+        await pilot.pause()
         await pilot.press(*"Test Board")
+        await pilot.pause()
 
         # Add Custom Columns
         # CustomList visible after switch press
         await pilot.click("#switch_use_default_columns")
+        await pilot.pause()
 
         # Focus input
         await pilot.press("tab")
+        await pilot.pause()
         await pilot.press(*"test_column")
+        await pilot.pause()
         # next column input
         await pilot.press("tab", "tab")
+        await pilot.pause()
         await pilot.press(*"test_column2")
+        await pilot.pause()
         # delete last column input
         await pilot.press("shift+tab", "shift+tab", "delete")
+        await pilot.pause()
 
         # save board
         await pilot.click("#btn_continue_new_board")
@@ -637,12 +650,14 @@ async def test_column_selector_updates_on_board_change(test_app: KanbanTui):
         await pilot.press("ctrl+l")
         await pilot.pause()
         await pilot.press("ctrl+o")
+        await pilot.pause()
         await pilot.press("c")
         await pilot.pause()
         assert pilot.app.screen.query_exactly_one(ColumnSelector).has_focus_within
 
         # Go to test_column2
         await pilot.press("j")
+        await pilot.pause()
         assert pilot.app.focused.highlighted_child.column.name == "test_column2"
 
         # Columns in View also updates

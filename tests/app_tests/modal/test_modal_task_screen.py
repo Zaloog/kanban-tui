@@ -17,6 +17,7 @@ async def test_task_creation(no_task_app: KanbanTui):
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         await pilot.press("n")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
 
         # check title has focus
@@ -24,42 +25,58 @@ async def test_task_creation(no_task_app: KanbanTui):
         assert pilot.app.screen.query_one("#input_title", Input).value == ""
         # Enter new task name
         await pilot.press(*"Test Task")
+        await pilot.pause()
         assert pilot.app.screen.query_one("#input_title").value == "Test Task"
 
         # Enter new task description
         await pilot.press("tab")
+        await pilot.pause()
         assert isinstance(pilot.app.focused, TextArea)
         await pilot.press(*"Test Description")
+        await pilot.pause()
         assert pilot.app.screen.query_one(TextArea).text == "Test Description"
 
         # Choose new task Category
         await pilot.press("tab")
+        await pilot.pause()
         assert isinstance(pilot.app.focused, CategorySelector)
 
         # open selector dropdown
         await pilot.press("enter")
+        await pilot.pause()
         # go down and select new category
         await pilot.press("j")
+        await pilot.pause()
         await pilot.press("enter")
+        await pilot.pause()
         # focus button and press
         await pilot.press("tab")
+        await pilot.pause()
         await pilot.press("enter")
+        await pilot.pause()
         # new category open popup screen
         assert isinstance(pilot.app.focused, Input)
         await pilot.press(*"Test Category")
+        await pilot.pause()
         await pilot.press("tab")
+        await pilot.pause()
         # choose color
         await pilot.press(*"yellow")
+        await pilot.pause()
         await pilot.click("#btn_continue_new_category")
+        await pilot.pause()
 
         # check value
         await pilot.press("shift+tab")
+        await pilot.pause()
         assert pilot.app.focused.highlighted_child.category.name == "Test Category"
         # selecting new category and exiting screen
         await pilot.press("enter")
+        await pilot.pause()
 
         # save task
         await pilot.click("#btn_continue")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, BoardScreen)
         assert len(pilot.app.task_list) == 1
         await pilot.pause(delay=0.5)
@@ -76,6 +93,7 @@ async def test_task_edit_button(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         assert pilot.app.screen.kanban_task is not None
 
@@ -90,8 +108,11 @@ async def test_task_edit_button(test_app: KanbanTui):
         # add 1 to title
         # focus the input first to select the text
         pilot.app.screen.query_one("#input_title", Input).select_all()
+        await pilot.pause()
         await pilot.press(*"Task_ready_01")
+        await pilot.pause()
         await pilot.click("#btn_continue")
+        await pilot.pause()
 
         assert pilot.app.focused.id == "taskcard_1"
         assert pilot.app.focused.task_.title == "Task_ready_01"
@@ -106,6 +127,7 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         assert pilot.app.screen.kanban_task is not None
 
@@ -120,8 +142,11 @@ async def test_task_edit_shortcut(test_app: KanbanTui):
         # add 1 to title
         # Focus Input first
         pilot.app.screen.query_one("#input_title", Input).select_all()
+        await pilot.pause()
         await pilot.press(*"Task_ready_01")
+        await pilot.pause()
         await pilot.press("ctrl+j")
+        await pilot.pause()
 
         assert pilot.app.focused.id == "taskcard_1"
         assert pilot.app.focused.task_.title == "Task_ready_01"
@@ -135,9 +160,11 @@ async def test_task_edit_cancel(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         # Cancel with escape
         await pilot.press("escape")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.focused.id == "taskcard_1"
 
@@ -150,9 +177,11 @@ async def test_task_delete(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("d")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalConfirmScreen)
         # Cancel with escape
         await pilot.click("#btn_continue")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, BoardScreen)
         assert pilot.app.focused.id == "taskcard_5"
 
@@ -165,11 +194,14 @@ async def test_task_due_date(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
         # Cancel with escape
         await pilot.click("#switch_due_date")
+        await pilot.pause()
         assert pilot.app.screen.query_one("#switch_due_date").value
         await pilot.click("#dateselect_due_date")
+        await pilot.pause()
 
 
 async def test_task_due_date_picker(test_app: KanbanTui):
@@ -180,13 +212,17 @@ async def test_task_due_date_picker(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
 
         # click due date switch
         await pilot.click("#switch_due_date")
+        await pilot.pause()
         assert pilot.app.screen.query_one("#switch_due_date").value
         await pilot.click("#dateselect_due_date")
+        await pilot.pause()
         await pilot.press("enter")
+        await pilot.pause()
         assert (
             pilot.app.screen.query_one("#dateselect_due_date").value.date()
             == datetime.today().date()
@@ -201,6 +237,7 @@ async def test_task_category_selector(test_app: KanbanTui):
 
         # open edit window
         await pilot.press("e")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, ModalTaskEditScreen)
 
         # check if category is correct in select
