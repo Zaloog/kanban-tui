@@ -14,6 +14,8 @@ from kanban_tui.backends.jira.jira_api import (
     get_jql,
     get_jql_async,
     authenticate_to_jira,
+    get_transitions,
+    set_issue_status,
 )
 from kanban_tui.backends.jira.models import JiraIssue
 
@@ -120,6 +122,13 @@ class JiraBackend(Backend):
 
         return columns
 
+    def get_column_by_id(self, column_id: int) -> Column | None:
+        """Return a single column by its ID"""
+        for column in self.get_columns():
+            if column.column_id == column_id:
+                return column
+        return None
+
     def get_tasks_by_board_id(self, board_id: int) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks"""
 
@@ -175,6 +184,11 @@ class JiraBackend(Backend):
     async def get_tasks_on_active_board_async(self) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks (async, non-blocking)"""
         return await self.get_tasks_by_board_id_async(board_id=self.settings.active_jql)
+
+    def get_task_by_id(self, task_id: int) -> Task | None:
+        """Fetch a single Jira issue by ID"""
+        tasks = self.get_tasks_by_ids([task_id])
+        return tasks[0] if tasks else None
 
     def get_tasks_by_ids(self, task_ids: list[int]) -> list[Task]:
         """Fetch specific Jira issues by ID"""
@@ -383,10 +397,63 @@ class JiraBackend(Backend):
             "Jira backend is read-only. Delete tasks in Jira directly."
         )
 
-    def update_task_status(self, *args, **kwargs):
-        raise NotImplementedError(
-            "Jira backend is read-only. Update task status in Jira directly."
-        )
+    def update_task_status(self, new_task: Task) -> dict[str, bool | str]:
+        """Update Jira issue status by finding a transition whose target
+        status maps to the same column the task was moved to.
+
+        Args:
+            new_task: Task with updated column information
+
+        Returns:
+            dict with 'success' (bool) and 'message' (str) keys
+        """
+        jira_key = new_task.metadata.get("jira_key")
+        if not jira_key:
+            return {
+                "success": False,
+                "message": "Task does not have a Jira key in metadata",
+            }
+
+        board_id = self.active_board.board_id if self.active_board else None
+        target_column = new_task.column
+
+        try:
+            transitions = get_transitions(self.auth, jira_key)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to fetch transitions: {str(e)}",
+            }
+
+        # For each transition, map its target status back to a column ID
+        # using the column mapping lookup, then compare column IDs
+        # (int == int) instead of comparing status name strings.
+        column_mapping = self._get_column_mapping_for_board(board_id)
+        transition_id = None
+        available = []
+
+        for transition in transitions:
+            if not isinstance(transition, dict):
+                continue
+
+            to_status = transition.get("to", "")
+            column_for_transition = column_mapping.get(to_status)
+            available.append(f"{to_status} (col {column_for_transition})")
+
+            if (
+                column_for_transition is not None
+                and column_for_transition == target_column
+            ):
+                transition_id = transition.get("id")
+                break
+
+        if transition_id is None:
+            return {
+                "success": False,
+                "message": f"No transition available to column {target_column}. Available: {', '.join(available)}",
+            }
+
+        return set_issue_status(self.auth, jira_key, transition_id)
 
     def create_new_board(
         self, name: str, jql: str, column_mapping: dict[str, int] | None = None

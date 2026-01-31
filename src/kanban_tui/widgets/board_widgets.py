@@ -221,9 +221,29 @@ class KanbanBoard(HorizontalScroll):
             )
             return
 
-        await self.query_one(
-            f"#column_{self.selected_task.column}", Column
-        ).remove_task(self.selected_task)
+        # Try the backend update first before modifying local state,
+        # so there is nothing to revert on failure.
+        original_column = self.selected_task.column
+        self.selected_task.column = target_column
+        result = self.app.backend.update_task_status(new_task=self.selected_task)
+        self.selected_task.column = original_column
+
+        # Check if the update was successful (for backends that return status like Jira)
+        if isinstance(result, dict) and not result.get("success", True):
+            self.app.app_focus = True
+            self.target_column = None
+
+            self.app.notify(
+                title="Status Update Failed",
+                message=result.get("message", "Failed to update issue status"),
+                severity="error",
+                timeout=5,
+            )
+            return
+
+        await self.query_one(f"#column_{original_column}", Column).remove_task(
+            self.selected_task
+        )
 
         # Update task status dates based on column transitions
         self.selected_task.update_task_status(
@@ -235,10 +255,7 @@ class KanbanBoard(HorizontalScroll):
             },
         )
 
-        # Handles both movement modes
         self.selected_task.column = target_column
-
-        self.app.backend.update_task_status(new_task=self.selected_task)
 
         await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
             self.selected_task
