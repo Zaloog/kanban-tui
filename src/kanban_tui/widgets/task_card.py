@@ -116,18 +116,9 @@ class TaskCard(Vertical):
         self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
         self.description.display = self.app.config.task.always_expanded
 
-    # Remove those, cause it messes with tab selection
-    # @on(Enter)
-    # @on(Leave)
-    def show_details(self) -> None:
-        if self.is_mouse_over:
-            self.focus()
-        else:
-            self.parent.focus()
-
     def on_focus(self) -> None:
         self.expanded = True
-        self.scroll_visible()
+        self.scroll_visible(animate=False)
         self.post_message(self.Focused(taskcard=self))
 
     def on_blur(self) -> None:

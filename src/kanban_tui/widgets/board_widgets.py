@@ -150,7 +150,8 @@ class KanbanBoard(HorizontalScroll):
 
     @on(TaskCard.Target)
     def color_target_column(self, event: TaskCard.Target):
-        self.scroll_visible()
+        """Updating the target column to drop task"""
+        self.scroll_visible(animate=False)
         current_column_id = self.target_column or event.taskcard.task_.column
         match event.direction:
             case "left":

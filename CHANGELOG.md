@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.17.0 (unreleased)
+## v0.17.1 (unreleased)
+### Fixed
+- Fixed scroll flickering when selecting through tasks, by disabling the animation when using `scroll_visible`
+
+## v0.17.0
 ### Added
 - Added board/session deletion and Task title/description updates for Claude backend
 - Added category command to manage categories and updated existing commands for `--category`
