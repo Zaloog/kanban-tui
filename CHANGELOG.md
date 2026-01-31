@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.17.1 (unreleased)
+## v0.17.1
 ### Fixed
 - Fixed scroll flickering when selecting through tasks, by disabling the animation when using `scroll_visible`
 
