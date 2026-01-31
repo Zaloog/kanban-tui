@@ -46,6 +46,7 @@ class JqlEntry(BaseModel):
     id: int
     name: str
     jql: str
+    column_mapping: dict[str, int] = Field(default_factory=dict)
 
 
 class JiraBackendSettings(BaseModel):
