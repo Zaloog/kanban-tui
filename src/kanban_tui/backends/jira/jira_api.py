@@ -14,7 +14,7 @@ def get_jql(auth: Jira, jql: str):
 
 
 async def get_jql_async(auth: Jira, jql: str):
-    """Execute JQL query asynchronously in thread pool to avoid blocking UI"""
+    """Get available transitions asynchronously in thread pool"""
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, partial(get_jql, auth, jql))
 

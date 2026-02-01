@@ -12,7 +12,6 @@ from kanban_tui.config import JiraBackendSettings, JqlEntry
 from kanban_tui.backends.auth import init_auth_file
 from kanban_tui.backends.jira.jira_api import (
     get_jql,
-    get_jql_async,
     authenticate_to_jira,
     get_transitions,
     set_issue_status,
@@ -93,25 +92,12 @@ class JiraBackend(Backend):
         # Get the column mapping for this specific board
         status_column_map = self._get_column_mapping_for_board(board_id)
 
-        column_names: dict[int, list] = {
-            column_id: [] for column_id in set(status_column_map.values())
-        }
-
-        # Group statuses by column
-        for status, column_id in status_column_map.items():
-            column_names[column_id].append(status)
-
-        # Create column objects
         columns = []
-        for column_id in sorted(column_names.keys()):
-            # Use the first status name as the column name
-            statuses = column_names[column_id]
-            name = statuses[0] if statuses else f"Column {column_id}"
-
+        for status, column_id in status_column_map.items():
             columns.append(
                 Column(
                     column_id=column_id,
-                    name=name,
+                    name=status,
                     visible=True,
                     position=column_id - 1,
                     board_id=board_id,
@@ -122,10 +108,10 @@ class JiraBackend(Backend):
 
     def get_column_by_id(self, column_id: int) -> Column | None:
         """Return a single column by its ID"""
-        for column in self.get_columns():
-            if column.column_id == column_id:
-                return column
-        return None
+        return next(
+            (column for column in self.get_columns() if column_id == column.column_id),
+            None,
+        )
 
     def get_tasks_by_board_id(self, board_id: int) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks"""
@@ -134,35 +120,9 @@ class JiraBackend(Backend):
             entry for entry in self.settings.jqls if entry.id == board_id
         ][0]
 
-        # Execute JQL query
         jql_result = get_jql(self.auth, board_jql_entry.jql)
         issues = jql_result.get("issues", [])
 
-        # Convert issues to tasks
-        tasks = []
-        for issue_data in issues:
-            try:
-                task = self._jira_issue_to_task(issue_data, board_id=board_id)
-                tasks.append(task)
-            except Exception as e:
-                raise e
-
-        # Resolve dependencies
-        self._resolve_issue_dependencies(tasks, issues)
-        return tasks
-
-    async def get_tasks_by_board_id_async(self, board_id: int) -> list[Task]:
-        """Execute active JQL query and convert issues to Tasks (async, non-blocking)"""
-
-        board_jql_entry = [
-            entry for entry in self.settings.jqls if entry.id == board_id
-        ][0]
-
-        # Execute JQL query asynchronously in thread pool
-        jql_result = await get_jql_async(self.auth, board_jql_entry.jql)
-        issues = jql_result.get("issues", [])
-
-        # Convert issues to tasks
         tasks = []
         for issue_data in issues:
             try:
@@ -178,10 +138,6 @@ class JiraBackend(Backend):
     def get_tasks_on_active_board(self) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks"""
         return self.get_tasks_by_board_id(board_id=self.settings.active_jql)
-
-    async def get_tasks_on_active_board_async(self) -> list[Task]:
-        """Execute active JQL query and convert issues to Tasks (async, non-blocking)"""
-        return await self.get_tasks_by_board_id_async(board_id=self.settings.active_jql)
 
     def get_task_by_id(self, task_id: int) -> Task | None:
         """Fetch a single Jira issue by ID"""

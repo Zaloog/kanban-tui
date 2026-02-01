@@ -202,7 +202,7 @@ class ModalNewJiraBoardScreen(ModalScreen):
             first_issue_key = issues[0]["key"]
 
             try:
-                transitions_data = get_transitions_async(
+                transitions_data = await get_transitions_async(
                     self.app.backend.auth, first_issue_key
                 )
             except Exception as trans_error:
@@ -300,7 +300,6 @@ class ModalNewJiraBoardScreen(ModalScreen):
 
         if current_index is None or current_index < 0:
             return
-
         if direction == "up" and current_index == 0:
             return
         if direction == "down" and current_index >= len(self.column_order) - 1:
@@ -346,7 +345,7 @@ class ModalNewJiraBoardScreen(ModalScreen):
 
         # Create column mapping based on the final order
         column_mapping = {
-            status: idx + 1 for idx, status in enumerate(self.column_order)
+            status: idx for idx, status in enumerate(self.column_order, start=1)
         }
 
         # Add to config with column mapping
@@ -355,7 +354,6 @@ class ModalNewJiraBoardScreen(ModalScreen):
         )
 
         self.app.config.set_active_jql(new_board_id)
-        self.app.config.save()
         self.app.update_board_list()
 
         self.dismiss(result=new_board_id)
