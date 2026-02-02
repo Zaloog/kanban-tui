@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.18.1
+### Fixed
+- Fixes Authentication Update when confirming auth url
+
 ## v0.18.0
 ### Added
 - Added column mapping per `jql`/`jira board`

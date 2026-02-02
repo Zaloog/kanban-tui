@@ -44,6 +44,7 @@ class ModalBaseUrlScreen(ModalScreen):
     def add_new_url(self):
         base_url = self.query_one(Input).value
         self.app.config.set_base_url(base_url)
+        self.app.backend.get_authentication()
         self.dismiss(result=base_url)
 
     @on(Button.Pressed, "#btn_cancel")

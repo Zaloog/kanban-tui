@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+
+from atlassian import Jira
 
 from kanban_tui.backends.auth import AuthSettings
 from kanban_tui.backends.base import Backend
@@ -22,12 +23,15 @@ from kanban_tui.backends.jira.models import JiraIssue
 @dataclass
 class JiraBackend(Backend):
     settings: JiraBackendSettings
-    auth: Any = field(init=False)
+    auth: Jira = field(init=False)
     auth_settings: AuthSettings = field(init=False)
 
     def __post_init__(self):
         init_auth_file(self.settings.auth_file_path)
         self.auth_settings = AuthSettings()
+        self.get_authentication()
+
+    def get_authentication(self):
         self.auth = authenticate_to_jira(
             self.settings.base_url, self.api_key, self.cert_path
         )
