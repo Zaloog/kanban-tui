@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.18.0 (unreleased)
+## v0.18.0
 ### Added
 - Added column mapping per `jql`/`jira board`
 - Added ability to transition tasks between columns in `jira` backend
