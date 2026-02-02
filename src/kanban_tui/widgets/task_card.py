@@ -31,7 +31,7 @@ class TaskCard(Vertical):
 
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
-        Binding("e", "edit_task", description="Edit", show=True),
+        Binding("e", "edit_task", description="Edit", show=True, key_display="e/⏎"),
         Binding("d", "delete_task", description="Delete", show=True),
         Binding("i", "show_blocking_tasks", description="Show Deps", show=True),
         Binding(

@@ -29,7 +29,13 @@ class KanbanBoard(HorizontalScroll):
         Binding("h, left", "navigation('left')", "Left", show=False),
         Binding("l, right", "navigation('right')", "Right", show=False),
         Binding("B", "show_boards", "Show Boards", show=True, priority=True),
-        Binding("enter", "confirm_move", "Confirm Move", show=True, priority=True),
+        Binding(
+            "enter",
+            "confirm_move_or_edit",
+            "Confirm Move / Edit Task",
+            show=False,
+            priority=True,
+        ),
     ]
     selected_task: reactive[Task | None] = reactive(None)
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
@@ -72,6 +78,27 @@ class KanbanBoard(HorizontalScroll):
         await self.query(Column)[0].place_task(task=task)
         self.selected_task = task
         self.query_one(f"#taskcard_{self.selected_task.task_id}", TaskCard).focus()
+
+    async def action_confirm_move_or_edit(self) -> None:
+        if self.target_column is not None:
+            await self.action_confirm_move()
+            return
+        if not self.selected_task:
+            return
+        self.app.push_screen(
+            ModalTaskEditScreen(task=self.selected_task),
+            callback=self.from_modal_update_task,
+        )
+
+    def from_modal_update_task(self, updated_task: Task | None) -> None:
+        if not updated_task:
+            return
+        self.selected_task = updated_task
+        task_card = self.query_one(
+            f"#taskcard_{updated_task.task_id}", TaskCard
+        )
+        task_card.task_ = updated_task
+        task_card.refresh(recompose=True)
 
     # Movement
     def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
