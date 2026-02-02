@@ -21,9 +21,6 @@ def demo(app: KanbanTui, clean: bool, keep: bool, web: bool):
     """
     Starts a demo app with temporary database and config
     """
-    if not clean:
-        create_demo_tasks(app)
-
     if web:
         try:
             from textual_serve.server import Server
@@ -40,6 +37,9 @@ def demo(app: KanbanTui, clean: bool, keep: bool, web: bool):
         server = Server(command)
         server.serve()
     else:
+        if not clean:
+            create_demo_tasks(app)
+
         app.run()
 
     if not keep:
