@@ -3,6 +3,9 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
+import kanban_tui.cli.skills_commands as skills_commands
+import kanban_tui.skills as skills_module
+
 from kanban_tui.cli import cli
 from kanban_tui.skills import get_skill_md, get_skill_local_path, get_skill_global_path
 
@@ -20,6 +23,25 @@ SKILL.md file under LOCAL_SKILL_PATH already exists.
 CREATE_GLOBAL_OUTPUT = """Create SKILL.md in global skills folder under GLOBAL_SKILL_PATH? [y/N]: y
 SKILL.md file created under GLOBAL_SKILL_PATH.
 """
+
+UPDATE_NO_FILES_OUTPUT = """Current tool version v1.2.3.
+No local SKILL.md file present, use `kanban-tui skill init` to create one.
+No global SKILL.md file present, use `kanban-tui skill init` to create one.
+"""
+
+UPDATE_BOTH_OUTPUT = """Current tool version v1.2.3.
+Found local SKILL.md file with version v0.0.1 (versions dont match).
+Found global SKILL.md file with version v0.0.2 (versions dont match).
+Do you want to update the local file v0.0.1and theglobal file v0.0.2 to the current tool version? [y/N]: y
+Updated local SKILL.md file to current tool version v1.2.3.
+Updated global SKILL.md file to current tool version v1.2.3.
+"""
+
+
+def _write_skill_file(file_path: Path, version: str) -> None:
+    skill_content = get_skill_md().splitlines()
+    skill_content[-1] = f"<!-- Version: {version} -->"
+    file_path.write_text("\n".join(skill_content) + "\n", encoding="utf-8")
 
 
 def test_skill_local_creation(tmp_path: Path):
@@ -115,3 +137,39 @@ def test_skill_delete_both(tmp_path: Path):
 
         assert not local_file_path.exists()
         assert not global_file_path.exists()
+
+
+def test_skill_update_no_files(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
+    monkeypatch.setattr(skills_module, "get_version", lambda: "v1.2.3")
+    monkeypatch.setattr(skills_commands, "get_version", lambda: "v1.2.3")
+
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["skill", "update"])
+        assert result.exit_code == 0
+        assert result.output == UPDATE_NO_FILES_OUTPUT
+
+
+def test_skill_update_both(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
+    monkeypatch.setattr(skills_module, "get_version", lambda: "v1.2.3")
+    monkeypatch.setattr(skills_commands, "get_version", lambda: "v1.2.3")
+
+    local_file_path = get_skill_local_path()
+    local_file_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_skill_file(local_file_path, "v0.0.1")
+
+    global_file_path = get_skill_global_path()
+    global_file_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_skill_file(global_file_path, "v0.0.2")
+
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(cli, args=["skill", "update"], input="y")
+        assert result.exit_code == 0
+        assert result.output == UPDATE_BOTH_OUTPUT
+        assert local_file_path.read_text(encoding="utf-8") == get_skill_md()
+        assert global_file_path.read_text(encoding="utf-8") == get_skill_md()
