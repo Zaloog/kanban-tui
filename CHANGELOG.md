@@ -5,6 +5,9 @@
 - Added column mapping per `jql`/`jira board`
 - Added ability to transition tasks between columns in `jira` backend
 
+### Fixed
+- Demo running with `--web`flag now only creates tasks once
+
 ## v0.17.1
 ### Fixed
 - Fixed scroll flickering when selecting through tasks, by disabling the animation when using `scroll_visible`
