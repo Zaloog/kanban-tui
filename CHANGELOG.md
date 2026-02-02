@@ -4,9 +4,13 @@
 ### Added
 - Added column mapping per `jql`/`jira board`
 - Added ability to transition tasks between columns in `jira` backend
+- Added dependency management when using `ktui task update` command
 
 ### Fixed
 - Demo running with `--web`flag now only creates tasks once
+
+### Changed
+- SKILL.md got updated, use `ktui skill update` to get the latest
 
 ## v0.17.1
 ### Fixed

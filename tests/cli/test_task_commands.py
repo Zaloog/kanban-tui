@@ -1289,3 +1289,381 @@ def test_task_update_category(test_app):
         # Verify the category was updated
         updated_task = test_app.backend.get_task_by_id(task_id=6)
         assert updated_task.category == 2
+
+
+# Task Update Dependency Tests
+
+
+def test_task_update_add_single_dependency(test_app):
+    """Test adding a single dependency to an existing task"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = "Added dependency: task 1 depends on task 2.\n"
+        assert result.output == expected_output
+
+        # Verify the dependency was created
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.blocked_by == [2]
+
+        # Verify the blocking task knows about it
+        blocking_task = test_app.backend.get_task_by_id(task_id=2)
+        assert 1 in blocking_task.blocking
+
+
+def test_task_update_add_multiple_dependencies(test_app):
+    """Test adding multiple dependencies to an existing task"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "1",
+                "--depends-on",
+                "2",
+                "--depends-on",
+                "3",
+                "--depends-on",
+                "4",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Added dependency: task 1 depends on task 2.
+Added dependency: task 1 depends on task 3.
+Added dependency: task 1 depends on task 4.
+"""
+        assert result.output == expected_output
+
+        # Verify all dependencies were created
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert sorted(task.blocked_by) == [2, 3, 4]
+
+
+def test_task_update_add_dependency_nonexistent_task(test_app):
+    """Test adding a dependency to a non-existent task"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "999"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = "Task 999 does not exist, skipping dependency.\n"
+        assert result.output == expected_output
+
+        # Verify no dependency was created
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.blocked_by == []
+
+
+def test_task_update_add_duplicate_dependency(test_app):
+    """Test adding a dependency that already exists"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # First add a dependency
+        runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+
+        # Try to add the same dependency again
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = "Task 1 already depends on task 2.\n"
+        assert result.output == expected_output
+
+        # Verify only one dependency exists
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.blocked_by == [2]
+
+
+def test_task_update_add_circular_dependency_direct(test_app):
+    """Test that direct circular dependencies are prevented"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Make task 2 depend on task 1
+        runner.invoke(
+            cli,
+            args=["task", "update", "2", "--depends-on", "1"],
+            obj=test_app,
+        )
+
+        # Try to make task 1 depend on task 2 (would create cycle)
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = (
+            "Cannot add dependency: would create circular dependency with task 2.\n"
+        )
+        assert result.output == expected_output
+
+        # Verify the circular dependency was not created
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert 2 not in task.blocked_by
+
+
+def test_task_update_add_circular_dependency_indirect(test_app):
+    """Test that indirect circular dependencies are prevented"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create chain: task 1 -> task 2 -> task 3
+        runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+        runner.invoke(
+            cli,
+            args=["task", "update", "2", "--depends-on", "3"],
+            obj=test_app,
+        )
+
+        # Try to make task 3 depend on task 1 (would create cycle: 1 -> 2 -> 3 -> 1)
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "3", "--depends-on", "1"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = (
+            "Cannot add dependency: would create circular dependency with task 1.\n"
+        )
+        assert result.output == expected_output
+
+        # Verify the circular dependency was not created
+        task = test_app.backend.get_task_by_id(task_id=3)
+        assert 1 not in task.blocked_by
+
+
+def test_task_update_remove_single_dependency(test_app):
+    """Test removing a single dependency from a task"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # First add a dependency
+        runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+
+        # Verify it was added
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert 2 in task.blocked_by
+
+        # Now remove it
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "1", "--remove-dependency", "2"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = "Removed dependency: task 1 no longer depends on task 2.\n"
+        assert result.output == expected_output
+
+        # Verify the dependency was removed
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.blocked_by == []
+
+        # Verify the blocking task no longer tracks it
+        blocking_task = test_app.backend.get_task_by_id(task_id=2)
+        assert 1 not in blocking_task.blocking
+
+
+def test_task_update_remove_multiple_dependencies(test_app):
+    """Test removing multiple dependencies from a task"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Add multiple dependencies
+        runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "1",
+                "--depends-on",
+                "2",
+                "--depends-on",
+                "3",
+                "--depends-on",
+                "4",
+            ],
+            obj=test_app,
+        )
+
+        # Remove some of them
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "1",
+                "--remove-dependency",
+                "2",
+                "--remove-dependency",
+                "4",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Removed dependency: task 1 no longer depends on task 2.
+Removed dependency: task 1 no longer depends on task 4.
+"""
+        assert result.output == expected_output
+
+        # Verify only task 3 remains as a dependency
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.blocked_by == [3]
+
+
+def test_task_update_remove_nonexistent_dependency(test_app):
+    """Test removing a dependency that doesn't exist"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "update", "1", "--remove-dependency", "2"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = "Task 1 does not depend on task 2, skipping removal.\n"
+        assert result.output == expected_output
+
+
+def test_task_update_add_and_remove_dependencies_together(test_app):
+    """Test adding and removing dependencies in the same command"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Add initial dependency
+        runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2"],
+            obj=test_app,
+        )
+
+        # Add new dependency and remove old one
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "1",
+                "--depends-on",
+                "3",
+                "--remove-dependency",
+                "2",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Removed dependency: task 1 no longer depends on task 2.
+Added dependency: task 1 depends on task 3.
+"""
+        assert result.output == expected_output
+
+        # Verify the correct dependencies exist
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.blocked_by == [3]
+
+
+def test_task_update_with_dependencies_and_other_fields(test_app):
+    """Test updating dependencies along with other task fields"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "1",
+                "--title",
+                "Updated Title",
+                "--depends-on",
+                "2",
+                "--depends-on",
+                "3",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Updated task with task_id = 1.
+Added dependency: task 1 depends on task 2.
+Added dependency: task 1 depends on task 3.
+"""
+        assert result.output == expected_output
+
+        # Verify both title and dependencies were updated
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert task.title == "Updated Title"
+        assert sorted(task.blocked_by) == [2, 3]
+
+
+def test_task_update_mixed_valid_invalid_dependencies(test_app):
+    """Test updating with a mix of valid and invalid dependencies"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=[
+                "task",
+                "update",
+                "1",
+                "--depends-on",
+                "2",
+                "--depends-on",
+                "999",
+                "--depends-on",
+                "3",
+            ],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        expected_output = """Added dependency: task 1 depends on task 2.
+Task 999 does not exist, skipping dependency.
+Added dependency: task 1 depends on task 3.
+"""
+        assert result.output == expected_output
+
+        # Verify only valid dependencies were added
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert sorted(task.blocked_by) == [2, 3]
+
+
+def test_task_update_dependencies_persist_across_updates(test_app):
+    """Test that dependencies persist when updating other fields"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Add dependencies
+        runner.invoke(
+            cli,
+            args=["task", "update", "1", "--depends-on", "2", "--depends-on", "3"],
+            obj=test_app,
+        )
+
+        # Update only the title
+        runner.invoke(
+            cli,
+            args=["task", "update", "1", "--title", "New Title"],
+            obj=test_app,
+        )
+
+        # Verify dependencies are still there
+        task = test_app.backend.get_task_by_id(task_id=1)
+        assert sorted(task.blocked_by) == [2, 3]
+        assert task.title == "New Title"
