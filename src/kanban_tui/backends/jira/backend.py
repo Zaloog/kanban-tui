@@ -13,6 +13,8 @@ from kanban_tui.backends.auth import init_auth_file
 from kanban_tui.backends.jira.jira_api import (
     get_jql,
     authenticate_to_jira,
+    get_transitions,
+    set_issue_status,
 )
 from kanban_tui.backends.jira.models import JiraIssue
 
@@ -22,7 +24,6 @@ class JiraBackend(Backend):
     settings: JiraBackendSettings
     auth: Any = field(init=False)
     auth_settings: AuthSettings = field(init=False)
-    _status_column_map: dict[str, int] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         init_auth_file(self.settings.auth_file_path)
@@ -30,7 +31,6 @@ class JiraBackend(Backend):
         self.auth = authenticate_to_jira(
             self.settings.base_url, self.api_key, self.cert_path
         )
-        self._status_column_map = self.settings.status_to_column_map
 
     # Queries
     def get_boards(self) -> list[Board]:
@@ -89,25 +89,15 @@ class JiraBackend(Backend):
         if not board_id and self.active_board:
             board_id = self.active_board.board_id
 
-        column_names: dict[int, list] = {
-            column_id: [] for column_id in set(self._status_column_map.values())
-        }
+        # Get the column mapping for this specific board
+        status_column_map = self._get_column_mapping_for_board(board_id)
 
-        # Group statuses by column
-        for status, column_id in self._status_column_map.items():
-            column_names[column_id].append(status)
-
-        # Create column objects
         columns = []
-        for column_id in sorted(column_names.keys()):
-            # Use the first status name as the column name
-            statuses = column_names[column_id]
-            name = statuses[0] if statuses else f"Column {column_id}"
-
+        for status, column_id in status_column_map.items():
             columns.append(
                 Column(
                     column_id=column_id,
-                    name=name,
+                    name=status,
                     visible=True,
                     position=column_id - 1,
                     board_id=board_id,
@@ -116,6 +106,13 @@ class JiraBackend(Backend):
 
         return columns
 
+    def get_column_by_id(self, column_id: int) -> Column | None:
+        """Return a single column by its ID"""
+        return next(
+            (column for column in self.get_columns() if column_id == column.column_id),
+            None,
+        )
+
     def get_tasks_by_board_id(self, board_id: int) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks"""
 
@@ -123,15 +120,13 @@ class JiraBackend(Backend):
             entry for entry in self.settings.jqls if entry.id == board_id
         ][0]
 
-        # Execute JQL query
         jql_result = get_jql(self.auth, board_jql_entry.jql)
         issues = jql_result.get("issues", [])
 
-        # Convert issues to tasks
         tasks = []
         for issue_data in issues:
             try:
-                task = self._jira_issue_to_task(issue_data)
+                task = self._jira_issue_to_task(issue_data, board_id=board_id)
                 tasks.append(task)
             except Exception as e:
                 raise e
@@ -143,6 +138,11 @@ class JiraBackend(Backend):
     def get_tasks_on_active_board(self) -> list[Task]:
         """Execute active JQL query and convert issues to Tasks"""
         return self.get_tasks_by_board_id(board_id=self.settings.active_jql)
+
+    def get_task_by_id(self, task_id: int) -> Task | None:
+        """Fetch a single Jira issue by ID"""
+        tasks = self.get_tasks_by_ids([task_id])
+        return tasks[0] if tasks else None
 
     def get_tasks_by_ids(self, task_ids: list[int]) -> list[Task]:
         """Fetch specific Jira issues by ID"""
@@ -179,12 +179,14 @@ class JiraBackend(Backend):
         # Fallback to first entry
         return self.settings.jqls[0] if self.settings.jqls else None
 
-    def _jira_issue_to_task(self, issue_data: dict) -> Task:
+    def _jira_issue_to_task(
+        self, issue_data: dict, board_id: int | None = None
+    ) -> Task:
         """Convert Jira issue dict to Task model"""
         jira_issue = JiraIssue(**issue_data)
 
-        # Map Jira status to column
-        column_id = self._status_to_column(jira_issue.status)
+        # Map Jira status to column using board-specific mapping
+        column_id = self._status_to_column(jira_issue.status, board_id)
 
         # Compute start/finish dates based on status category
         start_date = None
@@ -235,9 +237,25 @@ class JiraBackend(Backend):
             metadata=metadata,
         )
 
-    def _status_to_column(self, status: str) -> int:
+    def _get_column_mapping_for_board(self, board_id: int | None) -> dict[str, int]:
+        """Get the column mapping for a specific board"""
+        if board_id is None:
+            return {}
+
+        # Find the JQL entry for this board
+        jql_entry = next(
+            (entry for entry in self.settings.jqls if entry.id == board_id), None
+        )
+
+        if jql_entry and jql_entry.column_mapping:
+            return jql_entry.column_mapping
+
+        return {}
+
+    def _status_to_column(self, status: str, board_id: int | None = None) -> int:
         """Map Jira status to kanban column"""
-        return self._status_column_map.get(status, 1)  # Default to first column
+        column_mapping = self._get_column_mapping_for_board(board_id)
+        return column_mapping.get(status, 1)  # Default to first column
 
     def _resolve_issue_dependencies(self, tasks: list[Task], issues: list[dict]):
         """Resolve Jira issue links to task dependencies"""
@@ -332,18 +350,75 @@ class JiraBackend(Backend):
             "Jira backend is read-only. Delete tasks in Jira directly."
         )
 
-    def update_task_status(self, *args, **kwargs):
-        raise NotImplementedError(
-            "Jira backend is read-only. Update task status in Jira directly."
-        )
+    def update_task_status(self, new_task: Task) -> dict[str, bool | str]:
+        """Update Jira issue status by finding a transition whose target
+        status maps to the same column the task was moved to.
 
-    def create_new_board(self, name: str, jql: str) -> int:
+        Args:
+            new_task: Task with updated column information
+
+        Returns:
+            dict with 'success' (bool) and 'message' (str) keys
+        """
+        jira_key = new_task.metadata.get("jira_key")
+        if not jira_key:
+            return {
+                "success": False,
+                "message": "Task does not have a Jira key in metadata",
+            }
+
+        board_id = self.active_board.board_id if self.active_board else None
+        target_column = new_task.column
+
+        try:
+            transitions = get_transitions(self.auth, jira_key)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to fetch transitions: {str(e)}",
+            }
+
+        # For each transition, map its target status back to a column ID
+        # using the column mapping lookup, then compare column IDs
+        # (int == int) instead of comparing status name strings.
+        column_mapping = self._get_column_mapping_for_board(board_id)
+        transition_id = None
+        available = []
+
+        for transition in transitions:
+            if not isinstance(transition, dict):
+                continue
+
+            to_status = transition.get("to", "")
+            column_for_transition = column_mapping.get(to_status)
+            available.append(f"{to_status} (col {column_for_transition})")
+
+            if (
+                column_for_transition is not None
+                and column_for_transition == target_column
+            ):
+                transition_id = transition.get("id")
+                break
+
+        if transition_id is None:
+            return {
+                "success": False,
+                "message": f"No transition available to column {target_column}. Available: {', '.join(available)}",
+            }
+
+        return set_issue_status(self.auth, jira_key, transition_id)
+
+    def create_new_board(
+        self, name: str, jql: str, column_mapping: dict[str, int] | None = None
+    ) -> int:
         if self.settings.jqls:
             new_id = self.settings.jqls[-1].id + 1
         else:
             new_id = 1
 
-        new_jql = JqlEntry(id=new_id, name=name, jql=jql)
+        new_jql = JqlEntry(
+            id=new_id, name=name, jql=jql, column_mapping=column_mapping or {}
+        )
         self.settings.jqls.append(new_jql)
         return new_id
 

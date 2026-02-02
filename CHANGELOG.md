@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.18.0 (unreleased)
+### Added
+- Added column mapping per `jql`/`jira board`
+- Added ability to transition tasks between columns in `jira` backend
+
 ## v0.17.1
 ### Fixed
 - Fixed scroll flickering when selecting through tasks, by disabling the animation when using `scroll_visible`

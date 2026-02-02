@@ -131,7 +131,7 @@ class TaskCard(Vertical):
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.app.config.backend.mode == Backends.JIRA:
-            if action not in ("edit_task"):
+            if action not in ("edit_task", "move_task", "show_blocking_tasks"):
                 return False
 
         column_id_list = list(self.app.visible_column_dict.keys())
