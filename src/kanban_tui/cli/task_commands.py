@@ -239,6 +239,18 @@ def create_task(
     type=click.DateTime(formats=["%Y-%m-%d"]),
     help="Task due date (format `%Y-%m-%d`)",
 )
+@click.option(
+    "--depends-on",
+    multiple=True,
+    type=click.INT,
+    help="Task ID(s) to add as dependencies (can be used multiple times)",
+)
+@click.option(
+    "--remove-dependency",
+    multiple=True,
+    type=click.INT,
+    help="Task ID(s) to remove as dependencies (can be used multiple times)",
+)
 def update_task(
     app: KanbanTui,
     task_id: int,
@@ -246,14 +258,37 @@ def update_task(
     description: str | None,
     category: int | None,
     due_date: datetime.datetime | None,
+    depends_on: tuple[int, ...],
+    remove_dependency: tuple[int, ...],
 ):
     """
     Updates a task
     """
     old_task = app.backend.get_task_by_id(task_id=task_id)
-    if all((title is None, description is None, category is None, due_date is None)):
+
+    # Check if any updates were provided
+    if all(
+        (
+            title is None,
+            description is None,
+            category is None,
+            due_date is None,
+            not depends_on,
+            not remove_dependency,
+        )
+    ):
         print_to_console("No fields to update provided.")
-    else:
+        return
+
+    # Update basic task fields if any are provided
+    if any(
+        (
+            title is not None,
+            description is not None,
+            category is not None,
+            due_date is not None,
+        )
+    ):
         _updated_task = app.backend.update_task_entry(
             task_id=task_id,
             title=title or old_task.title,
@@ -262,6 +297,61 @@ def update_task(
             due_date=due_date or old_task.due_date,
         )
         print_to_console(f"Updated task with {task_id = }.")
+
+    # Handle dependency removal
+    if remove_dependency:
+        existing_deps = app.backend.get_task_dependencies(task_id=task_id)
+        for dep_task_id in remove_dependency:
+            # Check if dependency exists
+            if dep_task_id not in existing_deps:
+                print_to_console(
+                    f"[yellow]Task {task_id} does not depend on task {dep_task_id}, skipping removal.[/]"
+                )
+                continue
+
+            # Remove the dependency
+            app.backend.delete_task_dependency(
+                task_id=task_id,
+                depends_on_task_id=dep_task_id,
+            )
+            print_to_console(
+                f"[green]Removed dependency: task {task_id} no longer depends on task {dep_task_id}.[/]"
+            )
+
+    # Handle dependency addition
+    if depends_on:
+        existing_deps = app.backend.get_task_dependencies(task_id=task_id)
+        for depends_on_task_id in depends_on:
+            # Check if dependency task exists
+            dep_task = app.backend.get_task_by_id(task_id=depends_on_task_id)
+            if not dep_task:
+                print_to_console(
+                    f"[yellow]Task {depends_on_task_id} does not exist, skipping dependency.[/]"
+                )
+                continue
+
+            # Check if dependency already exists
+            if depends_on_task_id in existing_deps:
+                print_to_console(
+                    f"[yellow]Task {task_id} already depends on task {depends_on_task_id}.[/]"
+                )
+                continue
+
+            # Check if this would create a circular dependency
+            if app.backend.would_create_dependency_cycle(task_id, depends_on_task_id):
+                print_to_console(
+                    f"[red]Cannot add dependency: would create circular dependency with task {depends_on_task_id}.[/]"
+                )
+                continue
+
+            # All checks passed, create the dependency
+            app.backend.create_task_dependency(
+                task_id=task_id,
+                depends_on_task_id=depends_on_task_id,
+            )
+            print_to_console(
+                f"[green]Added dependency: task {task_id} depends on task {depends_on_task_id}.[/]"
+            )
 
 
 @task.command("move")
