@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.0 (unreleased)
+### Added
+- Added new `escape` bindings to change back to board screen from settings/overview screen
+- Added new binding `enter` to view/edit task
+
 ## v0.18.1
 ### Fixed
 - Fixes Authentication Update when confirming auth url
