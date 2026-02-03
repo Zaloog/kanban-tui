@@ -16,17 +16,7 @@ from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
 class SettingsScreen(Screen):
     needs_refresh: reactive[bool] = reactive(False, init=False)
 
-    BINDINGS = [
-        Binding("ctrl+o", "show_overlay", "Jump", priority=True),
-        Binding(
-            "escape",
-            "back_to_board",
-            "Back",
-            key_display="esc/^j",
-            priority=True,
-        ),
-        Binding("ctrl+j", "back_to_board", "Board", show=False, priority=True),
-    ]
+    BINDINGS = [Binding("ctrl+o", "show_overlay", "Jump", priority=True)]
 
     def compose(self) -> Iterable[Widget]:
         yield Header()
@@ -58,6 +48,3 @@ class SettingsScreen(Screen):
 
     def action_show_overlay(self) -> None:
         self.query_one(Jumper).show()
-
-    def action_back_to_board(self) -> None:
-        self.app.switch_screen("board")

@@ -29,7 +29,12 @@ class KanbanTui(App[str | None]):
     CSS_PATH = Path("assets/style.tcss")
     BINDINGS = [
         Binding("r", "refresh", "🔄Refresh", priority=True),
-        Binding("ctrl+j", 'switch_screen("board")', "Board"),
+        Binding(
+            "ctrl+j,escape",
+            'switch_screen("board")',
+            "Back",
+            key_display="esc/^j",
+        ),
         Binding("ctrl+k", 'switch_screen("overview")', "Overview"),
         Binding("ctrl+l", 'switch_screen("settings")', "Settings"),
         Binding("C", "show_backend_selector", show=False, priority=True),
@@ -217,6 +222,8 @@ class KanbanTui(App[str | None]):
             case "switch_screen":
                 if self.config.backend.mode != Backends.SQLITE:
                     return False
+                if parameters and parameters[0] == "board":
+                    return not isinstance(self.screen, BoardScreen)
         return True
 
     def action_show_backend_selector(self):

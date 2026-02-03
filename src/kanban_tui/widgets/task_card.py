@@ -31,7 +31,13 @@ class TaskCard(Vertical):
 
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
-        Binding("e", "edit_task", description="Edit", show=True, key_display="e/⏎"),
+        Binding(
+            "e,enter",
+            "edit_task",
+            description="Edit",
+            show=True,
+            key_display="e/⏎",
+        ),
         Binding("d", "delete_task", description="Delete", show=True),
         Binding("i", "show_blocking_tasks", description="Show Deps", show=True),
         Binding(
@@ -141,6 +147,14 @@ class TaskCard(Vertical):
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.app.config.backend.mode == Backends.JIRA:
             if action not in ("edit_task"):
+                return False
+
+        if action == "edit_task":
+            from kanban_tui.widgets.board_widgets import KanbanBoard
+
+            board_screen = self.app.get_screen("board")
+            board = board_screen.query_one(KanbanBoard)
+            if board.target_column is not None:
                 return False
 
         column_id_list = list(self.app.visible_column_dict.keys())
