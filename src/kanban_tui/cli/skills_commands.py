@@ -116,7 +116,7 @@ def update_skill():
         ):
             for locality in file_version_dict.keys():
                 file_path = file_path_dict[locality]
-                file_path.write_text(get_skill_md())
+                file_path.write_text(get_skill_md(), encoding="utf-8")
                 print_to_console(
                     f"Updated {locality} [blue]SKILL.md[/] file to current tool version [blue]{current_tool_version}[/]."
                 )
