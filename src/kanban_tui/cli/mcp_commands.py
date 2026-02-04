@@ -21,7 +21,7 @@ from kanban_tui.utils import print_to_console
 )
 def mcp(app: KanbanTui, ctx, start_server: bool):
     """
-    Starts the mcp server that exposes task/board/column commands
+    Starts the mcp server, exposes the CLI Interface Commands
     """
     try:
         from mcp.server.stdio import stdio_server
