@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -44,8 +43,8 @@ def _write_skill_file(file_path: Path, version: str) -> None:
     file_path.write_text("\n".join(skill_content) + "\n", encoding="utf-8")
 
 
-def test_skill_local_creation(tmp_path: Path):
-    os.environ["KANBAN_TUI_LOCAL_SKILL"] = tmp_path.as_posix()
+def test_skill_local_creation(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", tmp_path.as_posix())
     file_path = get_skill_local_path()
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -59,8 +58,8 @@ def test_skill_local_creation(tmp_path: Path):
         assert file_path.read_text(encoding="utf-8") == get_skill_md()
 
 
-def test_skill_local_creation_already_exists(tmp_path: Path):
-    os.environ["KANBAN_TUI_LOCAL_SKILL"] = tmp_path.as_posix()
+def test_skill_local_creation_already_exists(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", tmp_path.as_posix())
     file_path = get_skill_local_path()
     file_path.touch()
     runner = CliRunner()
@@ -73,8 +72,8 @@ def test_skill_local_creation_already_exists(tmp_path: Path):
         assert output == CREATE_LOCAL_EXISTS_OUTPUT
 
 
-def test_skill_global_creation(tmp_path: Path):
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+def test_skill_global_creation(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", tmp_path.as_posix())
     file_path = get_skill_global_path()
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -86,8 +85,8 @@ def test_skill_global_creation(tmp_path: Path):
         assert file_path.read_text(encoding="utf-8") == get_skill_md()
 
 
-def test_skill_global_creation_already_exists(tmp_path: Path):
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+def test_skill_global_creation_already_exists(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", tmp_path.as_posix())
     file_path = get_skill_global_path()
     file_path.touch()
     runner = CliRunner()
@@ -103,9 +102,9 @@ def test_skill_global_creation_already_exists(tmp_path: Path):
         )
 
 
-def test_skill_delete_no_present(tmp_path: Path):
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
-    os.environ["KANBAN_TUI_LOCAL_SKILL"] = tmp_path.as_posix()
+def test_skill_delete_no_present(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", tmp_path.as_posix())
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", tmp_path.as_posix())
     runner = CliRunner()
     with runner.isolated_filesystem():
         result = runner.invoke(cli, args=["skill", "delete"], input="n")
@@ -116,13 +115,13 @@ def test_skill_delete_no_present(tmp_path: Path):
         )
 
 
-def test_skill_delete_both(tmp_path: Path):
-    os.environ["KANBAN_TUI_LOCAL_SKILL"] = (tmp_path / "local").as_posix()
+def test_skill_delete_both(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
     local_file_path = get_skill_local_path()
     local_file_path.parent.mkdir()
     local_file_path.touch()
 
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = (tmp_path / "global").as_posix()
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
     global_file_path = get_skill_global_path()
     global_file_path.parent.mkdir()
     global_file_path.touch()
@@ -140,8 +139,8 @@ def test_skill_delete_both(tmp_path: Path):
 
 
 def test_skill_update_no_files(tmp_path: Path, monkeypatch):
-    os.environ["KANBAN_TUI_LOCAL_SKILL"] = (tmp_path / "local").as_posix()
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = (tmp_path / "global").as_posix()
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
     monkeypatch.setattr(skills_module, "get_version", lambda: "v1.2.3")
     monkeypatch.setattr(skills_commands, "get_version", lambda: "v1.2.3")
 
@@ -153,8 +152,8 @@ def test_skill_update_no_files(tmp_path: Path, monkeypatch):
 
 
 def test_skill_update_both(tmp_path: Path, monkeypatch):
-    os.environ["KANBAN_TUI_LOCAL_SKILL"] = (tmp_path / "local").as_posix()
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = (tmp_path / "global").as_posix()
+    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
     monkeypatch.setattr(skills_module, "get_version", lambda: "v1.2.3")
     monkeypatch.setattr(skills_commands, "get_version", lambda: "v1.2.3")
 

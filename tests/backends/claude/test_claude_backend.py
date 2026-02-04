@@ -1,4 +1,3 @@
-import os
 import json
 from pathlib import Path
 import pytest
@@ -158,9 +157,9 @@ def test_claude_backend_read_only_operations(temp_claude_tasks):
         backend.create_task_dependency(1, 2)
 
 
-def test_claude_backend_empty_directory(tmp_path, test_app: KanbanTui):
+def test_claude_backend_empty_directory(tmp_path, test_app: KanbanTui, monkeypatch):
     """Test backend behavior with no sessions."""
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", tmp_path.as_posix())
     test_app.config.set_backend(Backends("claude"))
     backend = test_app.get_backend()
 
