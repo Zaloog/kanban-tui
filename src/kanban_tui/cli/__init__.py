@@ -63,7 +63,7 @@ class OrderedGroup(click.Group):
             with formatter.section(section):
                 for command in commands:
                     formatter.write_text(
-                        f"{self.commands[command].name}\t\t"
+                        f"{self.commands[command].name:<10}\t"
                         f"{self.commands[command].get_short_help_str(HELP_LIMIT_LEN)}"
                     )
 
