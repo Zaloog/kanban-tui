@@ -140,8 +140,8 @@ def test_skill_delete_both(tmp_path: Path):
 
 
 def test_skill_update_no_files(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
-    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
+    os.environ["KANBAN_TUI_LOCAL_SKILL"] = (tmp_path / "local").as_posix()
+    os.environ["CLAUDE_CODE_CONFIG_DIR"] = (tmp_path / "global").as_posix()
     monkeypatch.setattr(skills_module, "get_version", lambda: "v1.2.3")
     monkeypatch.setattr(skills_commands, "get_version", lambda: "v1.2.3")
 
@@ -153,8 +153,8 @@ def test_skill_update_no_files(tmp_path: Path, monkeypatch):
 
 
 def test_skill_update_both(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("KANBAN_TUI_LOCAL_SKILL", (tmp_path / "local").as_posix())
-    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", (tmp_path / "global").as_posix())
+    os.environ["KANBAN_TUI_LOCAL_SKILL"] = (tmp_path / "local").as_posix()
+    os.environ["CLAUDE_CODE_CONFIG_DIR"] = (tmp_path / "global").as_posix()
     monkeypatch.setattr(skills_module, "get_version", lambda: "v1.2.3")
     monkeypatch.setattr(skills_commands, "get_version", lambda: "v1.2.3")
 
