@@ -10,6 +10,7 @@ TEST_TASK_OUTPUT = """Task(
     task_id=1,
     title='Task_ready_0',
     column=1,
+    position=0,
     creation_date=datetime.datetime(2026, 4, 2, 13, 3, 7),
     start_date=None,
     finish_date=None,
@@ -29,6 +30,7 @@ Task(
     task_id=2,
     title='Task_ready_1',
     column=1,
+    position=1,
     creation_date=datetime.datetime(2026, 4, 2, 13, 3, 7),
     start_date=None,
     finish_date=None,
@@ -48,6 +50,7 @@ Task(
     task_id=3,
     title='Task_ready_2',
     column=1,
+    position=2,
     creation_date=datetime.datetime(2026, 4, 2, 13, 3, 7),
     start_date=None,
     finish_date=None,
@@ -67,6 +70,7 @@ Task(
     task_id=4,
     title='Task_doing_0',
     column=2,
+    position=0,
     creation_date=datetime.datetime(2026, 4, 2, 13, 3, 7),
     start_date=None,
     finish_date=None,
@@ -86,6 +90,7 @@ Task(
     task_id=5,
     title='Task_done_0',
     column=3,
+    position=0,
     creation_date=datetime.datetime(2026, 4, 2, 13, 3, 7),
     start_date=None,
     finish_date=None,
@@ -120,6 +125,7 @@ TEST_TASK_OUTPUT_JSON = """[
         "task_id": 2,
         "title": "Task_ready_1",
         "column": 1,
+        "position": 1,
         "creation_date": "2026-04-02T13:03:07",
         "category": 3,
         "description": "Hallo",
@@ -132,6 +138,7 @@ TEST_TASK_OUTPUT_JSON = """[
         "task_id": 3,
         "title": "Task_ready_2",
         "column": 1,
+        "position": 2,
         "creation_date": "2026-04-02T13:03:07",
         "description": "Hallo",
         "days_since_creation": 0,
@@ -343,7 +350,8 @@ def test_task_create_all_options(
         tasks = test_app.backend.get_tasks_on_active_board()
         assert len(tasks) == 6
 
-        new_task = tasks[-1]
+        new_task = test_app.backend.get_task_by_id(task_id=6)
+        assert new_task is not None
         assert new_task.title == title
         assert new_task.description == description
 
@@ -621,7 +629,9 @@ def test_task_move_confirm_task_not_active_board(test_app):
             result.output
             == f"Task is not on the active board, still continue? [y/N]: y\nMoved task with {task_id = } from column 5 to 1.\n"
         )
-        assert test_app.backend.get_tasks_on_active_board()[-1].task_id == 6
+        moved_task = test_app.backend.get_task_by_id(task_id=6)
+        assert moved_task is not None
+        assert moved_task.column == target_column
 
 
 def test_task_move_abort_column_not_active_board(test_app):
@@ -1250,8 +1260,8 @@ def test_task_create_with_category(test_app):
         assert result.output == "Created task `Task with Category` with task_id = 6.\n"
 
         # Verify the task has the correct category
-        tasks = test_app.backend.get_tasks_on_active_board()
-        new_task = tasks[-1]
+        new_task = test_app.backend.get_task_by_id(task_id=6)
+        assert new_task is not None
         assert new_task.category == 1
 
 
