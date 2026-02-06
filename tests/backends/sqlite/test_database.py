@@ -5,8 +5,10 @@ import pytest
 
 from kanban_tui.backends.sqlite.database import (
     create_new_category_db,
+    create_new_task_db,
     get_all_categories_db,
     get_category_by_id_db,
+    get_all_columns_on_board_db,
     init_new_db,
     create_connection,
     task_factory,
@@ -16,6 +18,9 @@ from kanban_tui.backends.sqlite.database import (
     column_factory,
     create_new_board_db,
     get_all_boards_db,
+    get_task_by_column_db,
+    move_task_position_db,
+    update_task_status_db,
 )
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.column import Column
@@ -166,3 +171,88 @@ def test_create_board_with_custom_columns_no_status_columns(test_database_path):
     assert new_board.reset_column is None
     assert new_board.start_column is None
     assert new_board.finish_column is None
+
+
+def test_create_task_sets_position(test_database_path):
+    init_new_db(database=test_database_path)
+    board = create_new_board_db(
+        name="Position Board", icon=":straight_ruler:", database=test_database_path
+    )
+    columns = get_all_columns_on_board_db(
+        database=test_database_path, board_id=board.board_id
+    )
+    column_id = columns[0].column_id
+
+    task1 = create_new_task_db(
+        title="Task 1", description="", column=column_id, database=test_database_path
+    )
+    task2 = create_new_task_db(
+        title="Task 2", description="", column=column_id, database=test_database_path
+    )
+
+    assert task1.position == 0
+    assert task2.position == 1
+
+
+def test_move_task_position_db(test_database_path):
+    init_new_db(database=test_database_path)
+    board = create_new_board_db(
+        name="Move Board", icon=":arrow_up_down:", database=test_database_path
+    )
+    columns = get_all_columns_on_board_db(
+        database=test_database_path, board_id=board.board_id
+    )
+    column_id = columns[0].column_id
+
+    task1 = create_new_task_db(
+        title="Task 1", description="", column=column_id, database=test_database_path
+    )
+    task2 = create_new_task_db(
+        title="Task 2", description="", column=column_id, database=test_database_path
+    )
+    task3 = create_new_task_db(
+        title="Task 3", description="", column=column_id, database=test_database_path
+    )
+
+    move_task_position_db(
+        task_id=task1.task_id, target_position=2, database=test_database_path
+    )
+
+    tasks = get_task_by_column_db(column_id=column_id, database=test_database_path)
+    assert [task.task_id for task in tasks] == [
+        task2.task_id,
+        task3.task_id,
+        task1.task_id,
+    ]
+
+
+def test_update_task_status_appends_position(test_database_path):
+    init_new_db(database=test_database_path)
+    board = create_new_board_db(
+        name="Move Column Board", icon=":trackball:", database=test_database_path
+    )
+    columns = get_all_columns_on_board_db(
+        database=test_database_path, board_id=board.board_id
+    )
+    column_a = columns[0].column_id
+    column_b = columns[1].column_id
+
+    task1 = create_new_task_db(
+        title="Task A1", description="", column=column_a, database=test_database_path
+    )
+    task2 = create_new_task_db(
+        title="Task A2", description="", column=column_a, database=test_database_path
+    )
+    task3 = create_new_task_db(
+        title="Task B1", description="", column=column_b, database=test_database_path
+    )
+
+    task1.column = column_b
+    update_task_status_db(task=task1, database=test_database_path)
+
+    tasks_a = get_task_by_column_db(column_id=column_a, database=test_database_path)
+    tasks_b = get_task_by_column_db(column_id=column_b, database=test_database_path)
+
+    assert [task.task_id for task in tasks_a] == [task2.task_id]
+    assert tasks_a[0].position == 0
+    assert [task.task_id for task in tasks_b] == [task3.task_id, task1.task_id]

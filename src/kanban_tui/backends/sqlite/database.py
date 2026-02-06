@@ -15,6 +15,7 @@ from kanban_tui.backends.sqlite.migrations import (
     CURRENT_SCHEMA_VERSION,
     apply_migration_v1_to_v2,
     apply_migration_v2_to_v3,
+    apply_migration_v3_to_v4,
     increment_schema_version,
 )
 
@@ -61,6 +62,9 @@ def task_factory(cursor, row):
             data["metadata"] = json.loads(data["metadata"]) if data["metadata"] else {}
         elif data["metadata"] is None:
             data["metadata"] = {}
+
+    if "position" in data and data["position"] is None:
+        data["position"] = 0
 
     return Task(**data)
 
@@ -121,6 +125,11 @@ def run_migrations(database: str = DATABASE_FILE.as_posix()):
             if current_version < 3:
                 apply_migration_v2_to_v3(con)
                 increment_schema_version(con, 3)
+
+            # migration to v4
+            if current_version < 4:
+                apply_migration_v3_to_v4(con)
+                increment_schema_version(con, 4)
 
             con.commit()
 
@@ -599,7 +608,7 @@ def init_new_db(database: str = DATABASE_FILE.as_posix()):
             con.execute(column_delete_trigger_str)
             con.execute(column_update_trigger_str)
 
-            # Initialize schema version for new database (already at v3)
+            # Initialize schema version for new database (already at v4)
 
             con.commit()
 
@@ -731,10 +740,27 @@ def create_new_task_db(
         "metadata": json.dumps(metadata if metadata is not None else {}),
     }
 
+    position_query_str = """
+    SELECT COALESCE(MAX(position), -1) + 1
+    FROM tasks
+    WHERE column = :column
+    ;
+    """
+
     transaction_str = """
-    INSERT INTO tasks
+    INSERT INTO tasks (
+        title,
+        column,
+        category,
+        description,
+        creation_date,
+        start_date,
+        finish_date,
+        due_date,
+        metadata,
+        position
+    )
     VALUES (
-        NULL,
         :title,
         :column,
         :category,
@@ -743,14 +769,20 @@ def create_new_task_db(
         :start_date,
         :finish_date,
         :due_date,
-        :metadata
-        )
-        RETURNING *
-        ;"""
+        :metadata,
+        :position
+    )
+    RETURNING *
+    ;
+    """
 
     with create_connection(database=database) as con:
-        con.row_factory = task_factory
         try:
+            con.row_factory = sqlite3.Row
+            next_position = con.execute(position_query_str, task_dict).fetchone()[0]
+            task_dict["position"] = next_position
+
+            con.row_factory = task_factory
             new_task = con.execute(transaction_str, task_dict).fetchone()
             con.commit()
             return new_task
@@ -919,7 +951,9 @@ def get_all_tasks_on_board_db(
     FROM tasks t
     LEFT JOIN columns c ON c.column_id = t.column
     LEFT JOIN boards b ON b.board_id = c.board_id
-    WHERE b.board_id = :board_id ;
+    WHERE b.board_id = :board_id
+    ORDER BY c.position, t.position, t.task_id
+    ;
     """
 
     with create_connection(database=database) as con:
@@ -1165,6 +1199,7 @@ def get_task_by_column_db(
         ) as blocking
     FROM tasks t
     WHERE t.column = :column_id
+    ORDER BY t.position, t.task_id
     ;
     """
     column_id_dict = {"column_id": column_id}
@@ -1205,26 +1240,186 @@ def get_column_by_id_db(
 
 # After column Movement
 def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> Task:
-    new_start_date_dict = {
+    update_task_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
         "column": task.column,
         "finish_date": task.finish_date,
         "metadata": json.dumps(task.metadata),
     }
+    select_current_str = """
+    SELECT column, position
+    FROM tasks
+    WHERE task_id = :task_id
+    ;
+    """
+    max_position_str = """
+    SELECT COALESCE(MAX(position), -1) + 1
+    FROM tasks
+    WHERE column = :column
+    ;
+    """
+    close_gap_str = """
+    UPDATE tasks
+    SET position = position - 1
+    WHERE column = :old_column
+      AND position > :old_position
+    ;
+    """
     transaction_str = """
     UPDATE tasks
     SET start_date = :start_date,
         finish_date = :finish_date,
         column = :column,
-        metadata = :metadata
+        metadata = :metadata,
+        position = :position
     WHERE task_id = :task_id
     RETURNING *;
     """
     with create_connection(database=database) as con:
-        con.row_factory = task_factory
         try:
-            moved_task = con.execute(transaction_str, new_start_date_dict).fetchone()
+            con.row_factory = sqlite3.Row
+            current_row = con.execute(select_current_str, update_task_dict).fetchone()
+            if current_row is None:
+                raise sqlite3.Error(f"Task {task.task_id} not found")
+
+            old_column = current_row["column"]
+            old_position = (
+                current_row["position"] if current_row["position"] is not None else 0
+            )
+            new_column = update_task_dict["column"]
+
+            if new_column != old_column:
+                con.execute(
+                    close_gap_str,
+                    {"old_column": old_column, "old_position": old_position},
+                )
+                new_position = con.execute(
+                    max_position_str, {"column": new_column}
+                ).fetchone()[0]
+            else:
+                new_position = old_position
+
+            update_task_dict["position"] = new_position
+
+            con.row_factory = task_factory
+            moved_task = con.execute(transaction_str, update_task_dict).fetchone()
+            con.commit()
+            return moved_task
+        except sqlite3.Error as e:
+            con.rollback()
+            raise e
+
+
+def move_task_position_db(
+    task_id: int,
+    target_position: int,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Task | None:
+    select_current_str = """
+    SELECT column, position
+    FROM tasks
+    WHERE task_id = :task_id
+    ;
+    """
+    max_position_str = """
+    SELECT COALESCE(MAX(position), -1)
+    FROM tasks
+    WHERE column = :column
+    ;
+    """
+    move_down_str = """
+    UPDATE tasks
+    SET position = position - 1
+    WHERE column = :column
+      AND position > :current_position
+      AND position <= :target_position
+    ;
+    """
+    move_up_str = """
+    UPDATE tasks
+    SET position = position + 1
+    WHERE column = :column
+      AND position >= :target_position
+      AND position < :current_position
+    ;
+    """
+    update_position_str = """
+    UPDATE tasks
+    SET position = :target_position
+    WHERE task_id = :task_id
+    ;
+    """
+    query_str = """
+    SELECT
+        t.*,
+        COALESCE(
+            (SELECT json_group_array(d.depends_on_task_id)
+             FROM dependencies d
+             WHERE d.task_id = t.task_id),
+            '[]'
+        ) as blocked_by,
+        COALESCE(
+            (SELECT json_group_array(d.task_id)
+             FROM dependencies d
+             WHERE d.depends_on_task_id = t.task_id),
+            '[]'
+        ) as blocking
+    FROM tasks t
+    WHERE t.task_id = :task_id
+    ;
+    """
+    with create_connection(database=database) as con:
+        try:
+            con.row_factory = sqlite3.Row
+            current_row = con.execute(
+                select_current_str, {"task_id": task_id}
+            ).fetchone()
+            if current_row is None:
+                return None
+
+            column_id = current_row["column"]
+            current_position = (
+                current_row["position"] if current_row["position"] is not None else 0
+            )
+
+            max_position = con.execute(
+                max_position_str, {"column": column_id}
+            ).fetchone()[0]
+            if max_position is None or max_position < 0:
+                return None
+
+            clamped_target = max(0, min(target_position, max_position))
+            if clamped_target == current_position:
+                con.row_factory = task_factory
+                return con.execute(query_str, {"task_id": task_id}).fetchone()
+
+            if clamped_target > current_position:
+                con.execute(
+                    move_down_str,
+                    {
+                        "column": column_id,
+                        "current_position": current_position,
+                        "target_position": clamped_target,
+                    },
+                )
+            else:
+                con.execute(
+                    move_up_str,
+                    {
+                        "column": column_id,
+                        "current_position": current_position,
+                        "target_position": clamped_target,
+                    },
+                )
+
+            con.execute(
+                update_position_str,
+                {"task_id": task_id, "target_position": clamped_target},
+            )
+
+            con.row_factory = task_factory
+            moved_task = con.execute(query_str, {"task_id": task_id}).fetchone()
             con.commit()
             return moved_task
         except sqlite3.Error as e:
@@ -1442,14 +1637,35 @@ def delete_column_db(
 
 
 def delete_task_db(task_id: int, database: str = DATABASE_FILE.as_posix()) -> int | str:
+    select_position_str = """
+    SELECT column, position
+    FROM tasks
+    WHERE task_id = ?
+    ;
+    """
     delete_str = """
     DELETE FROM tasks
     WHERE task_id = ?
     """
+    close_gap_str = """
+    UPDATE tasks
+    SET position = position - 1
+    WHERE column = ?
+      AND position > ?
+    ;
+    """
     with create_connection(database=database) as con:
         con.row_factory = sqlite3.Row
         try:
+            current_row = con.execute(select_position_str, (task_id,)).fetchone()
+            if current_row is None:
+                return 0
             con.execute(delete_str, (task_id,))
+            old_column = current_row["column"]
+            old_position = (
+                current_row["position"] if current_row["position"] is not None else 0
+            )
+            con.execute(close_gap_str, (old_column, old_position))
             con.commit()
             return 0
         except sqlite3.Error as e:

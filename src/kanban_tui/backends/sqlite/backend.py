@@ -33,6 +33,7 @@ from kanban_tui.backends.sqlite.database import (
     update_column_visibility_db,
     update_task_entry_db,
     update_task_status_db,
+    move_task_position_db,
     get_board_info_dict,
     get_ordered_tasks_db,
     get_filtered_events_db,
@@ -123,6 +124,13 @@ class SqliteBackend(Backend):
     def update_task_status(self, new_task: Task) -> Task:
         return update_task_status_db(
             task=new_task,
+            database=self.database_path,
+        )
+
+    def move_task_position(self, task_id: int, target_position: int) -> Task | None:
+        return move_task_position_db(
+            task_id=task_id,
+            target_position=target_position,
             database=self.database_path,
         )
 
