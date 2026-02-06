@@ -49,6 +49,7 @@ class Column(Vertical):
                 )
 
     async def place_task(self, task: Task) -> None:
+        task.position = self.task_amount
         card = TaskCard(
             task=task,
             row=self.task_amount,
@@ -63,3 +64,4 @@ class Column(Vertical):
         # Update row attribute of other TaskCards
         for row_position, task_card in enumerate(self.query(TaskCard)):
             task_card.row = row_position
+            task_card.task_.position = row_position

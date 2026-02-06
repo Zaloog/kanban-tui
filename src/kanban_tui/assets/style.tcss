@@ -80,6 +80,12 @@ TaskCard {
     border: tall $warning;
   }
 }
+TaskCard.drop-before {
+  border-top: thick $warning;
+}
+TaskCard.drop-after {
+  border-bottom: thick $warning;
+}
 TaskCard:focus {
         border: tall $success;
         border-title-color:$success;
