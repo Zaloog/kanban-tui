@@ -251,7 +251,30 @@ async def test_kanbanboard_card_movement_mouse_different_column(test_app: Kanban
         assert not pilot.app.screen.query_one(KanbanBoard).mouse_down
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 3
-        assert pilot.app.focused.row == 1
+
+
+async def test_kanbanboard_drag_cross_column_inserts_at_target_position(
+    test_app: KanbanTui,
+):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        board = pilot.app.screen.query_one(KanbanBoard)
+        assert isinstance(pilot.app.focused, TaskCard)
+        assert pilot.app.focused.task_.title == "Task_ready_0"
+
+        board.selected_task = pilot.app.focused.task_
+        board.mouse_down = True
+        board.target_column = 3
+        board.drag_target_position = 0
+
+        await board.action_confirm_move()
+        board.mouse_down = False
+        board._clear_drag_target()
+
+        done_tasks = list(pilot.app.screen.query_one("#column_3", Column).query(TaskCard))
+        assert [task_card.task_.title for task_card in done_tasks] == [
+            "Task_ready_0",
+            "Task_done_0",
+        ]
 
 
 async def test_custom_footer(test_app: KanbanTui):

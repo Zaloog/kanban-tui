@@ -36,8 +36,10 @@ class KanbanBoard(HorizontalScroll):
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
     mouse_down: reactive[bool] = reactive(False)
     drag_target_position: int | None = None
+    drag_target_column: int | None = None
     drag_target_card: TaskCard | None = None
     drag_target_before: bool | None = None
+    drag_target_empty_column: Column | None = None
 
     async def on_mount(self):
         await self.populate_board()
@@ -177,6 +179,7 @@ class KanbanBoard(HorizontalScroll):
     def start_target_column_timer(self):
         def reset_target_column():
             self.target_column = None
+            self._clear_drag_target()
             self.timer = None
 
         if not self._timers:
@@ -187,23 +190,35 @@ class KanbanBoard(HorizontalScroll):
     def _clear_drag_target(self) -> None:
         if self.drag_target_card:
             self.drag_target_card.remove_class("drop-before", "drop-after")
+        if self.drag_target_empty_column:
+            self.drag_target_empty_column.remove_class("drop-empty")
         self.drag_target_card = None
         self.drag_target_before = None
         self.drag_target_position = None
+        self.drag_target_column = None
+        self.drag_target_empty_column = None
 
     def _set_drag_target(
-        self, target_card: TaskCard, before: bool, position: int
+        self, target_card: TaskCard, before: bool, position: int, column_id: int
     ) -> None:
-        if self.drag_target_card is target_card and self.drag_target_before == before:
+        if (
+            self.drag_target_card is target_card
+            and self.drag_target_before == before
+            and self.drag_target_column == column_id
+        ):
             self.drag_target_position = position
             return
 
         if self.drag_target_card:
             self.drag_target_card.remove_class("drop-before", "drop-after")
+        if self.drag_target_empty_column:
+            self.drag_target_empty_column.remove_class("drop-empty")
+            self.drag_target_empty_column = None
 
         self.drag_target_card = target_card
         self.drag_target_before = before
         self.drag_target_position = position
+        self.drag_target_column = column_id
 
         target_card.remove_class("drop-before", "drop-after")
         if before:
@@ -211,7 +226,22 @@ class KanbanBoard(HorizontalScroll):
         else:
             target_card.add_class("drop-after")
 
-    def _update_drag_reorder_target(self, column: Column, event: MouseMove) -> None:
+    def _set_empty_column_drag_target(self, column: Column, column_id: int) -> None:
+        if self.drag_target_card:
+            self.drag_target_card.remove_class("drop-before", "drop-after")
+        if self.drag_target_empty_column and self.drag_target_empty_column is not column:
+            self.drag_target_empty_column.remove_class("drop-empty")
+
+        self.drag_target_card = None
+        self.drag_target_before = None
+        self.drag_target_position = 0
+        self.drag_target_column = column_id
+        self.drag_target_empty_column = column
+        column.add_class("drop-empty")
+
+    def _update_drag_reorder_target(
+        self, column: Column, event: MouseMove, column_id: int, is_cross_column: bool
+    ) -> None:
         if self.app.config.backend.mode != Backends.SQLITE:
             self._clear_drag_target()
             return
@@ -230,7 +260,10 @@ class KanbanBoard(HorizontalScroll):
         cards = list(column.query(TaskCard))
         other_cards = [card for card in cards if card is not moving_card]
         if not other_cards:
-            self._clear_drag_target()
+            if is_cross_column:
+                self._set_empty_column_drag_target(column=column, column_id=column_id)
+            else:
+                self._clear_drag_target()
             return
 
         y = event.screen_offset.y
@@ -249,7 +282,12 @@ class KanbanBoard(HorizontalScroll):
             target_card = other_cards[-1]
             before = False
 
-        self._set_drag_target(target_card=target_card, before=before, position=insert_index)
+        self._set_drag_target(
+            target_card=target_card,
+            before=before,
+            position=insert_index,
+            column_id=column_id,
+        )
 
     def _move_task_within_column(self, target_position: int) -> None:
         if self.app.config.backend.mode != Backends.SQLITE:
@@ -302,7 +340,7 @@ class KanbanBoard(HorizontalScroll):
 
         if new_column is not None:
             self.query_one(f"#column_{new_column}", Column).add_class("highlighted")
-        else:
+        elif hasattr(self, "timer") and self.timer is not None:
             self.timer.reset()
 
     @on(TaskCard.Moved)
@@ -341,7 +379,18 @@ class KanbanBoard(HorizontalScroll):
         # so there is nothing to revert on failure.
         original_column = self.selected_task.column
         self.selected_task.column = target_column
-        result = self.app.backend.update_task_status(new_task=self.selected_task)
+        target_position = (
+            self.drag_target_position
+            if event is None and self.mouse_down and self.target_column is not None
+            else None
+        )
+        if self.app.config.backend.mode == Backends.SQLITE:
+            result = self.app.backend.update_task_status(
+                new_task=self.selected_task,
+                target_position=target_position,
+            )
+        else:
+            result = self.app.backend.update_task_status(new_task=self.selected_task)
         updated_position = result.position if isinstance(result, Task) else None
         self.selected_task.column = original_column
 
@@ -377,7 +426,8 @@ class KanbanBoard(HorizontalScroll):
             self.selected_task.position = updated_position
 
         await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
-            self.selected_task
+            self.selected_task,
+            target_position=updated_position,
         )
 
         self.app.update_task_list()
@@ -445,18 +495,27 @@ class KanbanBoard(HorizontalScroll):
             return
         for column in self.query(Column):
             if column.region.contains_point(event.screen_offset):
-                is_same_column = self.selected_task.column == int(
-                    column.id.split("_")[-1]
-                )
+                column_id = int(column.id.split("_")[-1])
+                is_same_column = self.selected_task.column == column_id
                 if is_same_column:
                     self.target_column = None
                     if self._timers:
                         self.timer.reset()
-                    self._update_drag_reorder_target(column=column, event=event)
+                    self._update_drag_reorder_target(
+                        column=column,
+                        event=event,
+                        column_id=column_id,
+                        is_cross_column=False,
+                    )
                 else:
-                    self._clear_drag_target()
-                    self.target_column = int(column.id.split("_")[-1])
+                    self.target_column = column_id
                     self.start_target_column_timer()
+                    self._update_drag_reorder_target(
+                        column=column,
+                        event=event,
+                        column_id=column_id,
+                        is_cross_column=True,
+                    )
                 return
         self._clear_drag_target()
 

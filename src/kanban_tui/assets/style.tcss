@@ -57,6 +57,9 @@ Column{
   width:1fr;
   border-top:thick transparent;
     }
+Column.drop-empty VerticalScroll {
+  border-top: thick $warning;
+}
 Column > Label {
         width: 1fr;
         height:auto;
