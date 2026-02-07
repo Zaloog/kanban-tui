@@ -121,9 +121,12 @@ class SqliteBackend(Backend):
             database=self.database_path,
         )
 
-    def update_task_status(self, new_task: Task) -> Task:
+    def update_task_status(
+        self, new_task: Task, target_position: int | None = None
+    ) -> Task:
         return update_task_status_db(
             task=new_task,
+            target_position=target_position,
             database=self.database_path,
         )
 

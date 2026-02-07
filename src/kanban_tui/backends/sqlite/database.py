@@ -1239,7 +1239,11 @@ def get_column_by_id_db(
 
 
 # After column Movement
-def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) -> Task:
+def update_task_status_db(
+    task: Task,
+    target_position: int | None = None,
+    database: str = DATABASE_FILE.as_posix(),
+) -> Task:
     update_task_dict = {
         "task_id": task.task_id,
         "start_date": task.start_date,
@@ -1264,6 +1268,13 @@ def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) 
     SET position = position - 1
     WHERE column = :old_column
       AND position > :old_position
+    ;
+    """
+    open_gap_str = """
+    UPDATE tasks
+    SET position = position + 1
+    WHERE column = :column
+      AND position >= :target_position
     ;
     """
     transaction_str = """
@@ -1294,9 +1305,17 @@ def update_task_status_db(task: Task, database: str = DATABASE_FILE.as_posix()) 
                     close_gap_str,
                     {"old_column": old_column, "old_position": old_position},
                 )
-                new_position = con.execute(
+                max_new_position = con.execute(
                     max_position_str, {"column": new_column}
                 ).fetchone()[0]
+                if target_position is None:
+                    new_position = max_new_position
+                else:
+                    new_position = max(0, min(target_position, max_new_position))
+                    con.execute(
+                        open_gap_str,
+                        {"column": new_column, "target_position": new_position},
+                    )
             else:
                 new_position = old_position
 

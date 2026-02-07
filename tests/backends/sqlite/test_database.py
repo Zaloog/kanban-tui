@@ -256,3 +256,47 @@ def test_update_task_status_appends_position(test_database_path):
     assert [task.task_id for task in tasks_a] == [task2.task_id]
     assert tasks_a[0].position == 0
     assert [task.task_id for task in tasks_b] == [task3.task_id, task1.task_id]
+
+
+def test_update_task_status_inserts_at_target_position(test_database_path):
+    init_new_db(database=test_database_path)
+    board = create_new_board_db(
+        name="Move Column Position Board",
+        icon=":anchor:",
+        database=test_database_path,
+    )
+    columns = get_all_columns_on_board_db(
+        database=test_database_path, board_id=board.board_id
+    )
+    column_a = columns[0].column_id
+    column_b = columns[1].column_id
+
+    task_a1 = create_new_task_db(
+        title="Task A1", description="", column=column_a, database=test_database_path
+    )
+    task_a2 = create_new_task_db(
+        title="Task A2", description="", column=column_a, database=test_database_path
+    )
+    task_b1 = create_new_task_db(
+        title="Task B1", description="", column=column_b, database=test_database_path
+    )
+    task_b2 = create_new_task_db(
+        title="Task B2", description="", column=column_b, database=test_database_path
+    )
+
+    task_a1.column = column_b
+    moved_task = update_task_status_db(
+        task=task_a1, target_position=1, database=test_database_path
+    )
+
+    tasks_a = get_task_by_column_db(column_id=column_a, database=test_database_path)
+    tasks_b = get_task_by_column_db(column_id=column_b, database=test_database_path)
+
+    assert moved_task.position == 1
+    assert [task.task_id for task in tasks_a] == [task_a2.task_id]
+    assert tasks_a[0].position == 0
+    assert [task.task_id for task in tasks_b] == [
+        task_b1.task_id,
+        task_a1.task_id,
+        task_b2.task_id,
+    ]
