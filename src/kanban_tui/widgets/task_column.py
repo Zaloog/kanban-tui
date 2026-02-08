@@ -48,13 +48,27 @@ class Column(Vertical):
                     Text.from_markup(f"{self.title} ({self.task_amount} Tasks)")
                 )
 
-    async def place_task(self, task: Task) -> None:
-        card = TaskCard(
-            task=task,
-            row=self.task_amount,
+    async def place_task(self, task: Task, target_position: int | None = None) -> None:
+        scroll = self.query_one(VerticalScroll)
+        row = (
+            self.task_amount
+            if target_position is None
+            else max(0, min(target_position, self.task_amount))
         )
-        await self.query_one(VerticalScroll).mount(card)
+
+        task.position = row
+        card = TaskCard(task=task, row=row)
+        if row == self.task_amount:
+            await scroll.mount(card)
+        else:
+            await scroll.mount(card, before=row)
+
         self.task_amount += 1
+
+        # Keep row and in-memory task.position aligned with rendered order.
+        for row_position, task_card in enumerate(self.query(TaskCard)):
+            task_card.row = row_position
+            task_card.task_.position = row_position
 
     async def remove_task(self, task: Task) -> None:
         await self.query_one(f"#taskcard_{task.task_id}", TaskCard).remove()
@@ -63,3 +77,4 @@ class Column(Vertical):
         # Update row attribute of other TaskCards
         for row_position, task_card in enumerate(self.query(TaskCard)):
             task_card.row = row_position
+            task_card.task_.position = row_position

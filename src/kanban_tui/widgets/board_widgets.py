@@ -10,13 +10,14 @@ from textual import on
 from textual.events import MouseDown, MouseMove, MouseUp
 from textual.binding import Binding
 from textual.reactive import reactive
-from textual.containers import HorizontalScroll
+from textual.containers import HorizontalScroll, VerticalScroll
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.modal.modal_board_screen import ModalBoardOverviewScreen
 from kanban_tui.classes.task import Task
+from kanban_tui.config import Backends
 
 
 class KanbanBoard(HorizontalScroll):
@@ -34,6 +35,10 @@ class KanbanBoard(HorizontalScroll):
     selected_task: reactive[Task | None] = reactive(None)
     target_column: reactive[int | None] = reactive(None, bindings=True, init=False)
     mouse_down: reactive[bool] = reactive(False)
+    drag_target_position: int | None = None
+    drag_target_column: int | None = None
+    drag_target_card: TaskCard | None = None
+    drag_target_before: bool | None = None
 
     async def on_mount(self):
         await self.populate_board()
@@ -173,6 +178,7 @@ class KanbanBoard(HorizontalScroll):
     def start_target_column_timer(self):
         def reset_target_column():
             self.target_column = None
+            self._clear_drag_target()
             self.timer = None
 
         if not self._timers:
@@ -180,13 +186,146 @@ class KanbanBoard(HorizontalScroll):
         else:
             self.timer.reset()
 
+    def _clear_drag_target(self) -> None:
+        if self.drag_target_card:
+            self.drag_target_card.remove_class("drop-before", "drop-after")
+        self.drag_target_card = None
+        self.drag_target_before = None
+        self.drag_target_position = None
+        self.drag_target_column = None
+
+    def _set_drag_target(
+        self, target_card: TaskCard, before: bool, position: int, column_id: int
+    ) -> None:
+        if (
+            self.drag_target_card is target_card
+            and self.drag_target_before == before
+            and self.drag_target_column == column_id
+        ):
+            self.drag_target_position = position
+            return
+
+        if self.drag_target_card:
+            self.drag_target_card.remove_class("drop-before", "drop-after")
+
+        self.drag_target_card = target_card
+        self.drag_target_before = before
+        self.drag_target_position = position
+        self.drag_target_column = column_id
+
+        target_card.remove_class("drop-before", "drop-after")
+        if before:
+            target_card.add_class("drop-before")
+        else:
+            target_card.add_class("drop-after")
+
+    def _update_drag_reorder_target(
+        self, column: Column, event: MouseMove, column_id: int, is_cross_column: bool
+    ) -> None:
+        if self.app.config.backend.mode != Backends.SQLITE:
+            self._clear_drag_target()
+            return
+
+        if self.selected_task is None:
+            self._clear_drag_target()
+            return
+
+        moving_card = self.query_one_optional(
+            f"#taskcard_{self.selected_task.task_id}", TaskCard
+        )
+        if moving_card is None:
+            self._clear_drag_target()
+            return
+
+        cards = list(column.query(TaskCard))
+        other_cards = [card for card in cards if card is not moving_card]
+        if not other_cards:
+            if is_cross_column:
+                if self.drag_target_card:
+                    self.drag_target_card.remove_class("drop-before", "drop-after")
+                self.drag_target_card = None
+                self.drag_target_before = None
+                self.drag_target_position = 0
+                self.drag_target_column = column_id
+            else:
+                self._clear_drag_target()
+            return
+
+        y = event.screen_offset.y
+        insert_index = len(other_cards)
+        target_card = None
+        before = False
+        for idx, card in enumerate(other_cards):
+            midpoint = card.region.y + (card.region.height / 2)
+            if y < midpoint:
+                insert_index = idx
+                target_card = card
+                before = True
+                break
+
+        if target_card is None:
+            target_card = other_cards[-1]
+            before = False
+
+        self._set_drag_target(
+            target_card=target_card,
+            before=before,
+            position=insert_index,
+            column_id=column_id,
+        )
+
+    def _move_task_within_column(self, target_position: int) -> None:
+        if self.app.config.backend.mode != Backends.SQLITE:
+            return
+
+        if self.selected_task is None:
+            return
+
+        column = self.query_one(f"#column_{self.selected_task.column}", Column)
+        moving_card = self.query_one(
+            f"#taskcard_{self.selected_task.task_id}", TaskCard
+        )
+        task_cards = list(column.query(TaskCard))
+        if len(task_cards) <= 1:
+            return
+
+        current_position = moving_card.row
+        if target_position == current_position:
+            return
+
+        moved_task = self.app.backend.move_task_position(
+            task_id=self.selected_task.task_id, target_position=target_position
+        )
+        if moved_task is None:
+            return
+        self.selected_task = moved_task
+        self.app.update_task_list()
+
+        other_cards = [card for card in task_cards if card is not moving_card]
+        scroll = column.query_one(VerticalScroll)
+        if not other_cards:
+            return
+
+        if target_position <= 0:
+            scroll.move_child(moving_card, before=other_cards[0])
+        elif target_position >= len(other_cards):
+            scroll.move_child(moving_card, after=other_cards[-1])
+        else:
+            scroll.move_child(moving_card, before=other_cards[target_position])
+
+        for idx, card in enumerate(column.query(TaskCard)):
+            card.row = idx
+            card.task_.position = idx
+
+        moving_card.focus()
+
     def watch_target_column(self, old_column: int, new_column: int):
         if old_column is not None:
             self.query_one(f"#column_{old_column}", Column).remove_class("highlighted")
 
         if new_column is not None:
             self.query_one(f"#column_{new_column}", Column).add_class("highlighted")
-        else:
+        elif hasattr(self, "timer") and self.timer is not None:
             self.timer.reset()
 
     @on(TaskCard.Moved)
@@ -225,7 +364,19 @@ class KanbanBoard(HorizontalScroll):
         # so there is nothing to revert on failure.
         original_column = self.selected_task.column
         self.selected_task.column = target_column
-        result = self.app.backend.update_task_status(new_task=self.selected_task)
+        target_position = (
+            self.drag_target_position
+            if event is None and self.mouse_down and self.target_column is not None
+            else None
+        )
+        if self.app.config.backend.mode == Backends.SQLITE:
+            result = self.app.backend.update_task_status(
+                new_task=self.selected_task,
+                target_position=target_position,
+            )
+        else:
+            result = self.app.backend.update_task_status(new_task=self.selected_task)
+        updated_position = result.position if isinstance(result, Task) else None
         self.selected_task.column = original_column
 
         # Check if the update was successful (for backends that return status like Jira)
@@ -256,9 +407,12 @@ class KanbanBoard(HorizontalScroll):
         )
 
         self.selected_task.column = target_column
+        if updated_position is not None:
+            self.selected_task.position = updated_position
 
         await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
-            self.selected_task
+            self.selected_task,
+            target_position=updated_position,
         )
 
         self.app.update_task_list()
@@ -300,29 +454,55 @@ class KanbanBoard(HorizontalScroll):
         for taskcard in self.query(TaskCard):
             if taskcard.region.contains_point(event.screen_offset):
                 self.mouse_down = True
+                self.selected_task = taskcard.task_
+                taskcard.focus()
+                self._clear_drag_target()
+                break
 
     @on(MouseUp)
     async def drop_task(self, event: MouseUp):
-        if all((self.mouse_down, (self.target_column is not None))):
+        if not self.mouse_down:
+            return
+
+        if self.target_column is not None:
             await self.action_confirm_move()
+        elif self.drag_target_position is not None:
+            self._move_task_within_column(self.drag_target_position)
+
+        self._clear_drag_target()
         self.mouse_down = False
 
     @on(MouseMove)
     def move_task(self, event: MouseMove):
         if not self.mouse_down:
             return
+        if self.selected_task is None:
+            return
         for column in self.query(Column):
             if column.region.contains_point(event.screen_offset):
-                is_same_column = self.selected_task.column == int(
-                    column.id.split("_")[-1]
-                )
+                column_id = int(column.id.split("_")[-1])
+                is_same_column = self.selected_task.column == column_id
                 if is_same_column:
                     self.target_column = None
                     if self._timers:
                         self.timer.reset()
+                    self._update_drag_reorder_target(
+                        column=column,
+                        event=event,
+                        column_id=column_id,
+                        is_cross_column=False,
+                    )
                 else:
-                    self.target_column = int(column.id.split("_")[-1])
+                    self.target_column = column_id
                     self.start_target_column_timer()
+                    self._update_drag_reorder_target(
+                        column=column,
+                        event=event,
+                        column_id=column_id,
+                        is_cross_column=True,
+                    )
+                return
+        self._clear_drag_target()
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks

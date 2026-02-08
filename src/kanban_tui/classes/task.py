@@ -8,6 +8,7 @@ class Task(BaseModel):
     task_id: int
     title: str
     column: int
+    position: int = 0
     creation_date: datetime
     start_date: datetime | None = None
     finish_date: datetime | None = None

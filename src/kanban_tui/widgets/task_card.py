@@ -12,7 +12,7 @@ from textual.reactive import reactive
 from textual.binding import Binding
 from textual.events import Click
 from textual.app import ComposeResult
-from textual.containers import Vertical
+from textual.containers import Vertical, VerticalScroll
 from textual.widgets import Label, Markdown
 from textual.message import Message
 
@@ -32,6 +32,13 @@ class TaskCard(Vertical):
     BINDINGS = [
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
         Binding(
+            "K",
+            "move_task_position('up')",
+            description="Move Up",
+            show=True,
+            key_display="K",
+        ),
+        Binding(
             "e,enter",
             "edit_task",
             description="Edit",
@@ -46,6 +53,13 @@ class TaskCard(Vertical):
             description="👉",
             show=True,
             key_display="L",
+        ),
+        Binding(
+            "J",
+            "move_task_position('down')",
+            description="Move Down",
+            show=True,
+            key_display="J",
         ),
     ]
 
@@ -140,6 +154,10 @@ class TaskCard(Vertical):
             if action not in ("edit_task", "move_task", "show_blocking_tasks"):
                 return False
 
+        if action == "move_task_position":
+            if self.app.config.backend.mode != Backends.SQLITE:
+                return False
+
         if action == "edit_task":
             from kanban_tui.widgets.board_widgets import KanbanBoard
 
@@ -157,6 +175,41 @@ class TaskCard(Vertical):
                 if column_id_list[-1] == self.task_.column:
                     return self.app.config.task.movement_mode == MovementModes.JUMP
         return True
+
+    def action_move_task_position(self, direction: Literal["up", "down"]):
+        if self.app.config.backend.mode != Backends.SQLITE:
+            return
+
+        from kanban_tui.widgets.task_column import Column
+
+        column = self.screen.query_one(f"#column_{self.task_.column}", Column)
+        task_cards = list(column.query(TaskCard))
+        current_index = self.row
+        target_index = current_index - 1 if direction == "up" else current_index + 1
+
+        if target_index < 0 or target_index >= len(task_cards):
+            return
+
+        moved_task = self.app.backend.move_task_position(
+            task_id=self.task_.task_id, target_position=target_index
+        )
+        if moved_task is None:
+            return
+        self.task_ = moved_task
+        self.app.update_task_list()
+
+        target_card = task_cards[target_index]
+        scroll = column.query_one(VerticalScroll)
+        if direction == "up":
+            scroll.move_child(self, before=target_card)
+        else:
+            scroll.move_child(self, after=target_card)
+
+        for idx, card in enumerate(column.query(TaskCard)):
+            card.row = idx
+            card.task_.position = idx
+
+        self.focus()
 
     def action_move_task(self, direction: Literal["left", "right"]):
         if self.app.config.task.movement_mode == MovementModes.JUMP:

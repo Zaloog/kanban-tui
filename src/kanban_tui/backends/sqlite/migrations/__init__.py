@@ -2,7 +2,7 @@ from sqlite3 import Connection
 
 from importlib.resources import files
 
-CURRENT_SCHEMA_VERSION = 3
+CURRENT_SCHEMA_VERSION = 4
 
 
 def read_migration_file(migration_file_name: str) -> str:
@@ -31,6 +31,17 @@ def apply_migration_v2_to_v3(con: Connection):
     - Column Addition: metadata column added to tasks table
     """
     sql = read_migration_file("migration_v0_14_0.sql")
+
+    con.executescript(sql)
+
+
+def apply_migration_v3_to_v4(con: Connection):
+    """Migrates to v4 in version v0.19.0
+    Changes:
+    - Column Addition: position column added to tasks table
+    - Backfill: task positions per column
+    """
+    sql = read_migration_file("migration_v0_19_0.sql")
 
     con.executescript(sql)
 
