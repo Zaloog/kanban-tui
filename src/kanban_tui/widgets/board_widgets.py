@@ -39,7 +39,6 @@ class KanbanBoard(HorizontalScroll):
     drag_target_column: int | None = None
     drag_target_card: TaskCard | None = None
     drag_target_before: bool | None = None
-    drag_target_empty_column: Column | None = None
 
     async def on_mount(self):
         await self.populate_board()
@@ -190,13 +189,10 @@ class KanbanBoard(HorizontalScroll):
     def _clear_drag_target(self) -> None:
         if self.drag_target_card:
             self.drag_target_card.remove_class("drop-before", "drop-after")
-        if self.drag_target_empty_column:
-            self.drag_target_empty_column.remove_class("drop-empty")
         self.drag_target_card = None
         self.drag_target_before = None
         self.drag_target_position = None
         self.drag_target_column = None
-        self.drag_target_empty_column = None
 
     def _set_drag_target(
         self, target_card: TaskCard, before: bool, position: int, column_id: int
@@ -211,9 +207,6 @@ class KanbanBoard(HorizontalScroll):
 
         if self.drag_target_card:
             self.drag_target_card.remove_class("drop-before", "drop-after")
-        if self.drag_target_empty_column:
-            self.drag_target_empty_column.remove_class("drop-empty")
-            self.drag_target_empty_column = None
 
         self.drag_target_card = target_card
         self.drag_target_before = before
@@ -225,19 +218,6 @@ class KanbanBoard(HorizontalScroll):
             target_card.add_class("drop-before")
         else:
             target_card.add_class("drop-after")
-
-    def _set_empty_column_drag_target(self, column: Column, column_id: int) -> None:
-        if self.drag_target_card:
-            self.drag_target_card.remove_class("drop-before", "drop-after")
-        if self.drag_target_empty_column and self.drag_target_empty_column is not column:
-            self.drag_target_empty_column.remove_class("drop-empty")
-
-        self.drag_target_card = None
-        self.drag_target_before = None
-        self.drag_target_position = 0
-        self.drag_target_column = column_id
-        self.drag_target_empty_column = column
-        column.add_class("drop-empty")
 
     def _update_drag_reorder_target(
         self, column: Column, event: MouseMove, column_id: int, is_cross_column: bool
@@ -261,7 +241,12 @@ class KanbanBoard(HorizontalScroll):
         other_cards = [card for card in cards if card is not moving_card]
         if not other_cards:
             if is_cross_column:
-                self._set_empty_column_drag_target(column=column, column_id=column_id)
+                if self.drag_target_card:
+                    self.drag_target_card.remove_class("drop-before", "drop-after")
+                self.drag_target_card = None
+                self.drag_target_before = None
+                self.drag_target_position = 0
+                self.drag_target_column = column_id
             else:
                 self._clear_drag_target()
             return
