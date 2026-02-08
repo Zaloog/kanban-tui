@@ -50,19 +50,18 @@ class Column(Vertical):
 
     async def place_task(self, task: Task, target_position: int | None = None) -> None:
         scroll = self.query_one(VerticalScroll)
-        current_cards = list(self.query(TaskCard))
-
-        if target_position is None:
-            row = len(current_cards)
-        else:
-            row = max(0, min(target_position, len(current_cards)))
+        row = (
+            self.task_amount
+            if target_position is None
+            else max(0, min(target_position, self.task_amount))
+        )
 
         task.position = row
         card = TaskCard(task=task, row=row)
-        await scroll.mount(card)
-
-        if row < len(current_cards):
-            scroll.move_child(card, before=current_cards[row])
+        if row == self.task_amount:
+            await scroll.mount(card)
+        else:
+            await scroll.mount(card, before=row)
 
         self.task_amount += 1
 
