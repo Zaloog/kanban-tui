@@ -36,12 +36,12 @@ def apply_migration_v2_to_v3(con: Connection):
 
 
 def apply_migration_v3_to_v4(con: Connection):
-    """Migrates to v4 in version v0.15.0
+    """Migrates to v4 in version v0.19.0
     Changes:
     - Column Addition: position column added to tasks table
     - Backfill: task positions per column
     """
-    sql = read_migration_file("migration_v0_15_0.sql")
+    sql = read_migration_file("migration_v0_19_0.sql")
 
     con.executescript(sql)
 

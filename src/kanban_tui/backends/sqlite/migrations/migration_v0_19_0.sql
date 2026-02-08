@@ -1,4 +1,4 @@
--- Migration v0.15.0: Add position field to tasks table
+-- Migration v0.19.0: Add position field to tasks table
 ALTER TABLE tasks ADD COLUMN position INTEGER NOT NULL DEFAULT 0;
 
 -- Backfill positions per column (0-based order by task_id)
