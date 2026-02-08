@@ -1,9 +1,10 @@
 # Changelog
 
-## v0.19.0 (unreleased)
+## v0.19.0
 ### Added
 - Added new `escape` bindings to change back to board screen from settings/overview screen
 - Added new binding `enter` to view/edit task
+- Tasks now persist their posiiton in columns and can be reordered via keyboard or drag n drop
 
 ## v0.18.1
 ### Fixed
