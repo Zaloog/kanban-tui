@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.19.1
+### Fixed
+- Updated cryptography dependency
+
 ## v0.19.0
 ### Added
 - Added new `escape` bindings to change back to board screen from settings/overview screen
