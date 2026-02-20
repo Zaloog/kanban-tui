@@ -366,6 +366,32 @@ async def test_column_rename(test_app: KanbanTui):
         assert pilot.app.screen.query_one("#column_1").title == "New Name!"
 
 
+# Test for https://github.com/Zaloog/kanban-tui/issues/113
+async def test_column_rename_columns_in_view_bug(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+        # focus selector
+        # await pilot.press("shift+tab")
+        pilot.app.screen.query_exactly_one(ColumnSelector).focus()
+        await pilot.pause()
+        assert isinstance(test_app.focused, ColumnSelector)
+
+        # Navigate to First ColumnListItem
+        await pilot.press("j")
+        assert test_app.focused.highlighted_child.column.name == "Ready"
+
+        # Rename
+        await pilot.press("r")
+        assert isinstance(test_app.screen, ModalUpdateColumnScreen)
+
+        await pilot.press(*"New Name!")
+        await pilot.click("#btn_continue")
+        await pilot.pause()
+        assert pilot.app.focused.highlighted_child.column.name == "New Name!"
+        assert test_app.screen.query_exactly_one("#select_columns_in_view").value == 3
+
+
 async def test_setting_shortcuts(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")

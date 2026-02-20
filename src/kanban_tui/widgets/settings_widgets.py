@@ -99,7 +99,8 @@ class BoardColumnsInView(Horizontal):
     def update_config(self, event: Select.Changed):
         self.app.config.set_columns_in_view(event.select.value)
 
-    def set_initial_select_value(self):
+    @work()
+    async def set_initial_select_value(self):
         select = self.query_one(Select)
         amount_cols = len(self.app.column_list)
         if self.app.config.board.columns_in_view > amount_cols:
@@ -458,6 +459,7 @@ class ColumnSelector(ListView):
         await self.app.screen.query_one(StatusColumnSelector).recompose()
         self.app.screen.query_one(StatusColumnSelector).get_select_widget_values()
         await self.app.screen.query_one(BoardColumnsInView).recompose()
+        self.app.screen.query_one(BoardColumnsInView).set_initial_select_value()
 
     def watch_amount_visible(self):
         self.border_title = f"columns.visible  [cyan]{self.amount_visible} / {len(self.app.column_list)}[/]"
