@@ -543,7 +543,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                value=self.app.active_board.reset_column or Select.BLANK,
+                value=self.app.active_board.reset_column or Select.NULL,
                 prompt="No reset column",
                 id="select_reset",
             )
@@ -558,7 +558,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                value=self.app.active_board.start_column or Select.BLANK,
+                value=self.app.active_board.start_column or Select.NULL,
                 prompt="No start column",
                 id="select_start",
             )
@@ -571,7 +571,7 @@ class StatusColumnSelector(Vertical):
                     (Text.from_markup(column.name), column.column_id)
                     for column in self.app.column_list
                 ],
-                value=self.app.active_board.finish_column or Select.BLANK,
+                value=self.app.active_board.finish_column or Select.NULL,
                 prompt="No finish column",
                 id="select_finish",
             )

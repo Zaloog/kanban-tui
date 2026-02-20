@@ -7,7 +7,6 @@ from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
 from kanban_tui.widgets.task_card import TaskCard
 
 import json
-import os
 from pathlib import Path
 import pytest
 
@@ -18,10 +17,10 @@ APP_SIZE = (150, 50)
 
 
 @pytest.fixture
-def temp_claude_tasks_env(tmp_path: Path):
+def temp_claude_tasks_env(tmp_path: Path, monkeypatch):
     """Create a temporary Claude tasks directory with test data."""
     # Create a session directory
-    os.environ["CLAUDE_CODE_CONFIG_DIR"] = tmp_path.as_posix()
+    monkeypatch.setenv("CLAUDE_CODE_CONFIG_DIR", tmp_path.as_posix())
 
     session_id = "test-session-123"
     session_path = tmp_path / "tasks" / session_id

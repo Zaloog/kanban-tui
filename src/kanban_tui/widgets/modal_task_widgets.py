@@ -265,7 +265,7 @@ class CategorySelector(VimSelect):
         if category_id:
             self.value = category_id
         else:
-            self.value = self.BLANK
+            self.value = self.NULL
 
     def get_available_categories(self):
         options = [
@@ -402,7 +402,7 @@ class DependencySelector(VimSelect):
 
     def watch_value(self, old_value, new_value):
         """Handle task selection - add as dependency."""
-        if new_value == self.BLANK or not self.current_task_id:
+        if new_value == self.NULL or not self.current_task_id:
             return
 
         # Check for circular dependency
@@ -415,7 +415,7 @@ class DependencySelector(VimSelect):
                 severity="warning",
                 timeout=5,
             )
-            self.value = self.BLANK
+            self.value = self.NULL
             return
 
         # Add dependency
@@ -432,7 +432,7 @@ class DependencySelector(VimSelect):
             # Refresh table in parent widget
             self.parent.parent.refresh_dependencies_table()
             # Reset selector and refresh options
-            self.value = self.BLANK
+            self.value = self.NULL
             self.refresh_options()
             # Update task list and refresh all task cards
             self.app.update_task_list()

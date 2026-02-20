@@ -131,7 +131,7 @@ class ModalTaskEditScreen(ModalScreen[Task | None]):
     def update_description_background(self, category_id: int | Any):
         text_area = self.query_one(TaskDescription).editor
         text_preview = self.query_one(TaskDescription).preview
-        if category_id not in (CategorySelector.BLANK, CategorySelector.NEW):
+        if category_id not in (CategorySelector.NULL, CategorySelector.NEW):
             category = self.app.backend.get_category_by_id(category_id)
             category_color = category.color
             text_area.styles.background = category_color
@@ -149,9 +149,7 @@ class ModalTaskEditScreen(ModalScreen[Task | None]):
         if category_id := self.kanban_task.category:
             self.update_description_background(category_id=category_id)
 
-        self.query_one(Select).value = (
-            self.kanban_task.category if self.kanban_task.category else Select.BLANK
-        )
+        self.query_one(Select).value = self.kanban_task.category or Select.NULL
         self.query_one("#label_create_date", Label).update(
             f"{self.kanban_task.creation_date.isoformat(sep=' ', timespec='seconds')}"
         )
