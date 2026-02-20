@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.19.2
+### Fixed
+- Fixed use of Select.BLANK and replaced with Select.NULL,
+necessary due to change in [textual v0.8.0](https://github.com/Textualize/textual/releases/tag/v8.0.0)
+
 ## v0.19.1
 ### Fixed
 - Updated cryptography dependency
