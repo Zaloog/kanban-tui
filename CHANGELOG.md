@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.19.3
+### Fixed
+- Fix textual minimal version to be >=8.X, since we changed to Select.NULL which is only viable in the 8.X version
+
 ## v0.19.2
 ### Fixed
 - Fixed use of Select.BLANK and replaced with Select.NULL,
