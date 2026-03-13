@@ -117,7 +117,10 @@ class TaskCard(Vertical):
 
     def compose(self) -> ComposeResult:
         yield Label(self.task_.title, classes="label-title")
-        yield Label(self.get_compact_metadata_str(), classes="label-metadata")
+        self.metadata_label = Label(
+            self.get_compact_metadata_str(), classes="label-metadata"
+        )
+        yield self.metadata_label
         self.description = Markdown(
             markdown=self.task_.description,
         )
@@ -135,6 +138,7 @@ class TaskCard(Vertical):
             self.styles.background = self.app.config.task.default_color
         self.description.styles.background = self.styles.background.darken(0.2)  # type: ignore
         self.description.display = self.app.config.task.always_expanded
+        self.metadata_label.display = self.app.config.task.metadata_always_expanded
 
     def on_focus(self) -> None:
         self.expanded = True
@@ -145,9 +149,12 @@ class TaskCard(Vertical):
         self.expanded = False
 
     def watch_expanded(self):
-        # Only toggle description visibility - single batch update
+        # Toggle focus-expanded content in one place.
         is_visible = self.app.config.task.always_expanded or self.expanded
         self.description.display = is_visible
+        self.metadata_label.display = (
+            self.app.config.task.metadata_always_expanded or self.expanded
+        )
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.app.config.backend.mode == Backends.JIRA:

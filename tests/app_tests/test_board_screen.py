@@ -3,7 +3,7 @@ import sys
 import pytest
 
 from kanban_tui.app import KanbanTui
-from textual.widgets import Input, Button
+from textual.widgets import Input, Button, Label
 from kanban_tui.config import Backends, MovementModes
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
@@ -45,6 +45,36 @@ async def test_kanbanboard_task_creation(no_task_app: KanbanTui):
         assert isinstance(pilot.app.screen, BoardScreen)
 
         assert len(list(pilot.app.screen.query(TaskCard).results())) == 1
+
+
+async def test_task_metadata_visible_by_default(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        assert pilot.app.config.task.metadata_always_expanded
+        metadata = pilot.app.focused.query_one(".label-metadata", Label)
+        assert metadata.display
+        assert "no due" in metadata.content.plain
+        assert "no dependencies" in metadata.content.plain
+
+
+async def test_task_metadata_hidden_until_focus_when_disabled(test_app: KanbanTui):
+    test_app.config.task.metadata_always_expanded = False
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        task_cards = list(pilot.app.screen.query(TaskCard).results())
+        first_card = task_cards[0]
+        second_card = task_cards[1]
+
+        first_metadata = first_card.query_one(".label-metadata", Label)
+        second_metadata = second_card.query_one(".label-metadata", Label)
+
+        assert first_metadata.display
+        assert not second_metadata.display
+
+        await pilot.press("j")
+
+        assert not first_metadata.display
+        assert second_metadata.display
+        assert "no due" in second_metadata.content.plain
+        assert "no dependencies" in second_metadata.content.plain
 
 
 async def test_kanbanboard_board_view(no_task_app: KanbanTui):
