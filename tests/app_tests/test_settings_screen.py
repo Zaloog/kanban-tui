@@ -60,6 +60,25 @@ async def test_task_expand_switch(test_app: KanbanTui):
         assert pilot.app.needs_refresh
 
 
+async def test_task_metadata_expand_switch(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+
+        assert pilot.app.config.task.metadata_always_expanded
+        assert pilot.app.screen.query_exactly_one(
+            "#switch_expand_metadata", Switch
+        ).value
+        assert pilot.app.needs_refresh
+
+        await pilot.click("#switch_expand_metadata")
+        assert not pilot.app.screen.query_exactly_one(
+            "#switch_expand_metadata", Switch
+        ).value
+        assert not pilot.app.config.task.metadata_always_expanded
+        assert pilot.app.needs_refresh
+
+
 async def test_task_movement_mode(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")

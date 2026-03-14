@@ -25,6 +25,7 @@ class SettingsScreen(Screen):
         yield Jumper(
             ids_to_keys={
                 "switch_expand_tasks": "e",
+                "switch_expand_metadata": "m",
                 "select_columns_in_view": "b",
                 "task_color_preview": "g",
                 "select_movement_mode": "n",

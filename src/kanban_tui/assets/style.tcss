@@ -72,7 +72,7 @@ Column VerticalScroll {
 TaskCard {
   width: 1fr;
   height: auto;
-  min-height: 5;
+  min-height: 3;
   margin: 0 0 1 0;
   border: tall transparent;
   transition: height 200ms linear;
@@ -556,6 +556,17 @@ DataBasePathInput{
 
 }
 TaskAlwaysExpandedSwitch{
+  height:auto;
+  width:1fr;
+  Label{
+    width:1fr;
+    padding: 1 0 0 1;
+  }
+  Switch {
+      width:1fr;
+  }
+}
+TaskMetadataAlwaysExpandedSwitch{
   height:auto;
   width:1fr;
   Label{

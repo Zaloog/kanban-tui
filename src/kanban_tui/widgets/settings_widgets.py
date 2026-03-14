@@ -129,6 +129,26 @@ class TaskAlwaysExpandedSwitch(Horizontal):
         self.app.config.set_task_always_expanded(new_value=event.value)
 
 
+class TaskMetadataAlwaysExpandedSwitch(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "task.metadata_always_expanded"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Always Show Metadata")
+        metadata_switch = Switch(
+            value=self.app.config.task.metadata_always_expanded,
+            id="switch_expand_metadata",
+        )
+        metadata_switch.jump_mode = "focus"
+        yield metadata_switch
+
+    @on(Switch.Changed)
+    def update_config(self, event: Switch.Changed):
+        self.app.config.set_task_metadata_always_expanded(new_value=event.value)
+
+
 class TaskDefaultColorSelector(Horizontal):
     app: "KanbanTui"
 
@@ -639,9 +659,11 @@ class SettingsView(Vertical):
         yield DataBasePathInput(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
-            yield TaskMovementSelector(classes="setting-block")
+            yield TaskMetadataAlwaysExpandedSwitch(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
+            yield TaskMovementSelector(classes="setting-block")
             yield TaskDefaultColorSelector(classes="setting-block")
+        with Horizontal(classes="setting-horizontal"):
             yield BoardColumnsInView(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")
