@@ -34,6 +34,7 @@ class MovementModes(StrEnum):
 class BoardSettings(BaseModel):
     theme: str = Field(default="dracula")
     columns_in_view: int = Field(default=3)
+    auto_refresh_interval: int = Field(default=0)
 
 
 class TaskSettings(BaseModel):
@@ -89,6 +90,10 @@ class Settings(BaseSettings):
 
     def set_theme(self, new_theme: str) -> None:
         self.board.theme = new_theme
+        self.save()
+
+    def set_auto_refresh_interval(self, new_interval: int) -> None:
+        self.board.auto_refresh_interval = new_interval
         self.save()
 
     def set_task_always_expanded(self, new_value: bool) -> None:

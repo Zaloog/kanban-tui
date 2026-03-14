@@ -154,6 +154,35 @@ async def test_board_columns_in_view(test_app: KanbanTui):
         assert pilot.app.screen.query_one(KanbanBoard).scrollbars_enabled[1]
 
 
+async def test_board_auto_refresh_interval(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+
+        assert pilot.app.config.board.auto_refresh_interval == 0
+        assert (
+            pilot.app.screen.query_exactly_one(
+                "#select_auto_refresh_interval", Select
+            ).value
+            == 0
+        )
+        assert pilot.app.auto_refresh_timer is None
+
+        await pilot.click("#select_auto_refresh_interval")
+        await pilot.press("down")
+        await pilot.press("enter")
+
+        assert pilot.app.config.board.auto_refresh_interval == 15
+        assert (
+            pilot.app.screen.query_exactly_one(
+                "#select_auto_refresh_interval", Select
+            ).value
+            == 15
+        )
+        assert pilot.app.auto_refresh_timer is not None
+        assert pilot.app.needs_refresh
+
+
 async def test_column_selector(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("ctrl+l")

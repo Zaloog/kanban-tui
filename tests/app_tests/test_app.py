@@ -115,6 +115,50 @@ async def test_app_refresh(
         assert len(pilot.app.task_list) == 4
 
 
+async def test_app_auto_refresh_updates_board(test_app: KanbanTui):
+    test_app.config.board.auto_refresh_interval = 15
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        pilot.app.backend.delete_task(task_id=1)
+        assert len(pilot.app.task_list) == 5
+
+        pilot.app.handle_auto_refresh_tick()
+        assert len(pilot.app.task_list) == 4
+
+
+async def test_app_auto_refresh_noop_off_board(test_app: KanbanTui):
+    test_app.config.board.auto_refresh_interval = 15
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+
+        pilot.app.backend.delete_task(task_id=1)
+        pilot.app.handle_auto_refresh_tick()
+        assert len(pilot.app.task_list) == 5
+
+        await pilot.press("ctrl+j")
+        pilot.app.handle_auto_refresh_tick()
+        assert len(pilot.app.task_list) == 4
+
+
+async def test_app_auto_refresh_timer_reconfigured(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        pilot.app.config.board.auto_refresh_interval = 15
+        pilot.app.configure_auto_refresh()
+        first_timer = pilot.app.auto_refresh_timer
+
+        pilot.app.config.board.auto_refresh_interval = 30
+        pilot.app.configure_auto_refresh()
+        second_timer = pilot.app.auto_refresh_timer
+
+        assert first_timer is not None
+        assert second_timer is not None
+        assert first_timer is not second_timer
+
+        pilot.app.config.board.auto_refresh_interval = 0
+        pilot.app.configure_auto_refresh()
+        assert pilot.app.auto_refresh_timer is None
+
+
 async def test_app_auth_only(test_app: KanbanTui):
     test_app.auth_only = True
     test_app.config.backend.mode = Backends.JIRA

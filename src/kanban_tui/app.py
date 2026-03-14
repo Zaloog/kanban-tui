@@ -6,6 +6,7 @@ from textual import on, work
 from textual.app import App
 from textual.binding import Binding
 from textual.reactive import reactive
+from textual.timer import Timer
 from textual.widgets import Select
 
 from kanban_tui.modal.modal_auth_screen import ModalAuthScreen
@@ -71,6 +72,7 @@ class KanbanTui(App[str | None]):
         self.demo_mode = demo_mode
         self.auth_only = auth_only
         self.backend = self.get_backend()
+        self.auto_refresh_timer: Timer | None = None
 
     def get_backend(self):
         match self.config.backend.mode:
@@ -93,8 +95,8 @@ class KanbanTui(App[str | None]):
 
     @work()
     async def on_mount(self) -> None:
-        # self.set_interval(10, self.action_refresh)
         self.theme = self.config.board.theme
+        self.configure_auto_refresh()
 
         if self.auth_only:
             await self.show_auth_screen_only()
@@ -228,6 +230,23 @@ class KanbanTui(App[str | None]):
 
     def action_show_backend_selector(self):
         self.screen.query_one(KanbanTuiFooter).toggle_show()
+
+    def configure_auto_refresh(self) -> None:
+        if self.auto_refresh_timer is not None:
+            self.auto_refresh_timer.stop()
+            self.auto_refresh_timer = None
+
+        interval = self.config.board.auto_refresh_interval
+        if interval <= 0:
+            return
+
+        self.auto_refresh_timer = self.set_interval(
+            interval, self.handle_auto_refresh_tick
+        )
+
+    def handle_auto_refresh_tick(self) -> None:
+        if isinstance(self.screen, BoardScreen) and not self.needs_refresh:
+            self.action_refresh()
 
     def action_refresh(self):
         self.update_board_list()
