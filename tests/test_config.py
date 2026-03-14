@@ -40,6 +40,14 @@ def test_config_theme_update(test_config: Settings) -> None:
     assert updated_config.board.theme == "monokai"
 
 
+def test_config_auto_refresh_interval_update(test_config: Settings) -> None:
+    test_config.set_auto_refresh_interval(60)
+    assert test_config.board.auto_refresh_interval == 60
+
+    updated_config = Settings()
+    assert updated_config.board.auto_refresh_interval == 60
+
+
 def test_config_creation(
     test_config: Settings,
     test_config_path: str,
@@ -68,6 +76,7 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
         "board": {
             "theme": "dracula",
             "columns_in_view": 3,
+            "auto_refresh_interval": 0,
         },
         "task": {
             "always_expanded": False,

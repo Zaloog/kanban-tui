@@ -110,6 +110,37 @@ class BoardColumnsInView(Horizontal):
                 select.value = self.app.config.board.columns_in_view
 
 
+class BoardAutoRefreshSelector(Horizontal):
+    app: "KanbanTui"
+    OPTIONS = [
+        ("Off", 0),
+        ("15s", 15),
+        ("30s", 30),
+        ("1m", 60),
+        ("5m", 300),
+    ]
+
+    def on_mount(self):
+        self.border_title = "board.auto_refresh_interval"
+
+    def compose(self) -> Iterable[Widget]:
+        yield Label("Auto Refresh")
+        with self.prevent(Select.Changed):
+            auto_refresh_select = VimSelect(
+                self.OPTIONS,
+                value=self.app.config.board.auto_refresh_interval,
+                id="select_auto_refresh_interval",
+                allow_blank=False,
+            )
+            auto_refresh_select.jump_mode = "focus"
+            yield auto_refresh_select
+
+    @on(Select.Changed)
+    def update_config(self, event: Select.Changed):
+        self.app.config.set_auto_refresh_interval(event.value)
+        self.app.configure_auto_refresh()
+
+
 class TaskAlwaysExpandedSwitch(Horizontal):
     app: "KanbanTui"
 
@@ -661,10 +692,11 @@ class SettingsView(Vertical):
             yield TaskAlwaysExpandedSwitch(classes="setting-block")
             yield TaskMetadataAlwaysExpandedSwitch(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
-            yield TaskMovementSelector(classes="setting-block")
             yield TaskDefaultColorSelector(classes="setting-block")
+            yield TaskMovementSelector(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield BoardColumnsInView(classes="setting-block")
+            yield BoardAutoRefreshSelector(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield StatusColumnSelector(classes="setting-block")
             yield ColumnSelector(classes="setting-block")
