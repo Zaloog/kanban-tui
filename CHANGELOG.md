@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.20.0
+### Added
+- Added config option to hide/show task metadata label (creation_date, due_date, dependencies)
+- Added config option to auto refresh board when on BoardScreen
+
 ## v0.19.3
 ### Fixed
 - Fix textual minimal version to be >=8.X, since we changed to Select.NULL which is only viable in the 8.X version
