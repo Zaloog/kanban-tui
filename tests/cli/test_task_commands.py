@@ -509,6 +509,26 @@ def test_task_move_success(test_app):
 
     moved_task = test_app.backend.get_task_by_id(task_id=task_id)
     assert moved_task.column == target_column
+    assert moved_task.position == 0
+
+
+def test_task_move_to_finish_column_uses_append_mode(test_app):
+    runner = CliRunner()
+    task_id = 1
+    target_column = 3
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            obj=test_app,
+        )
+        assert result.exit_code == 0
+        assert result.output == f"Moved task with {task_id = } from column 1 to 3.\n"
+
+    moved_task = test_app.backend.get_task_by_id(task_id=task_id)
+    assert moved_task.column == target_column
+    assert moved_task.position == 0
 
 
 def test_task_move_fail_task_already_in_column(test_app):
@@ -585,6 +605,41 @@ def test_task_move_confirm_column_not_active_board(test_app):
             result.output
             == f"Target column is not on the active board, still continue? [y/N]: y\nMoved task with {task_id = } from column 1 to 6.\n"
         )
+
+
+def test_task_move_to_other_board_finish_column_uses_append_mode(test_app):
+    runner = CliRunner()
+    task_id = 1
+    target_column = 7
+
+    with runner.isolated_filesystem():
+        runner.invoke(
+            cli,
+            args=["board", "create", "'CLI Test'", "--icon", ":books:"],
+            obj=test_app,
+        )
+        test_app.backend.create_new_task(
+            title="Existing Done Task",
+            description="",
+            column=target_column,
+        )
+        result = runner.invoke(
+            cli,
+            args=["task", "move", f"{task_id}", f"{target_column}"],
+            input="y",
+            obj=test_app,
+        )
+
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == f"Target column is not on the active board, still continue? [y/N]: y\nMoved task with {task_id = } from column 1 to 7.\n"
+        )
+
+    moved_task = test_app.backend.get_task_by_id(task_id=task_id)
+    assert moved_task is not None
+    assert moved_task.column == target_column
+    assert moved_task.position == 0
 
 
 def test_task_move_confirm_task_not_active_board(test_app):

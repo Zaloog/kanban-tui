@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from kanban_tui.backends.jira.backend import JiraBackend
-from kanban_tui.config import Settings, init_config
+from kanban_tui.config import Settings, TaskAppendModes, init_config
 from kanban_tui.constants import AUTH_FILE
 
 
@@ -83,6 +83,7 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
             "default_color": "#004578",
             "metadata_always_expanded": True,
             "movement_mode": "adjacent",
+            "append_mode": "top",
         },
         "backend": {
             "mode": "sqlite",
@@ -103,3 +104,11 @@ def test_default_config(test_config: Settings, test_database_path: str) -> None:
         },
     }
     assert settings_dict == default_settings
+
+
+def test_config_task_append_mode_update(test_config: Settings) -> None:
+    test_config.set_task_append_mode(TaskAppendModes.BOTTOM)
+    assert test_config.task.append_mode == TaskAppendModes.BOTTOM
+
+    updated_config = Settings()
+    assert updated_config.task.append_mode == TaskAppendModes.BOTTOM

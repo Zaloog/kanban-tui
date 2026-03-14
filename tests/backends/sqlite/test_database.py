@@ -22,6 +22,7 @@ from kanban_tui.backends.sqlite.database import (
     move_task_position_db,
     update_task_status_db,
 )
+from kanban_tui.config import TaskAppendModes
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.board import Board
@@ -226,7 +227,9 @@ def test_move_task_position_db(test_database_path):
     ]
 
 
-def test_update_task_status_appends_position(test_database_path):
+def test_update_task_status_to_non_finish_column_keeps_append_behavior(
+    test_database_path,
+):
     init_new_db(database=test_database_path)
     board = create_new_board_db(
         name="Move Column Board", icon=":trackball:", database=test_database_path
@@ -252,6 +255,96 @@ def test_update_task_status_appends_position(test_database_path):
 
     tasks_a = get_task_by_column_db(column_id=column_a, database=test_database_path)
     tasks_b = get_task_by_column_db(column_id=column_b, database=test_database_path)
+
+    assert [task.task_id for task in tasks_a] == [task2.task_id]
+    assert tasks_a[0].position == 0
+    assert [task.task_id for task in tasks_b] == [task3.task_id, task1.task_id]
+
+
+def test_update_task_status_to_finish_column_inserts_at_top_by_default(
+    test_database_path,
+):
+    init_new_db(database=test_database_path)
+    board = create_new_board_db(
+        name="Move Finish Column Board",
+        icon=":trackball:",
+        database=test_database_path,
+    )
+    columns = get_all_columns_on_board_db(
+        database=test_database_path, board_id=board.board_id
+    )
+    column_a = columns[0].column_id
+    finish_column = columns[2].column_id
+
+    task1 = create_new_task_db(
+        title="Task A1", description="", column=column_a, database=test_database_path
+    )
+    task2 = create_new_task_db(
+        title="Task A2", description="", column=column_a, database=test_database_path
+    )
+    task3 = create_new_task_db(
+        title="Task B1",
+        description="",
+        column=finish_column,
+        database=test_database_path,
+    )
+
+    task1.column = finish_column
+    update_task_status_db(
+        task=task1,
+        append_mode=TaskAppendModes.TOP,
+        database=test_database_path,
+    )
+
+    tasks_a = get_task_by_column_db(column_id=column_a, database=test_database_path)
+    tasks_b = get_task_by_column_db(
+        column_id=finish_column, database=test_database_path
+    )
+
+    assert [task.task_id for task in tasks_a] == [task2.task_id]
+    assert tasks_a[0].position == 0
+    assert [task.task_id for task in tasks_b] == [task1.task_id, task3.task_id]
+
+
+def test_update_task_status_to_finish_column_appends_when_configured(
+    test_database_path,
+):
+    init_new_db(database=test_database_path)
+    board = create_new_board_db(
+        name="Move Finish Column Board Bottom",
+        icon=":trackball:",
+        database=test_database_path,
+    )
+    columns = get_all_columns_on_board_db(
+        database=test_database_path, board_id=board.board_id
+    )
+    column_a = columns[0].column_id
+    finish_column = columns[2].column_id
+
+    task1 = create_new_task_db(
+        title="Task A1", description="", column=column_a, database=test_database_path
+    )
+    task2 = create_new_task_db(
+        title="Task A2", description="", column=column_a, database=test_database_path
+    )
+    task3 = create_new_task_db(
+        title="Task B1",
+        description="",
+        column=finish_column,
+        database=test_database_path,
+    )
+
+    task1.column = finish_column
+    update_task_status_db(
+        task=task1,
+        append_mode=TaskAppendModes.BOTTOM,
+        database=test_database_path,
+    )
+
+    tasks_a = get_task_by_column_db(column_id=column_a, database=test_database_path)
+    tasks_b = get_task_by_column_db(
+        column_id=finish_column, database=test_database_path
+    )
 
     assert [task.task_id for task in tasks_a] == [task2.task_id]
     assert tasks_a[0].position == 0

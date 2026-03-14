@@ -354,7 +354,12 @@ class JiraBackend(Backend):
             "Jira backend is read-only. Delete tasks in Jira directly."
         )
 
-    def update_task_status(self, new_task: Task) -> dict[str, bool | str]:
+    def update_task_status(
+        self,
+        new_task: Task,
+        target_position: int | None = None,
+        append_mode=None,
+    ) -> dict[str, bool | str]:
         """Update Jira issue status by finding a transition whose target
         status maps to the same column the task was moved to.
 
@@ -364,6 +369,8 @@ class JiraBackend(Backend):
         Returns:
             dict with 'success' (bool) and 'message' (str) keys
         """
+        # target_position / append_mode are sqlite-specific and intentionally ignored.
+        _ = target_position, append_mode
         jira_key = new_task.metadata.get("jira_key")
         if not jira_key:
             return {

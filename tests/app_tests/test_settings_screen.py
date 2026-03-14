@@ -1,7 +1,7 @@
 import pytest
 from kanban_tui.app import KanbanTui
-from textual.widgets import Input, Select, Switch, Button
-from kanban_tui.config import Backends, MovementModes
+from textual.widgets import Input, Select, Switch, Button, Label
+from kanban_tui.config import Backends, MovementModes, TaskAppendModes
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.widgets.settings_widgets import (
@@ -12,6 +12,7 @@ from kanban_tui.widgets.settings_widgets import (
     StatusColumnSelector,
     TaskDefaultColorSelector,
     TaskMovementSelector,
+    TaskAppendModeSelector,
 )
 from kanban_tui.modal.modal_settings import ModalUpdateColumnScreen
 from kanban_tui.modal.modal_confirm_screen import ModalConfirmScreen
@@ -98,6 +99,34 @@ async def test_task_movement_mode(test_app: KanbanTui):
         assert (
             pilot.app.screen.query_exactly_one("#select_movement_mode", Select).value
             == MovementModes.JUMP
+        )
+        assert pilot.app.needs_refresh
+
+
+async def test_task_append_mode(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+
+        selector = pilot.app.screen.query_exactly_one(TaskAppendModeSelector)
+        assert selector.border_title == "task.append_mode"
+        assert selector.query_exactly_one(Label).tooltip == (
+            "Controls where tasks are inserted when moved across columns."
+        )
+
+        assert pilot.app.config.task.append_mode == TaskAppendModes.TOP
+        assert (
+            pilot.app.screen.query_exactly_one("#select_append_mode", Select).value
+            == TaskAppendModes.TOP
+        )
+
+        await pilot.click("#select_append_mode")
+        await pilot.press("down")
+        await pilot.press("enter")
+        assert pilot.app.config.task.append_mode == TaskAppendModes.BOTTOM
+        assert (
+            pilot.app.screen.query_exactly_one("#select_append_mode", Select).value
+            == TaskAppendModes.BOTTOM
         )
         assert pilot.app.needs_refresh
 
@@ -467,6 +496,13 @@ async def test_setting_shortcuts(test_app: KanbanTui):
         await pilot.press("n")
         await pilot.pause()
         assert pilot.app.screen.query_exactly_one(TaskMovementSelector).has_focus_within
+
+        await pilot.press("ctrl+o")
+        await pilot.press("p")
+        await pilot.pause()
+        assert pilot.app.screen.query_exactly_one(
+            TaskAppendModeSelector
+        ).has_focus_within
 
         await pilot.press("ctrl+o")
         await pilot.press("g")

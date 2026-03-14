@@ -369,13 +369,11 @@ class KanbanBoard(HorizontalScroll):
             if event is None and self.mouse_down and self.target_column is not None
             else None
         )
-        if self.app.config.backend.mode == Backends.SQLITE:
-            result = self.app.backend.update_task_status(
-                new_task=self.selected_task,
-                target_position=target_position,
-            )
-        else:
-            result = self.app.backend.update_task_status(new_task=self.selected_task)
+        result = self.app.backend.update_task_status(
+            new_task=self.selected_task,
+            target_position=target_position,
+            append_mode=self.app.config.task.append_mode,
+        )
         updated_position = result.position if isinstance(result, Task) else None
         self.selected_task.column = original_column
 

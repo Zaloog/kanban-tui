@@ -214,17 +214,17 @@ async def test_kanbanboard_card_movement_adjacent(test_app: KanbanTui):
         await pilot.press("L")
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 2
-        assert pilot.app.focused.row == 1
+        assert pilot.app.focused.row == 0
 
         await pilot.press("h")
-        assert pilot.app.focused.task_.title == "Task_ready_2"
+        assert pilot.app.focused.task_.title == "Task_ready_1"
         assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 1
+        assert pilot.app.focused.row == 0
 
         await pilot.press("L")
-        assert pilot.app.focused.task_.title == "Task_ready_2"
+        assert pilot.app.focused.task_.title == "Task_ready_1"
         assert pilot.app.focused.task_.column == 2
-        assert pilot.app.focused.row == 2
+        assert pilot.app.focused.row == 0
 
 
 async def test_kanbanboard_card_movement_jump(test_app: KanbanTui):
@@ -250,7 +250,7 @@ async def test_kanbanboard_card_movement_jump(test_app: KanbanTui):
 
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 3
-        assert pilot.app.focused.row == 1
+        assert pilot.app.focused.row == 0
 
 
 async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
