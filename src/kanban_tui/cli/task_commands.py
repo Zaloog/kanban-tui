@@ -407,7 +407,10 @@ def move_task(app: KanbanTui, task_id: int, target_column: int):
             },
         )
         task.column = target_column
-        moved_task = app.backend.update_task_status(new_task=task)
+        moved_task = app.backend.update_task_status(
+            new_task=task,
+            append_mode=app.config.task.append_mode,
+        )
         print_to_console(
             f"Moved task with {task_id = } from column {old_column.column_id} to {moved_task.column}."
         )

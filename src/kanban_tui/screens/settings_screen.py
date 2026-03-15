@@ -30,6 +30,7 @@ class SettingsScreen(Screen):
                 "select_auto_refresh_interval": "a",
                 "task_color_preview": "g",
                 "select_movement_mode": "n",
+                "select_append_mode": "p",
                 "select_reset": "s",
                 "column_list": "c",
             }

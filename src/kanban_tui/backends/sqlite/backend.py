@@ -7,7 +7,7 @@ from kanban_tui.classes.category import Category
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.task import Task
 from kanban_tui.classes.logevent import LogEvent
-from kanban_tui.config import SqliteBackendSettings
+from kanban_tui.config import SqliteBackendSettings, TaskAppendModes
 from kanban_tui.backends.sqlite.database import (
     create_new_board_db,
     create_new_category_db,
@@ -122,11 +122,15 @@ class SqliteBackend(Backend):
         )
 
     def update_task_status(
-        self, new_task: Task, target_position: int | None = None
+        self,
+        new_task: Task,
+        target_position: int | None = None,
+        append_mode: TaskAppendModes | None = None,
     ) -> Task:
         return update_task_status_db(
             task=new_task,
             target_position=target_position,
+            append_mode=append_mode,
             database=self.database_path,
         )
 

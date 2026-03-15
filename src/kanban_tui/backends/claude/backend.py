@@ -250,7 +250,14 @@ class ClaudeBackend(Backend):
         json_string = json.dumps(json_dict)
         target_path.write_text(json_string, encoding="utf-8")
 
-    def update_task_status(self, new_task: Task):
+    def update_task_status(
+        self,
+        new_task: Task,
+        target_position: int | None = None,
+        append_mode=None,
+    ):
+        # target_position / append_mode are sqlite-specific and intentionally ignored.
+        _ = target_position, append_mode
         task_path = self.get_task_file_path(new_task.task_id)
         new_json_dict = self.update_task_status_json(task_path, new_task.column)
         self.save_json(task_path, new_json_dict)

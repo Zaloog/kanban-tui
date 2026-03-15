@@ -11,6 +11,7 @@ from kanban_tui.classes.task import Task
 from kanban_tui.classes.board import Board
 from kanban_tui.classes.column import Column
 from kanban_tui.classes.logevent import LogEvent
+from kanban_tui.config import TaskAppendModes
 from kanban_tui.backends.sqlite.migrations import (
     CURRENT_SCHEMA_VERSION,
     apply_migration_v1_to_v2,
@@ -1242,6 +1243,7 @@ def get_column_by_id_db(
 def update_task_status_db(
     task: Task,
     target_position: int | None = None,
+    append_mode: TaskAppendModes | None = None,
     database: str = DATABASE_FILE.as_posix(),
 ) -> Task:
     update_task_dict = {
@@ -1309,7 +1311,14 @@ def update_task_status_db(
                     max_position_str, {"column": new_column}
                 ).fetchone()[0]
                 if target_position is None:
-                    new_position = max_new_position
+                    if append_mode == TaskAppendModes.TOP:
+                        new_position = 0
+                        con.execute(
+                            open_gap_str,
+                            {"column": new_column, "target_position": new_position},
+                        )
+                    else:
+                        new_position = max_new_position
                 else:
                     new_position = max(0, min(target_position, max_new_position))
                     con.execute(

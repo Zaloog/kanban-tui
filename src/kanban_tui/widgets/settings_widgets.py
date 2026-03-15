@@ -24,7 +24,7 @@ from textual.widgets import (
 from textual.containers import Horizontal, Vertical, VerticalGroup
 from rich.text import Text
 
-from kanban_tui.config import MovementModes
+from kanban_tui.config import MovementModes, TaskAppendModes
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.widgets.custom_widgets import IconButton
 from kanban_tui.modal.modal_category_screen import IsValidColor
@@ -75,6 +75,32 @@ class TaskMovementSelector(Horizontal):
     @on(Select.Changed)
     def update_config(self, event: Select.Changed):
         self.app.config.set_task_movement_mode(new_mode=event.value)
+
+
+class TaskAppendModeSelector(Horizontal):
+    app: "KanbanTui"
+
+    def on_mount(self):
+        self.border_title = "task.append_mode"
+
+    def compose(self) -> Iterable[Widget]:
+        label = Label("Task append_mode")
+        label.tooltip = "Controls where tasks are inserted when moved across columns."
+        yield label
+        with self.prevent(Select.Changed):
+            append_select = VimSelect.from_values(
+                TaskAppendModes,
+                value=self.app.config.task.append_mode,
+                id="select_append_mode",
+                allow_blank=False,
+            )
+            append_select.tooltip = "Used for all task moves between columns."
+            append_select.jump_mode = "focus"
+            yield append_select
+
+    @on(Select.Changed)
+    def update_config(self, event: Select.Changed):
+        self.app.config.set_task_append_mode(new_mode=event.value)
 
 
 class BoardColumnsInView(Horizontal):
@@ -694,6 +720,7 @@ class SettingsView(Vertical):
         with Horizontal(classes="setting-horizontal"):
             yield TaskDefaultColorSelector(classes="setting-block")
             yield TaskMovementSelector(classes="setting-block")
+            yield TaskAppendModeSelector(classes="setting-block")
         with Horizontal(classes="setting-horizontal"):
             yield BoardColumnsInView(classes="setting-block")
             yield BoardAutoRefreshSelector(classes="setting-block")

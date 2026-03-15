@@ -31,6 +31,11 @@ class MovementModes(StrEnum):
     JUMP = "jump"
 
 
+class TaskAppendModes(StrEnum):
+    TOP = "top"
+    BOTTOM = "bottom"
+
+
 class BoardSettings(BaseModel):
     theme: str = Field(default="dracula")
     columns_in_view: int = Field(default=3)
@@ -42,6 +47,7 @@ class TaskSettings(BaseModel):
     always_expanded: bool = Field(default=False)
     metadata_always_expanded: bool = Field(default=True)
     movement_mode: MovementModes = Field(default=MovementModes("adjacent"))
+    append_mode: TaskAppendModes = Field(default=TaskAppendModes("top"))
 
 
 class JqlEntry(BaseModel):
@@ -110,6 +116,10 @@ class Settings(BaseSettings):
 
     def set_task_movement_mode(self, new_mode: MovementModes) -> None:
         self.task.movement_mode = new_mode
+        self.save()
+
+    def set_task_append_mode(self, new_mode: TaskAppendModes) -> None:
+        self.task.append_mode = new_mode
         self.save()
 
     def set_backend(self, new_backend: Backends) -> None:
