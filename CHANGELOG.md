@@ -2,8 +2,9 @@
 
 ## v0.20.0
 ### Added
-- Added config option to hide/show task metadata label (creation_date, due_date, dependencies)
-- Added config option to auto refresh board when on BoardScreen
+- Added config option `task.metadata_always_expanded` to hide/show task metadata labels (creation_date, due_date, dependencies)
+- Added config option `board.auto_refresh_interval` to auto refresh board when on BoardScreen
+- Added config option `task.append_mode` to change if tasks should be put on top or bottom when moving to new column
 
 ## v0.19.3
 ### Fixed
