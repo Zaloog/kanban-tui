@@ -101,42 +101,63 @@ class Column(Vertical):
         existing_ids = [task_card.task_.task_id for task_card in existing_cards]
         desired_ids = [task.task_id for task in task_list]
 
+        # Refresh strategy:
+        # - same ids: update cards in place
+        # - delete-only: remove missing cards and keep survivors
+        # - append-only: mount only new cards
+        # - otherwise: bulk replace
         if desired_ids == existing_ids:
-            self._update_existing_cards(existing_cards, task_list)
+            self._sync_same_ids(existing_cards, task_list)
             return
 
         if self._is_subsequence(desired_ids, existing_ids):
-            desired_id_set = set(desired_ids)
-            for task_card in existing_cards:
-                if task_card.task_.task_id not in desired_id_set:
-                    await task_card.remove()
-
-            task_cards_by_id = {
-                task_card.task_.task_id: task_card
-                for task_card in self.get_rendered_cards()
-            }
-            ordered_cards = [task_cards_by_id[task.task_id] for task in task_list]
-            self._update_existing_cards(ordered_cards, task_list)
+            await self._sync_delete_only(existing_cards, task_list)
             return
 
         if existing_ids == desired_ids[: len(existing_ids)]:
-            scroll = self.query_one(VerticalScroll)
-            new_cards: list[TaskCard] = []
-            for row_position, task in enumerate(
-                task_list[len(existing_ids) :], start=len(existing_ids)
-            ):
-                task.position = row_position
-                new_cards.append(TaskCard(task=task, row=row_position))
-
-            if new_cards:
-                await scroll.mount(*new_cards)
-
-            self._update_existing_cards(existing_cards + new_cards, task_list)
+            await self._sync_append_only(existing_cards, task_list)
             return
 
+        await self._sync_with_replace(task_list)
+
+    def _sync_same_ids(self, task_cards: list[TaskCard], task_list: list[Task]) -> None:
+        self._refresh_existing_cards_in_place(task_cards, task_list)
+
+    async def _sync_delete_only(
+        self, existing_cards: list[TaskCard], task_list: list[Task]
+    ) -> None:
+        desired_id_set = {task.task_id for task in task_list}
+        for task_card in existing_cards:
+            if task_card.task_.task_id not in desired_id_set:
+                await task_card.remove()
+
+        task_cards_by_id = {
+            task_card.task_.task_id: task_card
+            for task_card in self.get_rendered_cards()
+        }
+        ordered_cards = [task_cards_by_id[task.task_id] for task in task_list]
+        self._refresh_existing_cards_in_place(ordered_cards, task_list)
+
+    async def _sync_append_only(
+        self, existing_cards: list[TaskCard], task_list: list[Task]
+    ) -> None:
+        scroll = self.query_one(VerticalScroll)
+        new_cards: list[TaskCard] = []
+        for row_position, task in enumerate(
+            task_list[len(existing_cards) :], start=len(existing_cards)
+        ):
+            task.position = row_position
+            new_cards.append(TaskCard(task=task, row=row_position))
+
+        if new_cards:
+            await scroll.mount(*new_cards)
+
+        self._refresh_existing_cards_in_place(existing_cards + new_cards, task_list)
+
+    async def _sync_with_replace(self, task_list: list[Task]) -> None:
         await self.replace_tasks(task_list)
 
-    def _update_existing_cards(
+    def _refresh_existing_cards_in_place(
         self, task_cards: list[TaskCard], task_list: list[Task]
     ) -> None:
         for row_position, (task_card, task) in enumerate(zip(task_cards, task_list)):

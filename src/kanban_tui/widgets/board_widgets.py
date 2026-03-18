@@ -90,15 +90,12 @@ class KanbanBoard(HorizontalScroll):
             tasks_by_column[task.column].append(task)
 
         for column_model, column_widget in zip(visible_columns, mounted_columns):
-            column_widget.set_title(column_model.name)
-            column_widget.sync_width()
             desired_tasks = tasks_by_column.get(column_model.column_id, [])
-            if self._column_has_same_task_ids(column_widget, desired_tasks):
-                self._sync_existing_cards(column_widget, desired_tasks)
-            elif not self._column_matches_tasks(column_widget, desired_tasks):
-                await column_widget.sync_tasks(desired_tasks)
-            else:
-                column_widget.task_list = desired_tasks
+            await self._refresh_column_widget(
+                column_model.name,
+                column_widget,
+                desired_tasks,
+            )
 
         if focused_task_id is not None:
             focused_card = self.query_one_optional(
@@ -128,7 +125,25 @@ class KanbanBoard(HorizontalScroll):
             for card, task in zip(rendered_cards, desired_tasks)
         )
 
-    def _sync_existing_cards(self, column: Column, desired_tasks: list[Task]) -> None:
+    async def _refresh_column_widget(
+        self, title: str, column: Column, desired_tasks: list[Task]
+    ) -> None:
+        column.set_title(title)
+        column.sync_width()
+
+        if self._column_has_same_task_ids(column, desired_tasks):
+            self._refresh_existing_cards_in_place(column, desired_tasks)
+            return
+
+        if self._column_render_matches_tasks(column, desired_tasks):
+            column.task_list = desired_tasks
+            return
+
+        await column.sync_tasks(desired_tasks)
+
+    def _refresh_existing_cards_in_place(
+        self, column: Column, desired_tasks: list[Task]
+    ) -> None:
         rendered_cards = column.get_rendered_cards()
         for row_position, (card, task) in enumerate(zip(rendered_cards, desired_tasks)):
             card.row = row_position
@@ -142,7 +157,9 @@ class KanbanBoard(HorizontalScroll):
         column.task_list = desired_tasks
         column.task_amount = len(desired_tasks)
 
-    def _column_matches_tasks(self, column: Column, desired_tasks: list[Task]) -> bool:
+    def _column_render_matches_tasks(
+        self, column: Column, desired_tasks: list[Task]
+    ) -> bool:
         rendered_cards = column.get_rendered_cards()
         if len(rendered_cards) != len(desired_tasks):
             return False

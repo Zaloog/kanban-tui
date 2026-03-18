@@ -396,6 +396,72 @@ async def test_sync_tasks_removes_deleted_card_without_rebuilding_column(
         assert rendered_cards[3] is surviving_card
 
 
+async def test_sync_tasks_appends_new_cards_without_rebuilding_existing_prefix(
+    no_task_app: KanbanTui,
+):
+    for idx in range(6):
+        no_task_app.backend.create_new_task(
+            title=f"Task_done_{idx}",
+            description="Hallo",
+            column=3,
+        )
+
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
+        done_column = pilot.app.screen.query_one("#column_3", Column)
+        original_cards = list(done_column.query(TaskCard).results())
+
+        for idx in range(6, 8):
+            pilot.app.backend.create_new_task(
+                title=f"Task_done_{idx}",
+                description="Hallo",
+                column=3,
+            )
+
+        pilot.app.update_task_list()
+        updated_tasks = [task for task in pilot.app.task_list if task.column == 3]
+
+        await done_column.sync_tasks(updated_tasks)
+
+        rendered_cards = list(done_column.query(TaskCard).results())
+
+        assert len(rendered_cards) == 8
+        assert rendered_cards[:6] == original_cards
+        assert rendered_cards[6].task_.title == "Task_done_6"
+        assert rendered_cards[7].task_.title == "Task_done_7"
+        assert rendered_cards[6].row == 6
+        assert rendered_cards[7].row == 7
+
+
+async def test_sync_tasks_updates_same_ids_in_place(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        done_column = pilot.app.screen.query_one("#column_3", Column)
+        original_card = done_column.query_one(TaskCard)
+        original_task_id = original_card.task_.task_id
+
+        pilot.app.backend.update_task_entry(
+            task_id=original_task_id,
+            title="Task_done_updated",
+            description="Updated description",
+            category=1,
+            due_date=None,
+        )
+
+        pilot.app.update_task_list()
+        updated_tasks = [task for task in pilot.app.task_list if task.column == 3]
+
+        await done_column.sync_tasks(updated_tasks)
+        await pilot.pause()
+
+        refreshed_card = done_column.query_one(TaskCard)
+
+        assert refreshed_card is original_card
+        assert refreshed_card.task_.task_id == original_task_id
+        assert refreshed_card.task_.title == "Task_done_updated"
+        assert refreshed_card.query_one(".label-title", Label).content == (
+            "Task_done_updated"
+        )
+
+
 async def test_refresh_keeps_focus_on_same_task(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("j")
