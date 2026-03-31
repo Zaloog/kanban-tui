@@ -51,6 +51,7 @@ class KanbanTui(App[str | None]):
     SUB_TITLE = f"v{version('kanban_tui')}"
 
     needs_refresh: reactive[bool] = reactive(False, init=False)
+    task_card_render_dirty: reactive[bool] = reactive(False, init=False)
     task_list: reactive[list[Task]] = reactive([], init=False)
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
@@ -256,6 +257,9 @@ class KanbanTui(App[str | None]):
         # used a worker here, so no await
         self.needs_refresh = True
         self.get_screen("board", BoardScreen).load_kanban_board()
+
+    def mark_task_card_render_dirty(self) -> None:
+        self.task_card_render_dirty = True
 
     def update_task_list(self):
         self.task_list = self.backend.get_tasks_on_active_board()

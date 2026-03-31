@@ -63,12 +63,14 @@ class KanbanBoard(HorizontalScroll):
                         id_num=column.column_id,
                     )
                 )
+        self.app.task_card_render_dirty = False
         self.get_first_card()
 
     async def refresh_columns(self) -> None:
         visible_columns = [column for column in self.app.column_list if column.visible]
         mounted_columns = list(self.query(Column))
         focused_task_id = self.selected_task.task_id if self.selected_task else None
+        force_card_recompose = self.app.task_card_render_dirty
 
         mounted_column_ids = [
             int(column.id.split("_")[-1]) for column in mounted_columns
@@ -95,7 +97,10 @@ class KanbanBoard(HorizontalScroll):
                 column_model.name,
                 column_widget,
                 desired_tasks,
+                force_card_recompose=force_card_recompose,
             )
+
+        self.app.task_card_render_dirty = False
 
         if focused_task_id is not None:
             focused_card = self.query_one_optional(
@@ -126,29 +131,38 @@ class KanbanBoard(HorizontalScroll):
         )
 
     async def _refresh_column_widget(
-        self, title: str, column: Column, desired_tasks: list[Task]
+        self,
+        title: str,
+        column: Column,
+        desired_tasks: list[Task],
+        force_card_recompose: bool = False,
     ) -> None:
         column.set_title(title)
         column.sync_width()
 
         if self._column_has_same_task_ids(column, desired_tasks):
-            self._refresh_existing_cards_in_place(column, desired_tasks)
+            self._refresh_existing_cards_in_place(
+                column, desired_tasks, force_recompose=force_card_recompose
+            )
             return
 
         if self._column_render_matches_tasks(column, desired_tasks):
             column.task_list = desired_tasks
             return
 
-        await column.sync_tasks(desired_tasks)
+        await column.sync_tasks(desired_tasks, force_recompose=force_card_recompose)
 
     def _refresh_existing_cards_in_place(
-        self, column: Column, desired_tasks: list[Task]
+        self,
+        column: Column,
+        desired_tasks: list[Task],
+        force_recompose: bool = False,
     ) -> None:
         rendered_cards = column.get_rendered_cards()
         for row_position, (card, task) in enumerate(zip(rendered_cards, desired_tasks)):
             card.row = row_position
             task.position = row_position
-            if card.task_ != task:
+            if force_recompose or card.task_ != task:
                 card.task_ = task
                 card.refresh(recompose=True)
             else:
