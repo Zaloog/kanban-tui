@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.1
+### Fixed
+- Update dependencies to fix security issues
+
 ## v0.20.0
 ### Added
 - Added config option `task.metadata_always_expanded` to hide/show task metadata labels (creation_date, due_date, dependencies)
