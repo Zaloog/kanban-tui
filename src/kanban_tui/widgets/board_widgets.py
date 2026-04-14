@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
+from collections import defaultdict
 
 
 if TYPE_CHECKING:
@@ -11,6 +12,7 @@ from textual.events import MouseDown, MouseMove, MouseUp
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import HorizontalScroll, VerticalScroll
+from textual.widgets import Label
 
 from kanban_tui.widgets.task_column import Column
 from kanban_tui.widgets.task_card import TaskCard
@@ -62,6 +64,118 @@ class KanbanBoard(HorizontalScroll):
                     )
                 )
         self.get_first_card()
+
+    async def refresh_columns(self) -> None:
+        visible_columns = [column for column in self.app.column_list if column.visible]
+        mounted_columns = list(self.query(Column))
+        focused_task_id = self.selected_task.task_id if self.selected_task else None
+
+        mounted_column_ids = [
+            int(column.id.split("_")[-1]) for column in mounted_columns
+        ]
+        visible_column_ids = [column.column_id for column in visible_columns]
+
+        if mounted_column_ids != visible_column_ids:
+            await self.populate_board()
+            return
+
+        if not all(
+            self._column_ready_for_refresh(column) for column in mounted_columns
+        ):
+            await self.populate_board()
+            return
+
+        tasks_by_column: dict[int, list[Task]] = defaultdict(list)
+        for task in self.app.task_list:
+            tasks_by_column[task.column].append(task)
+
+        for column_model, column_widget in zip(visible_columns, mounted_columns):
+            desired_tasks = tasks_by_column.get(column_model.column_id, [])
+            await self._refresh_column_widget(
+                column_model.name,
+                column_widget,
+                desired_tasks,
+            )
+
+        if focused_task_id is not None:
+            focused_card = self.query_one_optional(
+                f"#taskcard_{focused_task_id}", TaskCard
+            )
+            if focused_card is not None:
+                focused_card.focus()
+                return
+
+        self.get_first_card()
+
+    def _column_ready_for_refresh(self, column: Column) -> bool:
+        return bool(
+            list(column.query(Label).results())
+            and list(column.query(VerticalScroll).results())
+        )
+
+    def _column_has_same_task_ids(
+        self, column: Column, desired_tasks: list[Task]
+    ) -> bool:
+        rendered_cards = column.get_rendered_cards()
+        if len(rendered_cards) != len(desired_tasks):
+            return False
+
+        return all(
+            card.task_.task_id == task.task_id
+            for card, task in zip(rendered_cards, desired_tasks)
+        )
+
+    async def _refresh_column_widget(
+        self,
+        title: str,
+        column: Column,
+        desired_tasks: list[Task],
+    ) -> None:
+        column.set_title(title)
+        column.sync_width()
+
+        if self._column_has_same_task_ids(column, desired_tasks):
+            self._refresh_existing_cards_in_place(column, desired_tasks)
+            return
+
+        if self._column_render_matches_tasks(column, desired_tasks):
+            column.task_list = desired_tasks
+            return
+
+        await column.sync_tasks(desired_tasks)
+
+    def _refresh_existing_cards_in_place(
+        self,
+        column: Column,
+        desired_tasks: list[Task],
+    ) -> None:
+        rendered_cards = column.get_rendered_cards()
+        for row_position, (card, task) in enumerate(zip(rendered_cards, desired_tasks)):
+            card.row = row_position
+            task.position = row_position
+            if self.app.needs_refresh or card.task_ != task:
+                card.task_ = task
+                card.refresh(recompose=True)
+            else:
+                card.task_.position = row_position
+
+        column.task_list = desired_tasks
+        column.task_amount = len(desired_tasks)
+
+    def _column_render_matches_tasks(
+        self, column: Column, desired_tasks: list[Task]
+    ) -> bool:
+        rendered_cards = column.get_rendered_cards()
+        if len(rendered_cards) != len(desired_tasks):
+            return False
+
+        for row_position, (card, task) in enumerate(zip(rendered_cards, desired_tasks)):
+            if card.row != row_position:
+                return False
+            if card.task_ != task:
+                return False
+
+        return True
 
     def action_new_task(self) -> None:
         self.app.push_screen(ModalTaskEditScreen(), callback=self.place_new_task)

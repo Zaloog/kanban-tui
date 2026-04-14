@@ -249,6 +249,8 @@ class KanbanTui(App[str | None]):
             self.action_refresh()
 
     def action_refresh(self):
+        if self.needs_refresh:
+            return
         self.update_board_list()
         self.watch_column_list()
         # used a worker here, so no await
