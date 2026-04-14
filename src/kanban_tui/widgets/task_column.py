@@ -96,9 +96,7 @@ class Column(Vertical):
         self.task_list = task_list
         self.task_amount = len(task_list)
 
-    async def sync_tasks(
-        self, task_list: list[Task], force_recompose: bool = False
-    ) -> None:
+    async def sync_tasks(self, task_list: list[Task]) -> None:
         existing_cards = self.get_rendered_cards()
         existing_ids = [task_card.task_.task_id for task_card in existing_cards]
         desired_ids = [task.task_id for task in task_list]
@@ -109,21 +107,15 @@ class Column(Vertical):
         # - append-only: mount only new cards
         # - otherwise: bulk replace
         if desired_ids == existing_ids:
-            self._sync_same_ids(
-                existing_cards, task_list, force_recompose=force_recompose
-            )
+            self._sync_same_ids(existing_cards, task_list)
             return
 
         if self._is_subsequence(desired_ids, existing_ids):
-            await self._sync_delete_only(
-                existing_cards, task_list, force_recompose=force_recompose
-            )
+            await self._sync_delete_only(existing_cards, task_list)
             return
 
         if existing_ids == desired_ids[: len(existing_ids)]:
-            await self._sync_append_only(
-                existing_cards, task_list, force_recompose=force_recompose
-            )
+            await self._sync_append_only(existing_cards, task_list)
             return
 
         await self._sync_with_replace(task_list)
@@ -132,17 +124,13 @@ class Column(Vertical):
         self,
         task_cards: list[TaskCard],
         task_list: list[Task],
-        force_recompose: bool = False,
     ) -> None:
-        self._refresh_existing_cards_in_place(
-            task_cards, task_list, force_recompose=force_recompose
-        )
+        self._refresh_existing_cards_in_place(task_cards, task_list)
 
     async def _sync_delete_only(
         self,
         existing_cards: list[TaskCard],
         task_list: list[Task],
-        force_recompose: bool = False,
     ) -> None:
         desired_id_set = {task.task_id for task in task_list}
         for task_card in existing_cards:
@@ -154,15 +142,12 @@ class Column(Vertical):
             for task_card in self.get_rendered_cards()
         }
         ordered_cards = [task_cards_by_id[task.task_id] for task in task_list]
-        self._refresh_existing_cards_in_place(
-            ordered_cards, task_list, force_recompose=force_recompose
-        )
+        self._refresh_existing_cards_in_place(ordered_cards, task_list)
 
     async def _sync_append_only(
         self,
         existing_cards: list[TaskCard],
         task_list: list[Task],
-        force_recompose: bool = False,
     ) -> None:
         scroll = self.query_one(VerticalScroll)
         new_cards: list[TaskCard] = []
@@ -175,11 +160,7 @@ class Column(Vertical):
         if new_cards:
             await scroll.mount(*new_cards)
 
-        self._refresh_existing_cards_in_place(
-            existing_cards + new_cards,
-            task_list,
-            force_recompose=force_recompose,
-        )
+        self._refresh_existing_cards_in_place(existing_cards + new_cards, task_list)
 
     async def _sync_with_replace(self, task_list: list[Task]) -> None:
         await self.replace_tasks(task_list)
@@ -188,11 +169,10 @@ class Column(Vertical):
         self,
         task_cards: list[TaskCard],
         task_list: list[Task],
-        force_recompose: bool = False,
     ) -> None:
         for row_position, (task_card, task) in enumerate(zip(task_cards, task_list)):
             task.position = row_position
-            if force_recompose or task_card.task_ != task:
+            if self.app.needs_refresh or task_card.task_ != task:
                 task_card.task_ = task
                 task_card.refresh(recompose=True)
             task_card.row = row_position
