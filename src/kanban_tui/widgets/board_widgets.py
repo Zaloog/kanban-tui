@@ -63,14 +63,13 @@ class KanbanBoard(HorizontalScroll):
                         id_num=column.column_id,
                     )
                 )
-        self.app.task_card_render_dirty = False
         self.get_first_card()
 
     async def refresh_columns(self) -> None:
         visible_columns = [column for column in self.app.column_list if column.visible]
         mounted_columns = list(self.query(Column))
         focused_task_id = self.selected_task.task_id if self.selected_task else None
-        force_card_recompose = self.app.task_card_render_dirty
+        force_card_recompose = self.app.needs_refresh
 
         mounted_column_ids = [
             int(column.id.split("_")[-1]) for column in mounted_columns
@@ -99,8 +98,6 @@ class KanbanBoard(HorizontalScroll):
                 desired_tasks,
                 force_card_recompose=force_card_recompose,
             )
-
-        self.app.task_card_render_dirty = False
 
         if focused_task_id is not None:
             focused_card = self.query_one_optional(

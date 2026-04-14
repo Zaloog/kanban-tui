@@ -184,7 +184,6 @@ class TaskAlwaysExpandedSwitch(Horizontal):
     @on(Switch.Changed)
     def update_config(self, event: Switch.Changed):
         self.app.config.set_task_always_expanded(new_value=event.value)
-        self.app.mark_task_card_render_dirty()
 
 
 class TaskMetadataAlwaysExpandedSwitch(Horizontal):
@@ -205,7 +204,6 @@ class TaskMetadataAlwaysExpandedSwitch(Horizontal):
     @on(Switch.Changed)
     def update_config(self, event: Switch.Changed):
         self.app.config.set_task_metadata_always_expanded(new_value=event.value)
-        self.app.mark_task_card_render_dirty()
 
 
 class TaskDefaultColorSelector(Horizontal):
@@ -232,7 +230,6 @@ class TaskDefaultColorSelector(Horizontal):
         if event.validation_result and event.validation_result.is_valid:
             event.input.styles.background = event.input.value
             self.app.config.set_task_default_color(new_color=event.input.value)
-            self.app.mark_task_card_render_dirty()
         else:
             event.input.styles.background = self.app.config.task.default_color
 
