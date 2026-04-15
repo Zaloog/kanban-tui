@@ -22,34 +22,34 @@ APP_SIZE = (150, 50)
 
 async def test_no_task_kanbanboard(no_task_app: KanbanTui):
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 0
-        assert isinstance(pilot.app.screen, BoardScreen)
+        assert len(no_task_app.task_list) == 0
+        assert isinstance(no_task_app.screen, BoardScreen)
 
-        assert isinstance(pilot.app.focused, KanbanBoard)
+        assert isinstance(no_task_app.focused, KanbanBoard)
 
 
 async def test_kanbanboard_task_creation(no_task_app: KanbanTui):
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # open modal to create Task
         await pilot.press("n")
-        assert isinstance(pilot.app.screen, ModalTaskEditScreen)
-        assert pilot.app.focused.id == "input_title"
-        assert pilot.app.screen.query_one("#input_title", Input).value == ""
+        assert isinstance(no_task_app.screen, ModalTaskEditScreen)
+        assert no_task_app.focused.id == "input_title"
+        assert no_task_app.screen.query_one("#input_title", Input).value == ""
 
         # Enter new task name
         await pilot.press(*"Test Task")
-        assert pilot.app.screen.query_one("#input_title").value == "Test Task"
+        assert no_task_app.screen.query_one("#input_title").value == "Test Task"
 
         # save task
         await pilot.click("#btn_continue")
-        assert isinstance(pilot.app.screen, BoardScreen)
+        assert isinstance(no_task_app.screen, BoardScreen)
 
-        assert len(list(pilot.app.screen.query(TaskCard).results())) == 1
+        assert len(list(no_task_app.screen.query(TaskCard).results())) == 1
 
 
 async def test_task_metadata_visible_by_default(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert pilot.app.config.task.metadata_always_expanded
+        assert test_app.config.task.metadata_always_expanded
         metadata = pilot.app.focused.query_one(".label-metadata", Label)
         assert metadata.display
         assert "no due" in metadata.content.plain
@@ -81,190 +81,190 @@ async def test_kanbanboard_board_view(no_task_app: KanbanTui):
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # open modal to show Boards
         await pilot.press("B")
-        assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
+        assert isinstance(no_task_app.screen, ModalBoardOverviewScreen)
 
         # Open Board Creation Screen
         await pilot.press("n")
-        assert isinstance(pilot.app.screen, ModalNewBoardScreen)
-        assert pilot.app.focused.id == "input_board_icon"
-        assert pilot.app.screen.query_one("#input_board_name", Input).value == ""
-        assert pilot.app.screen.query_one("#btn_continue_new_board", Button).disabled
+        assert isinstance(no_task_app.screen, ModalNewBoardScreen)
+        assert no_task_app.focused.id == "input_board_icon"
+        assert no_task_app.screen.query_one("#input_board_name", Input).value == ""
+        assert no_task_app.screen.query_one("#btn_continue_new_board", Button).disabled
 
         # Enter new board name
         await pilot.click("#input_board_name")
         await pilot.press(*"Test Board")
 
-        assert pilot.app.screen.query_one("#input_board_name").value == "Test Board"
-        assert not pilot.app.screen.query_one(
+        assert no_task_app.screen.query_one("#input_board_name").value == "Test Board"
+        assert not no_task_app.screen.query_one(
             "#btn_continue_new_board", Button
         ).disabled
 
         # save board
         await pilot.click("#btn_continue_new_board")
         await pilot.press("escape")
-        assert isinstance(pilot.app.screen, BoardScreen)
+        assert isinstance(no_task_app.screen, BoardScreen)
 
         # new Board no tasks
-        assert len(list(pilot.app.screen.query(TaskCard).results())) == 0
-        assert len(list(pilot.app.board_list)) == 2
+        assert len(list(no_task_app.screen.query(TaskCard).results())) == 0
+        assert len(list(no_task_app.board_list)) == 2
 
 
 # https://github.com/Zaloog/kanban-tui/issues/1
 async def test_kanbanboard_movement_no_task_app(no_task_app: KanbanTui):
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
         # check if board has focus
-        assert isinstance(pilot.app.focused, KanbanBoard)
+        assert isinstance(no_task_app.focused, KanbanBoard)
 
         # if no card is present, should just return and dont do any movevemt
         await pilot.press("h")
 
-        assert isinstance(pilot.app.focused, KanbanBoard)
+        assert isinstance(no_task_app.focused, KanbanBoard)
 
 
 async def test_kanbanboard_movement(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, TaskCard)
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         # up 0 -> 2
         await pilot.press("k")
-        assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 2
+        assert test_app.focused.task_.title == "Task_ready_2"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 2
 
         # up 2- > 1
         await pilot.press("k")
-        assert pilot.app.focused.task_.title == "Task_ready_1"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 1
+        assert test_app.focused.task_.title == "Task_ready_1"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 1
 
         # 2x down 1 -> 0
         await pilot.press("j", "j")
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         # right ready -> doing
         await pilot.press("j")
         await pilot.press("l")
-        assert pilot.app.focused.task_.title == "Task_doing_0"
-        assert pilot.app.focused.task_.column == 2
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_doing_0"
+        assert test_app.focused.task_.column == 2
+        assert test_app.focused.row == 0
 
         # 2x right doing -> ready
         await pilot.press("l", "l")
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         # left ready -> done
         await pilot.press("k")
         await pilot.press("h")
-        assert pilot.app.focused.task_.title == "Task_done_0"
-        assert pilot.app.focused.task_.column == 3
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_done_0"
+        assert test_app.focused.task_.column == 3
+        assert test_app.focused.row == 0
 
         # 2x left done -> ready
         await pilot.press("h", "h")
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         # delete Done Task
         await pilot.press("l")
         await pilot.press("d")
         await pilot.click("#btn_continue")
-        assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 2
+        assert test_app.focused.task_.title == "Task_ready_2"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 2
 
         # move right skip done column
         await pilot.press("l")
-        assert pilot.app.focused.task_.title == "Task_done_0"
-        assert pilot.app.focused.task_.column == 3
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_done_0"
+        assert test_app.focused.task_.column == 3
+        assert test_app.focused.row == 0
 
         # move left skip done column
         await pilot.press("h")
-        assert pilot.app.focused.task_.title == "Task_ready_2"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 2
+        assert test_app.focused.task_.title == "Task_ready_2"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 2
 
 
 async def test_kanbanboard_card_movement_adjacent(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, TaskCard)
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         # try move card left
         # ready -> ready
         await pilot.press("H")
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         await pilot.press("L")
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 2
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 2
+        assert test_app.focused.row == 0
 
         await pilot.press("h")
-        assert pilot.app.focused.task_.title == "Task_ready_1"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_1"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         await pilot.press("L")
-        assert pilot.app.focused.task_.title == "Task_ready_1"
-        assert pilot.app.focused.task_.column == 2
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_1"
+        assert test_app.focused.task_.column == 2
+        assert test_app.focused.row == 0
 
 
 async def test_kanbanboard_card_movement_jump(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, TaskCard)
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
         # change movement mode
         pilot.app.config.task.movement_mode = MovementModes.JUMP
         # try move card right twice
         # ready -> done
         await pilot.press("L")
-        assert pilot.app.screen.query_one(KanbanBoard).target_column == 2
+        assert test_app.screen.query_one(KanbanBoard).target_column == 2
 
         await pilot.press("L")
-        assert pilot.app.screen.query_one(KanbanBoard).target_column == 3
+        assert test_app.screen.query_one(KanbanBoard).target_column == 3
         await pilot.press("enter")
-        assert pilot.app.screen.query_one(KanbanBoard).target_column is None
+        assert test_app.screen.query_one(KanbanBoard).target_column is None
 
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 3
-        assert pilot.app.focused.row == 0
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 3
+        assert test_app.focused.row == 0
 
 
 async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, TaskCard)
+        assert isinstance(test_app.focused, TaskCard)
         await pilot.mouse_down(pilot.app.focused)
-        assert pilot.app.screen.query_one(KanbanBoard).mouse_down
+        assert test_app.screen.query_one(KanbanBoard).mouse_down
         await pilot.mouse_up(pilot.app.screen.query_one(Column))
-        assert not pilot.app.screen.query_one(KanbanBoard).mouse_down
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 1
-        assert pilot.app.focused.row == 0
+        assert not test_app.screen.query_one(KanbanBoard).mouse_down
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 1
+        assert test_app.focused.row == 0
 
 
 @pytest.mark.skipif(
@@ -274,13 +274,13 @@ async def test_kanbanboard_card_movement_mouse_different_column(test_app: Kanban
     async with test_app.run_test(size=APP_SIZE) as pilot:
         # 1st card is focused
         # 3 in ready, 1 in doing, 1 in done
-        assert isinstance(pilot.app.focused, TaskCard)
+        assert isinstance(test_app.focused, TaskCard)
         await pilot.mouse_down(pilot.app.focused)
-        assert pilot.app.screen.query_one(KanbanBoard).mouse_down
+        assert test_app.screen.query_one(KanbanBoard).mouse_down
         await pilot.mouse_up(pilot.app.screen.query(Column).last())
-        assert not pilot.app.screen.query_one(KanbanBoard).mouse_down
-        assert pilot.app.focused.task_.title == "Task_ready_0"
-        assert pilot.app.focused.task_.column == 3
+        assert not test_app.screen.query_one(KanbanBoard).mouse_down
+        assert test_app.focused.task_.title == "Task_ready_0"
+        assert test_app.focused.task_.column == 3
 
 
 async def test_kanbanboard_drag_cross_column_inserts_at_target_position(
@@ -288,8 +288,8 @@ async def test_kanbanboard_drag_cross_column_inserts_at_target_position(
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         board = pilot.app.screen.query_one(KanbanBoard)
-        assert isinstance(pilot.app.focused, TaskCard)
-        assert pilot.app.focused.task_.title == "Task_ready_0"
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.title == "Task_ready_0"
 
         board.selected_task = pilot.app.focused.task_
         board.mouse_down = True
@@ -465,24 +465,24 @@ async def test_sync_tasks_updates_same_ids_in_place(test_app: KanbanTui):
 async def test_refresh_keeps_focus_on_same_task(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
         await pilot.press("j")
-        assert isinstance(pilot.app.focused, TaskCard)
+        assert isinstance(test_app.focused, TaskCard)
         focused_before = pilot.app.focused.task_.task_id
 
         await pilot.press("r")
 
-        assert isinstance(pilot.app.focused, TaskCard)
-        assert pilot.app.focused.task_.task_id == focused_before
+        assert isinstance(test_app.focused, TaskCard)
+        assert test_app.focused.task_.task_id == focused_before
 
 
 async def test_custom_footer(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert not pilot.app.screen.query_one(VimSelect).display
+        assert not test_app.screen.query_one(VimSelect).display
 
         await pilot.press("C")
-        assert pilot.app.screen.query_one(VimSelect).display
+        assert test_app.screen.query_one(VimSelect).display
 
 
 async def test_custom_footer_backend_switcher(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert not pilot.app.screen.query_one(VimSelect).display
-        assert pilot.app.screen.query_one(VimSelect).value == f"✔  {Backends.SQLITE}"
+        assert not test_app.screen.query_one(VimSelect).display
+        assert test_app.screen.query_one(VimSelect).value == f"✔  {Backends.SQLITE}"

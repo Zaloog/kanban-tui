@@ -15,9 +15,9 @@ async def test_empty_app(
     empty_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
     async with empty_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 0
-        assert len(pilot.app.board_list) == 0
-        assert isinstance(pilot.app.screen, ModalBoardOverviewScreen)
+        assert len(empty_app.task_list) == 0
+        assert len(empty_app.board_list) == 0
+        assert isinstance(empty_app.screen, ModalBoardOverviewScreen)
 
         assert Path(test_database_path).exists()
         assert Path(test_config_path).exists()
@@ -27,8 +27,8 @@ async def test_no_task_app(
     no_task_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 0
-        assert isinstance(pilot.app.screen, BoardScreen)
+        assert len(no_task_app.task_list) == 0
+        assert isinstance(no_task_app.screen, BoardScreen)
 
         assert Path(test_database_path).exists()
         assert Path(test_config_path).exists()
@@ -36,8 +36,8 @@ async def test_no_task_app(
 
 async def test_app(test_app: KanbanTui, test_config_path: str, test_database_path: str):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 5
-        assert isinstance(pilot.app.screen, BoardScreen)
+        assert len(test_app.task_list) == 5
+        assert isinstance(test_app.screen, BoardScreen)
 
         assert Path(test_database_path).exists()
         assert Path(test_config_path).exists()
@@ -45,7 +45,7 @@ async def test_app(test_app: KanbanTui, test_config_path: str, test_database_pat
 
 async def test_app_no_visible_tasks(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 5
+        assert len(test_app.task_list) == 5
 
         # delete only task in doing column
         await pilot.press("l")
@@ -64,65 +64,65 @@ async def test_app_no_visible_tasks(test_app: KanbanTui):
         await pilot.press("space")
         await pilot.press("ctrl+j")
 
-        assert isinstance(pilot.app.focused, KanbanBoard)
+        assert isinstance(test_app.focused, KanbanBoard)
 
 
 async def test_app_properties(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 5
+        assert len(test_app.task_list) == 5
 
-        assert pilot.app.visible_column_dict == {1: "Ready", 2: "Doing", 3: "Done"}
+        assert test_app.visible_column_dict == {1: "Ready", 2: "Doing", 3: "Done"}
 
-        assert not pilot.app.demo_mode
-        assert pilot.app.backend.active_board.board_id == 1
+        assert not test_app.demo_mode
+        assert test_app.backend.active_board.board_id == 1
 
-        assert not pilot.app.auth_only
+        assert not test_app.auth_only
 
 
 async def test_app_correct_backend_type(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert isinstance(pilot.app.backend, SqliteBackend)
+        assert isinstance(test_app.backend, SqliteBackend)
 
 
 async def test_app_correct_backend_settings(
     test_app: KanbanTui, test_database_path: str
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert pilot.app.backend.settings.database_path == test_database_path
-        assert pilot.app.backend.settings.active_board_id == 1
+        assert test_app.backend.settings.database_path == test_database_path
+        assert test_app.backend.settings.active_board_id == 1
 
 
 async def test_app_backend_settings_change(test_app: KanbanTui):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert pilot.app.backend.settings.active_board_id == 1
+        assert test_app.backend.settings.active_board_id == 1
 
         pilot.app.config.set_active_board(2)
-        assert pilot.app.backend.settings.active_board_id == 2
+        assert test_app.backend.settings.active_board_id == 2
 
 
 async def test_app_refresh(
     test_app: KanbanTui, test_config_path: str, test_database_path: str
 ):
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert len(pilot.app.task_list) == 5
-        assert isinstance(pilot.app.screen, BoardScreen)
+        assert len(test_app.task_list) == 5
+        assert isinstance(test_app.screen, BoardScreen)
 
         pilot.app.backend.delete_task(task_id=1)
-        assert len(pilot.app.task_list) == 5
+        assert len(test_app.task_list) == 5
 
         # refresh app
         await pilot.press("r")
-        assert len(pilot.app.task_list) == 4
+        assert len(test_app.task_list) == 4
 
 
 async def test_app_auto_refresh_updates_board(test_app: KanbanTui):
     test_app.config.board.auto_refresh_interval = 15
     async with test_app.run_test(size=APP_SIZE) as pilot:
         pilot.app.backend.delete_task(task_id=1)
-        assert len(pilot.app.task_list) == 5
+        assert len(test_app.task_list) == 5
 
         pilot.app.handle_auto_refresh_tick()
-        assert len(pilot.app.task_list) == 4
+        assert len(test_app.task_list) == 4
 
 
 async def test_app_auto_refresh_noop_off_board(test_app: KanbanTui):
@@ -133,11 +133,11 @@ async def test_app_auto_refresh_noop_off_board(test_app: KanbanTui):
 
         pilot.app.backend.delete_task(task_id=1)
         pilot.app.handle_auto_refresh_tick()
-        assert len(pilot.app.task_list) == 5
+        assert len(test_app.task_list) == 5
 
         await pilot.press("ctrl+j")
         pilot.app.handle_auto_refresh_tick()
-        assert len(pilot.app.task_list) == 4
+        assert len(test_app.task_list) == 4
 
 
 async def test_app_auto_refresh_timer_reconfigured(test_app: KanbanTui):
@@ -156,7 +156,7 @@ async def test_app_auto_refresh_timer_reconfigured(test_app: KanbanTui):
 
         pilot.app.config.board.auto_refresh_interval = 0
         pilot.app.configure_auto_refresh()
-        assert pilot.app.auto_refresh_timer is None
+        assert test_app.auto_refresh_timer is None
 
 
 async def test_app_refresh_ignored_while_refresh_pending(test_app: KanbanTui):
@@ -183,5 +183,5 @@ async def test_app_auth_only(test_app: KanbanTui):
     test_app.config.backend.mode = Backends.JIRA
     test_app.backend = test_app.get_backend()
     async with test_app.run_test(size=APP_SIZE) as pilot:
-        assert pilot.app.auth_only
-        assert isinstance(pilot.app.screen, ModalAuthScreen)
+        assert test_app.auth_only
+        assert isinstance(test_app.screen, ModalAuthScreen)
