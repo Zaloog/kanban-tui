@@ -179,6 +179,41 @@ with the installer of your choice, for example with [uv]:
 uv tool install 'kanban-tui[web]'
 ```
 
+### Nix/NixOS
+
+For users with [Nix](https://nixos.org/) installed, you can use `kanban-tui` without installing it:
+
+```bash
+# Run directly
+nix run github:Zaloog/kanban-tui
+
+# Try it in a temporary shell
+nix shell github:Zaloog/kanban-tui
+ktui --version
+
+# Add to your NixOS configuration or home-manager
+{
+  environment.systemPackages = [
+    inputs.kanban-tui.packages.${system}.default
+  ];
+}
+```
+
+To build from source with Nix:
+
+```bash
+nix build
+nix run . -- --version
+```
+
+For development:
+
+```bash
+nix develop
+```
+
+For maintainers updating the flake, see [docs/maintaining-nix-flake.md](docs/maintaining-nix-flake.md).
+
 
 ## Usage
 kanban-tui now also supports the `kanban-tui` entrypoint besides `ktui`.
