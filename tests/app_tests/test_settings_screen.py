@@ -4,6 +4,7 @@ from textual.widgets import Input, Select, Switch, Button, Label
 from kanban_tui.config import Backends, MovementModes, TaskAppendModes
 from kanban_tui.screens.settings_screen import SettingsScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
+from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.settings_widgets import (
     ColumnSelector,
     AddRule,
@@ -78,6 +79,24 @@ async def test_task_metadata_expand_switch(test_app: KanbanTui):
         ).value
         assert not pilot.app.config.task.metadata_always_expanded
         assert pilot.app.needs_refresh
+
+
+async def test_task_metadata_expand_switch_refreshes_board_cards(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        board_cards = list(pilot.app.screen.query(TaskCard).results())
+        assert board_cards[1].query_one(".label-metadata", Label).display
+
+        await pilot.press("ctrl+l")
+        await pilot.pause()
+        await pilot.click("#switch_expand_metadata")
+
+        assert not pilot.app.config.task.metadata_always_expanded
+
+        await pilot.press("ctrl+j")
+        await pilot.pause()
+
+        board_cards = list(pilot.app.screen.query(TaskCard).results())
+        assert not board_cards[1].query_one(".label-metadata", Label).display
 
 
 async def test_task_movement_mode(test_app: KanbanTui):

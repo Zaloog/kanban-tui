@@ -159,6 +159,25 @@ async def test_app_auto_refresh_timer_reconfigured(test_app: KanbanTui):
         assert pilot.app.auto_refresh_timer is None
 
 
+async def test_app_refresh_ignored_while_refresh_pending(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        board_screen = pilot.app.get_screen("board", BoardScreen)
+        calls = 0
+        original = board_screen.load_kanban_board
+
+        def counted_load():
+            nonlocal calls
+            calls += 1
+            return original()
+
+        board_screen.load_kanban_board = counted_load  # type: ignore[method-assign]
+
+        pilot.app.needs_refresh = True
+        pilot.app.action_refresh()
+
+        assert calls == 0
+
+
 async def test_app_auth_only(test_app: KanbanTui):
     test_app.auth_only = True
     test_app.config.backend.mode = Backends.JIRA

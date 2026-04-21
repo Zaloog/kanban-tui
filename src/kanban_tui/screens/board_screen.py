@@ -49,7 +49,7 @@ class BoardScreen(Screen):
         if not self.app.backend.settings.base_url:
             await self.app.push_screen_wait(ModalBaseUrlScreen())
 
-    @work()
+    @work(group="board-refresh", exclusive=True)
     @on(ScreenResume)
     async def load_kanban_board(self, event: ScreenResume | None = None):
         self.set_reactive(BoardScreen.active_board, self.app.active_board)
@@ -76,5 +76,5 @@ class BoardScreen(Screen):
 
         if self.app.needs_refresh:
             self.app.update_task_list()
-            await self.query_one(KanbanBoard).populate_board()
+            await self.query_one(KanbanBoard).refresh_columns()
             self.app.needs_refresh = False

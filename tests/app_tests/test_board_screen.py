@@ -300,11 +300,178 @@ async def test_kanbanboard_drag_cross_column_inserts_at_target_position(
         board.mouse_down = False
         board._clear_drag_target()
 
-        done_tasks = list(pilot.app.screen.query_one("#column_3", Column).query(TaskCard))
+        done_tasks = list(
+            pilot.app.screen.query_one("#column_3", Column).query(TaskCard)
+        )
         assert [task_card.task_.title for task_card in done_tasks] == [
             "Task_ready_0",
             "Task_done_0",
         ]
+
+
+async def test_refresh_columns_preserves_unchanged_column_widgets(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        board = pilot.app.screen.query_one(KanbanBoard)
+        ready_column_before = pilot.app.screen.query_one("#column_1", Column)
+        doing_column_before = pilot.app.screen.query_one("#column_2", Column)
+
+        ready_cards_before = list(ready_column_before.query(TaskCard).results())
+        doing_cards_before = list(doing_column_before.query(TaskCard).results())
+
+        pilot.app.backend.delete_task(task_id=5)
+        pilot.app.update_task_list()
+        await board.refresh_columns()
+
+        ready_column_after = pilot.app.screen.query_one("#column_1", Column)
+        doing_column_after = pilot.app.screen.query_one("#column_2", Column)
+        done_column_after = pilot.app.screen.query_one("#column_3", Column)
+
+        assert ready_column_after is ready_column_before
+        assert doing_column_after is doing_column_before
+        assert list(ready_column_after.query(TaskCard).results()) == ready_cards_before
+        assert list(doing_column_after.query(TaskCard).results()) == doing_cards_before
+        assert done_column_after.task_amount == 0
+
+
+async def test_replace_tasks_bulk_mount_preserves_order(no_task_app: KanbanTui):
+    no_task_app.backend.create_new_category(name="red", color="#FF0000")
+    no_task_app.backend.create_new_category(name="green", color="#00FF00")
+
+    for idx in range(250):
+        no_task_app.backend.create_new_task(
+            title=f"Task_done_{idx}",
+            description="Hallo",
+            category=1 if idx % 2 == 0 else 2,
+            column=3,
+        )
+
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
+        done_column = pilot.app.screen.query_one("#column_3", Column)
+        done_tasks = [task for task in pilot.app.task_list if task.column == 3]
+        reordered_tasks = list(reversed(done_tasks))
+
+        await done_column.replace_tasks(reordered_tasks)
+
+        rendered_cards = list(done_column.query(TaskCard).results())
+
+        assert done_column.task_amount == 250
+        assert len(rendered_cards) == 250
+        assert rendered_cards[0].task_.title == "Task_done_249"
+        assert rendered_cards[-1].task_.title == "Task_done_0"
+        assert rendered_cards[0].row == 0
+        assert rendered_cards[-1].row == 249
+        assert rendered_cards[0].task_.position == 0
+        assert rendered_cards[-1].task_.position == 249
+
+
+async def test_sync_tasks_removes_deleted_card_without_rebuilding_column(
+    no_task_app: KanbanTui,
+):
+    no_task_app.backend.create_new_category(name="red", color="#FF0000")
+    for idx in range(6):
+        no_task_app.backend.create_new_task(
+            title=f"Task_done_{idx}",
+            description="Hallo",
+            category=1,
+            column=3,
+        )
+
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
+        done_column = pilot.app.screen.query_one("#column_3", Column)
+        original_cards = list(done_column.query(TaskCard).results())
+        surviving_card = original_cards[4]
+        updated_tasks = [
+            task
+            for task in pilot.app.task_list
+            if task.column == 3 and task.task_id != original_cards[2].task_.task_id
+        ]
+
+        await done_column.sync_tasks(updated_tasks)
+
+        rendered_cards = list(done_column.query(TaskCard).results())
+
+        assert len(rendered_cards) == 5
+        assert surviving_card in rendered_cards
+        assert surviving_card.row == 3
+        assert rendered_cards[3] is surviving_card
+
+
+async def test_sync_tasks_appends_new_cards_without_rebuilding_existing_prefix(
+    no_task_app: KanbanTui,
+):
+    for idx in range(6):
+        no_task_app.backend.create_new_task(
+            title=f"Task_done_{idx}",
+            description="Hallo",
+            column=3,
+        )
+
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
+        done_column = pilot.app.screen.query_one("#column_3", Column)
+        original_cards = list(done_column.query(TaskCard).results())
+
+        for idx in range(6, 8):
+            pilot.app.backend.create_new_task(
+                title=f"Task_done_{idx}",
+                description="Hallo",
+                column=3,
+            )
+
+        pilot.app.update_task_list()
+        updated_tasks = [task for task in pilot.app.task_list if task.column == 3]
+
+        await done_column.sync_tasks(updated_tasks)
+
+        rendered_cards = list(done_column.query(TaskCard).results())
+
+        assert len(rendered_cards) == 8
+        assert rendered_cards[:6] == original_cards
+        assert rendered_cards[6].task_.title == "Task_done_6"
+        assert rendered_cards[7].task_.title == "Task_done_7"
+        assert rendered_cards[6].row == 6
+        assert rendered_cards[7].row == 7
+
+
+async def test_sync_tasks_updates_same_ids_in_place(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        done_column = pilot.app.screen.query_one("#column_3", Column)
+        original_card = done_column.query_one(TaskCard)
+        original_task_id = original_card.task_.task_id
+
+        pilot.app.backend.update_task_entry(
+            task_id=original_task_id,
+            title="Task_done_updated",
+            description="Updated description",
+            category=1,
+            due_date=None,
+        )
+
+        pilot.app.update_task_list()
+        updated_tasks = [task for task in pilot.app.task_list if task.column == 3]
+
+        await done_column.sync_tasks(updated_tasks)
+        await pilot.pause()
+
+        refreshed_card = done_column.query_one(TaskCard)
+
+        assert refreshed_card is original_card
+        assert refreshed_card.task_.task_id == original_task_id
+        assert refreshed_card.task_.title == "Task_done_updated"
+        assert refreshed_card.query_one(".label-title", Label).content == (
+            "Task_done_updated"
+        )
+
+
+async def test_refresh_keeps_focus_on_same_task(test_app: KanbanTui):
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        await pilot.press("j")
+        assert isinstance(pilot.app.focused, TaskCard)
+        focused_before = pilot.app.focused.task_.task_id
+
+        await pilot.press("r")
+
+        assert isinstance(pilot.app.focused, TaskCard)
+        assert pilot.app.focused.task_.task_id == focused_before
 
 
 async def test_custom_footer(test_app: KanbanTui):
