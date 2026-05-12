@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.21.1
+### Fixed
+- Update dependencies to fix security issues
+
 ## v0.21.0
 ### Added
 - Added flags to prevent excessive task card refresh
