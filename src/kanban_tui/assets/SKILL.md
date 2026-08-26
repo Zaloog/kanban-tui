@@ -22,6 +22,7 @@ You are an expert at using `ktui` (kanban-tui), a powerful CLI tool for managing
 3. **JSON-First**: Use `--json` flag for machine-readable output in automation
 4. **Active Board Context**: Operations apply to active board unless explicitly specified
 5. **Non-Interactive**: Use `--no-confirm` for automation/scripting
+6. **MCP server**: `ktui --scope user mcp --start-server` is a long-running stdio MCP process for clients; never start the TUI for this
 
 ## When to Activate This Skill
 

@@ -1,29 +1,34 @@
 """CLI entry-point for kanban-tui"""
 
-import sys
-
 import os
+import sys
 from collections import OrderedDict
-
-from kanban_tui.cli.column_commands import column
-from kanban_tui.cli.task_commands import task
-from kanban_tui.cli.category_commands import category
 
 import click
 
 from kanban_tui.app import KanbanTui
 from kanban_tui.cli.board_commands import board
+from kanban_tui.cli.category_commands import category
+from kanban_tui.cli.column_commands import column
 from kanban_tui.cli.demo_commands import demo
-from kanban_tui.cli.skills_commands import skill
+from kanban_tui.cli.general_commands import auth, clear, info
 from kanban_tui.cli.mcp_commands import mcp
-from kanban_tui.cli.general_commands import info, clear, auth
-from kanban_tui.utils import print_to_console
+from kanban_tui.cli.skills_commands import skill
+from kanban_tui.cli.task_commands import task
 from kanban_tui.constants import (
     CONFIG_FILE,
     DATABASE_FILE,
     DEMO_CONFIG_FILE,
     DEMO_DATABASE_FILE,
 )
+from kanban_tui.scope import (
+    SCOPE_USER,
+    ScopeError,
+    bind_user_scope_env,
+    ensure_user_scope_dirs,
+    resolve_user_scope,
+)
+from kanban_tui.utils import print_to_console
 
 COMMAND_DICT = {
     "General Commands": [
@@ -48,7 +53,7 @@ COMMAND_DICT = {
 # Enables Custom Help Interface
 class OrderedGroup(click.Group):
     def __init__(self, name=None, commands=None, **attrs):
-        super(OrderedGroup, self).__init__(name, commands, **attrs)
+        super().__init__(name, commands, **attrs)
         self.commands = commands or OrderedDict()
 
     def list_commands(self, ctx):
@@ -68,6 +73,28 @@ class OrderedGroup(click.Group):
                     )
 
 
+def _apply_user_scope(ctx: click.Context):
+    try:
+        user_scope = resolve_user_scope()
+        ensure_user_scope_dirs(user_scope)
+        bind_user_scope_env(user_scope)
+    except ScopeError as e:
+        raise click.ClickException(str(e)) from e
+    except OSError as e:
+        raise click.ClickException(f"cannot write user-scope store: {e}") from e
+    ctx.meta["user_scope"] = user_scope
+    return user_scope
+
+
+def _open_scoped_app(config_path: str, database_path: str) -> KanbanTui:
+    try:
+        return KanbanTui(config_path=config_path, database_path=database_path)
+    except click.ClickException:
+        raise
+    except Exception as e:
+        raise click.ClickException(f"user-scope store is unreadable: {e}") from e
+
+
 @click.group(
     cls=OrderedGroup,
     context_settings={
@@ -78,9 +105,26 @@ class OrderedGroup(click.Group):
 )
 @click.version_option(prog_name="kanban-tui")
 @click.option("--web", is_flag=True, default=False, help="Host app locally")
+@click.option(
+    "--scope",
+    type=click.Choice([SCOPE_USER], case_sensitive=False),
+    default=None,
+    metavar="SCOPE",
+    help=(
+        "Runtime store scope. 'user' binds config and kanban data to the "
+        "per-user XDG directories and wins over ambient project detection. "
+        "MCP --start-server is a long-running process for MCP clients and "
+        "defaults to user scope. Other scopes are not implemented."
+    ),
+)
 @click.pass_context
-def cli(ctx: click.Context, web: bool):
+def cli(ctx: click.Context, web: bool, scope: str | None):
     """Running without any commands starts the TUI and should never be used by agents"""
+    ctx.meta["scope"] = scope
+    user_scope = None
+    if scope == SCOPE_USER:
+        user_scope = _apply_user_scope(ctx)
+
     if web:
         try:
             from textual_serve.server import Server
@@ -94,23 +138,36 @@ def cli(ctx: click.Context, web: bool):
         command = "ktui"
         server = Server(command)
         server.serve()
-    else:
-        if ctx.invoked_subcommand is None:
+        return
+
+    if ctx.invoked_subcommand is None:
+        if user_scope is not None:
+            app = _open_scoped_app(
+                user_scope.config_file.as_posix(),
+                user_scope.database_file.as_posix(),
+            )
+        else:
             app = KanbanTui(
                 config_path=CONFIG_FILE.as_posix(),
                 database_path=DATABASE_FILE.as_posix(),
             )
-            app.run()
-        elif ctx.invoked_subcommand == "demo":
-            os.environ["KANBAN_TUI_CONFIG_FILE"] = DEMO_CONFIG_FILE.as_posix()
-            app = KanbanTui(
-                config_path=DEMO_CONFIG_FILE.as_posix(),
-                database_path=DEMO_DATABASE_FILE.as_posix(),
-                demo_mode=True,
+        app.run()
+    elif ctx.invoked_subcommand == "demo":
+        os.environ["KANBAN_TUI_CONFIG_FILE"] = DEMO_CONFIG_FILE.as_posix()
+        app = KanbanTui(
+            config_path=DEMO_CONFIG_FILE.as_posix(),
+            database_path=DEMO_DATABASE_FILE.as_posix(),
+            demo_mode=True,
+        )
+        ctx.obj = app
+    elif ctx.invoked_subcommand in ["info", "clear"]:
+        pass
+    else:
+        if user_scope is not None:
+            app = _open_scoped_app(
+                user_scope.config_file.as_posix(),
+                user_scope.database_file.as_posix(),
             )
-            ctx.obj = app
-        elif ctx.invoked_subcommand in ["info", "clear"]:
-            pass
         else:
             app = KanbanTui(
                 config_path=os.getenv("KANBAN_TUI_CONFIG_FILE", CONFIG_FILE.as_posix()),
@@ -118,7 +175,7 @@ def cli(ctx: click.Context, web: bool):
                     "KANBAN_TUI_DATABASE_FILE", DATABASE_FILE.as_posix()
                 ),
             )
-            ctx.obj = app
+        ctx.obj = app
 
 
 cli.add_command(demo)

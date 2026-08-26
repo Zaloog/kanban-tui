@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+### Added
+- Global `--scope user` flag to bind config and kanban data to the per-user XDG store
+- `ktui mcp --start-server` honors user scope, writes diagnostics to stderr, and exits non-zero on start failure
+
+### Fixed
+- MCP `--start-server` no longer forces exit code 0 after a serve-loop error
+
 ## v0.21.1
 ### Fixed
 - Update dependencies to fix security issues
