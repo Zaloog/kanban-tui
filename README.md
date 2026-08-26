@@ -235,10 +235,12 @@ In addition to skills, `kanban-tui` can be run as a local mcp server, which expo
 This requires the optional `mcp` dependency, which can be installed via `uv tool install kanban-tui[mcp]`. It utilizes [pycli-mcp]
 to directly expose the commands.
 Using the bare `ktui mcp` command shows the instruction to add `kanban-tui` mcp to [claude-code]. The server itself is
-started using the `--start-server` flag.
+a long-running stdio process started with `--start-server`. `--scope user` selects the per-user XDG config and database
+(the same store `ktui info` reports) and does not fall back to a project directory.
 
 ```bash
 ktui mcp
+ktui --scope user mcp --start-server
 ```
 
 ### Show Location of Data, Config and Skill Files

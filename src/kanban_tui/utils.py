@@ -6,6 +6,7 @@ if TYPE_CHECKING:
 
 from kanban_tui.skills import get_skill_local_path, get_skill_global_path
 import os
+import sys
 import re
 from pathlib import Path
 from typing import Literal, Any
@@ -565,3 +566,9 @@ def build_info_table() -> Table:
 
 def print_to_console(text: RenderableType):
     Console(soft_wrap=True, width=150).print(text, no_wrap=False, width=150)
+
+
+def print_to_stderr(text: RenderableType):
+    Console(file=sys.stderr, soft_wrap=True, width=150).print(
+        text, no_wrap=False, width=150
+    )
