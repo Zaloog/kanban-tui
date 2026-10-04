@@ -30,6 +30,7 @@ class Column(Vertical):
         self.task_list = task_list or []
         super().__init__(id=f"column_{id_num}")
         self.can_focus: bool = False
+        self.border_title = "move task here"
         self.styles.width = f"{1 / self.app.config.board.columns_in_view * 100:.2f}%"
 
     def compose(self) -> Iterable[Widget]:
@@ -38,7 +39,6 @@ class Column(Vertical):
 
     async def on_mount(self) -> None:
         await self.replace_tasks(self.task_list)
-        self.border_title = "move task here"
 
     def set_title(self, title: str) -> None:
         self.title = title

@@ -27,7 +27,7 @@ class KanbanBoard(HorizontalScroll):
 
     BINDINGS = [
         Binding("n", "new_task", "New Task", show=True, priority=True),
-        Binding("ctrl+f", "toggle_filter", "Filter", show=True, priority=True),
+        Binding("/,ctrl+f", "toggle_filter", "Filter", show=True, priority=True),
         Binding("j,down", "navigation('down')", "Down", show=False),
         Binding("k, up", "navigation('up')", "Up", show=False),
         Binding("h, left", "navigation('left')", "Left", show=False),
@@ -80,9 +80,7 @@ class KanbanBoard(HorizontalScroll):
         mounted_columns = list(self.query(Column))
         focused_widget = self.app.focused
         focused_task = (
-            focused_widget.task_
-            if isinstance(focused_widget, TaskCard)
-            else None
+            focused_widget.task_ if isinstance(focused_widget, TaskCard) else None
         )
         focused_task_id = focused_task.task_id if focused_task is not None else None
 
@@ -627,9 +625,7 @@ class KanbanBoard(HorizontalScroll):
         task = event.taskcard.task_
         if task is None:
             return
-        await self.query_one(
-            f"#column_{task.column}", Column
-        ).remove_task(task=task)
+        await self.query_one(f"#column_{task.column}", Column).remove_task(task=task)
         self.app.backend.delete_task(task_id=task.task_id)
         self.app.update_task_list()
 
