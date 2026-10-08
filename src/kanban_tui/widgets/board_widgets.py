@@ -45,14 +45,26 @@ class KanbanBoard(HorizontalScroll):
 
     async def on_mount(self):
         await self.populate_board()
+        self.watch(self.app, "filter_query", self.watch_filter_query, init=False)
+        self.watch(self.app, "filter_field", self.watch_filter_field, init=False)
+
+    async def watch_filter_query(self, _old_query: str, _query: str) -> None:
+        await self.refresh_columns()
+
+    async def watch_filter_field(
+        self, _old_field: str | None, _field: str | None
+    ) -> None:
+        await self.refresh_columns()
 
     def action_toggle_filter(self) -> None:
         from kanban_tui.widgets.filter_bar import FilterBar
 
         panel = self.screen.query_one(FilterBar)
-        panel.toggle_class("-hidden")
-        if not panel.has_class("-hidden"):
+        if panel.has_class("-hidden"):
+            panel.remove_class("-hidden")
             panel.query_one("#filter_query").focus()
+        else:
+            panel.close_search()
 
     async def populate_board(self, *args):
         """Populate the board with columns"""
@@ -182,7 +194,7 @@ class KanbanBoard(HorizontalScroll):
             zip(rendered_cards, desired_tasks, strict=False)
         ):
             card.row = row_position
-            if not self.app.filter_query:
+            if not self.app.filter_query and not self.app.filter_field:
                 task.position = row_position
             if self.app.needs_refresh or card.task_ != task:
                 card.task_ = task

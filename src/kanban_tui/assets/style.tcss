@@ -494,6 +494,16 @@ ModalNewCategoryScreen {
 #filter_bar.-hidden {
     display: none;
 }
+#filter_bar AutoComplete {
+    height: 3;
+    min-height: 3;
+    max-height: 3;
+    AutoCompleteList {
+        height: 3;
+        min-height: 3;
+        max-height: 3;
+    }
+}
 
 #tabbed_content_boards {
     border:$success;

@@ -284,10 +284,8 @@ async def test_filter_bar_searches_titles_descriptions_and_categories(
 
         search.value = "ready_0"
         await pilot.pause()
-        assert [card.task_.title for card in board.query(TaskCard)] == [
-            "Task_ready_0"
-        ]
-        assert board.border_subtitle == "Filter active"
+        assert [card.task_.title for card in board.query(TaskCard)] == ["Task_ready_0"]
+        assert board.border_subtitle == "🔍 All: ready_0"
 
         search.value = "distinctive phrase"
         await pilot.pause()
@@ -295,8 +293,19 @@ async def test_filter_bar_searches_titles_descriptions_and_categories(
             description_task.task_id
         ]
 
-        search.value = ":green"
+        search.value = ":"
         await pilot.pause()
+        await pilot.press("down", "down", "enter")
+        await pilot.pause()
+        assert pilot.app.filter_field == "category"
+        assert search.value == ""
+        assert filter_bar.border_subtitle == "🔍 Category"
+        assert board.border_subtitle == ""
+
+        search.value = "green"
+        await pilot.pause()
+        assert filter_bar.border_subtitle == ""
+        assert board.border_subtitle == "🔍 Category: green"
         assert {card.task_.title for card in board.query(TaskCard)} == {
             "Task_doing_0",
             "Notes",
@@ -304,6 +313,12 @@ async def test_filter_bar_searches_titles_descriptions_and_categories(
 
         search.value = ""
         await pilot.pause()
+        assert pilot.app.filter_field == "category"
+        assert filter_bar.border_subtitle == "🔍 Category"
+        await pilot.press("backspace")
+        await pilot.pause()
+        assert pilot.app.filter_field is None
+        assert filter_bar.border_subtitle == ""
         assert len(list(board.query(TaskCard))) == len(pilot.app.task_list)
         assert board.border_subtitle == ""
 
@@ -325,7 +340,7 @@ async def test_filtered_reorder_preserves_hidden_task_order(
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
         board = pilot.app.screen.query_one(KanbanBoard)
         pilot.app.filter_query = "show"
-        await board.refresh_columns()
+        await pilot.pause()
 
         column = pilot.app.screen.query_one("#column_1", Column)
         visible_cards = list(column.query(TaskCard))
@@ -341,7 +356,7 @@ async def test_filtered_reorder_preserves_hidden_task_order(
         board._move_task_within_column(target_position=0)
 
         pilot.app.filter_query = ""
-        await board.refresh_columns()
+        await pilot.pause()
         full_order = [card.task_.title for card in column.query(TaskCard)]
         assert full_order == [
             "Hidden A1",

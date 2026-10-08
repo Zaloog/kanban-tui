@@ -21,7 +21,7 @@ class Column(Vertical):
 
     @property
     def filter_active(self) -> bool:
-        return bool(getattr(self.app, "filter_query", ""))
+        return bool(self.app.filter_query or self.app.filter_field)
 
     def __init__(
         self, title: str, id_num: int, task_list: list[Task] | None = None
