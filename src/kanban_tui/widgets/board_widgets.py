@@ -27,6 +27,7 @@ class KanbanBoard(HorizontalScroll):
 
     BINDINGS = [
         Binding("n", "new_task", "New Task", show=True, priority=True),
+        Binding("/,ctrl+f", "toggle_filter", "Filter", show=True, priority=True),
         Binding("j,down", "navigation('down')", "Down", show=False),
         Binding("k, up", "navigation('up')", "Up", show=False),
         Binding("h, left", "navigation('left')", "Left", show=False),
@@ -44,6 +45,26 @@ class KanbanBoard(HorizontalScroll):
 
     async def on_mount(self):
         await self.populate_board()
+        self.watch(self.app, "filter_query", self.watch_filter_query, init=False)
+        self.watch(self.app, "filter_field", self.watch_filter_field, init=False)
+
+    async def watch_filter_query(self, _old_query: str, _query: str) -> None:
+        await self.refresh_columns()
+
+    async def watch_filter_field(
+        self, _old_field: str | None, _field: str | None
+    ) -> None:
+        await self.refresh_columns()
+
+    def action_toggle_filter(self) -> None:
+        from kanban_tui.widgets.filter_bar import FilterBar
+
+        panel = self.screen.query_one(FilterBar)
+        if panel.has_class("-hidden"):
+            panel.remove_class("-hidden")
+            panel.query_one("#filter_query").focus()
+        else:
+            panel.close_search()
 
     async def populate_board(self, *args):
         """Populate the board with columns"""
@@ -55,6 +76,7 @@ class KanbanBoard(HorizontalScroll):
                     task
                     for task in self.app.task_list
                     if task.column == column.column_id
+                    and self._matches_active_filter(task)
                 ]
                 await self.mount(
                     Column(
@@ -68,10 +90,16 @@ class KanbanBoard(HorizontalScroll):
     async def refresh_columns(self) -> None:
         visible_columns = [column for column in self.app.column_list if column.visible]
         mounted_columns = list(self.query(Column))
-        focused_task_id = self.selected_task.task_id if self.selected_task else None
+        focused_widget = self.app.focused
+        focused_task = (
+            focused_widget.task_ if isinstance(focused_widget, TaskCard) else None
+        )
+        focused_task_id = focused_task.task_id if focused_task is not None else None
 
         mounted_column_ids = [
-            int(column.id.split("_")[-1]) for column in mounted_columns
+            int(column.id.split("_")[-1])
+            for column in mounted_columns
+            if column.id is not None
         ]
         visible_column_ids = [column.column_id for column in visible_columns]
 
@@ -87,7 +115,8 @@ class KanbanBoard(HorizontalScroll):
 
         tasks_by_column: dict[int, list[Task]] = defaultdict(list)
         for task in self.app.task_list:
-            tasks_by_column[task.column].append(task)
+            if self._matches_active_filter(task):
+                tasks_by_column[task.column].append(task)
 
         for column_model, column_widget in zip(
             visible_columns, mounted_columns, strict=False
@@ -107,7 +136,16 @@ class KanbanBoard(HorizontalScroll):
                 focused_card.focus()
                 return
 
+        if focused_widget is not None and not isinstance(focused_widget, TaskCard):
+            return
+
         self.get_first_card()
+
+    def _matches_active_filter(self, task: Task) -> bool:
+        from kanban_tui.widgets.filter_bar import FilterBar
+
+        panel = self.screen.query_one_optional(FilterBar)
+        return panel is None or panel.matches(task)
 
     def _column_ready_for_refresh(self, column: Column) -> bool:
         return bool(
@@ -123,7 +161,7 @@ class KanbanBoard(HorizontalScroll):
             return False
 
         return all(
-            card.task_.task_id == task.task_id
+            card.task_ is not None and card.task_.task_id == task.task_id
             for card, task in zip(rendered_cards, desired_tasks, strict=False)
         )
 
@@ -156,12 +194,11 @@ class KanbanBoard(HorizontalScroll):
             zip(rendered_cards, desired_tasks, strict=False)
         ):
             card.row = row_position
-            task.position = row_position
+            if not self.app.filter_query and not self.app.filter_field:
+                task.position = row_position
             if self.app.needs_refresh or card.task_ != task:
                 card.task_ = task
                 card.refresh(recompose=True)
-            else:
-                card.task_.position = row_position
 
         column.task_list = desired_tasks
         column.task_amount = len(desired_tasks)
@@ -200,7 +237,7 @@ class KanbanBoard(HorizontalScroll):
 
     # Movement
     def action_navigation(self, direction: Literal["up", "right", "down", "left"]):
-        if not self.app.task_list:
+        if not self.app.task_list or self.selected_task is None:
             return
 
         current_column_tasks = self.query_one(
@@ -276,8 +313,11 @@ class KanbanBoard(HorizontalScroll):
     @on(TaskCard.Target)
     def color_target_column(self, event: TaskCard.Target):
         """Updating the target column to drop task"""
+        task = event.taskcard.task_
+        if task is None:
+            return
         self.scroll_visible(animate=False)
-        current_column_id = self.target_column or event.taskcard.task_.column
+        current_column_id = self.target_column or task.column
         match event.direction:
             case "left":
                 new_column_id = self.app.get_possible_previous_column_id(
@@ -285,11 +325,9 @@ class KanbanBoard(HorizontalScroll):
                 )
             case "right":
                 new_column_id = self.app.get_possible_next_column_id(current_column_id)
-        if new_column_id == event.taskcard.task_.column:
+        if new_column_id == task.column:
             self.target_column = None
-            self.query_one(f"#column_{event.taskcard.task_.column}").scroll_visible(
-                animate=False
-            )
+            self.query_one(f"#column_{task.column}").scroll_visible(animate=False)
         else:
             self.query_one(f"#column_{new_column_id}").scroll_visible(animate=False)
             self.target_column = new_column_id
@@ -394,6 +432,29 @@ class KanbanBoard(HorizontalScroll):
             column_id=column_id,
         )
 
+    def _full_insert_position(self, column_id: int) -> int:
+        """Translate a visible drop target into the full persisted column order."""
+        moving_id = self.selected_task.task_id if self.selected_task else None
+        full_tasks = sorted(
+            (
+                task
+                for task in self.app.task_list
+                if task.column == column_id and task.task_id != moving_id
+            ),
+            key=lambda task: task.position,
+        )
+        if self.drag_target_card is None:
+            return 0 if not full_tasks else len(full_tasks)
+
+        target_task = self.drag_target_card.task_
+        if target_task is None:
+            return len(full_tasks)
+        target_id = target_task.task_id
+        for index, task in enumerate(full_tasks):
+            if task.task_id == target_id:
+                return index if self.drag_target_before else index + 1
+        return len(full_tasks)
+
     def _move_task_within_column(self, target_position: int) -> None:
         if self.app.config.backend.mode != Backends.SQLITE:
             return
@@ -402,6 +463,8 @@ class KanbanBoard(HorizontalScroll):
             return
 
         column = self.query_one(f"#column_{self.selected_task.column}", Column)
+        if column.id is None:
+            return
         moving_card = self.query_one(
             f"#taskcard_{self.selected_task.task_id}", TaskCard
         )
@@ -413,8 +476,11 @@ class KanbanBoard(HorizontalScroll):
         if target_position == current_position:
             return
 
+        column_id = int(column.id.rsplit("_", 1)[-1])
+        full_target_position = self._full_insert_position(column_id)
         moved_task = self.app.backend.move_task_position(
-            task_id=self.selected_task.task_id, target_position=target_position
+            task_id=self.selected_task.task_id,
+            target_position=full_target_position,
         )
         if moved_task is None:
             return
@@ -435,7 +501,6 @@ class KanbanBoard(HorizontalScroll):
 
         for idx, card in enumerate(column.query(TaskCard)):
             card.row = idx
-            card.task_.position = idx
 
         moving_card.focus()
 
@@ -458,13 +523,19 @@ class KanbanBoard(HorizontalScroll):
         # here, which will raise an exception, because the column
         # field in the database has a NOT NULL constraint
 
+        moving_task = self.selected_task
+        active_board = self.app.active_board
         # Determine the target column
         target_column = event.new_column if event else self.target_column
+        if moving_task is None or active_board is None or target_column is None:
+            self.target_column = None
+            self.app.app_focus = True
+            return
 
         # Check if the task can move to the target column (dependency validation)
-        can_move, reason = self.selected_task.can_move_to_column(
+        can_move, reason = moving_task.can_move_to_column(
             target_column=target_column,
-            start_column=self.app.active_board.start_column,
+            start_column=active_board.start_column,
             backend=self.app.backend,
         )
 
@@ -482,20 +553,20 @@ class KanbanBoard(HorizontalScroll):
 
         # Try the backend update first before modifying local state,
         # so there is nothing to revert on failure.
-        original_column = self.selected_task.column
-        self.selected_task.column = target_column
+        original_column = moving_task.column
+        moving_task.column = target_column
         target_position = (
-            self.drag_target_position
+            self._full_insert_position(self.target_column)
             if event is None and self.mouse_down and self.target_column is not None
             else None
         )
         result = self.app.backend.update_task_status(
-            new_task=self.selected_task,
+            new_task=moving_task,
             target_position=target_position,
             append_mode=self.app.config.task.append_mode,
         )
         updated_position = result.position if isinstance(result, Task) else None
-        self.selected_task.column = original_column
+        moving_task.column = original_column
 
         # Check if the update was successful (for backends that return status like Jira)
         if isinstance(result, dict) and not result.get("success", True):
@@ -511,35 +582,43 @@ class KanbanBoard(HorizontalScroll):
             return
 
         await self.query_one(f"#column_{original_column}", Column).remove_task(
-            self.selected_task
+            moving_task
         )
 
         # Update task status dates based on column transitions
-        self.selected_task.update_task_status(
+        moving_task.update_task_status(
             new_column=target_column,
             update_column_dict={
-                "reset": self.app.active_board.reset_column,
-                "start": self.app.active_board.start_column,
-                "finish": self.app.active_board.finish_column,
+                "reset": active_board.reset_column,
+                "start": active_board.start_column,
+                "finish": active_board.finish_column,
             },
         )
 
-        self.selected_task.column = target_column
+        moving_task.column = target_column
         if updated_position is not None:
-            self.selected_task.position = updated_position
+            moving_task.position = updated_position
 
-        await self.query_one(f"#column_{self.selected_task.column}", Column).place_task(
-            self.selected_task,
-            target_position=updated_position,
+        display_position = (
+            self.drag_target_position
+            if event is None and self.mouse_down and self.target_column is not None
+            else updated_position
+        )
+        await self.query_one(f"#column_{moving_task.column}", Column).place_task(
+            moving_task,
+            target_position=display_position,
         )
 
         self.app.update_task_list()
 
         # Refresh all task cards to update dependency status immediately
-        moved_task_id = self.selected_task.task_id
+        moved_task_id = moving_task.task_id
         for task_card in self.query(TaskCard):
             # Update the task data from the backend to get latest dependency status
-            updated_task = self.app.backend.get_task_by_id(task_card.task_.task_id)
+            task = task_card.task_
+            if task is None:
+                continue
+            updated_task = self.app.backend.get_task_by_id(task.task_id)
             if updated_task:
                 task_card.task_ = updated_task
                 task_card.refresh(recompose=True)
@@ -555,10 +634,11 @@ class KanbanBoard(HorizontalScroll):
 
     @on(TaskCard.Delete)
     async def delete_task(self, event: TaskCard.Delete):
-        await self.query_one(
-            f"#column_{event.taskcard.task_.column}", Column
-        ).remove_task(task=event.taskcard.task_)
-        self.app.backend.delete_task(task_id=event.taskcard.task_.task_id)
+        task = event.taskcard.task_
+        if task is None:
+            return
+        await self.query_one(f"#column_{task.column}", Column).remove_task(task=task)
+        self.app.backend.delete_task(task_id=task.task_id)
         self.app.update_task_list()
 
         if not self.app.task_list:
@@ -593,10 +673,13 @@ class KanbanBoard(HorizontalScroll):
             return
         if self.selected_task is None:
             return
+        selected_task = self.selected_task
         for column in self.query(Column):
             if column.region.contains_point(event.screen_offset):
+                if column.id is None:
+                    continue
                 column_id = int(column.id.split("_")[-1])
-                is_same_column = self.selected_task.column == column_id
+                is_same_column = selected_task.column == column_id
                 if is_same_column:
                     self.target_column = None
                     if self._timers:
@@ -621,7 +704,7 @@ class KanbanBoard(HorizontalScroll):
 
     def get_first_card(self):
         # Make it smooth when starting without any Tasks
-        if not self.app.visible_task_list:
+        if not list(self.query(TaskCard)):
             self.can_focus = True
             self.focus()
             if not self.app.active_board:

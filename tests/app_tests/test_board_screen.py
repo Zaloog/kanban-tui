@@ -12,6 +12,7 @@ from kanban_tui.modal.modal_board_screen import (
 from kanban_tui.modal.modal_task_screen import ModalTaskEditScreen
 from kanban_tui.screens.board_screen import BoardScreen
 from kanban_tui.widgets.board_widgets import KanbanBoard
+from kanban_tui.widgets.filter_bar import FilterBar
 from kanban_tui.widgets.modal_task_widgets import VimSelect
 from kanban_tui.widgets.task_card import TaskCard
 from kanban_tui.widgets.task_column import Column
@@ -264,6 +265,106 @@ async def test_kanbanboard_card_movement_mouse_same_column(test_app: KanbanTui):
         assert pilot.app.focused.task_.title == "Task_ready_0"
         assert pilot.app.focused.task_.column == 1
         assert pilot.app.focused.row == 0
+
+
+async def test_filter_bar_searches_titles_descriptions_and_categories(
+    test_app: KanbanTui,
+):
+    description_task = test_app.backend.create_new_task(
+        title="Notes", description="distinctive phrase", category=2, column=1
+    )
+
+    async with test_app.run_test(size=APP_SIZE) as pilot:
+        filter_bar = pilot.app.screen.query_one(FilterBar)
+        search = filter_bar.query_one(Input)
+        board = pilot.app.screen.query_one(KanbanBoard)
+
+        await pilot.press("ctrl+f")
+        assert not filter_bar.has_class("-hidden")
+
+        search.value = "ready_0"
+        await pilot.pause()
+        assert [card.task_.title for card in board.query(TaskCard)] == ["Task_ready_0"]
+        assert board.border_subtitle == "🔍 All: ready_0"
+
+        search.value = "distinctive phrase"
+        await pilot.pause()
+        assert [card.task_.task_id for card in board.query(TaskCard)] == [
+            description_task.task_id
+        ]
+
+        search.value = ":"
+        await pilot.pause()
+        await pilot.press("down", "down", "enter")
+        await pilot.pause()
+        assert pilot.app.filter_field == "category"
+        assert search.value == ""
+        assert filter_bar.border_subtitle == "🔍 Category"
+        assert board.border_subtitle == ""
+
+        search.value = "green"
+        await pilot.pause()
+        assert filter_bar.border_subtitle == ""
+        assert board.border_subtitle == "🔍 Category: green"
+        assert {card.task_.title for card in board.query(TaskCard)} == {
+            "Task_doing_0",
+            "Notes",
+        }
+
+        search.value = ""
+        await pilot.pause()
+        assert pilot.app.filter_field == "category"
+        assert filter_bar.border_subtitle == "🔍 Category"
+        await pilot.press("backspace")
+        await pilot.pause()
+        assert pilot.app.filter_field is None
+        assert filter_bar.border_subtitle == ""
+        assert len(list(board.query(TaskCard))) == len(pilot.app.task_list)
+        assert board.border_subtitle == ""
+
+
+async def test_filtered_reorder_preserves_hidden_task_order(
+    no_task_app: KanbanTui,
+):
+    titles = ["Hidden A1", "Hidden A2", "Visible C", "Hidden A3", "Visible B"]
+    created_tasks = []
+    for title in titles:
+        created_tasks.append(
+            no_task_app.backend.create_new_task(
+                title=title,
+                description="show" if title.startswith("Visible") else "hide",
+                column=1,
+            )
+        )
+
+    async with no_task_app.run_test(size=APP_SIZE) as pilot:
+        board = pilot.app.screen.query_one(KanbanBoard)
+        pilot.app.filter_query = "show"
+        await pilot.pause()
+
+        column = pilot.app.screen.query_one("#column_1", Column)
+        visible_cards = list(column.query(TaskCard))
+        assert [card.task_.title for card in visible_cards] == [
+            "Visible C",
+            "Visible B",
+        ]
+
+        board.selected_task = created_tasks[-1]
+        board._set_drag_target(
+            target_card=visible_cards[0], before=True, position=0, column_id=1
+        )
+        board._move_task_within_column(target_position=0)
+
+        pilot.app.filter_query = ""
+        await pilot.pause()
+        full_order = [card.task_.title for card in column.query(TaskCard)]
+        assert full_order == [
+            "Hidden A1",
+            "Hidden A2",
+            "Visible B",
+            "Visible C",
+            "Hidden A3",
+        ]
 
 
 @pytest.mark.skipif(
