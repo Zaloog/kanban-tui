@@ -474,59 +474,34 @@ ModalNewCategoryScreen {
   }
 }
 
-FilterOverlay {
-    width: 40%;
-    transition: offset 500ms in_out_cubic;
-    layer: above;
-    dock:left;
-    &.-hidden{
-        offset-x: -100%;
+#filter_bar {
+    width: 1fr;
+    height: 3;
+    padding: 0 1;
+    border: tall $success;
+    Label {
+        width: auto;
+        height: 1fr;
+        padding: 0 1 0 0;
+        content-align: left middle;
     }
-    &:focus-within {
-    offset: 0 0 !important;
-    }
-    DatePickerDialog {
-        border:$success;
-        margin-left:-5;
-    }
-    Placeholder {
-        height:1fr;
-    }
-    # WORK
-    CategoryFilter{
-        border:$success;
-
-        SelectionList{
-            height:1fr;
-            width:1fr;
-            align:center middle;
-        }
-    }
-    # WORK
-    Label{
-        text-align:center;
+    Input {
         width: 1fr;
+        height: 1fr;
+        border: none;
     }
-    DateFilter {
-        border:$success;
-        height:auto;
-
-        Horizontal{
-            height:3;
-            Label{
-                text-align:center;
-                padding: 1 0 0 0;
-                width: 1fr;
-            }
-            DateSelect {
-                height:1fr;
-                width:3fr;
-            }
-        }
-    }
-    Button {
-        height:1fr;
-        color:$success;
+}
+#filter_bar.-hidden {
+    display: none;
+}
+#filter_bar AutoComplete {
+    height: 3;
+    min-height: 3;
+    max-height: 3;
+    AutoCompleteList {
+        height: 3;
+        min-height: 3;
+        max-height: 3;
     }
 }
 

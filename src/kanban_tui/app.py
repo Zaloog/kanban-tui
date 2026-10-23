@@ -56,6 +56,8 @@ class KanbanTui(App[str | None]):
     board_list: reactive[list[Board]] = reactive([], init=False)
     column_list: reactive[list[Column]] = reactive([], init=False)
     active_board: reactive[Board | None] = reactive(None, init=False)
+    filter_query: reactive[str] = reactive("")
+    filter_field: reactive[str | None] = reactive(None)
 
     def __init__(
         self,

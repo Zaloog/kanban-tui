@@ -20,6 +20,7 @@ from textual.worker import get_current_worker
 from kanban_tui.classes.board import Board
 from kanban_tui.widgets.board_widgets import KanbanBoard
 from kanban_tui.widgets.custom_widgets import KanbanTuiFooter
+from kanban_tui.widgets.filter_bar import FilterBar
 
 
 class BoardScreen(Screen):
@@ -27,6 +28,7 @@ class BoardScreen(Screen):
     active_board: reactive[Board | None] = reactive(None, init=False)
 
     def compose(self) -> Iterable[Widget]:
+        yield FilterBar()
         yield KanbanBoard()
         yield Header()
         yield KanbanTuiFooter()
