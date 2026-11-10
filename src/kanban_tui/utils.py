@@ -514,7 +514,10 @@ def create_demo_tasks(app: KanbanTui):
 
 def get_days_left_till_due(due_date: str | None):
     if due_date is not None:
-        due_date_date = datetime.fromisoformat(due_date)
+        try:
+            due_date_date = datetime.fromisoformat(due_date)
+        except (TypeError, ValueError):
+            return None
         return max(
             0,
             (due_date_date - datetime.now().replace(microsecond=0)) // timedelta(days=1)
