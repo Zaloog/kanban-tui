@@ -92,6 +92,8 @@ def test_calculate_work_on_time(
         ("2024-01-02T00:00:00", 0),
         ("2024-01-20T00:00:00", 15),
         (None, None),
+        ("not-a-date", None),
+        ("", None),
     ],
 )
 def test_get_days_left_till_due(due_date, expected_result):
