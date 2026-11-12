@@ -297,14 +297,14 @@ async def test_filter_bar_searches_titles_descriptions_and_categories(
         await pilot.pause()
         await pilot.press("down", "down", "enter")
         await pilot.pause()
-        assert pilot.app.filter_field == "category"
+        assert test_app.filter_field == "category"
         assert search.value == ""
         assert filter_bar.border_subtitle == "🔍 Category"
         assert board.border_subtitle == ""
 
         search.value = "green"
         await pilot.pause()
-        assert filter_bar.border_subtitle == ""
+        assert filter_bar.border_subtitle == "🔍 Category"
         assert board.border_subtitle == "🔍 Category: green"
         assert {card.task_.title for card in board.query(TaskCard)} == {
             "Task_doing_0",
