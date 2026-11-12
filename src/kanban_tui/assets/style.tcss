@@ -478,7 +478,7 @@ ModalNewCategoryScreen {
     width: 1fr;
     height: 3;
     padding: 0 1;
-    border: tall $success;
+    border:  $success;
     Label {
         width: auto;
         height: 1fr;
@@ -499,6 +499,7 @@ ModalNewCategoryScreen {
     min-height: 3;
     max-height: 3;
     AutoCompleteList {
+        width: 12;
         height: 3;
         min-height: 3;
         max-height: 3;
