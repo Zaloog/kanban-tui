@@ -27,7 +27,6 @@ class TaskCard(Vertical):
     app: KanbanTui
     expanded: reactive[bool] = reactive(False, bindings=True)
     mouse_down: reactive[bool] = reactive(False)
-    task_: reactive[Task | None] = reactive(None, bindings=True, init=False)
 
     BINDINGS = (
         Binding("H", "move_task('left')", description="👈", show=True, key_display="H"),
@@ -112,8 +111,8 @@ class TaskCard(Vertical):
 
         self.can_focus = True
         self.can_focus_children = False
-        super().__init__(id=f"taskcard_{task.task_id}")
         self.task_ = task
+        super().__init__(id=f"taskcard_{task.task_id}")
 
     def compose(self) -> ComposeResult:
         yield Label(self.task_.title, classes="label-title")

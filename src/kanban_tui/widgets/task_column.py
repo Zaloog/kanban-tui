@@ -19,6 +19,10 @@ class Column(Vertical):
     task_amount: reactive[int] = reactive(0)
     task_list: list[Task]
 
+    @property
+    def filter_active(self) -> bool:
+        return bool(self.app.filter_query or self.app.filter_field)
+
     def __init__(
         self, title: str, id_num: int, task_list: list[Task] | None = None
     ) -> None:
@@ -26,6 +30,7 @@ class Column(Vertical):
         self.task_list = task_list or []
         super().__init__(id=f"column_{id_num}")
         self.can_focus: bool = False
+        self.border_title = "move task here"
         self.styles.width = f"{1 / self.app.config.board.columns_in_view * 100:.2f}%"
 
     def compose(self) -> Iterable[Widget]:
@@ -34,7 +39,6 @@ class Column(Vertical):
 
     async def on_mount(self) -> None:
         await self.replace_tasks(self.task_list)
-        self.border_title = "move task here"
 
     def set_title(self, title: str) -> None:
         self.title = title
@@ -69,7 +73,8 @@ class Column(Vertical):
             else max(0, min(target_position, self.task_amount))
         )
 
-        task.position = row
+        if not self.filter_active:
+            task.position = row
         card = TaskCard(task=task, row=row)
         if row == self.task_amount:
             await scroll.mount(card)
@@ -77,10 +82,10 @@ class Column(Vertical):
         else:
             await scroll.mount(card, before=row)
             self.task_amount += 1
-            # Keep row and in-memory task.position aligned with rendered order.
             for row_position, task_card in enumerate(self.query(TaskCard)):
                 task_card.row = row_position
-                task_card.task_.position = row_position
+                if not self.filter_active:
+                    task_card.task_.position = row_position
 
     async def replace_tasks(self, task_list: list[Task]) -> None:
         scroll = self.query_one(VerticalScroll)
@@ -88,7 +93,8 @@ class Column(Vertical):
 
         cards: list[TaskCard] = []
         for row_position, task in enumerate(task_list):
-            task.position = row_position
+            if not self.filter_active:
+                task.position = row_position
             cards.append(TaskCard(task=task, row=row_position))
 
         if cards:
@@ -155,7 +161,8 @@ class Column(Vertical):
         for row_position, task in enumerate(
             task_list[len(existing_cards) :], start=len(existing_cards)
         ):
-            task.position = row_position
+            if not self.filter_active:
+                task.position = row_position
             new_cards.append(TaskCard(task=task, row=row_position))
 
         if new_cards:
@@ -174,12 +181,14 @@ class Column(Vertical):
         for row_position, (task_card, task) in enumerate(
             zip(task_cards, task_list, strict=False)
         ):
-            task.position = row_position
+            if not self.filter_active:
+                task.position = row_position
             if self.app.needs_refresh or task_card.task_ != task:
                 task_card.task_ = task
                 task_card.refresh(recompose=True)
             task_card.row = row_position
-            task_card.task_.position = row_position
+            if not self.filter_active:
+                task_card.task_.position = row_position
 
         self.task_list = task_list
         self.task_amount = len(task_list)
@@ -198,4 +207,5 @@ class Column(Vertical):
         # Update row attribute of other TaskCards
         for row_position, task_card in enumerate(self.query(TaskCard)):
             task_card.row = row_position
-            task_card.task_.position = row_position
+            if not self.filter_active:
+                task_card.task_.position = row_position
