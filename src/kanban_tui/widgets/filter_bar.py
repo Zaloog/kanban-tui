@@ -140,11 +140,10 @@ class FilterBar(Horizontal):
             else "Search all fields; type : to choose a filter"
         )
         if field:
+            self.border_subtitle = f"🔍 {field.title()}"
             if query:
-                self.border_subtitle = ""
                 board.border_subtitle = f"🔍 {field.title()}: {query}"
             else:
-                self.border_subtitle = f"🔍 {field.title()}"
                 board.border_subtitle = ""
         elif query:
             self.border_subtitle = ""
