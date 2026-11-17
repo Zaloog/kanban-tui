@@ -338,11 +338,11 @@ async def test_filtered_reorder_preserves_hidden_task_order(
         )
 
     async with no_task_app.run_test(size=APP_SIZE) as pilot:
-        board = pilot.app.screen.query_one(KanbanBoard)
-        pilot.app.filter_query = "show"
+        board = no_task_app.screen.query_one(KanbanBoard)
+        no_task_app.filter_query = "show"
         await pilot.pause()
 
-        column = pilot.app.screen.query_one("#column_1", Column)
+        column = no_task_app.screen.query_one("#column_1", Column)
         visible_cards = list(column.query(TaskCard))
         assert [card.task_.title for card in visible_cards] == [
             "Visible C",
