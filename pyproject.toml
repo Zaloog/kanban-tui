@@ -1,6 +1,6 @@
 [project]
 name = "kanban-tui"
-version = "0.21.2"
+version = "0.22.0"
 description = "customizable task tui powered by textual usable by agents"
 authors = [
     { name = "Zaloog", email = "gramslars@gmail.com" }
@@ -33,6 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: 3 :: Only",
 ]
 

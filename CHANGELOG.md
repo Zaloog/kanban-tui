@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.22.0
+### Added
+- Added search/filter function for cards
+
 ## v0.21.2
 ### Fixed
 - Fix issue with env vars for db/config path not being used when initilizing the app
